@@ -68,7 +68,7 @@ GND stud. Only remaining 12V question: underglow power source (see underglow row
 | Teensy 4.0 | 1 | PJRC / distributors | Not DigiKey's Molex aisle but DigiKey does stock Teensy (DEV boards section). |
 | GND tie connector/pad + fork lug | 1 | DigiKey | Master ground → PSU GND stud. Connector style TBD at layout. |
 | Micro-Fit 3.0 3-pin right-angle header (RS-485 OUT) | 1 | DigiKey (Molex) | |
-| INT bundle: 9–10 position pluggable terminal block (Euroblock style) | 1 | DigiKey | **Changed from 10-pin Micro-Fit 2026-07-10** — 9 single-conductor INT wires with ferrules, one position each (+ spare). Pluggable so the master detaches without unscrewing 9 wires. Label wires both ends. |
+| INT bundle: 9–10 position pluggable terminal block (Euroblock style) | 1 | DigiKey | **Changed from 10-pin Micro-Fit 2026-07-10** — 9 single-conductor INT wires with ferrules, one position each (+ spare, fine if empty). Pluggable = all 9 wires detach from the master as one block. Wires color-coded per panel (stock SMX convention — document the color map). |
 | 10kΩ resistor (INT pull-up) | 9 | DigiKey | One per INT line, to 3.3V. |
 | TVS diode (INT line ESD protection) | 9 lines | DigiKey | **Part not yet selected** — needs 3.3V working voltage; pick single vs array at schematic time. |
 | 120Ω resistor (RS-485 termination, master end) | 1 | DigiKey | Master end is always terminated. |
@@ -118,7 +118,7 @@ Goal: jacketed multi-conductor cable with exactly the conductors needed, no redu
 |-----|-------|-------------------|-------|
 | Power (3 feeds + 6 inter-panel) | 2-conductor 20 AWG jacketed | ~4–5m | Feeds PSU→column tops + adjacent-panel hops |
 | RS-485 (9 links, serpentine) | 1 twisted pair, 22–24 AWG (2 conductors, unshielded fine at 1 Mbps/<3m) | ~4–5m | A single Cat5e pair works in a pinch |
-| INT (9 home-runs) | single-conductor 24 AWG hookup wire | ~7–10m total (runs ~0.3–1.3m each) | 9 colors or label both ends — slot mapping feeds mismatch detection |
+| INT (9 home-runs) | single-conductor 24 AWG hookup wire | ~7–10m total (runs ~0.3–1.3m each) | **9 distinct colors, one per panel** (stock SMX convention) — a small multi-color hookup assortment box covers it; document the color map |
 
 Pad is ~850mm square (3× ~280mm panels); the estimates above assume routing slack. Verify
 against the stock harness before cutting/ordering.
