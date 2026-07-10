@@ -124,7 +124,7 @@ during assembly. Any ≥80°C/300V rating is fine; don't pay for more.
 |-----|-------|-------------------|-------|
 | Power (3 feeds + 6 inter-panel) | 2-conductor 20 AWG jacketed round (PVC), red/black conductors | ~4–5m | Security/alarm-style 2C cable; verify pure copper |
 | RS-485 (9 links, serpentine) | 1 twisted pair 22–24 AWG | ~4–5m | Buy 1-pair jacketed cable OR self-twist two UL1007 colors (~1–2 twists/inch, heatshrink ends). Fix an A/B color convention (e.g. yellow=A, blue=B) and never deviate |
-| INT (9 home-runs) | single-conductor 24 AWG UL1007 | ~7–10m total (runs ~0.3–1.3m each) | **One distinct color per panel.** Proposed map: resistor color-code order, panel 0–8 = black, brown, red, orange, yellow, green, blue, violet, grey (readable by any electronics person with no legend). Alternative: adopt stock SMX's per-panel colors — note them during teardown, then decide |
+| INT (9 home-runs) | single-conductor 24 AWG UL1007 | ~7–10m total (runs ~0.3–1.3m each) | **One distinct color per panel — stock SMX map adopted (2026-07-10, from user's pad):** 0=Red (UL), 1=Orange (U), 2=Yellow (UR), 3=Green (L), 4=Blue (C), 5=Brown (R), 6=Grey (DL), 7=White (D), 8=Black (DR) |
 
 Supporting bits: heatshrink assortment (end labels, pair dressing, strain relief); zip-tie
 anchor points near each PCB connector so yanks load the tie, not the crimp; grommets/edge
