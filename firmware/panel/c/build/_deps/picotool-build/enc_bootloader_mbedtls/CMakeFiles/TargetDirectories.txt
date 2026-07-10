@@ -1,0 +1,2 @@
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader_mbedtls/CMakeFiles/edit_cache.dir
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader_mbedtls/CMakeFiles/rebuild_cache.dir

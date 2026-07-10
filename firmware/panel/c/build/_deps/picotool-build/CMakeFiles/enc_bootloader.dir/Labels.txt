@@ -1,0 +1,13 @@
+# Target labels
+ enc_bootloader
+# Source files and their labels
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/CMakeFiles/enc_bootloader
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/CMakeFiles/enc_bootloader.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/CMakeFiles/enc_bootloader-complete.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader/src/enc_bootloader-stamp/enc_bootloader-build.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader/src/enc_bootloader-stamp/enc_bootloader-configure.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader/src/enc_bootloader-stamp/enc_bootloader-download.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader/src/enc_bootloader-stamp/enc_bootloader-install.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader/src/enc_bootloader-stamp/enc_bootloader-mkdir.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader/src/enc_bootloader-stamp/enc_bootloader-patch.rule
+/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool-build/enc_bootloader/src/enc_bootloader-stamp/enc_bootloader-update.rule
