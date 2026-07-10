@@ -1,0 +1,15 @@
+(kicad_sch
+  (version 20231120)
+  (generator "eeschema")
+  (uuid "a1b2c3d4-0000-4000-8000-000000000001")
+  (paper "A3")
+  (title_block
+    (title "KrakenPad Panel PCB")
+    (rev "0.1")
+    (comment 1 "RP2040 panel: 4x FSR, 25x WS2815, RS-485, INT out")
+  )
+  (lib_symbols)
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)
