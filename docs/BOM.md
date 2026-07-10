@@ -110,15 +110,27 @@ Also: fork/spade lugs for the 3 column feed cables' PSU ends + 1 for the master 
 terminations, ~30 exact incl. master end — buy an assortment box; optionally ring terminals
 instead at the panel end (style TBD at layout).
 
-## Wire / cable (estimates — measure the stock harness runs before ordering)
+## Wire / cable (spec decided 2026-07-10; lengths are estimates — measure the stock harness before ordering)
 
 Goal: jacketed multi-conductor cable with exactly the conductors needed, no redundant grounds.
 
+General spec (all runs): **stranded pure copper** (never solid — vibration; never CCA —
+check cheap listings), **unshielded** (RS-485 is differential and INT is filtered open-drain;
+shield buys nothing at <3m/1 Mbps), **PVC insulation (UL1007-class)** — chosen over silicone:
+tougher against frame-edge abrasion, no cold-flow under clamps, and these cables flex only
+during assembly. Any ≥80°C/300V rating is fine; don't pay for more.
+
 | Run | Cable | Est. total length | Notes |
 |-----|-------|-------------------|-------|
-| Power (3 feeds + 6 inter-panel) | 2-conductor 20 AWG jacketed | ~4–5m | Feeds PSU→column tops + adjacent-panel hops |
-| RS-485 (9 links, serpentine) | 1 twisted pair, 22–24 AWG (2 conductors, unshielded fine at 1 Mbps/<3m) | ~4–5m | A single Cat5e pair works in a pinch |
-| INT (9 home-runs) | single-conductor 24 AWG hookup wire | ~7–10m total (runs ~0.3–1.3m each) | **9 distinct colors, one per panel** (stock SMX convention) — a small multi-color hookup assortment box covers it; document the color map |
+| Power (3 feeds + 6 inter-panel) | 2-conductor 20 AWG jacketed round (PVC), red/black conductors | ~4–5m | Security/alarm-style 2C cable; verify pure copper |
+| RS-485 (9 links, serpentine) | 1 twisted pair 22–24 AWG | ~4–5m | Buy 1-pair jacketed cable OR self-twist two UL1007 colors (~1–2 twists/inch, heatshrink ends). Fix an A/B color convention (e.g. yellow=A, blue=B) and never deviate |
+| INT (9 home-runs) | single-conductor 24 AWG UL1007 | ~7–10m total (runs ~0.3–1.3m each) | **One distinct color per panel.** Proposed map: resistor color-code order, panel 0–8 = black, brown, red, orange, yellow, green, blue, violet, grey (readable by any electronics person with no legend). Alternative: adopt stock SMX's per-panel colors — note them during teardown, then decide |
+
+Supporting bits: heatshrink assortment (end labels, pair dressing, strain relief); zip-tie
+anchor points near each PCB connector so yanks load the tie, not the crimp; grommets/edge
+protection wherever cable crosses frame metal; cut with service-loop slack so a panel can be
+lifted out while connected. Pre-crimped Micro-Fit pigtails are an option to skip the 66 hand
+crimps.
 
 Pad is ~850mm square (3× ~280mm panels); the estimates above assume routing slack. Verify
 against the stock harness before cutting/ordering.
