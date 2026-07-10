@@ -1,5 +1,0 @@
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm-install/pioasm/pioasm
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm-install/pioasm/pioasmTargets.cmake
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm-install/pioasm/pioasmTargets-release.cmake
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm-install/pioasm/pioasmConfig.cmake
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm-install/pioasm/pioasmConfigVersion.cmake

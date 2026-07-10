@@ -1,7 +1,0 @@
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm/CMakeFiles/pioasm.dir
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm/CMakeFiles/edit_cache.dir
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm/CMakeFiles/rebuild_cache.dir
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm/CMakeFiles/list_install_components.dir
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm/CMakeFiles/install.dir
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm/CMakeFiles/install/local.dir
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/pioasm/CMakeFiles/install/strip.dir

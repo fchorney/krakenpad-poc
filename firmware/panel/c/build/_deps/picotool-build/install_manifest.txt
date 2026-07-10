@@ -1,7 +1,0 @@
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool/picotool
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool/picotoolTargets.cmake
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool/picotoolTargets-release.cmake
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool/picotoolConfig.cmake
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool/picotoolConfigVersion.cmake
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool/enc_bootloader.elf
-/Users/fchorney/Documents/repos/personal/claude-smx-custom-hardware/firmware/panel/c/build/_deps/picotool/enc_bootloader_mbedtls.elf
