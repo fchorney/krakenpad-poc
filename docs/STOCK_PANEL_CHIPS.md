@@ -57,20 +57,24 @@ databases for `B32 04H3`. Neither blocks anything — recorded for completeness.
    Our RP2040 (dual-core 133MHz, PIO for LEDs) is orders of magnitude ahead;
    no stock firmware behavior should be treated as a performance ceiling.
 
-5. **Brightness parity is an open question (raised 2026-07-11), testable for
-   free.** WS2815/WS2812B drive each color die at a fixed ~12mA; stock's
+5. **Brightness parity — RESOLVED 2026-07-11: not a concern.**
+   WS2815/WS2812B drive each color die at a fixed ~12mA; stock's
    TLC5940s could be driving their dies at up to ~20mA (typical 5050 rating),
    i.e. stock may be up to ~1.5× brighter per LED at max (sub-linear in
    perceived output). **(a) RESOLVED 2026-07-11: IREF resistors measure 2kΩ
    in-circuit → stock max channel current ≈ 39.06/2000 ≈ 19.5mA per die**
    (in-circuit parallel paths only read low, so ≤20mA is a firm upper
    bound). Stock drives ~1.6× our current per die; perceived difference is
-   sub-linear (LED droop + eye response), likely ~20–30% — small enough that
-   diffusion/ambient can swamp it. (b) remains the decisive test: put the
-   25× WS2812B prototype grid at full white under a real acrylic panel next
-   to a lit stock panel and compare by eye. If it falls short, mitigation is a
-   different 12V one-wire addressable part — the LED architecture doesn't
-   reopen.
+   sub-linear (LED droop + eye response), likely ~20–30%. **Verdict (user,
+   2026-07-11): stock is widely considered TOO bright — many players
+   (including the user) apply tint film to the panels to reduce emissivity.**
+   A ~20–30% dimmer max is therefore acceptable, likely preferable, and
+   software global-brightness scaling covers any further downward adjustment
+   (cleaner than physical tint). Optional curiosity, not a gate: the
+   side-by-side (WS2812B prototype at full white under real acrylic next to
+   a lit stock panel) would still characterize the real perceived gap. If it
+   ever surprised badly, mitigation is a different 12V one-wire addressable
+   part — the LED architecture doesn't reopen.
 
 6. **Precedents that validate our choices:** screw terminal for the per-panel
    signal wire (ours: INT), 4-position DIP for panel ID, single-ended UART
