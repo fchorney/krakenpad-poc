@@ -7,6 +7,9 @@ panel PCB pulled from the user's own pad (Gen5, not Gen4 — same 5×5" family, 
 authoritative where the two disagree). Coordinates: mm from the board's top-left
 corner, +X right, +Y down, unless noted otherwise.
 
+Chip-level inventory of the same board (what ICs stock uses, and what that tells us):
+see `STOCK_PANEL_CHIPS.md`.
+
 ## Outline
 
 - Photo estimate: 127 × 127mm square (5×5").
