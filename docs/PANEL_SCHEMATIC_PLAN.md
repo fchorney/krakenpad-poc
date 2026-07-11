@@ -111,19 +111,53 @@ Unused GPIOs → test pads if board space is free.
    clean (0 errors); netlist-verified A/B/GPIO0-2/GPIO10 nets and the switch-gated
    termination path are all wired exactly as intended, no shorts, no duplicate refs.
 4. **FSR inputs ×4**: JST-PH 2-pin → divider (FSR to 3.3V, 10kΩ pull-down on board),
-   node → ADC pin with 10nF C0G right at the RP2040.
+   node → ADC pin with 10nF C0G right at the RP2040. **Components placed (unwired)
+   2026-07-11**: J7–J10 (N/E/S/W), R11–R14 (10k), C21–C24 (10nF C0G), top-right of
+   sheet; FSR is non-polarized so connector pin assignment (pin 2 → 3V3, pin 1 →
+   node) is arbitrary.
 5. **LED chain**: SN74AHCT125 (5V VCC, 100nF), one gate for LED data (input from
    GPIO16, 3.3V logic OK at AHCT), ~330Ω series R → LED1 DIN. 25× WS2815 in the
    staggered 4-3-4-3-4-3-4 lattice — **physical measurements 2026-07-10 (supersede
    the old photo-estimate pitches): row pitch 17mm, column pitch 34mm, row 1 at
    Y=11mm from top edge** (see STOCK_PANEL_PCB_MEASUREMENTS.md), serpentine order
    per PROTOTYPE_LED_LAYOUT.md, BIN(n) ← DIN-signal(n-1), BIN(1) ← shifter output.
-   100nF ≥25V at every LED. Spare shifter gates: tie inputs to GND, or use one for
-   the debug LED.
+   Spare shifter gates: tie inputs to GND. **Drafted + netlist-verified 2026-07-11**
+   (this block was placed fully pre-connected — net labels directly on pins +
+   coincident power symbols — rather than left for hand-wiring like earlier blocks,
+   since it's 25 identical cells):
+   - **Per-LED cap corrected against the WS2815 datasheet**: 100nF goes **VCC (pin
+     1) → GND** (VCC = internal-regulator node, "suspended or connected with a
+     filter capacitor to GROUND"; recommended application circuit shows this cap),
+     NOT across VDD/GND and no ≥25V requirement — BOM.md updated to match. Pinout
+     verified from datasheet: 1 VCC, 2 VDD(+12V), 3 DO, 4 DIN, 5 GND, 6 BIN.
+   - Symbol: KiCad has no WS2815, so `LED:WS2813` is embedded (identical pin
+     numbering 1–6, verified) with Value "WS2815" and the VCC pin's electrical
+     type changed power_in → passive in the embedded copy (so a lone filter cap
+     doesn't trip ERC's power-driven check; matches WS2815 VCC semantics).
+   - D3–D27 = chain positions 1–25 (schematic order is logical; physical
+     serpentine mapping happens at layout). Chain nets `LD0`–`LD24` via local
+     labels placed directly on DIN/BIN/DO pins: LDn = {DO(n), DIN(n+1), BIN(n+2)};
+     LD0 = {R16, DIN(1), BIN(1), BIN(2)}; last DOUT no-connect flagged. C25–C49 =
+     per-LED VCC caps (pin-coincident, pre-connected).
+   - U6 = 74AHCT125 flattened from its `extends` parent 74LS125 (file convention:
+     no extends in embedded lib_symbols; inner unit names renamed). Unit A: GPIO16
+     → gate → R16 330Ω → LD0; /OE grounded. Units B–D: inputs + /OE grounded,
+     outputs no-connect flagged. Unit E: 5V power + C50 100nF.
+   - GPIO3 debug press LED (R17 1kΩ + D28, optional populate) driven directly
+     from the GPIO (push-pull per pin map), not via a spare shifter gate.
+   - Verified: ERC clean (only expected spare-GPIO isolated-label +
+     embedded-symbol-mismatch warnings) and netlist pin-exact: all 25 chain nets,
+     25 VCC-cap nets, +12.0V contains all 25 VDD pins, +5.0V picks up U6-14 +
+     C50, spare gates tied/isolated as intended, GPIO16/GPIO3 reach U1.
 6. **INT out**: GPIO5 → screw terminal / ring stud (single position), left edge
    ~93mm from top (physical measurement). Series ~100Ω optional for ESD robustness
-   (panel side has no TVS — that lives at the master).
-7. **ID/config**: 4-pos DIP to GND on GPIO6–9.
+   (panel side has no TVS — that lives at the master). **Components placed (unwired)
+   2026-07-11**: R15 (100R) + J11 (Conn_01x01, "INT OUT" — symbol is generic; actual
+   part screw terminal vs ring stud still TBD at layout).
+7. **ID/config**: 4-pos DIP to GND on GPIO6–9. **Components placed (unwired)
+   2026-07-11**: SW3 (`Switch:SW_DIP_x04`, value PANEL_ID) — pins 1–4 → GPIO6–9
+   labels (bit 0 = GPIO6 = pin 1), pins 5–8 commoned to GND; switch ON = GPIO low,
+   RP2040 internal pull-ups, no external resistors.
 8. **Board**: outline per physical measurement — **not a perfect square**, edges
    128/127/128/127mm (X locked ~127mm by the left/right power+RS-485 connectors,
    Y has ~20mm slack per end if ever needed — see CLAUDE.md Physical Dimensions).

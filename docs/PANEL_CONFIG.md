@@ -44,6 +44,19 @@ main-loop operation (mirrors stock's documented behavior: "panels will not funct
 normally when in diagnostic modes"). No hardware changes needed — same DIP switch,
 same GPIO read, just more branches in the boot-time dispatch.
 
+**Debug press LED (GPIO3, R17/D28 on the panel PCB) is diagnostic-mode-gated
+(decided 2026-07-11):** in normal operation (DIP 0–8) the LED stays dark; in
+diagnostic modes (9–13) it's active — lit on press for the sensor-facing modes
+(10/11/12), and free for mode-specific signaling elsewhere (e.g. a heartbeat blink
+in LED Check, an acknowledge blink after Factory Reset completes). Rationale: the
+LED exists for bench work — it runs off the 3.3V logic rail, so it works on
+USB-only power with the 12V grid absent (where the WS2815s are dark) — and there's
+no reason for a stray indicator glowing through the panel assembly during play. No
+new DIP code needed: a dedicated "normal play + debug LED" mode would consume the
+panel's ID slot (modes 9+ don't carry an ID), so gating it to the existing
+diagnostic modes is the coherent option. If mid-rig debugging ever wants it during
+normal operation, that's a flash-config flag / bus command, not a DIP mode.
+
 ## Per-channel FSR flags
 
 Two independent bits per channel — they answer different questions:

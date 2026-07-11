@@ -40,7 +40,7 @@ stocks it). DigiKey cart shrinks to whatever LCSC can't cover + bench spares.
 | DPDT slide switch (termination select) | 1 | DigiKey | Pole 1 switches the 120Ω across A/B; pole 2 reports state to a GPIO (pull-up, LOW = terminated). PN pinned at footprint stage. |
 | 4-position DIP switch (panel ID) | 1 | DigiKey | Values 0–8 = ID, 9–13 = diagnostic modes. |
 | WS2815 addressable LED, individual 5050 chips (12V) | 25 | LCSC / AliExpress (reel or cut tape) | **Confirmed 2026-07-10 over APA102-class SPI parts** — see docs/LED_OPTIONS.md. LEDs are placed directly on the panel PCB (not strips). 225 exact for 9 panels — buy ~300 or a small reel; not a DigiKey part. If panels are fab-assembled at JLCPCB, WS2815 is in LCSC stock — have the fab place them and skip buying separately. Prototype used WS2812B strip. |
-| 100nF ceramic decoupling cap (one per LED, 12V-rated ≥25V) | 25 | DigiKey/LCSC | Standard WS281x practice: one close to each LED's VDD/GND. 225 exact — buy a full reel, they're near-free. |
+| 100nF ceramic filter cap (one per LED) | 25 | DigiKey/LCSC | **Corrected 2026-07-11 against the WS2815 datasheet**: the cap goes from **VCC (pin 1) to GND**, not across VDD/GND — VCC is the IC's internal-regulator node ("Suspended or connected with a filter capacitor to GROUND"), and the datasheet's recommended application circuit shows exactly this 100nF per LED. The earlier "VDD/GND, ≥25V" note was generic 5V WS281x practice; the VCC node is low-voltage, so ≥25V isn't required (harmless if that's what's on the reel). 225 exact — buy a full reel, they're near-free. Bulk 12V decoupling for the LED VDD rail is a layout concern (pours + a few bulk caps), not per-LED. |
 | Series resistor on LED data input (~100–500Ω) | 1 | DigiKey/LCSC | Between shifter output and first LED's DIN; damps ringing on the data line. |
 | Micro-Fit 3.0 2-pin right-angle header (Power IN / OUT) | 2 | DigiKey (Molex) | All panels identical; end-of-chain OUT sits empty. |
 | Micro-Fit 3.0 3-pin right-angle header (RS-485 IN / OUT) | 2 | DigiKey (Molex) | All panels identical; end-of-chain OUT sits empty. |
@@ -51,8 +51,10 @@ stocks it). DigiKey cart shrinks to whatever LCSC can't cover + bench spares.
 
 Layout note for the LED chain: WS2815's **BIN** (backup data) pin on each LED connects to
 the same signal feeding the *previous* LED's DIN; the first LED's BIN ties to the data
-source (shifter output). That's what makes the chain survive a single dead LED — don't
-leave BIN floating.
+source (in the schematic: net `LD0`, the node after the series resistor — same net as
+LED 1's DIN, matching the datasheet's recommended application circuit). That's what makes
+the chain survive a single dead LED — don't leave BIN floating. Last LED's DOUT is left
+unconnected.
 
 ## Master PCB (×1)
 
