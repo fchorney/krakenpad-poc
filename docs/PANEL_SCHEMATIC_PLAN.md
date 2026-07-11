@@ -18,7 +18,7 @@ sheets, one block each. All decided parts per `docs/BOM.md`.
 > | SWD / BOOTSEL / RUN | J2 SWD header, SW2 BOOTSEL, R7 1k, R12 10k DNF, R1 10k RUN pull-up, TP1 RUN |
 > | RS-485 | U2 THVD1419, J8 IN / J10 OUT (Micro-Fit 3-pin), SW3 termination DPDT (E-Switch EG2201A, footprint panel-pcb:SW_EG2201A), R2 120Ω |
 > | FSR inputs | J3/J4/J6/J7 = N/E/S/W (JST-PH), R8–R11 10k 1% pull-downs, C16–C19 10nF C0G |
-> | LED chain | 25× WS2815 = D2–D11, D13–D22, D24–D28 (chain order ≠ ref order after re-annotation), U4 SN74AHCT125 (SOIC-14), R16 330Ω, per-LED 100nF = C21–C36, C39–C43, C45–C49 |
+> | LED chain | 25× WS2815 = D2–D11, D13–D22, D24–D28 (chain order ≠ ref order after re-annotation), U4 SN74AHCT125 (SOIC-14), R16 330Ω, per-LED 100nF = C22–C36, C39–C43, C45–C49 (C21 is the shifter VCC decoupler, not an LED cap) |
 > | Debug LED | D1 + R15 1k (GPIO3, optional populate) |
 > | INT out | R17 100Ω + J9 (part style TBD at layout) |
 > | Panel ID DIP | SW1 (GPIO6–9) |
