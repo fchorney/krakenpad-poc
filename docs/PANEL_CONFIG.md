@@ -44,7 +44,7 @@ main-loop operation (mirrors stock's documented behavior: "panels will not funct
 normally when in diagnostic modes"). No hardware changes needed — same DIP switch,
 same GPIO read, just more branches in the boot-time dispatch.
 
-**Debug press LED (GPIO3, R17/D28 on the panel PCB) is diagnostic-mode-gated
+**Debug press LED (GPIO3, R15/D1 on the panel PCB) is diagnostic-mode-gated
 (decided 2026-07-11):** in normal operation (DIP 0–8) the LED stays dark; in
 diagnostic modes (9–13) it's active — lit on press for the sensor-facing modes
 (10/11/12), and free for mode-specific signaling elsewhere (e.g. a heartbeat blink
