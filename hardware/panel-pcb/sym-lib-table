@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "panel-pcb")(type "KiCad")(uri "${KIPRJMOD}/panel-pcb.kicad_sym")(options "")(descr "Project-local symbols (SnapEDA imports etc.)"))
+)
