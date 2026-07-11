@@ -83,8 +83,11 @@ passthrough is **not a separate design**:
 - AMS1117 pair (SOT-223) wants copper pour for dissipation (~0.35W on the 5.0).
 - LDO caps C37/C44 (10µF) + C38/C50 (22µF): radial THT electrolytics, 25V —
   ESR requirement (AMS1117 stability) satisfied; footprints assigned 2026-07-11.
-- USB-C: vertical DIP through-hole mount (mechanical stress on through-hole
-  pins; no right-angle cable-clearance footprint cost).
+- USB-C: through-hole (or TH-reinforced) mounting for plug-cycle stress;
+  orientation free (2026-07-11 — port is bench-flashing only, used with the
+  panel top off; only constraint is body height clears the panel platform).
+  Candidates: GCT USB4085-GF-A (all-TH horizontal, stock KiCad footprint;
+  lean), GCT USB4105, or LCSC generic vertical DIP 16P.
 - X dimension fixed ~127mm (edge connectors left/right); Y has ~20mm slack per
   end if ever needed. Mounting holes 4.5mm, ~114mm centers, 6/7mm insets —
   verify which edges are 7mm against the frame before finalizing.
