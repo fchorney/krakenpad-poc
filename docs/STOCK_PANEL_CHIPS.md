@@ -22,6 +22,10 @@ modular jacks for data IN/OUT (J3/J2), blue 2-pos screw terminal (SIGNAL/GND), 2
 4-pin power connectors (J9/J10, silkscreened **+5V GND GND +5V**), per-sensor
 `AMP`/`FSR` selection jumpers.
 
+A **sacrificial stock panel PCB is inbound** (friend sending one, noted 2026-07-11)
+— parts can be desoldered/measured destructively if any exact value is ever needed
+(IREF resistors, mystery-chip pinout tracing, exact outline tracing/scanning).
+
 To resolve the two unidentified topmarks: TI's part-marking lookup
 (https://www.ti.com/packaging/docs/partlookup.tsp) for `M5P`; generic SMD topmark
 databases for `B32 04H3`. Neither blocks anything — recorded for completeness.
