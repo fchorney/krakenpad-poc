@@ -23975,7 +23975,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_USB:USB_C_Receptacle_GCT_USB4085"
 			(at 153.67 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -31246,7 +31246,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock:TerminalBlock_bornier-1_P5.08mm"
 			(at 248.92 270.51 0)
 			(hide yes)
 			(show_name no)
