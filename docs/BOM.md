@@ -24,7 +24,7 @@ stocks it). DigiKey cart shrinks to whatever LCSC can't cover + bench spares.
 |------|-----------|--------|-------|
 | RP2040 MCU (bare chip, QFN-56) | 1 | DigiKey | **Decided 2026-07-10: bare chip, not RP2040-Zero module.** Follow the official "Hardware design with RP2040" minimal design reference for the support circuit. |
 | 12MHz crystal (per RP2040 reference design) + load caps | 1 | DigiKey | ABM8-272-T3 class per the reference design; pin exact PN at schematic time. |
-| USB-C receptacle, 16-pin USB 2.0-only | 1 | DigiKey | For firmware flashing + animation loads. Chosen over micro-B 2026-07-10. Tie duplicated D+/D− pairs together. |
+| USB-C receptacle, 16-pin USB 2.0-only | 1 | DigiKey | For firmware flashing + animation loads. Chosen over micro-B 2026-07-10. Tie duplicated D+/D− pairs together. **Vertical DIP through-hole mount preferred (2026-07-10)** over right-angle — better mechanical durability for repeated plug/unplug, smaller footprint than a 90° part. Candidates: GCT USB4105/USB4085-series; exact part TBD. |
 | 5.1kΩ resistor (CC1/CC2 pull-downs) | 2 | DigiKey | Required for VBUS with C-to-C cables — do not omit. |
 | BOOTSEL tactile button | 1 | DigiKey | Grounds flash CS at boot for USB bootloader entry. |
 | SWD header, 3-pin 2.54mm (SWDIO/GND/SWCLK) | 1 | DigiKey | Recovery/debug path independent of USB + firmware state. Can ship unpopulated. Probe side: Raspberry Pi Debug Probe or a Pico running picoprobe. |
@@ -72,7 +72,8 @@ GND stud. Only remaining 12V question: underglow power source (see underglow row
 | 10kΩ resistor (INT pull-up) | 9 | DigiKey | One per INT line, to 3.3V. |
 | TVS diode (INT line ESD protection) | 9 lines | DigiKey | **Part not yet selected** — needs 3.3V working voltage; pick single vs array at schematic time. |
 | 120Ω resistor (RS-485 termination, master end) | 1 | DigiKey | Master end is always terminated. |
-| Underglow DATA output connector | 1 | TBD | **Data line only** (resolved 2026-07-10): underglow 12V/GND already come from the PSU lugs in the stock harness, and the master is grounded via its PSU GND tie — so the master just outputs DATA from a shifter channel (5V, off the Teensy USB rail). Still pending user check: connector type/pinout of the stock harness's data connection at the old MCU, so we can mate it directly. Needed at master layout time. |
+| Underglow DATA output connector | 1 | TBD | **Data line only** (resolved 2026-07-10): underglow 12V/GND already come from the PSU lugs in the stock harness, and the master is grounded via its PSU GND tie — so the master just outputs DATA from a shifter channel (5V, off the Teensy USB rail). Harness splice point reopened 2026-07-10 (leads crimped directly into a 12-pin Dupont housing at the stock MCU, no reusable intermediate connector) — pending full teardown. Connector type TBD at master layout time. |
+| 3-position DIP switch (player/pad ID) | 1 | DigiKey | **Decided 2026-07-10**, replaces stock jumper-based P1/P2 selection. 8 values (0–7); 0–3 = P1–P4 used initially, 4–7 reserved. |
 
 ## Micro-Fit 3.0 shopping list (full 9-panel build, 2026-07-10)
 

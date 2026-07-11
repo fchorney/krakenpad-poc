@@ -1,15 +1,20 @@
-# Stock Gen4+ Panel PCB — measurements from product photo
+# Stock Gen4+ Panel PCB — measurements
 
-Source: Step Revolution shop product photo (`PCB-Gen4_1024x1024.jpg`), scaled by the
-known 5.00" (127mm) top-to-bottom dimension → 4.65 px/mm. **Accuracy ±1–1.5mm** (JPEG,
-mild lens/perspective) — good for KiCad first-draft placement; verify critical
-dimensions (mounting holes especially) against the physical board with calipers before
-fab. Coordinates: mm from the board's top-left corner, +X right, +Y down.
+Two sources, kept side by side: an earlier **photo estimate** (Step Revolution shop
+photo, `PCB-Gen4_1024x1024.jpg`, scaled by the known 127mm dimension → 4.65 px/mm,
+**±1–1.5mm accuracy**) and **physical caliper measurements** taken 2026-07-10 on a
+panel PCB pulled from the user's own pad (Gen5, not Gen4 — same 5×5" family, treat as
+authoritative where the two disagree). Coordinates: mm from the board's top-left
+corner, +X right, +Y down, unless noted otherwise.
 
 ## Outline
 
-- Main body: **127 × 127mm square (5×5")** — confirms our planned size exactly.
-- Four small tabs jut out for connectors (stock frame cavity accommodates them):
+- Photo estimate: 127 × 127mm square (5×5").
+- **Physical (2026-07-10): not a perfect square** — edges measured 128mm / 127mm /
+  128mm / 127mm going around. Corner notches have angled sides that are hard to
+  caliper precisely; photos may resolve the exact notch geometry. Four small tabs jut
+  out for connectors per the photo estimate below — physical board confirms tabs
+  exist but exact protrusion not re-measured yet.
 
 | Tab | Location (Y range) | Protrusion | Stock use |
 |-----|-------------------|-----------|-----------|
@@ -24,26 +29,73 @@ tight, but tabs are optional (stock uses them for bulky jacks we don't have).
 
 ## Mounting holes
 
-4 holes, centers ≈ **7mm in from left/right edges, 7mm from top/bottom** (measured
-(7.3, 6.5) / (119.7, 6.5) / (7.3, 119.2) / (119.7, 119.2) — design intent almost
-certainly symmetric ~7mm inset). Verify with calipers; these must match the frame
-standoffs exactly.
+- Photo estimate: centers ≈7mm in from all four edges (symmetric).
+- **Physical (2026-07-10): hole diameter 4.5mm, center-to-center ~114mm in both X and
+  Y.** Inset (hole center to board edge) is 6mm on two edges, 7mm on the other two —
+  not symmetric like the photo estimate suggested; verify which two edges are 7mm
+  against the frame/standoffs before finalizing hole placement. **Standoffs are
+  plastic poles with retention tabs, not metal screws** — no grounded-screw
+  consideration needed, this user's pad shows no metal at the hole edges.
+
+## Standoff / mounting height
+
+- **Physical (2026-07-10):** PCB bottom surface sits ~6mm above the floor (standoff
+  height). Floor to the bottom of the pad's outer panel/platform is ~37.5mm total —
+  budget **35mm** as the usable design height (leaves margin). PCB thickness 1.6mm.
+
+## Edge connector positions (physical, 2026-07-10)
+
+Measured from the top edge unless noted:
+
+- Power IN: top-left, ~25mm from top edge.
+- Power OUT: top-right, ~25mm from top edge (mirrors IN).
+- INT: left edge, ~93mm from top edge.
+- Data IN: left edge, ~103mm from top edge.
+- Data OUT: right edge, ~95mm from top edge.
+
+## FSR positions (physical, 2026-07-10)
+
+Not exactly centered on each edge — each FSR sits inset **0–1mm from the edge**,
+i.e. pushed as close to the panel edge as physically possible, roughly centered
+along that edge's length but not precision-centered.
 
 ## LED lattice (25 LEDs, staggered 4–3–4–3–4–3–4)
 
 Matches `docs/PROTOTYPE_LED_LAYOUT.md` wiring order. Regular staggered lattice,
-centered on the board (measured center offset <1mm from board center):
+centered on the board.
 
-- **7 rows, vertical pitch ≈ 16.6mm**, row 1 at Y ≈ 13mm, row 7 at Y ≈ 112–113mm
-- **4-LED rows** (1,3,5,7): X ≈ 14.5, 48.0, 81.5, 115.0mm (pitch ≈ 33.5mm)
-- **3-LED rows** (2,4,6): X ≈ 31.2, 65.0, 99.0mm (same pitch, offset half — diamond lattice)
-- Nearest diagonal neighbor distance ≈ 23.5mm
+- Photo estimate: 7 rows, vertical pitch ≈16.6mm, row 1 at Y≈13mm; 4-LED rows pitch
+  ≈33.5mm; 3-LED rows offset half; diagonal neighbor distance ≈23.5mm.
+- **Physical (2026-07-10):** row 1 Y offset **11mm** from top edge. **Column pitch
+  (center-to-center within a row): 34mm.** **Row pitch (center-to-center between
+  adjacent rows): 17mm** (confirmed: row 1 to row 3 = 34mm = 2×17mm). Use these
+  physical values for the panel PCB layout — supersede the photo-estimated pitches.
 
-Suspiciously close to inch-round values (33.87mm = 1.333", 16.93mm = 0.667"); within
-measurement error of either. Pick clean values centered on the board for our layout —
-exact stock replication isn't required (diffuser/acrylic sits well above the LEDs).
+## INT wire color map
 
-## Other stock observations
+**Confirmed correct 2026-07-10** against the physical pad — matches the stock SMX
+color map already adopted in `docs/BOM.md` (0=Red, 1=Orange, 2=Yellow, 3=Green,
+4=Blue, 5=Brown, 6=Grey, 7=White, 8=Black). No changes needed.
+
+## Open items (pending full teardown)
+
+1. **PSU stud size** — for sizing the fork/spade lugs at the PSU end of the 12V
+   column runs.
+2. **Underglow data connector type/pinout at the old MCU** — gates the master
+   PCB's underglow DATA-out connector choice (see `docs/BOM.md` master table,
+   `docs/UNDERGLOW.md`). Related: the harness splice-point finding (leads crimped
+   directly into a 12-pin Dupont housing at the stock MCU, no reusable
+   intermediate connector — see CLAUDE.md Underglow section / project memory).
+3. **Harness run lengths** — power hops (PSU → first panel per column, panel →
+   panel), RS-485 links, and the 9 INT home-runs to the master — real
+   measurements to replace estimates in `docs/BOM.md`'s wire/cable quantities.
+   User's plan: possibly snake a single wire through the pad in the actual
+   routing to get true lengths rather than estimating from photos/geometry.
+
+Not answerable from external measurement alone — needs the full pad + harness
+teardown.
+
+## Other stock observations (photo estimate, not re-verified physically)
 
 - MCU + crystal right-of-center, DIP switch bottom-right, 4 "FSR AMP" labeled zones
   (one per edge — stock amplifies FSR signals locally), bottom-center connector.
