@@ -81,8 +81,8 @@ passthrough is **not a separate design**:
 - Keep FSR analog traces/dividers away from the LED field and LED data line;
   analog corner near the MCU, over unbroken L2 GND.
 - AMS1117 pair (SOT-223) wants copper pour for dissipation (~0.35W on the 5.0).
-- LDO output caps C16–C19: tantalum/electrolytic with some ESR (AMS1117
-  stability) — footprint choice happens in the normalization pass.
+- LDO caps C37/C44 (10µF) + C38/C50 (22µF): radial THT electrolytics, 25V —
+  ESR requirement (AMS1117 stability) satisfied; footprints assigned 2026-07-11.
 - USB-C: vertical DIP through-hole mount (mechanical stress on through-hole
   pins; no right-angle cable-clearance footprint cost).
 - X dimension fixed ~127mm (edge connectors left/right); Y has ~20mm slack per

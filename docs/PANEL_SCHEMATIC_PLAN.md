@@ -3,6 +3,28 @@
 Working plan for `hardware/panel-pcb/`. Draw as one flat schematic or hierarchical
 sheets, one block each. All decided parts per `docs/BOM.md`.
 
+> **⚠️ Re-annotation notice (2026-07-11):** after the schematic was completed and
+> reorganized in the GUI, all reference designators were re-annotated by sheet
+> position, and a value/type/footprint normalization pass was applied. Refs in the
+> block-by-block draft history below are **pre-annotation** and no longer match the
+> schematic. Current authoritative refs:
+>
+> | Block | Current refs |
+> |-------|-------------|
+> | RP2040 / flash / crystal | U1 RP2040, U3 W25Q32JV, X1 12MHz, C12/C14 15pF C0G crystal caps, R5 201Ω ADC filter |
+> | LDOs | U5 AMS1117-5.0, U6 AMS1117-3.3; electrolytic caps C37/C44 10µF 25V, C38/C50 22µF 25V |
+> | Power-OR (VBUS/12V) | D12, D23 (1N5819W Schottky, SOD-123) |
+> | USB-C | J1 (16P receptacle, footprint TBD at sourcing), R3/R4 27Ω 1% series, R13/R14 5.1k CC pull-downs |
+> | SWD / BOOTSEL / RUN | J2 SWD header, SW2 BOOTSEL, R7 1k, R12 10k DNF, R1 10k RUN pull-up, TP1 RUN |
+> | RS-485 | U2 THVD1419, J8 IN / J10 OUT (Micro-Fit 3-pin), SW1 termination DPDT (footprint TBD), R2 120Ω |
+> | FSR inputs | J3/J4/J6/J7 = N/E/S/W (JST-PH), R8–R11 10k 1% pull-downs, C16–C19 10nF C0G |
+> | LED chain | 25× WS2815 = D2–D11, D13–D22, D24–D28 (chain order ≠ ref order after re-annotation), U4 SN74AHCT125 (SOIC-14), R16 330Ω, per-LED 100nF = C21–C36, C39–C43, C45–C49 |
+> | Debug LED | D1 + R15 1k (GPIO3, optional populate) |
+> | INT out | R17 100Ω + J9 (part style TBD at layout) |
+> | Panel ID DIP | SW3 (GPIO6–9) |
+> | 12V bus | J5 IN / J11 OUT (Micro-Fit 2-pin) |
+> | Test points | TP1 RUN, TP2/TP3 GND, TP4 UART RX, TP5 UART TX, TP6 RS-485 dir (GPIO2), TP7 LED data 3.3V, TP8 +12V, TP9 LED data 5V, TP10 +5V, TP11 +3V3 |
+
 ## RP2040 pin map (final panel — supersedes prototype pins where noted)
 
 | GPIO | Function | Notes |
