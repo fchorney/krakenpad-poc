@@ -61,12 +61,14 @@ databases for `B32 04H3`. Neither blocks anything — recorded for completeness.
    free.** WS2815/WS2812B drive each color die at a fixed ~12mA; stock's
    TLC5940s could be driving their dies at up to ~20mA (typical 5050 rating),
    i.e. stock may be up to ~1.5× brighter per LED at max (sub-linear in
-   perceived output). Two checks before PCB layout, neither requiring
-   redesign: (a) measure the IREF-pin resistor on a stock TLC5940
-   (unpowered, resistor to GND; max channel current ≈ 39.06 / R_IREF ohms →
-   amps) to learn stock's actual drive current; (b) decisive: put the 25×
-   WS2812B prototype grid at full white under a real acrylic panel next to a
-   lit stock panel and compare by eye. If it falls short, mitigation is a
+   perceived output). **(a) RESOLVED 2026-07-11: IREF resistors measure 2kΩ
+   in-circuit → stock max channel current ≈ 39.06/2000 ≈ 19.5mA per die**
+   (in-circuit parallel paths only read low, so ≤20mA is a firm upper
+   bound). Stock drives ~1.6× our current per die; perceived difference is
+   sub-linear (LED droop + eye response), likely ~20–30% — small enough that
+   diffusion/ambient can swamp it. (b) remains the decisive test: put the
+   25× WS2812B prototype grid at full white under a real acrylic panel next
+   to a lit stock panel and compare by eye. If it falls short, mitigation is a
    different 12V one-wire addressable part — the LED architecture doesn't
    reopen.
 
