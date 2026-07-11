@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "panel-pcb")(type "KiCad")(uri "${KIPRJMOD}/panel-pcb.pretty")(options "")(descr "Project-local footprints (SnapEDA imports etc.)"))
+)
