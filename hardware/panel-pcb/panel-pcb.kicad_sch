@@ -26119,7 +26119,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "panel-pcb:SW_EG2201A"
 			(at 38.1 95.25 0)
 			(hide yes)
 			(show_name no)
