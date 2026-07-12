@@ -7286,7 +7286,7 @@
 		(uuid "733f7966-afac-42dd-9167-3cdd86f47743")
 	)
 	(junction
-		(at 25.4 254)
+		(at 27.94 255.27)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "7664203a-fe68-4145-b2ab-6343b2ea6159")
@@ -12862,7 +12862,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 25.4 254 0)
+		(at 27.94 255.27 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12872,7 +12872,7 @@
 		(dnp no)
 		(uuid "0d074328-6720-4690-8553-2b1bd8c2dec9")
 		(property "Reference" "#PWR03"
-			(at 25.4 259.08 0)
+			(at 27.94 260.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12883,7 +12883,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 25.4 258.318 0)
+			(at 27.94 259.588 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12893,7 +12893,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12904,7 +12904,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12915,7 +12915,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13494,7 +13494,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 25.4 254 90)
+		(at 27.94 255.27 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -13505,7 +13505,7 @@
 		(fields_autoplaced yes)
 		(uuid "130082bc-6994-4170-90a4-272c6f2e3489")
 		(property "Reference" "TP2"
-			(at 22.098 248.92 90)
+			(at 24.638 250.19 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13515,7 +13515,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 22.098 251.46 90)
+			(at 24.638 252.73 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13525,7 +13525,7 @@
 			)
 		)
 		(property "Footprint" "TestPoint:TestPoint_Pad_1.5x1.5mm"
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13536,7 +13536,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13547,7 +13547,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -20831,6 +20831,82 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 27.94 255.27 0)
+		(mirror y)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "61ef84d8-2263-4237-82a0-50bd094f3156")
+		(property "Reference" "TP12"
+			(at 27.94 246.634 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 27.94 248.666 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_1.5x1.5mm"
+			(at 27.94 255.27 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 27.94 255.27 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 27.94 255.27 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2733679c-19e1-4e79-9026-5225c93d1859")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "TP12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 152.4 101.6 0)
 		(unit 1)
@@ -27945,7 +28021,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 25.4 254 270)
+		(at 27.94 255.27 270)
 		(mirror x)
 		(unit 1)
 		(body_style 1)
@@ -27956,7 +28032,7 @@
 		(dnp no)
 		(uuid "ad6726ef-7295-4a4c-9d0d-53f3f4e58811")
 		(property "Reference" "TP3"
-			(at 28.702 248.92 90)
+			(at 31.242 250.19 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -27966,7 +28042,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 28.702 251.46 90)
+			(at 31.242 252.73 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -27976,7 +28052,7 @@
 			)
 		)
 		(property "Footprint" "TestPoint:TestPoint_Pad_1.5x1.5mm"
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -27987,7 +28063,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -27998,7 +28074,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 25.4 254 0)
+			(at 27.94 255.27 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
