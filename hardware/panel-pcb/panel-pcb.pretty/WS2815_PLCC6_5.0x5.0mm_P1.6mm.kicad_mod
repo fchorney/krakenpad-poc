@@ -1,0 +1,263 @@
+(footprint "WS2815_PLCC6_5.0x5.0mm_P1.6mm"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "WS2815, 6-pin PLCC6 5.0x5.0mm, 1.6mm pad pitch. Pad numbering corrected to match the real WS2815 pin diagram (VCC=1, VDD=2, DO=3, DIN=4, GND=5, BIN=6) - see https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf. NOT the same pin numbering as KiCad's stock LED_WS2812_PLCC6 footprint, which is for the different 6-pin WS2812 part (pin 1=DO, pin 4=NC).")
+	(tags "LED RGB NeoPixel WS2815")
+	(property "Reference" "REF**"
+		(at 0 -3.5 0)
+		(layer "F.SilkS")
+		(uuid "b1a1a001-0001-4000-8000-000000000001")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "WS2815_PLCC6_5.0x5.0mm_P1.6mm"
+		(at 0 4 0)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0001-4000-8000-000000000002")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "b1a1a001-0001-4000-8000-000000000003")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "b1a1a001-0001-4000-8000-000000000004")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start 3.5 2.3)
+		(end 3.5 -2.75)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "b1a1a001-0002-4000-8000-000000000001")
+	)
+	(fp_line
+		(start 3.05 2.75)
+		(end 3.5 2.3)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "b1a1a001-0002-4000-8000-000000000002")
+	)
+	(fp_line
+		(start -3.5 2.75)
+		(end 3.05 2.75)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "b1a1a001-0002-4000-8000-000000000003")
+	)
+	(fp_line
+		(start -3.5 -2.75)
+		(end 3.5 -2.75)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "b1a1a001-0002-4000-8000-000000000004")
+	)
+	(fp_line
+		(start -3.5 -2.75)
+		(end -3.5 2.75)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "b1a1a001-0002-4000-8000-000000000005")
+	)
+	(fp_line
+		(start -3.45 -2.75)
+		(end -3.45 2.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "b1a1a001-0003-4000-8000-000000000001")
+	)
+	(fp_line
+		(start -3.45 2.75)
+		(end 3.45 2.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "b1a1a001-0003-4000-8000-000000000002")
+	)
+	(fp_line
+		(start 3.45 -2.75)
+		(end -3.45 -2.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "b1a1a001-0003-4000-8000-000000000003")
+	)
+	(fp_line
+		(start 3.45 2.75)
+		(end 3.45 -2.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "b1a1a001-0003-4000-8000-000000000004")
+	)
+	(fp_line
+		(start 2.5 2.5)
+		(end -2.5 2.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0004-4000-8000-000000000001")
+	)
+	(fp_line
+		(start 2.5 1.5)
+		(end 1.5 2.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0004-4000-8000-000000000002")
+	)
+	(fp_line
+		(start 2.5 -2.5)
+		(end 2.5 2.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0004-4000-8000-000000000003")
+	)
+	(fp_line
+		(start -2.5 2.5)
+		(end -2.5 -2.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0004-4000-8000-000000000004")
+	)
+	(fp_line
+		(start -2.5 -2.5)
+		(end 2.5 -2.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0004-4000-8000-000000000005")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 0 2)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0004-4000-8000-000000000006")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "b1a1a001-0005-4000-8000-000000000001")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "4" smd rect
+		(at -2.45 -1.6)
+		(size 1.5 1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(pinfunction "DIN")
+		(uuid "b1a1a001-0006-4000-8000-000000000001")
+	)
+	(pad "5" smd rect
+		(at -2.45 0)
+		(size 1.5 1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(pinfunction "GND")
+		(uuid "b1a1a001-0006-4000-8000-000000000002")
+	)
+	(pad "6" smd rect
+		(at -2.45 1.6)
+		(size 1.5 1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(pinfunction "BIN")
+		(uuid "b1a1a001-0006-4000-8000-000000000003")
+	)
+	(pad "1" smd rect
+		(at 2.45 1.6)
+		(size 1.5 1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(pinfunction "VCC")
+		(uuid "b1a1a001-0006-4000-8000-000000000004")
+	)
+	(pad "2" smd rect
+		(at 2.45 0)
+		(size 1.5 1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(pinfunction "VDD")
+		(uuid "b1a1a001-0006-4000-8000-000000000005")
+	)
+	(pad "3" smd rect
+		(at 2.45 -1.6)
+		(size 1.5 1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(pinfunction "DO")
+		(uuid "b1a1a001-0006-4000-8000-000000000006")
+	)
+	(embedded_fonts no)
+)
