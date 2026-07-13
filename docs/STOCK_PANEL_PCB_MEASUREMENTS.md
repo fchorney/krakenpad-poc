@@ -39,6 +39,17 @@ tight, but tabs are optional (stock uses them for bulky jacks we don't have).
   against the frame/standoffs before finalizing hole placement. **Standoffs are
   plastic poles with retention tabs, not metal screws** — no grounded-screw
   consideration needed, this user's pad shows no metal at the hole edges.
+- **Physical, refined (2026-07-12, calipers, re-measured twice): not a perfect
+  square.** Left, bottom, and right hole-pair spacings are 114mm center-to-center;
+  the top pair (top-left to top-right) is 113mm — the two top holes sit ~0.5mm
+  further inboard than a symmetric 114×114 layout would put them. Corroborated
+  independently via pixel measurement on `images/back_smx_pcb.png` (ruler-calibrated,
+  ~14.7px/mm, cross-checked against the known 4.5mm hole diameter): same ~1–1.5mm
+  magnitude of asymmetry seen, confirming this isn't caliper noise. Visual inspection
+  by the user confirms it's the top two holes that are inset, not one top + one
+  bottom. Our panel PCB layout updated to match (2026-07-12): top holes moved to
+  X=57/170 (113mm apart), bottom holes stay at X=56.5/170.5 (114mm apart), Y
+  unchanged on both rows.
 
 ## Standoff / mounting height
 
@@ -73,6 +84,17 @@ centered on the board.
   (center-to-center within a row): 34mm.** **Row pitch (center-to-center between
   adjacent rows): 17mm** (confirmed: row 1 to row 3 = 34mm = 2×17mm). Use these
   physical values for the panel PCB layout — supersede the photo-estimated pitches.
+- **Physical, refined (2026-07-12, calipers): column pitch 33.5mm** (not 34mm) —
+  resolved by reconciling three independent readings (column pitch, left inset, right
+  inset) that only summed exactly to the 127mm board width at 33.5mm; 34mm and
+  33.75mm both left a 0.75–1.25mm residual. **Row pitch confirmed unchanged at
+  17mm** — self-consistent with a symmetric 12.5mm top/bottom inset on a 127mm
+  board (102mm / 6 gaps = 17mm exactly), so no change needed there.
+  **Insets, not symmetric left/right: left 13.5mm, right 13.0mm** (0.5mm
+  difference, mirrors the small asymmetries already found in mounting-hole
+  spacing). **Top/bottom inset: 12.5mm, symmetric.** Panel PCB LED lattice
+  updated to match (2026-07-12) — only the 25 LED footprints were moved; other
+  placement (passives, clusters) left for a follow-up pass.
 
 ## INT wire color map
 
