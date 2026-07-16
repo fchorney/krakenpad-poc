@@ -37,11 +37,11 @@
 #	(condition "A.Type == 'via'"))
 
 # 4-layer standard
-(rule "Minimum Via Diameter and Hole Size"
-	(constraint hole_size (min 0.3mm))
-	(constraint via_diameter (min 0.45mm))
-	(constraint disallow buried_via)
-	(condition "A.Type == 'via'"))
+#rule "Minimum Via Diameter and Hole Size"
+#	(constraint hole_size (min 0.3mm))
+#	(constraint via_diameter (min 0.45mm))
+#	(constraint disallow buried_via)
+#	(condition "A.Type == 'via'"))
 
 # 4-layer special
 #(rule "Minimum Via Diameter and Hole Size"
@@ -51,11 +51,11 @@
 #	(condition "A.Type == 'via'"))
 
 # 4-layer special
-#(rule "Minimum Via Diameter and Hole Size"
-#	(constraint hole_size (min 0.2mm))
-#	(constraint via_diameter (min 0.35mm))
-#	(constraint disallow buried_via)
-#	(condition "A.Type == 'via'"))
+(rule "Minimum Via Diameter and Hole Size"
+	(constraint hole_size (min 0.2mm))
+	(constraint via_diameter (min 0.35mm))
+	(constraint disallow buried_via)
+	(condition "A.Type == 'via'"))
 
 # 4-layer special
 #(rule "Minimum Via Diameter and Hole Size"
@@ -75,8 +75,8 @@
 	(condition "A.Type == 'pad' && !A.isPlated()"))
 
 (rule "Pad Size"
-	(constraint hole_size (min 0.5mm))
-	(constraint annular_width (min 0.25mm))
+	(constraint hole_size (min 0.15mm))
+	(constraint annular_width (min 0.15mm))
 	(condition "A.Type == 'Pad' && A.isPlated()"))
 	
 (rule "Minimum Castellated Hole Size"

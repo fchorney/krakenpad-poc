@@ -7262,6 +7262,12 @@
 		(uuid "5d1f48f6-bd4f-4bbc-9684-d3af8390450a")
 	)
 	(junction
+		(at 152.4 50.8)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6a1dae89-604e-4f54-bf00-96134925f150")
+	)
+	(junction
 		(at 328.93 224.79)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7400,16 +7406,16 @@
 		(uuid "cefbbf77-2a7c-44fe-887c-32819ed22dc0")
 	)
 	(junction
+		(at 152.4 29.21)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d3aef52d-e1dc-4314-a5bf-50d61ecf599a")
+	)
+	(junction
 		(at 38.1 262.89)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d3d6f161-446e-4ffe-b74b-6d6f29240051")
-	)
-	(junction
-		(at 152.4 50.8)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "db34e670-d510-48c6-92d3-95cf4a710bab")
 	)
 	(junction
 		(at 48.26 262.89)
@@ -7434,12 +7440,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f383a944-0373-4707-9111-b88cc8d496e6")
-	)
-	(junction
-		(at 152.4 29.21)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "fe93372d-dacd-461d-9981-f7b8f88fcdf0")
 	)
 	(no_connect
 		(at 168.91 171.45)
@@ -7903,16 +7903,6 @@
 	)
 	(wire
 		(pts
-			(xy 152.4 29.21) (xy 161.29 29.21)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "42151872-fa10-4d0c-ae17-f1a580657e54")
-	)
-	(wire
-		(pts
 			(xy 85.09 226.06) (xy 92.71 226.06)
 		)
 		(stroke
@@ -8050,6 +8040,16 @@
 			(type default)
 		)
 		(uuid "514bb054-fd9c-45ed-b2c6-99c50fc9130a")
+	)
+	(wire
+		(pts
+			(xy 152.4 50.8) (xy 161.29 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5335f971-85f2-434b-b7b0-a800f55310c6")
 	)
 	(wire
 		(pts
@@ -8293,6 +8293,16 @@
 	)
 	(wire
 		(pts
+			(xy 30.48 193.04) (xy 34.29 193.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "72575ede-ded5-49fb-b28b-6397b537076e")
+	)
+	(wire
+		(pts
 			(xy 269.24 41.91) (xy 269.24 53.34)
 		)
 		(stroke
@@ -8483,6 +8493,16 @@
 	)
 	(wire
 		(pts
+			(xy 152.4 29.21) (xy 161.29 29.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d338b2c-5758-4f41-ada5-732e063eea39")
+	)
+	(wire
+		(pts
 			(xy 26.67 241.3) (xy 34.29 241.3)
 		)
 		(stroke
@@ -8560,6 +8580,16 @@
 			(type default)
 		)
 		(uuid "99fb7ecb-7d5b-48a6-87c4-ae9f31ebbde1")
+	)
+	(wire
+		(pts
+			(xy 30.48 195.58) (xy 34.29 195.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9c1e7579-d7d4-4bba-bff7-9a7111242460")
 	)
 	(polyline
 		(pts
@@ -8890,16 +8920,6 @@
 			(type default)
 		)
 		(uuid "d4ebc3a1-8390-45e0-ba19-cfdb1b3bb664")
-	)
-	(wire
-		(pts
-			(xy 152.4 50.8) (xy 161.29 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d7f196d7-7ce9-4e4b-b79c-014b49b16c17")
 	)
 	(wire
 		(pts
@@ -9271,6 +9291,16 @@
 		)
 		(uuid "260fd1d9-629a-4b38-922f-07dad1455eee")
 	)
+	(label "LD0"
+		(at 233.68 44.45 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "27db7e38-a840-433b-82a1-a5589b648d3f")
+	)
 	(label "LD20"
 		(at 269.24 153.67 180)
 		(effects
@@ -9601,6 +9631,16 @@
 		)
 		(uuid "9cd081e6-e3dd-4f0b-80ae-da9df207ef72")
 	)
+	(label "USB-"
+		(at 33.02 193.04 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a6c3c7fa-1437-4d5a-b084-3e0e2e37cf01")
+	)
 	(label "LD7"
 		(at 284.48 67.31 0)
 		(effects
@@ -9791,6 +9831,16 @@
 		)
 		(uuid "d0afa152-c170-4f0e-a6a0-6cf67c176ebf")
 	)
+	(label "USB+"
+		(at 33.02 195.58 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "e54c6231-f620-4f53-b9ab-e942d1d966da")
+	)
 	(label "LD23"
 		(at 320.04 151.13 0)
 		(effects
@@ -9938,7 +9988,7 @@
 			)
 		)
 	)
-	(global_label "GPIO26/ADC0"
+	(global_label "GPIO28{slash}ADC2"
 		(shape input)
 		(at 214.63 191.77 0)
 		(fields_autoplaced yes)
@@ -9950,7 +10000,7 @@
 		)
 		(uuid "0983234d-8836-46da-b24f-62bf48c5d03b")
 		(property "Intersheetrefs" "⬚"
-			(at 214.63 191.77 0)
+			(at 230.6781 191.77 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9962,7 +10012,7 @@
 			)
 		)
 	)
-	(global_label "RS485_B"
+	(global_label "RS485-"
 		(shape input)
 		(at 269.24 270.51 180)
 		(fields_autoplaced yes)
@@ -9974,7 +10024,7 @@
 		)
 		(uuid "0d4c0437-060c-4445-bad7-93462359cf2c")
 		(property "Intersheetrefs" "⬚"
-			(at 269.24 270.51 0)
+			(at 258.5744 270.51 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9982,7 +10032,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
@@ -10175,7 +10225,7 @@
 			)
 		)
 	)
-	(global_label "GPIO7"
+	(global_label "GPIO23"
 		(shape input)
 		(at 30.48 30.48 180)
 		(fields_autoplaced yes)
@@ -10187,7 +10237,7 @@
 		)
 		(uuid "29f362ae-0bd7-4a7e-a0e1-b20ee5ee2b97")
 		(property "Intersheetrefs" "⬚"
-			(at 30.48 30.48 0)
+			(at 20.6005 30.48 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10195,7 +10245,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
@@ -10316,7 +10366,7 @@
 			)
 		)
 	)
-	(global_label "GPIO8"
+	(global_label "GPIO19"
 		(shape input)
 		(at 30.48 33.02 180)
 		(fields_autoplaced yes)
@@ -10328,7 +10378,7 @@
 		)
 		(uuid "3fda9a4c-8dd2-49ea-bc4a-038341d8e040")
 		(property "Intersheetrefs" "⬚"
-			(at 30.48 33.02 0)
+			(at 20.6005 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10336,11 +10386,11 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
-	(global_label "USB_DP"
+	(global_label "USB_D+"
 		(shape input)
 		(at 168.91 163.83 0)
 		(fields_autoplaced yes)
@@ -10352,7 +10402,7 @@
 		)
 		(uuid "4122d2a6-5a5b-41fd-9396-77cf7ccc627e")
 		(property "Intersheetrefs" "⬚"
-			(at 179.2128 163.83 0)
+			(at 179.5152 163.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10457,7 +10507,7 @@
 			)
 		)
 	)
-	(global_label "RS485_B"
+	(global_label "RS485-"
 		(shape input)
 		(at 48.26 87.63 0)
 		(fields_autoplaced yes)
@@ -10469,7 +10519,7 @@
 		)
 		(uuid "53a81352-4bab-479e-a6af-eb171a6bed7b")
 		(property "Intersheetrefs" "⬚"
-			(at 78.74 90.17 0)
+			(at 58.9256 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10477,7 +10527,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 	)
@@ -10528,7 +10578,7 @@
 			)
 		)
 	)
-	(global_label "USB_DM"
+	(global_label "USB_D-"
 		(shape input)
 		(at 168.91 158.75 0)
 		(fields_autoplaced yes)
@@ -10540,7 +10590,7 @@
 		)
 		(uuid "56e6825f-42bd-46c1-ac68-e80d720a456b")
 		(property "Intersheetrefs" "⬚"
-			(at 179.3942 158.75 0)
+			(at 179.5152 158.75 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10668,7 +10718,7 @@
 			)
 		)
 	)
-	(global_label "RS485_B"
+	(global_label "RS485-"
 		(shape input)
 		(at 101.6 62.23 0)
 		(fields_autoplaced yes)
@@ -10680,7 +10730,7 @@
 		)
 		(uuid "77b72f3b-cf06-49f7-9df0-c9e663437626")
 		(property "Intersheetrefs" "⬚"
-			(at 101.6 62.23 0)
+			(at 112.2656 62.23 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10688,10 +10738,11 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 	)
-	(global_label "GPIO16"
+	(global_label "GPIO3"
 		(shape input)
 		(at 210.82 39.37 180)
 		(fields_autoplaced yes)
@@ -10703,7 +10754,7 @@
 		)
 		(uuid "7c577ebd-f1fc-4fa3-98a2-a124d2aa93e6")
 		(property "Intersheetrefs" "⬚"
-			(at 210.82 39.37 0)
+			(at 202.15 39.37 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10711,7 +10762,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
@@ -10784,9 +10835,9 @@
 			)
 		)
 	)
-	(global_label "USB_DM"
+	(global_label "USB_D-"
 		(shape input)
-		(at 26.67 193.04 180)
+		(at 22.86 193.04 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -10796,7 +10847,7 @@
 		)
 		(uuid "8a34289c-60f7-48e5-8470-484c0fb8cb46")
 		(property "Intersheetrefs" "⬚"
-			(at 26.67 193.04 0)
+			(at 12.2548 193.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10804,6 +10855,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 	)
@@ -10901,7 +10953,7 @@
 			)
 		)
 	)
-	(global_label "GPIO28/ADC2"
+	(global_label "GPIO26{slash}ADC0"
 		(shape input)
 		(at 247.65 191.77 0)
 		(fields_autoplaced yes)
@@ -10913,7 +10965,7 @@
 		)
 		(uuid "9f1a66f5-9e73-48cc-b807-dccff9b0fbd6")
 		(property "Intersheetrefs" "⬚"
-			(at 247.65 191.77 0)
+			(at 263.6981 191.77 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10948,7 +11000,7 @@
 			)
 		)
 	)
-	(global_label "GPIO28/ADC2"
+	(global_label "GPIO29{slash}ADC3"
 		(shape input)
 		(at 149.86 50.8 180)
 		(fields_autoplaced yes)
@@ -10960,7 +11012,7 @@
 		)
 		(uuid "a149b784-8284-4923-a786-acbb414ae43c")
 		(property "Intersheetrefs" "⬚"
-			(at 149.86 50.8 0)
+			(at 133.8119 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10972,7 +11024,7 @@
 			)
 		)
 	)
-	(global_label "RS485_A"
+	(global_label "RS485+"
 		(shape input)
 		(at 269.24 267.97 180)
 		(fields_autoplaced yes)
@@ -10984,7 +11036,7 @@
 		)
 		(uuid "a1875150-ab1a-4afb-b955-7ca34055a849")
 		(property "Intersheetrefs" "⬚"
-			(at 269.24 267.97 0)
+			(at 258.5744 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10992,13 +11044,13 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
-	(global_label "USB_DP"
+	(global_label "USB_D+"
 		(shape input)
-		(at 26.67 195.58 180)
+		(at 22.86 195.58 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -11008,7 +11060,7 @@
 		)
 		(uuid "a2caaca3-2a27-4efa-be1f-7a476636d3d9")
 		(property "Intersheetrefs" "⬚"
-			(at 26.67 195.58 0)
+			(at 12.2548 195.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11016,6 +11068,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 	)
@@ -11042,7 +11095,7 @@
 			)
 		)
 	)
-	(global_label "GPIO27/ADC1"
+	(global_label "GPIO26{slash}ADC0"
 		(shape input)
 		(at 149.86 72.39 180)
 		(fields_autoplaced yes)
@@ -11054,7 +11107,7 @@
 		)
 		(uuid "a459d2a1-a9c1-494b-b9b8-f0fae73f751e")
 		(property "Intersheetrefs" "⬚"
-			(at 149.86 72.39 0)
+			(at 133.8119 72.39 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11114,7 +11167,7 @@
 			)
 		)
 	)
-	(global_label "RS485_A"
+	(global_label "RS485+"
 		(shape input)
 		(at 25.4 90.17 180)
 		(fields_autoplaced yes)
@@ -11126,7 +11179,7 @@
 		)
 		(uuid "a9b8c7d6-5e4f-4a3b-8c2d-1e0f9a8b7c6d")
 		(property "Intersheetrefs" "⬚"
-			(at 20.32 95.25 0)
+			(at 14.7344 90.17 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11134,6 +11187,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 	)
@@ -11160,7 +11214,7 @@
 			)
 		)
 	)
-	(global_label "GPIO29/ADC3"
+	(global_label "GPIO28{slash}ADC2"
 		(shape input)
 		(at 149.86 93.98 180)
 		(fields_autoplaced yes)
@@ -11172,7 +11226,7 @@
 		)
 		(uuid "afb9dcd6-4105-4c62-98c7-3e3e4a310b48")
 		(property "Intersheetrefs" "⬚"
-			(at 149.86 93.98 0)
+			(at 133.8119 93.98 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11184,7 +11238,7 @@
 			)
 		)
 	)
-	(global_label "RS485_A"
+	(global_label "RS485+"
 		(shape input)
 		(at 101.6 57.15 0)
 		(fields_autoplaced yes)
@@ -11196,7 +11250,7 @@
 		)
 		(uuid "b67c35c7-a455-4cd8-b9ff-966c85bd901a")
 		(property "Intersheetrefs" "⬚"
-			(at 101.6 57.15 0)
+			(at 112.2656 57.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11204,10 +11258,11 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 	)
-	(global_label "GPIO26/ADC0"
+	(global_label "GPIO27{slash}ADC1"
 		(shape input)
 		(at 149.86 29.21 180)
 		(fields_autoplaced yes)
@@ -11219,7 +11274,7 @@
 		)
 		(uuid "b6f7f9ee-fc5f-466c-a955-192b64778780")
 		(property "Intersheetrefs" "⬚"
-			(at 149.86 29.21 0)
+			(at 133.8119 29.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11278,7 +11333,7 @@
 			)
 		)
 	)
-	(global_label "GPIO27/ADC1"
+	(global_label "GPIO29{slash}ADC3"
 		(shape input)
 		(at 214.63 213.36 0)
 		(fields_autoplaced yes)
@@ -11290,7 +11345,7 @@
 		)
 		(uuid "bb43dd0a-4948-4d10-aace-051f542d5ab5")
 		(property "Intersheetrefs" "⬚"
-			(at 214.63 213.36 0)
+			(at 230.6781 213.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11302,7 +11357,7 @@
 			)
 		)
 	)
-	(global_label "RS485_A"
+	(global_label "RS485+"
 		(shape input)
 		(at 247.65 234.95 0)
 		(fields_autoplaced yes)
@@ -11314,7 +11369,7 @@
 		)
 		(uuid "bb6e531f-2a17-4a7a-b23c-59d33eb3e29c")
 		(property "Intersheetrefs" "⬚"
-			(at 247.65 234.95 0)
+			(at 258.3156 234.95 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11322,7 +11377,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 	)
@@ -11445,7 +11500,7 @@
 			)
 		)
 	)
-	(global_label "GPIO29/ADC3"
+	(global_label "GPIO27{slash}ADC1"
 		(shape input)
 		(at 247.65 213.36 0)
 		(fields_autoplaced yes)
@@ -11457,7 +11512,7 @@
 		)
 		(uuid "d0759bad-a58b-439a-b352-6564414fa254")
 		(property "Intersheetrefs" "⬚"
-			(at 247.65 213.36 0)
+			(at 263.6981 213.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11539,7 +11594,7 @@
 			)
 		)
 	)
-	(global_label "GPIO3"
+	(global_label "GPIO25"
 		(shape input)
 		(at 209.55 162.56 180)
 		(fields_autoplaced yes)
@@ -11551,7 +11606,7 @@
 		)
 		(uuid "d5307468-f3e8-477d-9267-f67330d40e16")
 		(property "Intersheetrefs" "⬚"
-			(at 209.55 162.56 0)
+			(at 199.6705 162.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11559,7 +11614,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
@@ -11680,7 +11735,7 @@
 			)
 		)
 	)
-	(global_label "GPIO9"
+	(global_label "GPIO18"
 		(shape input)
 		(at 30.48 35.56 180)
 		(fields_autoplaced yes)
@@ -11692,7 +11747,7 @@
 		)
 		(uuid "edaeccf2-3b4c-430e-8aa8-1a3efd78c254")
 		(property "Intersheetrefs" "⬚"
-			(at 30.48 35.56 0)
+			(at 20.6005 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11700,7 +11755,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
@@ -11819,7 +11874,7 @@
 			)
 		)
 	)
-	(global_label "GPIO10"
+	(global_label "GPIO13"
 		(shape input)
 		(at 25.4 100.33 180)
 		(fields_autoplaced yes)
@@ -11831,7 +11886,7 @@
 		)
 		(uuid "f6e5d4c3-2b1a-4f0e-9d8c-7b6a5f4e3d2c")
 		(property "Intersheetrefs" "⬚"
-			(at 12.7 95.25 0)
+			(at 15.5205 100.33 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11839,7 +11894,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
@@ -11866,7 +11921,7 @@
 			)
 		)
 	)
-	(global_label "GPIO6"
+	(global_label "GPIO24"
 		(shape input)
 		(at 30.48 27.94 180)
 		(fields_autoplaced yes)
@@ -11878,7 +11933,7 @@
 		)
 		(uuid "fb3e82e2-8016-4979-ba20-a2067f3100bc")
 		(property "Intersheetrefs" "⬚"
-			(at 30.48 27.94 0)
+			(at 20.6005 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11886,11 +11941,11 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 	)
-	(global_label "RS485_B"
+	(global_label "RS485-"
 		(shape input)
 		(at 247.65 237.49 0)
 		(fields_autoplaced yes)
@@ -11902,7 +11957,7 @@
 		)
 		(uuid "fcb0e1d6-4b4d-47d6-9e27-82ccc600d125")
 		(property "Intersheetrefs" "⬚"
-			(at 247.65 237.49 0)
+			(at 258.3156 237.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11910,7 +11965,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 	)
@@ -12644,7 +12699,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 347.98 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -12655,7 +12710,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 347.98 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -12666,7 +12721,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 347.98 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -12783,7 +12838,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 161.29 76.2 0)
+		(at 161.29 54.61 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12793,7 +12848,7 @@
 		(dnp no)
 		(uuid "0c1b4f09-704c-456f-82a9-cf96b661c0f9")
 		(property "Reference" "C18"
-			(at 163.576 73.914 0)
+			(at 163.576 52.324 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12803,7 +12858,7 @@
 			)
 		)
 		(property "Value" "10nF C0G 50V"
-			(at 168.656 78.486 0)
+			(at 168.656 56.896 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12813,7 +12868,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 161.29 76.2 0)
+			(at 161.29 54.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12824,7 +12879,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 161.29 76.2 0)
+			(at 161.29 54.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12835,7 +12890,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 161.29 76.2 0)
+			(at 161.29 54.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13278,7 +13333,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 383.54 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -13289,7 +13344,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 383.54 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -13300,7 +13355,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 383.54 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -13990,7 +14045,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 38.1 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -14147,7 +14202,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 241.3 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -14158,7 +14213,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 241.3 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -14169,7 +14224,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 241.3 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -14627,7 +14682,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 241.3 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -14638,7 +14693,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 241.3 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -14649,7 +14704,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 241.3 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -14951,7 +15006,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 17.78 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -15184,7 +15239,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 312.42 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -15195,7 +15250,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 312.42 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -15206,7 +15261,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 312.42 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -15352,7 +15407,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 111.76 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -15585,7 +15640,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 347.98 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -15596,7 +15651,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 347.98 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -15607,7 +15662,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 347.98 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -16251,7 +16306,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 71.12 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -16794,7 +16849,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 276.86 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -16805,7 +16860,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 276.86 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -16816,7 +16871,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 276.86 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -17553,7 +17608,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 161.29 54.61 0)
+		(at 161.29 76.2 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -17563,7 +17618,7 @@
 		(dnp no)
 		(uuid "40ce2ca3-8204-4c7a-9b0b-75a4f33bde9f")
 		(property "Reference" "C17"
-			(at 163.322 52.578 0)
+			(at 163.322 74.168 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -17573,7 +17628,7 @@
 			)
 		)
 		(property "Value" "10nF C0G 50V"
-			(at 168.402 56.896 0)
+			(at 168.402 78.486 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -17583,7 +17638,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 161.29 54.61 0)
+			(at 161.29 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17594,7 +17649,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 161.29 54.61 0)
+			(at 161.29 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17605,7 +17660,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 161.29 54.61 0)
+			(at 161.29 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18279,7 +18334,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 312.42 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -18290,7 +18345,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 312.42 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -18301,7 +18356,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 312.42 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -19125,7 +19180,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 58.42 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -19174,7 +19229,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 161.29 58.42 0)
+		(at 161.29 36.83 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -19184,7 +19239,7 @@
 		(dnp no)
 		(uuid "52f2d105-470b-410c-806a-8104677f707e")
 		(property "Reference" "#PWR042"
-			(at 161.29 63.5 0)
+			(at 161.29 41.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19195,7 +19250,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 161.29 62.23 0)
+			(at 161.29 40.64 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19205,7 +19260,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 161.29 58.42 0)
+			(at 161.29 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19216,7 +19271,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 161.29 58.42 0)
+			(at 161.29 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19227,7 +19282,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 161.29 58.42 0)
+			(at 161.29 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19280,7 +19335,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 347.98 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -19291,7 +19346,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 347.98 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -19302,7 +19357,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 347.98 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -22494,7 +22549,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 48.26 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -22649,7 +22704,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 383.54 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -22660,7 +22715,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 383.54 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -22671,7 +22726,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 383.54 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -23050,7 +23105,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 312.42 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -23061,7 +23116,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 312.42 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -23072,7 +23127,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 312.42 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -23374,7 +23429,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 101.6 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -24349,7 +24404,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 161.29 97.79 0)
+		(at 161.29 33.02 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -24359,7 +24414,7 @@
 		(dnp no)
 		(uuid "8a10b756-4362-4be2-ad57-b8103a877669")
 		(property "Reference" "C19"
-			(at 163.576 95.758 0)
+			(at 163.576 30.988 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -24369,7 +24424,7 @@
 			)
 		)
 		(property "Value" "10nF C0G 50V"
-			(at 168.656 100.076 0)
+			(at 168.656 35.306 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -24379,7 +24434,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 161.29 97.79 0)
+			(at 161.29 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24390,7 +24445,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 161.29 97.79 0)
+			(at 161.29 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24401,7 +24456,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 161.29 97.79 0)
+			(at 161.29 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24534,7 +24589,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 383.54 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -24545,7 +24600,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 383.54 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -24556,7 +24611,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 383.54 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -25377,7 +25432,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 312.42 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -25388,7 +25443,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 312.42 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -25399,7 +25454,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 312.42 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -26106,7 +26161,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 276.86 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -26117,7 +26172,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 276.86 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -26128,7 +26183,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 276.86 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -26276,7 +26331,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 241.3 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -26287,7 +26342,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 241.3 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -26298,7 +26353,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 241.3 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -26832,7 +26887,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 383.54 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -26843,7 +26898,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 383.54 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -26854,7 +26909,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 383.54 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -27324,7 +27379,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 383.54 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -27335,7 +27390,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 383.54 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -27346,7 +27401,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 383.54 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -27569,7 +27624,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 347.98 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -27580,7 +27635,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 347.98 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -27591,7 +27646,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 347.98 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -27816,7 +27871,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 27.94 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -28439,7 +28494,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 241.3 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -28450,7 +28505,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 241.3 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -28461,7 +28516,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 241.3 95.25 0)
 			(hide yes)
 			(show_name no)
@@ -28607,7 +28662,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 312.42 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -28618,7 +28673,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 312.42 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -28629,7 +28684,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 312.42 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -28930,7 +28985,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 57.15 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -30220,7 +30275,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 241.3 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -30231,7 +30286,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 241.3 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -30242,7 +30297,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 241.3 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -30359,7 +30414,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 30.48 193.04 90)
+		(at 26.67 193.04 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -30369,7 +30424,7 @@
 		(dnp no)
 		(uuid "ca0ae3e4-8ca2-4c5d-868f-49ed7a5107b8")
 		(property "Reference" "R3"
-			(at 30.48 188.468 90)
+			(at 26.67 188.468 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -30379,7 +30434,7 @@
 			)
 		)
 		(property "Value" "27R 1%"
-			(at 30.48 190.754 90)
+			(at 26.67 190.754 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -30389,7 +30444,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 30.48 193.04 0)
+			(at 26.67 193.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -30400,7 +30455,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 30.48 193.04 0)
+			(at 26.67 193.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -30411,7 +30466,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 30.48 193.04 0)
+			(at 26.67 193.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -30515,7 +30570,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 30.48 195.58 270)
+		(at 26.67 195.58 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -30525,7 +30580,7 @@
 		(dnp no)
 		(uuid "cb1f7ce9-965d-4f49-b366-30c61f93197a")
 		(property "Reference" "R4"
-			(at 30.48 200.406 90)
+			(at 26.67 200.406 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -30535,7 +30590,7 @@
 			)
 		)
 		(property "Value" "27R 1%"
-			(at 30.48 198.12 90)
+			(at 26.67 198.12 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -30545,7 +30600,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 30.48 195.58 0)
+			(at 26.67 195.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -30556,7 +30611,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 30.48 195.58 0)
+			(at 26.67 195.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -30567,7 +30622,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 30.48 195.58 0)
+			(at 26.67 195.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -30623,7 +30678,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 276.86 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -30634,7 +30689,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 276.86 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -30645,7 +30700,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 276.86 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -30945,7 +31000,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 276.86 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -30956,7 +31011,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 276.86 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -30967,7 +31022,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 276.86 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -31476,7 +31531,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 161.29 36.83 0)
+		(at 161.29 58.42 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -31486,7 +31541,7 @@
 		(dnp no)
 		(uuid "d5955eb2-20a2-44ad-a2ff-5cd47e7add11")
 		(property "Reference" "#PWR041"
-			(at 161.29 41.91 0)
+			(at 161.29 63.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31497,7 +31552,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 161.29 40.64 0)
+			(at 161.29 62.23 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -31507,7 +31562,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 161.29 36.83 0)
+			(at 161.29 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31518,7 +31573,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 161.29 36.83 0)
+			(at 161.29 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31529,7 +31584,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 161.29 36.83 0)
+			(at 161.29 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32940,7 +32995,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 347.98 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -32951,7 +33006,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 347.98 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -32962,7 +33017,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 347.98 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -33079,7 +33134,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 161.29 33.02 0)
+		(at 161.29 97.79 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -33089,7 +33144,7 @@
 		(dnp no)
 		(uuid "e3d33358-3ada-4e0d-b788-a29bc1de452d")
 		(property "Reference" "C16"
-			(at 163.576 30.988 0)
+			(at 163.576 95.758 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -33099,7 +33154,7 @@
 			)
 		)
 		(property "Value" "10nF C0G 50V"
-			(at 168.656 35.56 0)
+			(at 168.656 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -33109,7 +33164,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 161.29 33.02 0)
+			(at 161.29 97.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33120,7 +33175,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 161.29 33.02 0)
+			(at 161.29 97.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33131,7 +33186,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 161.29 33.02 0)
+			(at 161.29 97.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33187,7 +33242,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
+		(property "Footprint" "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 			(at 276.86 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -33198,7 +33253,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
 			(at 276.86 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -33209,7 +33264,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "WS2815 6-pin PLCC6, corrected pad numbering"
 			(at 276.86 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -34658,7 +34713,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 68.58 273.05 0)
 			(hide yes)
 			(show_name no)
@@ -34966,7 +35021,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 41.91 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -35121,7 +35176,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 81.28 273.05 0)
 			(hide yes)
 			(show_name no)
