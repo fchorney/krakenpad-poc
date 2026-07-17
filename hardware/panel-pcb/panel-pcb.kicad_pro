@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.0,
-          "height": 1.0,
-          "width": 1.5
+          "drill": 0.4,
+          "height": 0.7,
+          "width": 0.7
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -52,8 +52,8 @@
         "zones": {
           "border_display_style": 2,
           "border_hatch_pitch": 0.5,
-          "corner_radius": 0.0,
-          "corner_smoothing": 0,
+          "corner_radius": 1.0,
+          "corner_smoothing": 2,
           "fill_mode": 0,
           "hatch_gap": 1.5,
           "hatch_orientation": 0.0,
@@ -86,24 +86,7 @@
           "width": 0.528
         }
       ],
-      "drc_exclusions": [
-        [
-          "starved_thermal|176775000|100525000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|ccc21123-d2d7-42eb-b0a2-ea44762f49f4|B.Cu",
-          ""
-        ],
-        [
-          "starved_thermal|176775000|100525000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|ccc21123-d2d7-42eb-b0a2-ea44762f49f4|In1.Cu",
-          ""
-        ],
-        [
-          "starved_thermal|176775000|106475000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|0c1540ae-0d1e-4230-acce-e42fd67b1f95|B.Cu",
-          ""
-        ],
-        [
-          "starved_thermal|176775000|106475000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|0c1540ae-0d1e-4230-acce-e42fd67b1f95|In1.Cu",
-          ""
-        ]
-      ],
+      "drc_exclusions": [],
       "meta": {
         "version": 2
       },
@@ -739,7 +722,7 @@
         "uuid": "a1b2c3d4-0000-4000-8000-000000000001"
       }
     ],
-    "used_designators": "SW1-3,#FLG1-6,X1,TP1-12,U1-6,#PWR1-152,D1-28,C1-52,R1-17,J1-11",
+    "used_designators": "SW1-3,#FLG1-6,X1,TP1-12,U1-7,#PWR1-153,D1-28,C1-52,R1-17,J1-11",
     "variants": []
   },
   "sheets": [
