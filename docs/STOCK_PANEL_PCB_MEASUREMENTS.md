@@ -82,8 +82,9 @@ centered on the board.
   ≈33.5mm; 3-LED rows offset half; diagonal neighbor distance ≈23.5mm.
 - **Physical (2026-07-10):** row 1 Y offset **11mm** from top edge. **Column pitch
   (center-to-center within a row): 34mm.** **Row pitch (center-to-center between
-  adjacent rows): 17mm** (confirmed: row 1 to row 3 = 34mm = 2×17mm). Use these
-  physical values for the panel PCB layout — supersede the photo-estimated pitches.
+  adjacent rows): 17mm** (confirmed: row 1 to row 3 = 34mm = 2×17mm). *(Column
+  pitch and row-1 offset superseded by the 2026-07-12 refinement below — 33.5mm
+  pitch, 12.5mm top inset; the PCB layout uses the refined values.)*
 - **Physical, refined (2026-07-12, calipers): column pitch 33.5mm** (not 34mm) —
   resolved by reconciling three independent readings (column pitch, left inset, right
   inset) that only summed exactly to the 127mm board width at 33.5mm; 34mm and

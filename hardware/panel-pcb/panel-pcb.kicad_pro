@@ -52,8 +52,8 @@
         "zones": {
           "border_display_style": 2,
           "border_hatch_pitch": 0.5,
-          "corner_radius": 1.0,
-          "corner_smoothing": 2,
+          "corner_radius": 0.0,
+          "corner_smoothing": 0,
           "fill_mode": 0,
           "hatch_gap": 1.5,
           "hatch_orientation": 0.0,
@@ -86,7 +86,24 @@
           "width": 0.528
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "starved_thermal|176775000|100525000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|ccc21123-d2d7-42eb-b0a2-ea44762f49f4|B.Cu",
+          ""
+        ],
+        [
+          "starved_thermal|176775000|100525000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|ccc21123-d2d7-42eb-b0a2-ea44762f49f4|In1.Cu",
+          ""
+        ],
+        [
+          "starved_thermal|176775000|106475000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|0c1540ae-0d1e-4230-acce-e42fd67b1f95|B.Cu",
+          ""
+        ],
+        [
+          "starved_thermal|176775000|106475000|5f28085f-f61a-4fb1-a41f-ef0f9633080f|0c1540ae-0d1e-4230-acce-e42fd67b1f95|In1.Cu",
+          ""
+        ]
+      ],
       "meta": {
         "version": 2
       },

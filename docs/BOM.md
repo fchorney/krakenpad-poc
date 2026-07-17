@@ -1,10 +1,8 @@
 # Bill of Materials (confirmed parts only)
 
-Status: **pre-layout BOM** — parts confirmed by design decisions and bench testing as of
-2026-07-10. Exact manufacturer part numbers for connectors/switches/passive packages get
-pinned during KiCad footprint selection; entries below give the decided part or the decided
-requirement. Items still under discussion are in the "Not yet decided" section at the bottom —
-don't cart those yet.
+Status: **layout-phase BOM** — parts confirmed by design decisions and bench testing as of
+2026-07-16 (schematic v1.0 signed off 2026-07-11; footprints assigned). Items still under
+discussion are in the "Not yet decided" section at the bottom — don't cart those yet.
 
 Quantities: panel parts are **per panel**; build needs ×9 (order ~×12 for spares/assembly
 losses on a first spin).
@@ -30,10 +28,13 @@ stocks it). DigiKey cart shrinks to whatever LCSC can't cover + bench spares.
 | SWD header, 3-pin 2.54mm (SWDIO/GND/SWCLK) | 1 | DigiKey | Recovery/debug path independent of USB + firmware state. Can ship unpopulated. Probe side: Raspberry Pi Debug Probe or a Pico running picoprobe. |
 | W25Q32JV (4MB QSPI flash, SOIC-8) | 1 | DigiKey | Required for RP2040 boot. Chosen over W25Q16JV (pin-compatible) for headroom. |
 | THVD1419 (RS-485 transceiver, SOIC-8) | 1 | DigiKey | 3.3V-logic compatible. MAX3485 was breadboard substitute only. Do NOT buy MAX485. |
-| SN74AHCT125N (level shifter) | 1 | DigiKey | VCC = 5V rail. Drives WS2815 data line only. DIP-14 used on breadboard; pick SMD variant (SN74AHCT125D/PW) at layout time. |
+| SN74AHCT125D (level shifter, SOIC-14) | 1 | DigiKey | VCC = 5V rail. Drives WS2815 data line only. DIP-14 (SN74AHCT125N) was breadboard-only; schematic/PCB use the SOIC-14 footprint (U4). |
 | AMS1117-5.0 (LDO, SOT-223) | 1 | DigiKey (genuine) | 12V→5V, feeds only the level shifter VCC. Amazon assortment chips are bench-test only. |
-| AMS1117-3.3 (LDO, SOT-223) | 1 | DigiKey (genuine) | 5V→3.3V (cascaded from the 5.0). Powers RP2040 + transceiver + logic. |
-| Output cap, 10–22µF tantalum or electrolytic | 2 | DigiKey | One per LDO output. Must have some ESR — AMS1117 can oscillate with only low-ESR ceramic. Also carry input caps per datasheet. |
+| AP7361C-33ER-13 (LDO, SOT-223R) | 1 | LCSC C3743528 | 5V→3.3V (cascaded from the 5.0). Powers RP2040 + transceiver + logic. **Swapped in for AMS1117-3.3 2026-07-16** — low dropout (~360mV@1A vs ~1.1V) fixes USB-VBUS-only powering headroom. Vin abs max 6V — downstream of the 5V stage only. **Must be the `-33ER-` suffix (SOT223R)**: pinout matches AMS1117 (GND/OUT/IN, tab=OUT); the plain `-33E-` variant is pin-reversed and will NOT work on this footprint. |
+| PMEG3015EH,115 (Schottky, SOD-123F) | 2 | LCSC C552867 | Power-OR diodes D12/D23 (VBUS / 12V-derived-5V into V5_OR). **Swapped in for 1N5819W 2026-07-16** — ultra-low VF (255mV typ @100mA, ~100–150mV better), raises USB-power headroom + shifter VCC. |
+| 22µF 16V tantalum, EIA-3528 case B (TAJB226K016RNJ) | 1 | LCSC C8020 | C38, AMS1117-5.0 output cap ONLY. Must have some ESR — AMS1117 can oscillate with only low-ESR ceramic; this part's 2.3Ω @100kHz is in the stable window. 16V = 3.2× derating on the 5V rail (tantalum wants ≥2×). |
+| 10µF 25V X5R 0805 MLCC (CL21A106KAYNNNE) | 4 | LCSC C15850 (JLC basic) | C37+C52 (AMS1117-5.0 input, **2× in parallel** — 12V DC bias derates each 0805 X5R to ~4–5µF effective, the pair restores ~8–10µF without paying an extended-part fee for a 1206; MLCC fine on the *input*, ESR rule is output-only), C44/C50 (AP7361C in/out — CMOS LDO, ceramic-stable per datasheet, ≥1µF in / ≥2.2µF out). |
+| 470µF 25V SMD aluminum electrolytic, V-chip 10×10.2mm (RVT1E471M1010) | 1 | LCSC C72518 | C51, 12V bulk at power IN. **SMD swap for the TH radial 2026-07-16** (lower profile, machine-placeable). Deliberately NOT tantalum: low-impedance 12V bus + hot-plug inrush is the classic tantalum surge-failure scenario, and 470µF/25V tantalum costs dollars, not cents. |
 | 10nF ceramic cap (ADC node → GND) | 4 | DigiKey | One per FSR ADC input. Bench-verified fix for ADC mux crosstalk; required. |
 | 10kΩ resistor (FSR pull-down) | 4 | DigiKey | Voltage divider bottom leg. 12kΩ acceptable substitute. |
 | 120Ω resistor (RS-485 termination) | 1 | DigiKey | Always populated; routed in/out by the DPDT switch. |
@@ -42,8 +43,8 @@ stocks it). DigiKey cart shrinks to whatever LCSC can't cover + bench spares.
 | WS2815 addressable LED, individual 5050 chips (12V) | 25 | LCSC / AliExpress (reel or cut tape) | **Confirmed 2026-07-10 over APA102-class SPI parts** — see docs/LED_OPTIONS.md. LEDs are placed directly on the panel PCB (not strips). 225 exact for 9 panels — buy ~300 or a small reel; not a DigiKey part. If panels are fab-assembled at JLCPCB, WS2815 is in LCSC stock — have the fab place them and skip buying separately. Prototype used WS2812B strip. |
 | 100nF ceramic filter cap (one per LED) | 25 | DigiKey/LCSC | **Corrected 2026-07-11 against the WS2815 datasheet**: the cap goes from **VCC (pin 1) to GND**, not across VDD/GND — VCC is the IC's internal-regulator node ("Suspended or connected with a filter capacitor to GROUND"), and the datasheet's recommended application circuit shows exactly this 100nF per LED. The earlier "VDD/GND, ≥25V" note was generic 5V WS281x practice; the VCC node is low-voltage, so ≥25V isn't required (harmless if that's what's on the reel). 225 exact — buy a full reel, they're near-free. Bulk 12V decoupling for the LED VDD rail is a layout concern (pours + a few bulk caps), not per-LED. |
 | Series resistor on LED data input (~100–500Ω) | 1 | DigiKey/LCSC | Between shifter output and first LED's DIN; damps ringing on the data line. |
-| Micro-Fit 3.0 2-pin right-angle header (Power IN / OUT) | 2 | DigiKey (Molex) | All panels identical; end-of-chain OUT sits empty. |
-| Micro-Fit 3.0 3-pin right-angle header (RS-485 IN / OUT) | 2 | DigiKey (Molex) | All panels identical; end-of-chain OUT sits empty. |
+| Micro-Fit 3.0 2-pin right-angle THT header, Molex 43650-0200 (Power IN / OUT) | 2 | DigiKey (Molex) | All panels identical; end-of-chain OUT sits empty. THT decided 2026-07-17 (was SMD -0210 variant); footprint `..._43650-0200_1x02_P3.00mm_Horizontal`. |
+| Micro-Fit 3.0 3-pin right-angle THT header, Molex 43650-0300 (RS-485 IN / OUT) | 2 | DigiKey (Molex) | All panels identical; end-of-chain OUT sits empty. THT decided 2026-07-17 (was SMD -0310 variant); footprint `..._43650-0300_1x03_P3.00mm_Horizontal`. |
 | INT termination: screw terminal block, 1-pos 5.08mm | 1 | LCSC/DigiKey | **DECIDED 2026-07-11: generic KF301-style 1P 5.08mm** (brand-name Phoenix MKDS 1,5/1 equivalent acceptable; same screw-cage design). Takes 24 AWG + ferrule. KiCad stock footprint `TerminalBlock_bornier-1_P5.08mm` assigned to J9. INT is a single conductor (return rides shared power ground). |
 | JST-PH 2-pin top-entry header, B2B-PH-K (FSR) | 4 | DigiKey (JST) | One per cardinal edge. **Corrected from JST-XH 2026-07-10** — existing FSR leads use PHR-2 plugs (verify before footprint). |
 | Interlink FSR 408 (long strip) | 4 | iefsr.com | Not a DigiKey part. |
@@ -85,9 +86,14 @@ position 3 empty: with a 2-conductor cable it would otherwise be physically iden
 power, and the different shell is what makes plugging 12V into the transceiver impossible.
 
 User already owns: Micro-Fit crimp tools + a handful of 20–24 AWG pin/socket terminals.
-Molex series to search on DigiKey (verify against photos/datasheets): **43651** right-angle
-single-row headers, **43645** single-row receptacle housings, **43030** female crimp
-terminals (20–24 AWG variant).
+**Header PNs decided 2026-07-17: Molex 43650-0200 (2-pin) / 43650-0300 (3-pin) —
+right-angle THROUGH-HOLE.** (The earlier "43651" series pointer was wrong — 43650 *is*
+the right-angle single-row series; the suffix encodes THT/SMT/peg. The originally
+assigned KiCad footprints `43650-0210`/`-0310` turned out to be the SMD-pad variant;
+switched to the THT `-0200`/`-0300` for plug-cycle/cable-yank robustness, same rationale
+as the TH USB-C. Hand-solder with the other TH parts — avoids JLC THT-assembly fees.)
+Cable side: **43645** single-row receptacle housings, **43030** female crimp terminals
+(20–24 AWG variant) — verify against photos/datasheets when carting.
 
 Quantities below include the **5 prototype passthrough PCBs** (exact-need; order ~10–20%
 spares):
@@ -167,9 +173,11 @@ are identical — full IN/OUT set, end-of-chain OUT sits empty. Per 5 boards: 10
 
 - **TVS diode part number** for the 9 INT lines at the master — deferred, depends on master
   PCB layout; easy to pick at schematic time (2026-07-10).
-- **Exact Molex/JST part numbers** — user is selecting on DigiKey against the shopping list
-  above; pin final PNs so KiCad footprints match ordered parts.
-- **SMD packages for passives** (0603/0805) — layout-time choice.
+- **Exact JST part numbers** — Micro-Fit header PNs are now pinned (43650-0200/-0300, see
+  shopping list); cable-side housings/terminals and JST-PH parts still to verify against
+  photos/datasheets when carting.
+- ~~SMD packages for passives~~ **decided at layout**: 0603 default; 0402 for the 12
+  RP2040 decoupling caps (placement room at the QFN escape); 0805 for the 10µF MLCCs.
 - Master PCB may also want a local bulk cap / input protection — not yet designed.
 
 ## Already sourced for bench (not part of the production cart)

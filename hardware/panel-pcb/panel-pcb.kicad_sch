@@ -9,7 +9,7 @@
 		(date "2026-07-11")
 		(rev "1.0")
 		(comment 1 "RP2040 panel: 4x FSR, 25x WS2815, RS-485 bus, INT out, panel-ID DIP")
-		(comment 2 "12V bus power; AMS1117 5.0V -> 3.3V cascade; USB-C (bench flashing only)")
+		(comment 2 "12V bus power; AMS1117-5.0 -> AP7361C-3.3 LDO cascade; USB-C (bench flashing only)")
 	)
 	(lib_symbols
 		(symbol "74xx:74AHCT125"
@@ -5085,137 +5085,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Regulator_Linear:AMS1117-3.3"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
-			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "U"
-				(at -3.81 3.175 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "AMS1117-3.3"
-				(at 0 3.175 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left)
-				)
-			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
-				(at 0 5.08 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
-				(at 2.54 -6.35 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(symbol "AMS1117-3.3_0_1"
-				(rectangle
-					(start -5.08 -5.08)
-					(end 5.08 1.905)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-			)
-			(symbol "AMS1117-3.3_1_1"
-				(pin power_in line
-					(at 0 -7.62 90)
-					(length 2.54)
-					(name "GND"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_out line
-					(at 7.62 0 180)
-					(length 2.54)
-					(name "VO"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at -7.62 0 0)
-					(length 2.54)
-					(name "VI"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Regulator_Linear:AMS1117-5.0"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -6163,6 +6032,137 @@
 						)
 					)
 					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "panel-pcb:AP7361C-33ER"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at -3.81 3.175 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "AP7361C-33ER-13"
+				(at 0 3.175 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+				(at 0 5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP7361C.pdf"
+				(at 2.54 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "1A ultra-low-dropout regulator, 3.3V fixed, SOT-223R (reversed 1117 pinout: 1 GND, 2 OUT, 3 IN, tab=OUT). ER suffix ONLY - plain E variant is pin-reversed vs this symbol."
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "AP7361C-33ER_0_1"
+				(rectangle
+					(start -5.08 -5.08)
+					(end 5.08 1.905)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "AP7361C-33ER_1_1"
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "OUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "IN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -7184,6 +7184,12 @@
 		(uuid "0919c908-efa1-4df1-b2f8-6b73d6db583c")
 	)
 	(junction
+		(at 331.47 246.38)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0ca05183-59fe-4440-b8a2-7a8e0fb0252f")
+	)
+	(junction
 		(at 17.78 262.89)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7268,7 +7274,7 @@
 		(uuid "6a1dae89-604e-4f54-bf00-96134925f150")
 	)
 	(junction
-		(at 328.93 224.79)
+		(at 331.47 224.79)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "6a84b778-22a7-43d8-814c-0e547aa340cf")
@@ -7310,7 +7316,7 @@
 		(uuid "79d5025a-c9d2-4c28-a7ac-9301720f0609")
 	)
 	(junction
-		(at 356.87 224.79)
+		(at 359.41 224.79)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "81938412-57d3-43e1-af35-cf64416aee9f")
@@ -7388,7 +7394,7 @@
 		(uuid "c3dc4f33-09c0-4b7a-be45-57e8d5555ec4")
 	)
 	(junction
-		(at 344.17 224.79)
+		(at 346.71 224.79)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c580ff57-3b74-47c3-afb7-e64ca7a50189")
@@ -7424,7 +7430,7 @@
 		(uuid "e4110d8b-da3a-4a76-8ada-cfbc6831dfad")
 	)
 	(junction
-		(at 336.55 243.84)
+		(at 339.09 246.38)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e8da7be9-7592-4a52-a87b-9aa3131a2d94")
@@ -7440,6 +7446,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f383a944-0373-4707-9111-b88cc8d496e6")
+	)
+	(junction
+		(at 331.47 227.33)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fe1fd222-4dd8-499c-a3af-97631b5695c5")
 	)
 	(no_connect
 		(at 168.91 171.45)
@@ -7613,7 +7625,7 @@
 	)
 	(wire
 		(pts
-			(xy 336.55 232.41) (xy 336.55 243.84)
+			(xy 339.09 232.41) (xy 339.09 246.38)
 		)
 		(stroke
 			(width 0)
@@ -7633,7 +7645,7 @@
 	)
 	(wire
 		(pts
-			(xy 326.39 222.25) (xy 326.39 224.79)
+			(xy 328.93 222.25) (xy 328.93 224.79)
 		)
 		(stroke
 			(width 0)
@@ -7873,7 +7885,7 @@
 	)
 	(wire
 		(pts
-			(xy 328.93 243.84) (xy 336.55 243.84)
+			(xy 331.47 246.38) (xy 339.09 246.38)
 		)
 		(stroke
 			(width 0)
@@ -7893,7 +7905,7 @@
 	)
 	(wire
 		(pts
-			(xy 344.17 224.79) (xy 346.71 224.79)
+			(xy 346.71 224.79) (xy 349.25 224.79)
 		)
 		(stroke
 			(width 0)
@@ -7920,6 +7932,16 @@
 			(type default)
 		)
 		(uuid "43e55192-31fb-42c3-8d65-bb7aa020da2b")
+	)
+	(wire
+		(pts
+			(xy 322.58 246.38) (xy 331.47 246.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4411372b-e108-4b3e-ae1b-3ea6cbe8043c")
 	)
 	(wire
 		(pts
@@ -8023,7 +8045,7 @@
 	)
 	(wire
 		(pts
-			(xy 328.93 224.79) (xy 328.93 233.68)
+			(xy 331.47 224.79) (xy 331.47 227.33)
 		)
 		(stroke
 			(width 0)
@@ -8143,7 +8165,17 @@
 	)
 	(wire
 		(pts
-			(xy 354.33 224.79) (xy 356.87 224.79)
+			(xy 322.58 241.3) (xy 322.58 246.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5db5e34a-a75e-47a6-83a1-3f712fed1632")
+	)
+	(wire
+		(pts
+			(xy 356.87 224.79) (xy 359.41 224.79)
 		)
 		(stroke
 			(width 0)
@@ -8160,16 +8192,6 @@
 			(type default)
 		)
 		(uuid "62dbc703-4e97-4ae4-9bc0-edf1c7c23cda")
-	)
-	(wire
-		(pts
-			(xy 328.93 241.3) (xy 328.93 243.84)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "64e3d443-2a86-4723-ab9a-395f2173ef66")
 	)
 	(polyline
 		(pts
@@ -8190,6 +8212,16 @@
 			(type dash)
 		)
 		(uuid "663c4da0-1904-4e03-aea4-009efd08489c")
+	)
+	(wire
+		(pts
+			(xy 331.47 241.3) (xy 331.47 246.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6742397f-3296-4853-8193-46336f948847")
 	)
 	(wire
 		(pts
@@ -8250,6 +8282,16 @@
 			(type default)
 		)
 		(uuid "6fc67c50-72a4-43ff-89e5-ef16feacf426")
+	)
+	(wire
+		(pts
+			(xy 322.58 227.33) (xy 322.58 233.68)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7062987d-5972-4049-86fa-fc5379a662f3")
 	)
 	(wire
 		(pts
@@ -8373,7 +8415,7 @@
 	)
 	(wire
 		(pts
-			(xy 326.39 224.79) (xy 328.93 224.79)
+			(xy 328.93 224.79) (xy 331.47 224.79)
 		)
 		(stroke
 			(width 0)
@@ -8483,6 +8525,16 @@
 	)
 	(wire
 		(pts
+			(xy 331.47 227.33) (xy 331.47 233.68)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8b3c512c-aecf-4ac3-8bc5-11d4307b7430")
+	)
+	(wire
+		(pts
 			(xy 168.91 156.21) (xy 168.91 158.75)
 		)
 		(stroke
@@ -8513,7 +8565,7 @@
 	)
 	(wire
 		(pts
-			(xy 344.17 224.79) (xy 344.17 233.68)
+			(xy 346.71 224.79) (xy 346.71 233.68)
 		)
 		(stroke
 			(width 0)
@@ -8570,6 +8622,16 @@
 			(type default)
 		)
 		(uuid "9689594d-6504-45f0-876a-b9c3ae02a1f8")
+	)
+	(wire
+		(pts
+			(xy 346.71 241.3) (xy 346.71 246.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "989c453b-8cae-40dd-8344-25cfe8827c2f")
 	)
 	(wire
 		(pts
@@ -8883,16 +8945,6 @@
 	)
 	(wire
 		(pts
-			(xy 344.17 241.3) (xy 344.17 243.84)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "caa3cd84-eaa2-4df7-a48c-bfc29d64f5ac")
-	)
-	(wire
-		(pts
 			(xy 85.09 185.42) (xy 92.71 185.42)
 		)
 		(stroke
@@ -8993,7 +9045,7 @@
 	)
 	(wire
 		(pts
-			(xy 344.17 243.84) (xy 336.55 243.84)
+			(xy 346.71 246.38) (xy 339.09 246.38)
 		)
 		(stroke
 			(width 0)
@@ -9143,6 +9195,16 @@
 	)
 	(wire
 		(pts
+			(xy 322.58 227.33) (xy 331.47 227.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f42f09d2-8686-4d04-bac5-b5083581498f")
+	)
+	(wire
+		(pts
 			(xy 85.09 228.6) (xy 92.71 228.6)
 		)
 		(stroke
@@ -9153,7 +9215,7 @@
 	)
 	(wire
 		(pts
-			(xy 356.87 222.25) (xy 356.87 224.79)
+			(xy 359.41 222.25) (xy 359.41 224.79)
 		)
 		(stroke
 			(width 0)
@@ -10225,7 +10287,7 @@
 			)
 		)
 	)
-	(global_label "GPIO23"
+	(global_label "GPIO20"
 		(shape input)
 		(at 30.48 30.48 180)
 		(fields_autoplaced yes)
@@ -11594,7 +11656,7 @@
 			)
 		)
 	)
-	(global_label "GPIO25"
+	(global_label "GPIO22"
 		(shape input)
 		(at 209.55 162.56 180)
 		(fields_autoplaced yes)
@@ -11921,7 +11983,7 @@
 			)
 		)
 	)
-	(global_label "GPIO24"
+	(global_label "GPIO21"
 		(shape input)
 		(at 30.48 27.94 180)
 		(fields_autoplaced yes)
@@ -12357,8 +12419,8 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Polarized")
-		(at 328.93 237.49 0)
+		(lib_id "Device:C")
+		(at 331.47 237.49 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12368,7 +12430,7 @@
 		(dnp no)
 		(uuid "099203e7-4490-466d-a666-0eec1d0b336b")
 		(property "Reference" "C37"
-			(at 330.962 235.458 0)
+			(at 329.438 235.458 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12377,8 +12439,8 @@
 				)
 			)
 		)
-		(property "Value" "10uF elec 25V"
-			(at 325.12 237.49 90)
+		(property "Value" "10uF X5R 25V"
+			(at 335.026 237.744 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12387,8 +12449,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm"
-			(at 328.93 242.57 0)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 331.47 242.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12399,7 +12461,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 328.93 242.57 0)
+			(at 331.47 242.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12409,8 +12471,8 @@
 				)
 			)
 		)
-		(property "Description" "AMS1117-5.0 input cap. Tantalum/electrolytic, ESR required per project convention (not ceramic-only) - see CLAUDE.md Power section."
-			(at 328.93 242.57 0)
+		(property "Description" "AMS1117-5.0 input cap. MLCC is fine HERE - the ESR requirement applies only to the AMS1117 OUTPUT cap (C38). Local bypass; C51 470uF bulk sits at power IN. 12V DC bias derates X5R 0805 to ~4-5uF effective - acceptable for input bypass. CL21A106KAYNNNE, LCSC C15850 (JLC basic)."
+			(at 331.47 242.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15300,6 +15362,85 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C")
+		(at 322.58 237.49 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "23d0c214-db0d-470c-8210-14c71285d2e8")
+		(property "Reference" "C52"
+			(at 320.548 235.458 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10uF X5R 25V"
+			(at 325.882 237.49 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 322.58 242.57 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 322.58 242.57 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "AMS1117-5.0 input cap, 2nd of 2x parallel pair with C37 - parallel pair restores effective capacitance lost to 12V DC bias derating (~4-5uF each when biased, ~8-10uF as a pair). CL21A106KAYNNNE, LCSC C15850 (JLC basic)."
+			(at 322.58 242.57 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "893b6878-ee14-4050-8e9d-0dc842df0a89")
+		)
+		(pin "2"
+			(uuid "8a2f5f3d-69f3-46aa-8a8c-b5dda78c895b")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "C52")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 383.54 46.99 0)
 		(unit 1)
@@ -17558,7 +17699,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm"
+		(property "Footprint" "Capacitor_SMD:CP_Elec_10x10.5"
 			(at 294.64 222.25 0)
 			(hide yes)
 			(show_name no)
@@ -17580,7 +17721,7 @@
 				)
 			)
 		)
-		(property "Description" "12V rail bulk cap for WS2815 LED load steps; place at power IN connector. Electrolytic, size footprint to chosen part (likely 8-10mm dia)."
+		(property "Description" "12V rail bulk cap for WS2815 LED load steps; place at power IN connector. SMD V-chip aluminum electrolytic (2026-07-16, was TH radial): RVT1E471M1010, 10x10.2mm, LCSC C72518. NOT tantalum - low-impedance 12V bus + hot-plug inrush is the classic tantalum surge-failure scenario."
 			(at 294.64 222.25 0)
 			(hide yes)
 			(show_name no)
@@ -21302,7 +21443,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0310_1x03-1MP_P3.00mm_Horizontal"
+		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal"
 			(at 274.32 270.51 0)
 			(hide yes)
 			(show_name no)
@@ -23196,7 +23337,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0210_1x02-1MP_P3.00mm_Horizontal"
+		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal"
 			(at 292.1 274.32 0)
 			(hide yes)
 			(show_name no)
@@ -23323,7 +23464,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 356.87 222.25 0)
+		(at 359.41 222.25 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -23333,7 +23474,7 @@
 		(dnp no)
 		(uuid "7fb190f8-8d3a-4167-93ca-6cde786601ef")
 		(property "Reference" "#PWR0132"
-			(at 356.87 218.44 0)
+			(at 359.41 218.44 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23344,7 +23485,7 @@
 			)
 		)
 		(property "Value" "+5.0V"
-			(at 356.87 217.932 0)
+			(at 359.41 217.932 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -23354,7 +23495,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 356.87 222.25 0)
+			(at 359.41 222.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23365,7 +23506,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 356.87 222.25 0)
+			(at 359.41 222.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23376,7 +23517,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 356.87 222.25 0)
+			(at 359.41 222.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23478,7 +23619,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 336.55 243.84 0)
+		(at 339.09 246.38 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -23488,7 +23629,7 @@
 		(dnp no)
 		(uuid "8192b6f5-76e9-4817-98fb-3e60462d86cf")
 		(property "Reference" "#PWR0116"
-			(at 336.55 248.92 0)
+			(at 339.09 251.46 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23499,7 +23640,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 336.55 248.158 0)
+			(at 339.09 250.698 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -23509,7 +23650,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 336.55 243.84 0)
+			(at 339.09 246.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23520,7 +23661,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 336.55 243.84 0)
+			(at 339.09 246.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23531,7 +23672,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 336.55 243.84 0)
+			(at 339.09 246.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25194,7 +25335,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0310_1x03-1MP_P3.00mm_Horizontal"
+		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal"
 			(at 242.57 237.49 0)
 			(hide yes)
 			(show_name no)
@@ -25725,7 +25866,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Polarized")
-		(at 344.17 237.49 0)
+		(at 346.71 237.49 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -25735,7 +25876,7 @@
 		(dnp no)
 		(uuid "96dc3628-219e-4417-9880-c6dae456a6fe")
 		(property "Reference" "C38"
-			(at 341.884 239.776 0)
+			(at 344.424 239.776 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -25744,8 +25885,8 @@
 				)
 			)
 		)
-		(property "Value" "22uF elec 25V"
-			(at 347.472 237.49 90)
+		(property "Value" "22uF tant 16V"
+			(at 350.012 237.49 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -25754,8 +25895,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm"
-			(at 344.17 242.57 0)
+		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-3528-21_Kemet-B"
+			(at 346.71 242.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25766,7 +25907,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 344.17 242.57 0)
+			(at 346.71 242.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25776,8 +25917,8 @@
 				)
 			)
 		)
-		(property "Description" "AMS1117-5.0 output cap. Tantalum/electrolytic, ESR required (not ceramic-only) - see CLAUDE.md Power section."
-			(at 344.17 242.57 0)
+		(property "Description" "AMS1117-5.0 output cap. Must have some ESR - AMS1117 can oscillate with only low-ESR ceramic. Tantalum 2.3R @100kHz is in the stable window; 16V rating = 3.2x derating on the 5V rail. TAJB226K016RNJ, LCSC C8020."
+			(at 346.71 242.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26423,7 +26564,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0210_1x02-1MP_P3.00mm_Horizontal"
+		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal"
 			(at 209.55 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -28152,7 +28293,7 @@
 	)
 	(symbol
 		(lib_id "Regulator_Linear:AMS1117-5.0")
-		(at 336.55 224.79 0)
+		(at 339.09 224.79 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -28162,7 +28303,7 @@
 		(dnp no)
 		(uuid "ae2dfe63-e45f-4cc2-9d84-48c301a17007")
 		(property "Reference" "U5"
-			(at 336.55 219.202 0)
+			(at 339.09 219.202 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -28172,7 +28313,7 @@
 			)
 		)
 		(property "Value" "AMS1117-5.0"
-			(at 336.55 221.234 0)
+			(at 339.09 221.234 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -28182,7 +28323,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
-			(at 336.55 229.87 0)
+			(at 339.09 229.87 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -28193,7 +28334,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 336.55 229.87 0)
+			(at 339.09 229.87 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -28204,7 +28345,7 @@
 			)
 		)
 		(property "Description" "12V to 5V LDO. 5V rail feeds ONLY the (not-yet-drafted) SN74AHCT125N LED level shifter VCC, plus the new USB VBUS power-OR node."
-			(at 336.55 229.87 0)
+			(at 339.09 229.87 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -29110,7 +29251,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Polarized")
+		(lib_id "Device:C")
 		(at 378.46 220.98 0)
 		(unit 1)
 		(body_style 1)
@@ -29130,7 +29271,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF elec 25V"
+		(property "Value" "10uF X5R 25V"
 			(at 374.904 220.98 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -29140,7 +29281,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 378.46 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -29162,7 +29303,7 @@
 				)
 			)
 		)
-		(property "Description" "AMS1117-3.3 input cap, on the V5_OR node. Tantalum/electrolytic, ESR required (not ceramic-only)."
+		(property "Description" "AP7361C-33 input cap, on the V5_OR node (~4.4-5V). Datasheet asks >=1uF ceramic - MLCC correct here, no ESR requirement (CMOS LDO, unlike AMS1117). CL21A106KAYNNNE, LCSC C15850 (JLC basic)."
 			(at 378.46 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -31762,7 +31903,7 @@
 	)
 	(symbol
 		(lib_id "Device:D_Schottky")
-		(at 350.52 224.79 180)
+		(at 353.06 224.79 180)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -31772,7 +31913,7 @@
 		(dnp no)
 		(uuid "d8890359-75eb-40c5-b8f8-7efabdda3d79")
 		(property "Reference" "D23"
-			(at 350.52 219.964 0)
+			(at 353.06 219.964 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -31781,8 +31922,8 @@
 				)
 			)
 		)
-		(property "Value" "1N5819W"
-			(at 350.52 222.25 0)
+		(property "Value" "PMEG3015EH"
+			(at 353.06 222.25 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -31791,8 +31932,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-123"
-			(at 350.52 219.71 0)
+		(property "Footprint" "Diode_SMD:D_SOD-123F"
+			(at 353.06 219.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31802,8 +31943,8 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
-			(at 350.52 219.71 0)
+		(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/PMEG3015EH.pdf"
+			(at 353.06 219.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31813,8 +31954,8 @@
 				)
 			)
 		)
-		(property "Description" "Power-OR diode: AMS1117-5.0 output (12V-derived 5V) into V5_OR node. Pin 2 (A/anode) faces U3's VO; pin 1 (K/cathode) faces the V5_OR node."
-			(at 350.52 219.71 0)
+		(property "Description" "Power-OR diode: AMS1117-5.0 output (12V-derived 5V) into V5_OR node. Pin 2 (A/anode) faces U3's VO; pin 1 (K/cathode) faces the V5_OR node. Ultra-low-VF Schottky swap for 1N5819W (2026-07-16): 255mV typ @100mA. Order PMEG3015EH,115 - LCSC C552867."
+			(at 353.06 219.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31938,7 +32079,7 @@
 				)
 			)
 		)
-		(property "Value" "1N5819W"
+		(property "Value" "PMEG3015EH"
 			(at 341.63 193.04 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31948,7 +32089,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-123"
+		(property "Footprint" "Diode_SMD:D_SOD-123F"
 			(at 341.63 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -31959,7 +32100,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/PMEG3015EH.pdf"
 			(at 341.63 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -31970,7 +32111,7 @@
 				)
 			)
 		)
-		(property "Description" "Power-OR diode: USB VBUS into V5_OR node, allows USB-only bench powering/flashing. Pin 2 (A/anode) faces J2's VBUS; pin 1 (K/cathode) faces the V5_OR node."
+		(property "Description" "Power-OR diode: USB VBUS into V5_OR node, allows USB-only bench powering/flashing. Pin 2 (A/anode) faces J2's VBUS; pin 1 (K/cathode) faces the V5_OR node. Ultra-low-VF Schottky swap for 1N5819W (2026-07-16): 255mV typ @100mA. Order PMEG3015EH,115 - LCSC C552867."
 			(at 341.63 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -33460,7 +33601,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 326.39 222.25 0)
+		(at 328.93 222.25 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -33470,7 +33611,7 @@
 		(dnp no)
 		(uuid "e861b204-d803-480d-ad55-f40e02f6c235")
 		(property "Reference" "#PWR0115"
-			(at 326.39 218.44 0)
+			(at 328.93 218.44 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33481,7 +33622,7 @@
 			)
 		)
 		(property "Value" "+12.0V"
-			(at 326.39 217.932 0)
+			(at 328.93 217.932 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -33491,7 +33632,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 326.39 222.25 0)
+			(at 328.93 222.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33502,7 +33643,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 326.39 222.25 0)
+			(at 328.93 222.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33513,7 +33654,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 326.39 222.25 0)
+			(at 328.93 222.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33615,7 +33756,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Regulator_Linear:AMS1117-3.3")
+		(lib_id "panel-pcb:AP7361C-33ER")
 		(at 386.08 210.82 0)
 		(unit 1)
 		(body_style 1)
@@ -33635,7 +33776,7 @@
 				)
 			)
 		)
-		(property "Value" "AMS1117-3.3"
+		(property "Value" "AP7361C-33ER-13"
 			(at 386.08 207.518 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -33656,7 +33797,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP7361C.pdf"
 			(at 386.08 215.9 0)
 			(hide yes)
 			(show_name no)
@@ -33667,7 +33808,7 @@
 				)
 			)
 		)
-		(property "Description" "V5_OR (12V-derived 5V OR'd with USB VBUS) to 3.3V LDO. Powers RP2040, RS-485 transceiver, FSR dividers, all panel logic."
+		(property "Description" "V5_OR (12V-derived 5V OR'd with USB VBUS) to 3.3V LDO. Powers RP2040, RS-485 transceiver, FSR dividers, all panel logic. Low-dropout CMOS swap for AMS1117-3.3 (2026-07-16): ~360mV@1A vs ~1.1V dropout, fixes USB-VBUS-only headroom. Vin abs max 6V - must stay downstream of the 5V stage, never raw 12V. SOT223R ('ER' suffix ONLY - plain 'E' is pin-reversed) matches AMS1117 pinout GND/OUT/IN, tab=OUT. LCSC C3743528."
 			(at 386.08 215.9 0)
 			(hide yes)
 			(show_name no)
@@ -34412,7 +34553,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Polarized")
+		(lib_id "Device:C")
 		(at 393.7 220.98 0)
 		(unit 1)
 		(body_style 1)
@@ -34423,7 +34564,7 @@
 		(dnp no)
 		(uuid "faa25d55-d106-4a47-8661-5740ff2973bb")
 		(property "Reference" "C50"
-			(at 391.414 223.52 0)
+			(at 391.414 218.948 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -34432,7 +34573,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF elec 25V"
+		(property "Value" "10uF X5R 25V"
 			(at 397.256 220.98 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -34442,7 +34583,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 393.7 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -34464,7 +34605,7 @@
 				)
 			)
 		)
-		(property "Description" "AMS1117-3.3 output cap (main 3.3V logic rail). Tantalum/electrolytic, ESR required (not ceramic-only)."
+		(property "Description" "AP7361C-33 output cap (main 3.3V logic rail). Datasheet: stable with MLCC >=2.2uF - 10uF for transient margin. No ESR requirement (CMOS LDO, unlike AMS1117). CL21A106KAYNNNE, LCSC C15850 (JLC basic)."
 			(at 393.7 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -34839,7 +34980,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 356.87 224.79 270)
+		(at 359.41 224.79 270)
 		(mirror x)
 		(unit 1)
 		(body_style 1)
@@ -34850,7 +34991,7 @@
 		(dnp no)
 		(uuid "fcd16124-acd5-4adf-898a-80632c1520e6")
 		(property "Reference" "TP10"
-			(at 360.426 226.822 90)
+			(at 362.966 226.822 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -34860,7 +35001,7 @@
 			)
 		)
 		(property "Value" "+5.0V"
-			(at 359.918 228.854 90)
+			(at 362.458 228.854 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -34870,7 +35011,7 @@
 			)
 		)
 		(property "Footprint" "TestPoint:TestPoint_Pad_1.5x1.5mm"
-			(at 356.87 224.79 0)
+			(at 359.41 224.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -34881,7 +35022,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 356.87 224.79 0)
+			(at 359.41 224.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -34892,7 +35033,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 356.87 224.79 0)
+			(at 359.41 224.79 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

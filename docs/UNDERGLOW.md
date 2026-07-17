@@ -196,8 +196,13 @@ the 12V-native path without waiting on teardown.
 by direct test" above: grouped-by-3, 17 chunks left side + 17 right side + 10 back = 44.
 
 **Still open (low priority, doesn't block design):**
-- **Connector type/pinout** on the stock MCU enclosure — reuse if reasonable so cabling is
-  simple, even if the LED strip itself gets replaced.
+- **Physical splice point** for the custom master (reopened 2026-07-10): the user
+  inspected the stock wiring and found the underglow leads are crimped directly into a
+  12-pin Dupont-style housing that plugs straight into the stock MCU — there is **no
+  intermediate connector a replacement master could reuse**, so a user wanting underglow
+  will need to splice. Picking the cleanest splice point needs the full pad + harness
+  teardown (planned). Electrical parameters above are unaffected; the master's underglow
+  DATA-out connector choice (BOM master table) is gated on this.
 
 ## Master PCB implications
 
