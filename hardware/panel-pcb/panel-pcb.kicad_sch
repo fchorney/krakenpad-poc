@@ -8742,6 +8742,16 @@
 		)
 		(uuid "62dbc703-4e97-4ae4-9bc0-edf1c7c23cda")
 	)
+	(wire
+		(pts
+			(xy 153.67 144.78) (xy 160.02 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "64635765-54fd-4cf8-8f10-f7690cb2ce75")
+	)
 	(polyline
 		(pts
 			(xy 278.13 184.15) (xy 407.67 184.15)
@@ -9481,16 +9491,6 @@
 			(type default)
 		)
 		(uuid "b02bcc17-6664-47a5-a4f8-8955dcf3f81e")
-	)
-	(wire
-		(pts
-			(xy 153.67 144.78) (xy 161.29 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b36914f4-5f2d-41e9-b9ee-2f3149f3a455")
 	)
 	(wire
 		(pts
@@ -18462,7 +18462,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:CP_Elec_10x10.5"
+		(property "Footprint" "panel-pcb:CP_Elec_10x10.5_RVT1E471M"
 			(at 294.64 222.25 0)
 			(hide yes)
 			(show_name no)
