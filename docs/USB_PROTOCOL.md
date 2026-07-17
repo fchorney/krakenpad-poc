@@ -24,8 +24,10 @@ vendor ID or using unregistered numbers indefinitely.
 
 **Not eligible yet** — pid.codes requires a public repo with modifiable design
 files (PCB sources and/or firmware) under a recognized open-source license
-(LICENSE file required). This repo currently has **no git remote, no LICENSE
-file, and no commits at all**. Revisit once those exist.
+(LICENSE file required). The repo now lives at
+`github.com/fchorney/krakenpad-poc` with active commits (as of 2026-07-11),
+but there is **still no LICENSE file**, and the repo must be public for
+eligibility. Revisit once both are true.
 
 **Process, for when it's time** (fork `pidcodes/pidcodes.github.com`):
 1. `org/<org-name>/index.md` — organization page (frontmatter: layout, title,

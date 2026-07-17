@@ -12,18 +12,24 @@ sheets, one block each. All decided parts per `docs/BOM.md`.
 > | Block | Current refs |
 > |-------|-------------|
 > | RP2040 / flash / crystal | U1 RP2040, U3 W25Q32JV, X1 12MHz, C12/C14 15pF C0G crystal caps, R5 201Ω ADC filter |
-> | LDOs | U5 AMS1117-5.0, U6 AMS1117-3.3; electrolytic caps C37/C44 10µF 25V, C38/C50 22µF 25V |
-> | Power-OR (VBUS/12V) | D12, D23 (1N5819W Schottky, SOD-123) |
-> | USB-C | J1 (16P receptacle, footprint TBD at sourcing), R3/R4 27Ω 1% series, R13/R14 5.1k CC pull-downs |
+> | LDOs | U5 AMS1117-5.0, U6 **AP7361C-33ER-13** (swapped in for AMS1117-3.3 2026-07-16 — `-33ER-` suffix ONLY, plain `-33E-` is pin-reversed); caps: C37+C52 = 2× 10µF 25V X5R 0805 MLCC in parallel (AMS1117-5.0 input, DC-bias derating fix), C38 = 22µF 16V **tantalum** (AMS1117-5.0 output — the only ESR-required spot), C44/C50 = 10µF 25V X5R 0805 MLCC (AP7361C in/out, ceramic-stable) |
+> | 12V bulk | C51 470µF 25V **SMD V-chip aluminum electrolytic** (RVT1E471M1010; swapped from TH radial 2026-07-16 — deliberately not tantalum, 12V hot-plug surge) |
+> | Power-OR (VBUS/12V) | D12, D23 (**PMEG3015EH** Schottky, SOD-123F — swapped in for 1N5819W 2026-07-16) |
+> | USB-C | J1 = GCT **USB4085-GF-A** (decided 2026-07-11, footprint `USB_C_Receptacle_GCT_USB4085`), R3/R4 27Ω 1% series, R13/R14 5.1k CC pull-downs |
 > | SWD / BOOTSEL / RUN | J2 SWD header, SW2 BOOTSEL, R7 1k, R12 10k DNF, R1 10k RUN pull-up, TP1 RUN |
 > | RS-485 | U2 THVD1419, J8 IN / J10 OUT (Micro-Fit 3-pin), SW3 termination DPDT (E-Switch EG2201A, footprint panel-pcb:SW_EG2201A), R2 120Ω |
 > | FSR inputs | J3/J4/J6/J7 = N/E/S/W (JST-PH), R8–R11 10k 1% pull-downs, C16–C19 10nF C0G |
-> | LED chain | 25× WS2815 = D2–D11, D13–D22, D24–D28 (chain order ≠ ref order after re-annotation), U4 SN74AHCT125 (SOIC-14), R16 330Ω, per-LED 100nF = C22–C36, C39–C43, C45–C49 (C21 is the shifter VCC decoupler, not an LED cap) |
+> | LED chain | 25× WS2815 = D2–D11, D13–D22, D24–D28 (chain order ≠ ref order after re-annotation; footprint `panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm`, corrected 2026-07-13 — the stock PLCC4/PLCC6 footprints are both wrong for WS2815), U4 SN74AHCT125 (SOIC-14), R16 330Ω, per-LED 100nF = C22–C36, C39–C43, C45–C49 (C21 is the shifter VCC decoupler, not an LED cap) |
 > | Debug LED | D1 + R15 1k (GPIO3, optional populate) |
-> | INT out | R17 100Ω + J9 (part style TBD at layout) |
+> | INT out | R17 100Ω + J9 (decided 2026-07-11: KF301-style 1P 5.08mm screw terminal, footprint `panel-pcb:TerminalBlock_KF301-1P_P5.08mm` — verify drill/pad vs sourced part before ordering) |
 > | Panel ID DIP | SW1 (GPIO6–9) |
 > | 12V bus | J5 IN / J11 OUT (Micro-Fit 2-pin) |
-> | Test points | TP1 RUN, TP2/TP3 GND, TP4 UART RX, TP5 UART TX, TP6 RS-485 dir (GPIO2), TP7 LED data 3.3V, TP8 +12V, TP9 LED data 5V, TP10 +5V, TP11 +3V3 |
+> | Test points | TP1 RUN, TP2/TP3/TP12 GND, TP4 UART RX, TP5 UART TX, TP6 RS-485 dir (GPIO2), TP7 LED data 3.3V, TP8 +12V, TP9 LED data 5V, TP10 +5V, TP11 +3V3 |
+>
+> **Part-swap notice (2026-07-16):** mentions of AMS1117-3.3, 1N5819W, and
+> radial-TH electrolytics in the block-by-block draft history below are
+> superseded by the table above (AP7361C-33ER-13 / PMEG3015EH / all-SMD caps).
+> The history is kept as design rationale, not as a parts list.
 
 ## RP2040 pin map (final panel — supersedes prototype pins where noted)
 
@@ -139,9 +145,9 @@ Unused GPIOs → test pads if board space is free.
    node) is arbitrary.
 5. **LED chain**: SN74AHCT125 (5V VCC, 100nF), one gate for LED data (input from
    GPIO16, 3.3V logic OK at AHCT), ~330Ω series R → LED1 DIN. 25× WS2815 in the
-   staggered 4-3-4-3-4-3-4 lattice — **physical measurements 2026-07-10 (supersede
-   the old photo-estimate pitches): row pitch 17mm, column pitch 34mm, row 1 at
-   Y=11mm from top edge** (see STOCK_PANEL_PCB_MEASUREMENTS.md), serpentine order
+   staggered 4-3-4-3-4-3-4 lattice — **physical measurements, refined 2026-07-13:
+   row pitch 17mm, column pitch 33.5mm (not 34mm), insets 13.5mm left / 13.0mm
+   right / 12.5mm top+bottom** (see STOCK_PANEL_PCB_MEASUREMENTS.md), serpentine order
    per PROTOTYPE_LED_LAYOUT.md, BIN(n) ← DIN-signal(n-1), BIN(1) ← shifter output.
    Spare shifter gates: tie inputs to GND. **Drafted + netlist-verified 2026-07-11**
    (this block was placed fully pre-connected — net labels directly on pins +
@@ -183,9 +189,10 @@ Unused GPIOs → test pads if board space is free.
 8. **Board**: outline per physical measurement — **not a perfect square**, edges
    128/127/128/127mm (X locked ~127mm by the left/right power+RS-485 connectors,
    Y has ~20mm slack per end if ever needed — see CLAUDE.md Physical Dimensions).
-   Mounting holes: 4.5mm dia, 114mm center-to-center (X and Y), inset 6mm on two
-   edges + 7mm on the other two (verify which two against the frame/standoffs
-   before footprint freeze). Standoff height ~6mm, ~35mm usable height budget to
+   Mounting holes: 4.5mm dia, 114mm center-to-center — except the **top pair,
+   which is 113mm apart** (refined 2026-07-12, calipers + photo cross-check);
+   inset 6mm on two edges + 7mm on the other two (verify which two against the
+   frame/standoffs before footprint freeze). Standoff height ~6mm, ~35mm usable height budget to
    the panel platform above the PCB. Power connectors top-left/top-right ~25mm
    from top edge; data IN left edge ~103mm from top, data OUT right edge ~95mm
    from top (all physical measurements, STOCK_PANEL_PCB_MEASUREMENTS.md).

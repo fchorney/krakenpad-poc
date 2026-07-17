@@ -34,11 +34,13 @@ copper. This means:
 - (Corrected 2026-07-10: no position-specific IN-only builds — all boards, real and
   passthrough, carry the full IN+OUT set so any board works in any slot; an OUT at the end
   of a chain simply sits empty.)
-- **INT**: still has the same 2-pin Micro-Fit connector as a real panel, for mechanical/cable
-  uniformity with the master's 10-pin INT harness — but the pin is **not connected to
-  anything** on the passthrough board (no local pull-down, no active drive). This relies on
-  the existing master-side pull-up and the already-documented safe failure mode
-  ("disconnected/floating wire reads HIGH = not pressed").
+- **INT**: still has the same single-conductor termination as a real panel (screw
+  terminal, per the 2026-07-10 INT rework — no Micro-Fit, no GND conductor; the master
+  end is a 9–10 position pluggable terminal block), for mechanical/cable uniformity —
+  but the terminal is **not connected to anything** on the passthrough board (no local
+  pull-down, no active drive). This relies on the existing master-side pull-up and the
+  already-documented safe failure mode ("disconnected/floating wire reads HIGH = not
+  pressed").
 - **RS-485 termination**: 120Ω termination resistor footprint, **populated only if this board
   ends up in the last physical position of the RS-485 chain**. Because either a real panel or
   a passthrough board could end up in that last slot depending on kit configuration, this

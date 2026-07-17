@@ -33,16 +33,18 @@ Good enough for v0; re-sync loss just costs one frame.)
 
 ## Commands
 
-### `'L'` — LED frame (master → panels, broadcast)
+### `'L'` — LED frame (master → panels)
 
-- addr `0xFF`, len 75
+- addr = panel ID (per-panel frame) or `0xFF` broadcast, len 75
 - Payload: 25 × RGB triplets, **serpentine LED order** (LED index i at bytes
   3i, 3i+1, 3i+2 = R, G, B)
 - Panel displays the frame on receipt. Remote frames take priority over local
   animations; panel falls back to local animation if no `'L'` frame arrives
   within **100ms**.
-- v0 sends the same 75-byte frame to all panels. Multi-panel: either per-panel
-  addressed frames or one big broadcast with per-panel offsets — TBD.
+- Multi-panel: **per-panel addressed `'L'` frames** (addr = panel ID) — working
+  as of the 2-panel bench bring-up 2026-07-11. A single big broadcast with
+  per-panel offsets was the alternative considered; not needed at current bus
+  utilization (~6% single-panel, ~9ms full 9-panel cycle).
 
 ### `'F'` — FSR poll (master → one panel)
 

@@ -38,7 +38,7 @@ The SMX MCU outputs via RJ-12. Panel 0 (or an adapter board between the SMX MCU 
 The existing Micro-Fit 3-pin RS-485 connectors and differential pair wiring can be reused. The THVD1419 transceivers on each panel already convert between single-ended UART and differential A/B — they are agnostic to the protocol running over them. In SMX compat mode, the transceivers would simply always be in **receive mode** (never transmit), acting as a differential line receiver for the single-ended SMX UART signal injected at panel 0. No hardware change needed for panels 1–8 on the bus side.
 
 #### Signal wire — level shifting required
-Each panel would need a **level shifter** on the signal wire GPIO (RP2040 is 3.3V; SMX MCU expects 5V). A BSS138-based bidirectional level shifter per panel is sufficient. The signal wire is a home-run back to the SMX MCU (same topology as the custom INT wire), so the connector could mirror the existing INT 2-pin Micro-Fit.
+Each panel would need a **level shifter** on the signal wire GPIO (RP2040 is 3.3V; SMX MCU expects 5V). A BSS138-based bidirectional level shifter per panel is sufficient. The signal wire is a home-run back to the SMX MCU (same topology as the custom INT wire), so the connector could mirror the existing INT termination style (single-conductor screw terminal — the INT connector was reworked from Micro-Fit 2026-07-10).
 
 #### Power — no change
 Power continues to come from the custom 12V PSU daisy-chain. The SMX MCU carries no power on its data cable, so power delivery is unchanged.

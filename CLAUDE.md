@@ -16,7 +16,9 @@ Key improvements over stock SMX hardware:
 
 ```
 firmware/
-  master/         # Master MCU firmware (Teensy 4.x) — not yet started
+  master/
+    master.ino    # Master MCU firmware (Teensy 4.x) — RS-485 + INT working; USB HID to PC not yet started
+    usb_speed_test/  # USB HS bench-test sketch (see USB Polling Rate note)
   panel/
     main.py       # MicroPython prototype (used during initial breadboard bring-up)
     c/            # C/Pico SDK firmware (final target)
@@ -24,8 +26,8 @@ firmware/
       CMakeLists.txt
       ws2812.pio
 hardware/
-  master-pcb/   # Master MCU board KiCad project
-  panel-pcb/    # Panel PCB KiCad project
+  master-pcb/   # Master MCU board KiCad project — not yet started
+  panel-pcb/    # Panel PCB KiCad project (schematic v1.0 signed off; layout in progress)
 docs/           # Protocol specs, wiring diagrams, design decisions
 ```
 
@@ -56,7 +58,7 @@ PC (USB HID) ←→ Master MCU (Teensy 4.x)
 - **Master GPIO budget (Teensy 4.0, 40 usable digital pins):** 9 INT inputs + 3 player-ID DIP + 3 RS-485 (TX1, RX1, DE/RE tied to one pin — see `docs/PROTOTYPE_WIRING.md`) + 1 underglow DATA out = **16 pins used, 24 spare**. USB is handled internally (not GPIO). Comfortable headroom for anything else that comes up (status LEDs, future expansion) — no pin-count risk on this MCU.
 
 ### Panel MCU: bare RP2040 (QFN-56) on the panel PCB — decided 2026-07-10
-Chosen over the RP2040-Zero module: ~$3–4/panel support BOM vs ~$10 module, full pin control (clean ADC routing incl. GPIO29, 10nF caps at the pins), keeps the 4MB W25Q32JV decision (Zero is fixed 2MB), and the whole panel becomes one flat fab-assemblable PCB. Support circuit per the official "Hardware design with RP2040" minimal reference: 12MHz crystal + load caps, decoupling set, QSPI flash, **USB-C for flashing** (16-pin USB 2.0-only receptacle, **through-hole or TH-reinforced mounting required** — TH pins take the mechanical stress of repeated plug/unplug during flashing. Orientation is free (clarified 2026-07-11, supersedes the 2026-07-10 "vertical preferred"): the port is only used on the bench with the panel top off, so cable clearance is irrelevant; only constraint is receptacle body height must clear the panel platform during play (trivial, ~35mm budget). Exact part TBD at sourcing — candidates: GCT USB4085-GF-A (horizontal, all-TH, stock KiCad footprint; current lean), GCT USB4105 (SMT signals + TH shell stakes), or LCSC generic vertical DIP 16P. 5.1kΩ pull-down on each CC pin — required for C-to-C cables; tie duplicated D+/D− pairs), BOOTSEL button, and a 3-pin SWD header (SWDIO/GND/SWCLK) as the firmware-independent recovery/debug path.
+Chosen over the RP2040-Zero module: ~$3–4/panel support BOM vs ~$10 module, full pin control (clean ADC routing incl. GPIO29, 10nF caps at the pins), keeps the 4MB W25Q32JV decision (Zero is fixed 2MB), and the whole panel becomes one flat fab-assemblable PCB. Support circuit per the official "Hardware design with RP2040" minimal reference: 12MHz crystal + load caps, decoupling set, QSPI flash, **USB-C for flashing** (16-pin USB 2.0-only receptacle, **through-hole or TH-reinforced mounting required** — TH pins take the mechanical stress of repeated plug/unplug during flashing. Orientation is free (clarified 2026-07-11, supersedes the 2026-07-10 "vertical preferred"): the port is only used on the bench with the panel top off, so cable clearance is irrelevant; only constraint is receptacle body height must clear the panel platform during play (trivial, ~35mm budget). **Part decided 2026-07-11: GCT USB4085-GF-A** (horizontal, all-TH, stock KiCad footprint, assigned to J1); rejected candidates were GCT USB4105 (SMT signals) and LCSC "vertical DIP" 16P parts (all turned out SMD-vertical on inspection). 5.1kΩ pull-down on each CC pin — required for C-to-C cables; tie duplicated D+/D− pairs), BOOTSEL button, and a 3-pin SWD header (SWDIO/GND/SWCLK) as the firmware-independent recovery/debug path.
 - **Core 0**: Tight FSR sampling loop — 4kHz hard target, 8kHz soft target (headroom for oversampling/averaging); drives the open-drain interrupt wire to master on threshold crossing
 - **Core 1**: RS-485 comms — receives LED broadcast, replies to FSR telemetry poll; drives 25 local LEDs
 - 4× FSR inputs via ADC0–ADC3 (GPIO26–29). GPIO29/ADC3 is usable as a regular ADC on custom PCB (no VSYS monitoring needed)
@@ -84,10 +86,10 @@ Chosen over the RP2040-Zero module: ~$3–4/panel support BOM vs ~$10 module, fu
 - **Master GND must be tied into the pad ground network** (e.g. a short lead from a master connector/pad to a fork terminal on the PSU's GND stud) — INT and RS-485 need a solid common reference; separate grounds was a real bench failure mode (see memory: multi-panel bring-up).
 - Underglow (resolved 2026-07-10): strips already take 12V/GND from the PSU lugs in the stock harness — the master outputs **DATA only** (5V shifter channel off the Teensy USB rail); ground reference comes via the master's PSU GND tie. Connector type/pinout of the stock data connection still to be checked at master layout time.
 - WS2815 LEDs run natively at 12V
-- **Panel logic regulation — DECIDED 2026-07-09: cascaded linear LDOs.** AMS1117-5.0 (12V → 5V) feeding AMS1117-3.3 (5V → 3.3V). The 5V rail powers only the SN74AHCT125N level shifter (single-digit mA — this rail was previously missing from the design; the prototype borrowed a separate USB 5V supply, see PROTOTYPE_WIRING.md, but the final panel is self-contained on 12V bus power). The 3.3V rail powers RP2040, RS-485 transceiver, and remaining logic (~30–50mA total).
+- **Panel logic regulation — DECIDED 2026-07-09: cascaded linear LDOs.** AMS1117-5.0 (12V → 5V) feeding the 3.3V stage — **which is AP7361C-33ER-13 as of 2026-07-16** (swapped in for AMS1117-3.3: low-dropout CMOS, ~360mV@1A vs ~1.1V, gives >1V of headroom when powered from USB VBUS alone through the power-OR diode; Vin abs max 6V so it must stay downstream of the 5V stage, never raw 12V; **order the `-33ER-` suffix only** — SOT223R pinout matches AMS1117 GND/OUT/IN tab=OUT, while plain `-33E-` is pin-reversed). Power-OR diodes D12/D23 are **PMEG3015EH** (SOD-123F, 255mV typ @100mA) as of the same date, replacing 1N5819W. Cap rules: AMS1117-5.0 output (C38) = 22µF 16V tantalum (needs ESR — ceramic-only can oscillate); AMS1117 input (C37) and both AP7361C caps (C44/C50) = 10µF 0805 MLCC (AP7361C is ceramic-stable per datasheet). The 5V rail powers only the SN74AHCT125N level shifter (single-digit mA — this rail was previously missing from the design; the prototype borrowed a separate USB 5V supply, see PROTOTYPE_WIRING.md, but the final panel is self-contained on 12V bus power). The 3.3V rail powers RP2040, RS-485 transceiver, and remaining logic (~30–50mA total).
   - Why cascade over two parallel LDOs off 12V: second stage's PSRR gives a very clean 3.3V for the RP2040's noise-sensitive ADC (FSR readings); dissipation splits favorably (~0.35W in the 5.0, ~0.07W in the 3.3 — fine for SOT-223 with a copper pour); same part family = BOM coherence.
   - Why not a buck (or buck + LDO hybrid): total logic draw is ~0.44W worst case from 12V — no thermal problem to solve. A buck adds inductor/caps/layout risk, switching noise near the FSR analog inputs, and at single-digit mA loads many bucks drop into PFM/pulse-skipping with worse ripple. Hybrid only becomes worthwhile if logic-rail load grows to ~200mA+.
-  - AMS1117-3.3 dropout (~1.1V at rated load, less at 30mA) is comfortably met by 5V input.
+  - 3.3V-stage dropout is a non-issue since the AP7361C swap (~tens of mV at the ~30–50mA panel load); the old AMS1117-3.3's ~1.1V dropout was the USB-VBUS-only weak point that motivated the swap.
   - **AP2112K-3.3 is NOT usable anywhere here** — absolute max input 6.5V, far below 12V. MCP1804 (28V max) remains a fallback if AMS1117 sourcing fails.
   - Bench-verify the cascade on a breadboard before committing to panel PCB layout (AMS1117 breakout modules are cheap and readily available).
   - LED strip VDD/GND stay straight 12V, untouched — the shifter only drives the data line into the first LED, never LED power.
@@ -100,7 +102,7 @@ All inter-panel connectors use **Molex Micro-Fit 3.0**, right-angle PCB-mount on
 |--------|-----------|------|------------|-------|
 | Power | Micro-Fit 3.0 | 2-pin | 2×20 AWG jacketed | Column daisy-chain |
 | RS-485 | Micro-Fit 3.0 | 3-pin | 1 twisted pair 22-24 AWG (2 conductors, no GND) | 3rd pin deliberately kept unpopulated (2026-07-10) — makes the connector physically distinct from 2-pin power so 12V can never plug into the transceiver |
-| INT (per panel) | Screw terminal (ferrule) or ring terminal on stud — style TBD at layout | 1 conductor | 24 AWG | Home-run to master. Single wire (2026-07-10): no GND conductor — return rides the shared power ground network (requires the master GND tie). Can't be misplugged |
+| INT (per panel) | Screw terminal — KF301-style 1P 5.08mm (decided 2026-07-11; J9, footprint `panel-pcb:TerminalBlock_KF301-1P_P5.08mm` — verify drill/pad vs sourced part before ordering) | 1 conductor | 24 AWG | Home-run to master. Single wire (2026-07-10): no GND conductor — return rides the shared power ground network (requires the master GND tie). Can't be misplugged |
 | INT (master) | 9–10 pos pluggable terminal block (Euroblock) | 9 conductors | — | One position per panel (+ spare, fine if empty). Pluggable = all 9 wires detach from the master as a single block. Replaced the 10-pin Micro-Fit + shared-GND idea — a lone GND pin had nowhere sensible to land across 9 discrete wires. **Wire color per panel** identifies each line — stock SMX map adopted: 0=Red, 1=Orange, 2=Yellow, 3=Green, 4=Blue, 5=Brown, 6=Grey, 7=White, 8=Black (see docs/BOM.md); slot mapping feeds panel-ID mismatch detection |
 | FSR (internal) | JST-PH | 2-pin | thin | Top-entry PCB-mount (B2B-PH-K), internal to panel. Corrected from JST-XH 2026-07-10: existing FSR leads use PHR-2 plugs — verify against a real lead before footprint freeze |
 

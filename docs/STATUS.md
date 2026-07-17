@@ -4,7 +4,7 @@ Living doc — updated at the end of each work session so it's easy to pick
 back up. See CLAUDE.md for full architecture, and the topic docs in `docs/`
 for detail on any item below.
 
-## What's proven and working (as of 2026-07-11)
+## What's proven and working (as of 2026-07-16)
 
 - **Full sensor path**: FSR → ADC (hysteresis + persistence filter, no
   chatter) → open-drain INT wire → Teensy interrupt, sub-millisecond,
@@ -18,66 +18,70 @@ for detail on any item below.
   originally assumed.
 - **ADC mux crosstalk fixed in hardware** — 10nF caps per FSR channel,
   bench-verified, required on the final panel PCB.
+- **Power cascade bench-verified (2026-07-16)**: AMS1117-5.0 → 3.3V-stage
+  cascade run from 12V under realistic load (2× Pico + 2× 5V logic chips);
+  3.3V stage cool, 5V stage mildly warm. Findings carry over to the AP7361C
+  swap (lighter-duty part; meter-check when real chips arrive).
 - **Tooling**: full CLI flashing workflow (`arduino-cli`, `picotool`) for
   both boards, `tools/fsr_monitor.py` (live per-panel FSR bars + threshold
-  tuning), `tools/usb_speed_test.py`.
+  tuning), `tools/usb_speed_test.py`. KiCad scripting via the app-bundled
+  `python3.9` (`pcbnew`) + `kicad-cli` for DRC/netlist checks.
 
-## Bugs found and fixed this session (bus bring-up)
+## Panel PCB — where things stand
 
-In order, all confirmed root-caused: duplicate panel ID (GPIO6 pull-down
-jumper fix) → wrong resistor value (10kΩ misread as 120Ω) → missing shared
-ground between the Teensy's and Picos' separate breadboards → **unpaced
-back-to-back polling causing real half-duplex bus collisions** (the actual
-root cause of the persistent ~20% success rate that survived the first three
-fixes). Full writeup: `docs/RS485_PROTOCOL.md`.
-
-## Known hardware gaps to fix before KiCad
-
-- **AP2112K-3.3 can't take 12V input** (6.5V abs max) — swap for AMS1117-3.3
-  or MCP1804 on the panel PCB's 12V→3.3V rail. Not yet bench-tested.
-- **Panel PCB is missing a 5V rail** for the SN74AHCT125N level shifter's
-  VCC — needs a second small linear regulator (12V→5V, low current, e.g.
-  AMS1117-5.0). See CLAUDE.md Power section.
-- 10nF caps per FSR ADC channel (see above) — remember for panel PCB layout.
+- **Schematic v1.0 signed off 2026-07-11** (full pre-layout audit passed;
+  "KrakenPad Panel PCB v1.0.pdf" in `hardware/`). Current authoritative refs:
+  table at the top of `docs/PANEL_SCHEMATIC_PLAN.md`.
+- **Layout in progress**: placement done (LED lattice at refined caliper
+  measurements, stock-style connector tabs on the outline), USB/RS-485/
+  crystal/QSPI routed and length-matched, power/FSR routing rebuilt clean,
+  JLC DRC rules calibrated. General routing cleanup still in progress.
+- **Part swaps applied 2026-07-16 (sch + PCB + BOM, uncommitted)**: U6 →
+  AP7361C-33ER-13 (`-33ER-` suffix only — plain `-33E-` is pin-reversed),
+  D12/D23 → PMEG3015EH, C38 → 22µF tantalum, C37+C52 → 2× 10µF 0805 MLCC,
+  C44/C50 → 10µF 0805 MLCC, C51 → SMD V-chip 470µF electrolytic. Pending GUI
+  pass: re-route the 6 cap sites, run Update PCB from Schematic (expect field
+  syncs only), verify RVT1E471M1010 pad fit.
+- **Remaining before fab**: finish routing cleanup, bottom GND pour +
+  stitching vias (deliberately last), silkscreen pass, verify which edges
+  have the 7mm mounting-hole inset against the frame, verify J9 KF301
+  footprint drill/pad vs the sourced part, verify a PHR-2 plug against a real
+  FSR lead.
 
 ## Open design questions (not blocking, revisit when relevant)
 
-- **Underglow strips**: optional feature, may be dropped if it doesn't fit
-  cleanly. Leading plan is to reuse the stock Daygreen B15-1224-05 converter
-  (confirmed standalone, reusable) for power, adding only a data line via a
-  spare level-shifter channel. Still needs teardown to confirm LED family
-  (5V vs 12V) and exact strip wiring. See `docs/UNDERGLOW.md`.
-- **Panel LED family**: WS2815 is the working default; APA102/SK9822 (SPI
-  clocked) is a documented alternative worth a look before final panel PCB
-  layout, since it directly serves the project's latency/refresh-rate goals
-  better than WS281x's fixed-timing protocol. See `docs/LED_OPTIONS.md`.
-- **Slotted broadcast polling**: a possible future protocol optimization
-  (15-20x tighter telemetry sweep) — not needed now, current rates are far
-  beyond what's required. See `docs/RS485_PROTOCOL.md`.
-- **RS-485 multi-panel LED addressing**: resolved in practice (addressed
-  `'L'` frames work), doc still has an old TBD note to clean up.
+- **Underglow harness splice point**: electrical spec fully resolved (12V
+  native, 44 groups-of-3, master outputs DATA only — see `docs/UNDERGLOW.md`),
+  but the stock leads crimp directly into a 12-pin Dupont housing at the old
+  MCU with no reusable intermediate connector — cleanest splice point needs
+  the full pad/harness teardown. Gates the master PCB's underglow connector.
+- **Slotted broadcast polling**: possible future protocol optimization
+  (15-20x tighter telemetry sweep) — not needed now. See
+  `docs/RS485_PROTOCOL.md`.
+- **PSU stud size + real harness run lengths** — measure at teardown, feeds
+  BOM lug/wire quantities.
 
 ## Naming / branding
 
 Working project name: **"KrakenPad"** (not final, open to more
 workshopping). Logo idea: circuit-trace-style kraken, echoing the master's
 single connector fanning out to 9 panel connectors like tentacles. VID/PID
-plan is pid.codes (free open-source hobbyist registry) — blocked on this
-repo having a public remote + LICENSE file, neither of which exist yet.
+plan is pid.codes — repo now lives at `github.com/fchorney/krakenpad-poc`
+with active commits, but still needs a LICENSE file (and public visibility)
+for eligibility.
 
 ## Concrete next steps (pick from here)
 
-1. Bench-test the 12V→3.3V regulator swap (AMS1117-3.3 breakout module,
-   powering a Pico from 12V) before finalizing the panel PCB's power section.
-2. Underglow teardown: confirm LED family, strip wiring, connector pinout.
-3. Decide panel LED family (WS2815 vs APA102) before panel PCB layout starts.
-4. Start KiCad panel PCB design (5×5", connectors + regulators already
-   mostly resolved — see CLAUDE.md).
+1. Panel PCB: finish the LDO-swap cleanup (6 cap re-routes, Update PCB from
+   Schematic, RVT1E471M1010 pad-fit check), then continue routing cleanup.
+2. Panel PCB: bottom GND pour + via stitching as the final layout step, then
+   silkscreen pass and fab-readiness DRC.
+3. Commit the in-flight sch/PCB/BOM changes (LDO/diode/cap swap work).
+4. Full pad + harness teardown: underglow splice point, PSU stud size, real
+   cable run lengths.
 5. Start KiCad master PCB design (~80×60mm).
-6. Design flash config storage + calibration (placeholder notes exist in
-   `docs/PANEL_CONFIG.md`; `'C'` command's RAM-only pattern is the prototype
-   of the eventual flash-backed version).
-7. Panel firmware: flash-backed animation playback (Core 1 currently only
-   does the built-in chase demo + remote frames).
-8. Master firmware: USB HID reports to the PC (RS-485 + INT are working,
+6. Master firmware: USB HID reports to the PC (RS-485 + INT are working,
    this is the one major master-side piece not yet started).
+7. Panel firmware: flash-backed animation playback + flash config storage /
+   per-channel calibration (design notes in `docs/PANEL_CONFIG.md`).
+8. Extend `stepmaniax-gif-maker` to export `.smxa` binary format.
