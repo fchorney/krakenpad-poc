@@ -52,11 +52,11 @@ stocks it). DigiKey cart shrinks to whatever LCSC can't cover + bench spares.
 | RP2040 decoupling caps + misc passives | — | DigiKey | Specced during schematic capture (standard 100nF/1µF set per RP2040 hardware design guide). |
 
 Layout note for the LED chain: WS2815's **BIN** (backup data) pin on each LED connects to
-the same signal feeding the *previous* LED's DIN; the first LED's BIN ties to the data
-source (in the schematic: net `LD0`, the node after the series resistor — same net as
-LED 1's DIN, matching the datasheet's recommended application circuit). That's what makes
-the chain survive a single dead LED — don't leave BIN floating. Last LED's DOUT is left
-unconnected.
+the same signal feeding the *previous* LED's DIN; **the first LED's BIN ties to GND**
+(corrected 2026-07-17 — an earlier note here claimed the datasheet ties BIN(1) to the data
+source, but the vendor application circuit actually grounds the first pixel's BIN; caught
+in design review). That's what makes the chain survive a single dead LED — don't leave BIN
+floating. Last LED's DOUT is left unconnected.
 
 ## Master PCB (×1)
 

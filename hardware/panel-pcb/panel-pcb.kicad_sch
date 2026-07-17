@@ -23274,7 +23274,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "6eaf81fc-4083-4c41-bc51-3bbe7062249e")
 		(property "Reference" "R12"
 			(at 155.702 231.648 0)
@@ -23286,7 +23286,7 @@
 				)
 			)
 		)
-		(property "Value" "10k DNF"
+		(property "Value" "10k"
 			(at 157.988 233.934 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23318,7 +23318,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "QSPI /CS pull-up. Fitted (was DNF) 2026-07-17 per design review: RP2040 internal QSPI_SS pull-up is not guaranteed during the earliest power-ramp interval (hardware design guide 2.2); W25Q32JV requires /CS to track VCC at power-up."
 			(at 152.4 233.68 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23798,7 +23798,7 @@
 				)
 			)
 		)
-		(property "Description" "U5 (RS-485 transceiver) VCC decoupling."
+		(property "Description" "U2 (RS-485 transceiver) VCC decoupling."
 			(at 86.36 38.1 0)
 			(hide yes)
 			(show_name no)
@@ -31006,7 +31006,7 @@
 				)
 			)
 		)
-		(property "Value" "12MHz"
+		(property "Value" "12MHz ABM8-272-T3"
 			(at 100.33 132.334 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -31038,7 +31038,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Abracon ABM8-272-T3: 12MHz, CL=10pF, ESR<=50R, 3.2x2.5mm - the exact crystal the RP2040 hardware design guide 15pF/15pF/1k network is calculated for. Any substitute must match CL=10pF or C12/C14 must be recalculated."
 			(at 100.33 137.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32717,7 +32717,7 @@
 				)
 			)
 		)
-		(property "Description" "Power-OR diode: AMS1117-5.0 output (12V-derived 5V) into V5_OR node. Pin 2 (A/anode) faces U3's VO; pin 1 (K/cathode) faces the V5_OR node. Ultra-low-VF Schottky swap for 1N5819W (2026-07-16): 255mV typ @100mA. Order PMEG3015EH,115 - LCSC C552867."
+		(property "Description" "Power-OR diode: AMS1117-5.0 output (12V-derived 5V) into V5_OR node. Pin 2 (A/anode) faces U5's VO; pin 1 (K/cathode) faces the V5_OR node. Ultra-low-VF Schottky swap for 1N5819W (2026-07-16): 255mV typ @100mA. Order PMEG3015EH,115 - LCSC C552867."
 			(at 353.06 219.71 0)
 			(hide yes)
 			(show_name no)
@@ -32874,7 +32874,7 @@
 				)
 			)
 		)
-		(property "Description" "Power-OR diode: USB VBUS into V5_OR node, allows USB-only bench powering/flashing. Pin 2 (A/anode) faces J2's VBUS; pin 1 (K/cathode) faces the V5_OR node. Ultra-low-VF Schottky swap for 1N5819W (2026-07-16): 255mV typ @100mA. Order PMEG3015EH,115 - LCSC C552867."
+		(property "Description" "Power-OR diode: USB VBUS into V5_OR node, allows USB-only bench powering/flashing. Pin 2 (A/anode) faces J1's VBUS; pin 1 (K/cathode) faces the V5_OR node. Ultra-low-VF Schottky swap for 1N5819W (2026-07-16): 255mV typ @100mA. Order PMEG3015EH,115 - LCSC C552867."
 			(at 341.63 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -35289,7 +35289,7 @@
 				)
 			)
 		)
-		(property "Description" "RS-485 bus termination resistor. In-circuit only when SW2 pole 1 is in the terminated position."
+		(property "Description" "RS-485 bus termination resistor. In-circuit only when SW3 pole 1 is in the terminated position."
 			(at 44.45 87.63 0)
 			(hide yes)
 			(show_name no)
