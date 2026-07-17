@@ -42,11 +42,14 @@ for detail on any item below.
   C44/C50 → 10µF 0805 MLCC, C51 → SMD V-chip 470µF electrolytic. Pending GUI
   pass: re-route the 6 cap sites, run Update PCB from Schematic (expect field
   syncs only), verify RVT1E471M1010 pad fit.
-- **Remaining before fab**: finish routing cleanup, bottom GND pour +
-  stitching vias (deliberately last), silkscreen pass, verify which edges
-  have the 7mm mounting-hole inset against the frame, verify J9 KF301
-  footprint drill/pad vs the sourced part, verify a PHR-2 plug against a real
-  FSR lead.
+- **Remaining before fab**: stitching vias on the bottom GND pour (pour is
+  done; ViaStitching plugin now installed in the right location), silkscreen
+  pass (after placement/traces are final), C51 pad stretch to the RVT
+  datasheet land pattern, verify J9 KF301 footprint drill/pad vs the sourced
+  part, verify a PHR-2 plug against a real FSR lead. General routing cleanup
+  done 2026-07-17. Mounting-hole positions confirmed 2026-07-17 by 1:1
+  printout physically fit-tested against the standoffs — the 6/7mm edge-inset
+  question is closed (positions validated directly; exact inset split moot).
 
 ## Open design questions (not blocking, revisit when relevant)
 

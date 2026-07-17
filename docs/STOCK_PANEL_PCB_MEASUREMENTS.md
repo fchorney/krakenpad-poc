@@ -35,8 +35,9 @@ tight, but tabs are optional (stock uses them for bulky jacks we don't have).
 - Photo estimate: centers ≈7mm in from all four edges (symmetric).
 - **Physical (2026-07-10): hole diameter 4.5mm, center-to-center ~114mm in both X and
   Y.** Inset (hole center to board edge) is 6mm on two edges, 7mm on the other two —
-  not symmetric like the photo estimate suggested; verify which two edges are 7mm
-  against the frame/standoffs before finalizing hole placement. **Standoffs are
+  not symmetric like the photo estimate suggested. (Which-edges question closed
+  2026-07-17: our board's hole positions were confirmed directly by a 1:1 printout
+  fit-tested against the physical standoffs, making the exact inset split moot.) **Standoffs are
   plastic poles with retention tabs, not metal screws** — no grounded-screw
   consideration needed, this user's pad shows no metal at the hole edges.
 - **Physical, refined (2026-07-12, calipers, re-measured twice): not a perfect

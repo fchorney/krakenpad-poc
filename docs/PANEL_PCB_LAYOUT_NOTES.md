@@ -96,8 +96,9 @@ passthrough is **not a separate design**:
   panel platform).
 - X dimension fixed ~127mm (edge connectors left/right); Y has ~20mm slack per
   end if ever needed. Mounting holes 4.5mm, 114mm centers — except the top
-  pair at 113mm (2026-07-12 refinement); 6/7mm insets — verify which edges
-  are 7mm against the frame before finalizing.
+  pair at 113mm (2026-07-12 refinement). Hole positions **confirmed 2026-07-17
+  by 1:1 printout fit-tested against the physical standoffs** — the earlier
+  "which edges get the 6 vs 7mm inset" question is closed.
 - Connector edge positions should mirror stock's measured locations (cable
   reach + cavity fit) — see measurements doc.
 

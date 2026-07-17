@@ -15,7 +15,7 @@ sheets, one block each. All decided parts per `docs/BOM.md`.
 > | LDOs | U5 AMS1117-5.0, U6 **AP7361C-33ER-13** (swapped in for AMS1117-3.3 2026-07-16 — `-33ER-` suffix ONLY, plain `-33E-` is pin-reversed); caps: C37+C52 = 2× 10µF 25V X5R 0805 MLCC in parallel (AMS1117-5.0 input, DC-bias derating fix), C38 = 22µF 16V **tantalum** (AMS1117-5.0 output — the only ESR-required spot), C44/C50 = 10µF 25V X5R 0805 MLCC (AP7361C in/out, ceramic-stable) |
 > | 12V bulk | C51 470µF 25V **SMD V-chip aluminum electrolytic** (RVT1E471M1010; swapped from TH radial 2026-07-16 — deliberately not tantalum, 12V hot-plug surge) |
 > | Power-OR (VBUS/12V) | D12, D23 (**PMEG3015EH** Schottky, SOD-123F — swapped in for 1N5819W 2026-07-16) |
-> | USB-C | J1 = GCT **USB4085-GF-A** (decided 2026-07-11, footprint `USB_C_Receptacle_GCT_USB4085`), R3/R4 27Ω 1% series, R13/R14 5.1k CC pull-downs |
+> | USB-C | J1 = GCT **USB4085-GF-A** (decided 2026-07-11, footprint `USB_C_Receptacle_GCT_USB4085`), R3/R4 27Ω 1% series, R13/R14 5.1k CC pull-downs, U7 **USBLC6-2SC6** ESD array (added 2026-07-17: dance-pad tribocharging risk, not just bench plugs; connector side of R3/R4, flow-through routed with pad-to-pad jumper traces since pads 1↔6/3↔4 join inside the chip) |
 > | SWD / BOOTSEL / RUN | J2 SWD header, SW2 BOOTSEL, R7 1k, R12 10k DNF, R1 10k RUN pull-up, TP1 RUN |
 > | RS-485 | U2 THVD1419, J8 IN / J10 OUT (Micro-Fit 3-pin), SW3 termination DPDT (E-Switch EG2201A, footprint panel-pcb:SW_EG2201A), R2 120Ω |
 > | FSR inputs | J3/J4/J6/J7 = N/E/S/W (JST-PH), R8–R11 10k 1% pull-downs, C16–C19 10nF C0G |
@@ -190,9 +190,9 @@ Unused GPIOs → test pads if board space is free.
    128/127/128/127mm (X locked ~127mm by the left/right power+RS-485 connectors,
    Y has ~20mm slack per end if ever needed — see CLAUDE.md Physical Dimensions).
    Mounting holes: 4.5mm dia, 114mm center-to-center — except the **top pair,
-   which is 113mm apart** (refined 2026-07-12, calipers + photo cross-check);
-   inset 6mm on two edges + 7mm on the other two (verify which two against the
-   frame/standoffs before footprint freeze). Standoff height ~6mm, ~35mm usable height budget to
+   which is 113mm apart** (refined 2026-07-12, calipers + photo cross-check).
+   Positions confirmed 2026-07-17 by 1:1 printout fit-tested against the
+   physical standoffs — the 6-vs-7mm edge-inset question is closed. Standoff height ~6mm, ~35mm usable height budget to
    the panel platform above the PCB. Power connectors top-left/top-right ~25mm
    from top edge; data IN left edge ~103mm from top, data OUT right edge ~95mm
    from top (all physical measurements, STOCK_PANEL_PCB_MEASUREMENTS.md).

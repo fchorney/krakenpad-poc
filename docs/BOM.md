@@ -24,6 +24,7 @@ stocks it). DigiKey cart shrinks to whatever LCSC can't cover + bench spares.
 | 12MHz crystal (per RP2040 reference design) + load caps | 1 | DigiKey | ABM8-272-T3 class per the reference design; pin exact PN at schematic time. |
 | USB-C receptacle, 16-pin USB 2.0-only | 1 | DigiKey | **DECIDED 2026-07-11: GCT USB4085-GF-A** — horizontal all-through-hole (16 signal + 8 anchor TH positions), 20k mating cycles, stock KiCad footprint (assigned to J1). Orientation requirement dropped (bench-flashing-only port, panel top off); TH mounting is the load-bearing requirement. LCSC vertical "DIP" candidates all turned out SMD-vertical on inspection. Tie duplicated D+/D− pairs together. |
 | 5.1kΩ resistor (CC1/CC2 pull-downs) | 2 | DigiKey | Required for VBUS with C-to-C cables — do not omit. |
+| USBLC6-2SC6 (USB ESD array, SOT-23-6) | 1 | DigiKey | **Added 2026-07-17 (U7).** Clamps D+/D−/VBUS at the connector. Dance-pad rationale: shoe-on-rubber tribocharging, not just bench plug events. Connector side of the 27Ω series resistors, flow-through routed. |
 | BOOTSEL tactile button | 1 | DigiKey | Grounds flash CS at boot for USB bootloader entry. |
 | SWD header, 3-pin 2.54mm (SWDIO/GND/SWCLK) | 1 | DigiKey | Recovery/debug path independent of USB + firmware state. Can ship unpopulated. Probe side: Raspberry Pi Debug Probe or a Pico running picoprobe. |
 | W25Q32JV (4MB QSPI flash, SOIC-8) | 1 | DigiKey | Required for RP2040 boot. Chosen over W25Q16JV (pin-compatible) for headroom. |
