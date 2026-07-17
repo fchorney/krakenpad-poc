@@ -72559,7 +72559,7 @@
 		(net "+5.0V")
 		(layer "In2.Cu")
 		(uuid "f5999e40-acb0-45b4-a105-1280f9afd8e1")
-		(name "+12.0V")
+		(name "+5.0V")
 		(hatch edge 0.5)
 		(priority 8)
 		(connect_pads

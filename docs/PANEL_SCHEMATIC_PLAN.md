@@ -16,7 +16,7 @@ sheets, one block each. All decided parts per `docs/BOM.md`.
 > | 12V bulk | C51 470µF 25V **SMD V-chip aluminum electrolytic** (RVT1E471M1010; swapped from TH radial 2026-07-16 — deliberately not tantalum, 12V hot-plug surge) |
 > | Power-OR (VBUS/12V) | D12, D23 (**PMEG3015EH** Schottky, SOD-123F — swapped in for 1N5819W 2026-07-16) |
 > | USB-C | J1 = GCT **USB4085-GF-A** (decided 2026-07-11, footprint `USB_C_Receptacle_GCT_USB4085`), R3/R4 27Ω 1% series, R13/R14 5.1k CC pull-downs, U7 **USBLC6-2SC6** ESD array (added 2026-07-17: dance-pad tribocharging risk, not just bench plugs; connector side of R3/R4, flow-through routed with pad-to-pad jumper traces since pads 1↔6/3↔4 join inside the chip) |
-> | SWD / BOOTSEL / RUN | J2 SWD header, SW2 BOOTSEL, R7 1k, R12 10k DNF, R1 10k RUN pull-up, TP1 RUN |
+> | SWD / BOOTSEL / RUN | J2 SWD header, SW2 BOOTSEL, R7 1k, R12 10k (fitted 2026-07-17, was DNF — design review: RP2040's internal QSPI_SS pull-up isn't guaranteed during early power-ramp), R1 10k RUN pull-up, TP1 RUN |
 > | RS-485 | U2 THVD1419, J8 IN / J10 OUT (Micro-Fit 3-pin), SW3 termination DPDT (E-Switch EG2201A, footprint panel-pcb:SW_EG2201A), R2 120Ω |
 > | FSR inputs | J3/J4/J6/J7 = N/E/S/W (JST-PH), R8–R11 10k 1% pull-downs, C16–C19 10nF C0G |
 > | LED chain | 25× WS2815 = D2–D11, D13–D22, D24–D28 (chain order ≠ ref order after re-annotation; footprint `panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm`, corrected 2026-07-13 — the stock PLCC4/PLCC6 footprints are both wrong for WS2815), U4 SN74AHCT125 (SOIC-14), R16 330Ω, per-LED 100nF = C22–C36, C39–C43, C45–C49 (C21 is the shifter VCC decoupler, not an LED cap) |
@@ -88,8 +88,11 @@ Unused GPIOs → test pads if board space is free.
      decoupling cap (standard practice, no RP2040-specific value published for the
      flash side). Sourced from "Hardware design with RP2040" Section 2.2 (Flash
      storage), not invented: chip-select (QSPI_SS) has a 10kΩ pull-up to 3V3
-     **marked DNF/DNP** (this specific flash's CS defaults high enough on its own;
-     kept as a footprint in case a different flash is ever substituted) plus a 1kΩ
+     (**fitted as of 2026-07-17** — originally DNF/DNP mirroring the Pi guide's
+     default, but design review noted the guide's DNF rationale was validated on
+     W25Q128JVS, not our W25Q32JV, and RP2040's internal QSPI_SS pull-up isn't
+     guaranteed during the earliest power-ramp window; a fitted 10k closes that
+     race for free) plus a 1kΩ
      resistor to a BOOTSEL control — official guide uses a 2-pin jumper header
      here, but per CLAUDE.md's existing "BOOTSEL button" decision we used an actual
      momentary pushbutton (`Switch:SW_Push`) instead, pulling QSPI_SS low when
@@ -148,7 +151,9 @@ Unused GPIOs → test pads if board space is free.
    staggered 4-3-4-3-4-3-4 lattice — **physical measurements, refined 2026-07-13:
    row pitch 17mm, column pitch 33.5mm (not 34mm), insets 13.5mm left / 13.0mm
    right / 12.5mm top+bottom** (see STOCK_PANEL_PCB_MEASUREMENTS.md), serpentine order
-   per PROTOTYPE_LED_LAYOUT.md, BIN(n) ← DIN-signal(n-1), BIN(1) ← shifter output.
+   per PROTOTYPE_LED_LAYOUT.md, BIN(n) ← DIN-signal(n-1), BIN(1) ← GND (corrected
+   2026-07-17 per design review — vendor app circuit grounds first BIN; was
+   previously tied to the shifter output).
    Spare shifter gates: tie inputs to GND. **Drafted + netlist-verified 2026-07-11**
    (this block was placed fully pre-connected — net labels directly on pins +
    coincident power symbols — rather than left for hand-wiring like earlier blocks,
