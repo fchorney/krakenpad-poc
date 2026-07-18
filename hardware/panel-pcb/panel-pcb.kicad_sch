@@ -7887,6 +7887,12 @@
 		(uuid "b3f4eef0-ced2-454d-902c-12b4fa0c6e46")
 	)
 	(junction
+		(at 304.8 231.14)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c235684c-f196-4b37-af0f-2fb369bc7f94")
+	)
+	(junction
 		(at 92.71 137.16)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -9411,6 +9417,16 @@
 			(type default)
 		)
 		(uuid "a6be7af7-5f0a-45a5-851d-81caa0e610b8")
+	)
+	(wire
+		(pts
+			(xy 304.8 222.25) (xy 304.8 223.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a75a3c59-252d-4262-9641-1f36d26ea881")
 	)
 	(wire
 		(pts
@@ -15626,6 +15642,83 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
+		(at 304.8 222.25 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "1cedcdc8-cdd3-4362-adb4-e0e3ea97bcb0")
+		(property "Reference" "#PWR0158"
+			(at 304.8 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 304.038 218.186 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 304.8 222.25 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 304.8 222.25 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 304.8 222.25 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "10066f28-8173-42b4-a70b-296890f49490")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "#PWR0158")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3V3")
 		(at 309.88 31.75 0)
 		(unit 1)
 		(body_style 1)
@@ -17403,6 +17496,85 @@
 			(project "panel-pcb"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001"
 					(reference "#PWR074")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:D_Schottky")
+		(at 304.8 227.33 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "312340b9-a03d-457d-bb4b-17ff6eaa67f8")
+		(property "Reference" "D29"
+			(at 302.26 227.33 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PMEG3015EH"
+			(at 307.594 227.33 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-123F"
+			(at 299.72 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://assets.nexperia.com/documents/data-sheet/PMEG3015EH.pdf"
+			(at 299.72 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "GPIO17 12V-sense clamp to +3V3\""
+			(at 299.72 227.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ef53a39f-42c5-46d0-bfd8-ca23338421d7")
+		)
+		(pin "2"
+			(uuid "9b0888d3-fdca-480d-a240-8092ffad1593")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "D29")
 					(unit 1)
 				)
 			)
@@ -25480,7 +25652,7 @@
 				)
 			)
 		)
-		(property "Value" "22k"
+		(property "Value" "33k"
 			(at 294.64 237.49 90)
 			(show_name no)
 			(do_not_autoplace no)
