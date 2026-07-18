@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "master-pcb")(type "KiCad")(uri "${KIPRJMOD}/master-pcb.kicad_sym")(options "")(descr "Master PCB project symbols"))
+)
