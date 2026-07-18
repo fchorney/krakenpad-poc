@@ -45,3 +45,11 @@ readily available for this kind of upgrade.
 Active development — architecture and core electrical decisions are settled,
 prototype hardware has been bench-validated end-to-end, and PCB layout is in
 progress. See `CLAUDE.md` and `docs/` for detailed design notes and specs.
+
+## AI Disclosure
+
+This project was built with AI assistance (Claude), used mainly for the grunt
+work: research and part-comparison legwork, documentation drafts, firmware
+prototyping, design-review passes, and scripted KiCad edits/fab outputs. All
+design decisions, schematic wiring, PCB layout, and physical testing were done
+by a human.
