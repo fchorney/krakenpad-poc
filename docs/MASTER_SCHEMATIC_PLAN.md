@@ -101,3 +101,47 @@ obligation; add if board space is free, panel-style).
 - Underglow connector final form — 2-pos screw terminal is the interim
   decision; harness teardown decides the splice point and may change it.
 - Master PCB target ~80×60mm; enclosure sized after layout.
+
+## Wiring list (v0.1 schematic, 2026-07-18)
+
+Parts are placed in `hardware/master-pcb/master-pcb.kicad_sch` (rev 0.1),
+nothing wired. Pin references below use the Teensy symbol's pin *names*
+(GPIO numbers); the symbol itself is `master-pcb:Teensy_4.0` (DIP-28-style
+numbering, custom — verify against the PJRC pinout card before layout).
+
+**Power spine**
+- U1 `3V3` → +3V3 rail (power symbol). U1 `VIN(USB5V)` → +5V rail — name it
+  `+5V_USB` (it is the Teensy's USB 5V via the intact VUSB↔VIN link).
+- U1 both `GND` pins, J3.1 (GND tie), all GND points below → GND.
+- PWR_FLAG on +3V3, +5V_USB, and GND (all are sourced by the module, not a
+  KiCad power symbol, so ERC needs the flags).
+
+**RS-485 (U2 THVD1419, C1, R1, J1)**
+- U2.1 RO → U1 `0/RX1` · U2.4 DI → U1 `1/TX1` · U2.2 /RE + U2.3 DE tied
+  together → U1 `2`
+- U2.8 VCC → +3V3, C1 across VCC/GND at U2 · U2.5 GND → GND
+- U2.6 A → J1.1 and R1.1 · U2.7 B → J1.2 and R1.2 (R1 120Ω = always-fitted
+  master-end termination) · J1.3 — leave unconnected (keying, matches panels)
+
+**INT block (J2, RN1, D2–D10)**
+- J2 pin n+1 = INTn from panel n (colors R,O,Y,G,Bu,Br,Gy,W,Bk)
+- Each INTn: J2 pin → RN1 element pin (n+2) → Teensy GPIO(3+n) — i.e.
+  INT0→`3` … INT8→`11` — and a TVS (D2+n) from the line to GND
+- RN1 pin 1 (common) → +3V3
+
+**Underglow (U3 gate A, R3, J4, C2)**
+- U3A: pin 1 /1OE → GND · pin 2 1A → U1 `12` · pin 3 1Y → R3.1
+- R3.2 → J4.2 (DATA) · J4.1 → GND
+- U3 pin 14 VCC → +5V_USB with C2 at the pin · pin 7 GND → GND
+- Unused gates B/C/D: inputs (5, 9, 12) and /OEs (4, 10, 13) → GND,
+  outputs (6, 8, 11) unconnected
+
+**Player DIP (SW1) — GPIO `14`,`15`,`16`**, one switch each, other side of
+all three → GND (internal pull-ups, no resistors).
+
+**Status LED** — U1 `20` → R2 → D1 anode, D1 cathode → GND.
+
+After wiring: annotate is already done (refs assigned); run ERC — expect it
+to drop from ~128 unconnected-pin errors to ~spare-GPIO warnings only; the 7
+`lib_symbol_mismatch` warnings are the known cached-vs-derived noise class
+(same as the panel), verify-once then exclude.
