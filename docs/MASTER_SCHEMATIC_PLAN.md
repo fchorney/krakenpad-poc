@@ -17,7 +17,7 @@ PSU → panel columns directly and never touches this PCB.
 | MCU | Teensy 4.0, **socketed** (female headers, replaceable) |
 | INT connector | **9-position 5.08mm pluggable terminal block (Euroblock)** — no GND position needed (return rides the power ground network); 5.08 pitch for finger room. MPN at BOM time |
 | INT pull-ups | 10kΩ to 3.3V (deliberately not stiff — INT-into-dead-panel case from the panel design review), **resistor array**, exact array format = whatever is cheapest at BOM time |
-| INT ESD | **Multi-channel TVS array(s)** covering all 9 lines, 3.3V working voltage class, whichever is cheapest at BOM time (prototype's single SMBJ3.3A retired) |
+| INT ESD | **3× SRV05-4** (SOT-23-6 rail-clamp array, 4ch each; TECH PUBLIC, LCSC C558418, ~$0.013/pc — decided 2026-07-18). D2=INT0–3, D3=INT4–7, D4=INT8 (3 spare ch NC); VN→GND, VP→+3V3. Prototype's single SMBJ3.3A retired |
 | GND tie | KF301-style 1P 5.08mm screw terminal (same part class as panel J9) → short lead to fork terminal on the PSU GND stud |
 | Underglow out | **2-position KF301-style 5.08mm screw terminal: GND + LED-DATA-OUT.** Data gating is UI/software config only ("underglow: on/off") — no sense pin for now. Revisit after the harness teardown (splice point still unknown, see UNDERGLOW.md); a 12V-sense position (panel R18/R19-style divider) is the known upgrade path if config-only gating proves annoying |
 | Player ID | 3-bit DIP switch to GND, Teensy internal pull-ups (no external resistors) |
@@ -93,7 +93,6 @@ obligation; add if board space is free, panel-style).
 
 ## Open items (non-blocking, resolve by BOM/layout time)
 
-- TVS array MPN (cheapest suitable multi-channel part).
 - 10k resistor-array MPN/format (cheapest).
 - Euroblock 9-pos 5.08mm MPN.
 - 3-bit DIP switch MPN.
@@ -123,10 +122,12 @@ numbering, custom — verify against the PJRC pinout card before layout).
 - U2.6 A → J1.1 and R1.1 · U2.7 B → J1.2 and R1.2 (R1 120Ω = always-fitted
   master-end termination) · J1.3 — leave unconnected (keying, matches panels)
 
-**INT block (J2, RN1, D2–D10)**
+**INT block (J2, RN1, D2–D4)**
 - J2 pin n+1 = INTn from panel n (colors R,O,Y,G,Bu,Br,Gy,W,Bk)
 - Each INTn: J2 pin → RN1 element pin (n+2) → Teensy GPIO(3+n) — i.e.
-  INT0→`3` … INT8→`11` — and a TVS (D2+n) from the line to GND
+  INT0→`3` … INT8→`11` — and an SRV05-4 IO channel:
+  D2 IO1–4 = INT0–3, D3 IO1–4 = INT4–7, D4 IO1 = INT8 (D4 IO2–4 leave NC)
+- All three arrays: pin 2 VN → GND, pin 5 VP → +3V3
 - RN1 pin 1 (common) → +3V3
 
 **Underglow (U3 gate A, R3, J4, C2)**
