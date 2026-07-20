@@ -13,3 +13,6 @@ __pycache__/
 hardware/**/.history/
 hardware/**/*.kicad_prl
 hardware/**/~*.lck
+
+# tmp folder
+/tmp
