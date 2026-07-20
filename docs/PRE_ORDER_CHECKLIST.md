@@ -37,18 +37,24 @@ check them off in this doc (or delete the line) as they close.
 - ⬜ ERC 0 errors (current known-good: 0 errors on both panel and master, with
   the cached-symbol `lib_symbol_mismatch` warnings excluded — D29, D12, the
   74AHCT125 units, and LM66200 are all that noise class).
-- ⬜ **Push the schematic changes into the PCB** (`Update PCB from Schematic`):
-  brings in U8's SOT-583-8 footprint, the 12 THT test points, and the net
-  renames. Then re-point the copper zones at the renamed rails (`+12VDC`,
-  `+3.3VDC`), refill, and save — **the saved file currently has stale zone
-  fills** from the J9 placement work.
-- ⬜ DRC 0 errors / 0 unconnected. **OPEN as of 2026-07-20: 3 pre-existing
-  clearance errors — personal-logo exposed-copper polys sit 0.08–0.12mm from
-  the GND pour (netclass min 0.2) near (120–125, 99). Decide: assign logo
-  copper to GND / add a zone keepout under it / accept+exclude. Not caused by
-  the J9 swap (verified present at HEAD).** Known benign warnings (do not chase):
-  48 silk self-clipping on SMD cap footprints, 25 `lib_footprint_mismatch`
-  rotation false positives, 2 J1 silk-vs-edge clips.
+- ✅ **Schematic changes pushed into the PCB** (verified 2026-07-20): U8 present
+  as `Package_TO_SOT_SMD:SOT-583-8`, all 12 test points converted to
+  `TestPoint_THTPad_D2.0mm_Drill1.0mm`, and every copper zone re-pointed at the
+  renamed rails (`+3.3VDC`, `+5VDC`, `+12VDC`, `GND`). Zones refill clean.
+- ⬜ *Cosmetic only:* zone **display names** are still the old labels
+  ("+3V3", "+5.0V", "+12.0V") even though their nets are correct — rename when
+  convenient so a future session isn't misled. Also the AMS1117-output zone is
+  named "+5.0v Reg" on auto-net `Net-(D23-A)`; since D23 is now DNP, consider
+  giving that node a real label in the schematic (e.g. `V5_AMS`).
+- ✅ **DRC 0 errors / 0 unconnected** (re-verified 2026-07-20 with
+  `--refill-zones`). The logo clearance issue is **CLOSED**: the F.Cu logo
+  polygons were deleted and only the F.Mask polys kept, so the mask opening
+  exposes the existing F.Cu GND pour instead of a separate copper island
+  (coverage confirmed by point-in-polygon against the filled zone). Known
+  benign warnings, do not chase: 48 silk self-clipping on SMD cap footprints,
+  25 `lib_footprint_mismatch` rotation false positives, 2 J1 silk-vs-edge clips.
+  **Surface-finish note now matters more:** the logo is exposed *ground* copper,
+  so HASL gives silver and ENIG gives gold — see section on finish.
 - ⬜ **Re-export gerbers/BOM/CPL is now MANDATORY, not conditional** — the
   files in `hardware/panel-pcb/production/` are **STALE**. Changes since the
   2026-07-18 export: U2 THVD1419→THVD1429, 52 MPN + 22 Datasheet properties,
