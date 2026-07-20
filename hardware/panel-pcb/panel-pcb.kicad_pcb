@@ -2110,6 +2110,17 @@
 			(uuid "cd23047c-b3e0-4a20-9006-821441c61cc1")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/3dmodels/EG2201A.stp"
+			(offset
+				(xyz 0 0 8)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
 	)
 	(footprint "panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm"
 		(layer "F.Cu")
@@ -7655,7 +7666,7 @@
 			)
 		)
 		(property "Value" "12V_OUT"
-			(at 1.5 3.22 270)
+			(at 1.5 3.22 90)
 			(layer "F.Fab")
 			(uuid "a85c0ae7-a7ee-49a8-b62e-2f62dba90f0d")
 			(effects
@@ -7666,7 +7677,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.molex.com/en-us/products/part-detail/436500200"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "04e568f0-3926-4960-9503-3c999a006a44")
@@ -7677,7 +7688,7 @@
 			)
 		)
 		(property "Description" "12V bus power OUT, daisy-chains to next panel. Footprint TBD (Micro-Fit 3.0 2-pin per BOM)."
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "494a7228-2c59-4e86-b8d4-ddd5c9ab6b53")
@@ -7688,7 +7699,7 @@
 			)
 		)
 		(property "KiLib_Generator" "connector/Molex"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "7f66f709-2e69-4ff6-ab32-a4738f73ca13")
@@ -7924,7 +7935,7 @@
 			(uuid "5dbb0e2b-9ea4-4d09-b87b-e18b0f140d0a")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 1.5 -8.22 270)
+			(at 1.5 -8.22 90)
 			(layer "F.Fab")
 			(uuid "010c1a56-8482-41ec-9c43-bbd73c8b4341")
 			(effects
@@ -7965,15 +7976,15 @@
 			(uuid "f2040fb2-0aa4-497e-882f-6408bf4b7013")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Connector_Molex.3dshapes/Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal.step"
+		(model "${KIPRJMOD}/3dmodels/0436500200.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz 1.5 8.9 0.5)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -0 -0 -180)
 			)
 		)
 	)
@@ -11690,7 +11701,7 @@
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 90)
+				(xyz 0 0 0)
 			)
 		)
 	)
@@ -16345,15 +16356,15 @@
 			(uuid "6e5ac7f1-3752-47ea-bb30-0c6b6243576c")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Connector_Molex.3dshapes/Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal.step"
+		(model "${KIPRJMOD}/3dmodels/0436500300.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz 3 8.9 0.5)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -0 -0 -180)
 			)
 		)
 	)
@@ -19382,7 +19393,7 @@
 			)
 		)
 		(property "Value" "RS-485 OUT"
-			(at 3 3.22 270)
+			(at 3 3.22 90)
 			(layer "F.Fab")
 			(uuid "cab5429c-dcef-4380-98fd-c4578618c247")
 			(effects
@@ -19393,7 +19404,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.molex.com/en-us/products/part-detail/436500300"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "fb41ec37-e481-4d29-8e44-ada071d1a765")
@@ -19404,7 +19415,7 @@
 			)
 		)
 		(property "Description" "RS-485 OUT (daisy-chain to next panel). Pin1=A, Pin2=B, Pin3 deliberately unpopulated/NC."
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "f05d508d-9ca5-4a9a-912e-865153e54490")
@@ -19415,7 +19426,7 @@
 			)
 		)
 		(property "KiLib_Generator" "connector/Molex"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "8d49b800-a43c-461f-9d42-393a76bcff55")
@@ -19662,7 +19673,7 @@
 			(uuid "ee562a9b-5025-46f8-a788-f24ea01d18a8")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 3 -8.22 270)
+			(at 3 -8.22 90)
 			(layer "F.Fab")
 			(uuid "1510990c-149d-4625-8f5d-04ce49398e92")
 			(effects
@@ -19714,15 +19725,15 @@
 			(uuid "d7e581e5-20e2-4e02-91df-418c6fcc3c4d")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Connector_Molex.3dshapes/Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal.step"
+		(model "${KIPRJMOD}/3dmodels/0436500300.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz 3 8.9 0.5)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -0 -0 -180)
 			)
 		)
 	)
@@ -24521,15 +24532,15 @@
 			(uuid "b4b798c7-dbf9-47f3-8183-7a652dbb2441")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Connector_Molex.3dshapes/Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal.step"
+		(model "${KIPRJMOD}/3dmodels/0436500200.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz 1.5 8.9 0.5)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -0 -0 -180)
 			)
 		)
 	)
@@ -33100,6 +33111,19 @@
 		(at 91.1 135.3 90)
 		(layer "F.SilkS")
 		(uuid "e3c99872-df8f-43ad-8987-fc20be83ce14")
+		(effects
+			(font
+				(size 1.2 1.2)
+				(thickness 0.3)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "INT OUT"
+		(at 95 119.4 90)
+		(layer "F.SilkS")
+		(uuid "d216d373-fb50-4900-95cb-d6dcedbb455d")
 		(effects
 			(font
 				(size 1.2 1.2)
