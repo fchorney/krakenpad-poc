@@ -5,23 +5,58 @@ check them off in this doc (or delete the line) as they close.
 
 ## 1. Physical part verification (needs parts in hand)
 
-- ⬜ **J9 (INT screw terminal)**: measure a real KF301-style 1P 5.08mm part
-  against the footprint's drill/pad (`panel-pcb:TerminalBlock_KF301-1P_P5.08mm`).
-  Flagged at decision time (2026-07-11), never physically verified.
+- ⬜ **J9 (INT screw terminal)**: now **2P** (swapped 2026-07-20 — true 1P
+  KF301 barely exists; both pins bridged to INT so either position takes the
+  wire). Part: Cixi Kefa KF301-5.0-2P, LCSC **C474881** (~$0.06 — add to LCSC
+  cart with the order). Measure against
+  `panel-pcb:TerminalBlock_KF301-2P_P5.08mm` (drill 1.3 / pad 2.6, 5.08mm
+  pitch) on arrival.
 - ⬜ **FSR leads vs J3/J4/J6/J7**: mate a real FSR lead's JST PHR-2 plug
   against a B2B-PH-K top-entry header (or at minimum compare datasheet drawings
   pin-for-pin). Flagged 2026-07-10, never physically verified.
+- ⬜ **U8 (LM66200, SOT-583 8-pin)**: new part as of 2026-07-20 (review 4.m,
+  replaces the D12/D23 Schottky OR). LCSC **C3235556**, ~$0.38 @10+ — add to
+  the LCSC cart with the order and confirm the footprint is the 8-pin DRL
+  package (2.1×1.6mm), *not* the 6-pin SOT-583 variant. D12/D23 are now DNP;
+  confirm they are excluded from the assembly BOM but their footprints are
+  still on the board (the hand-solder fallback depends on that).
 - ⬜ **SW1 (DIP-4) and SW3 (EG2201A DPDT)**: confirm sourced parts match the
-  footprints (SW3 uses the custom `panel-pcb:SW_EG2201A`).
+  footprints (SW3 uses the custom `panel-pcb:SW_EG2201A`). SW1 part decided
+  2026-07-20: YE DSWB04LHGET (LCSC C99418, ~$0.12, THT hand-solder — add to
+  LCSC cart with the board order); verify row spacing 7.62mm vs footprint on
+  arrival.
+- ✅ **WS2815 datasheet-variant confirm** (human review finding 1.a, closed
+  2026-07-19): LCSC C5446699 confirmed = WS2815B-V1, the exact part of the
+  WS2815B-V1 V2.0 datasheet (VIH abs 2.7V min / input abs-max 5.7V — closed
+  the reviewer's "must shift to 12V" finding; 12V would violate abs-max).
+  Optional extra insurance only: bench-drive a WS2815 strip from the
+  prototype's SN74AHCT125N at 5V (we've only personally tested WS2812B).
 
 ## 2. Design-file state (all scriptable/checkable from the repo)
 
-- ⬜ ERC 0 errors (current known-good: 0, with the D29 cached-symbol exclusion).
-- ⬜ DRC 0 errors / 0 unconnected. Known benign warnings (do not chase):
+- ⬜ ERC 0 errors (current known-good: 0 errors on both panel and master, with
+  the cached-symbol `lib_symbol_mismatch` warnings excluded — D29, D12, the
+  74AHCT125 units, and LM66200 are all that noise class).
+- ⬜ **Push the schematic changes into the PCB** (`Update PCB from Schematic`):
+  brings in U8's SOT-583-8 footprint, the 12 THT test points, and the net
+  renames. Then re-point the copper zones at the renamed rails (`+12VDC`,
+  `+3.3VDC`), refill, and save — **the saved file currently has stale zone
+  fills** from the J9 placement work.
+- ⬜ DRC 0 errors / 0 unconnected. **OPEN as of 2026-07-20: 3 pre-existing
+  clearance errors — personal-logo exposed-copper polys sit 0.08–0.12mm from
+  the GND pour (netclass min 0.2) near (120–125, 99). Decide: assign logo
+  copper to GND / add a zone keepout under it / accept+exclude. Not caused by
+  the J9 swap (verified present at HEAD).** Known benign warnings (do not chase):
   48 silk self-clipping on SMD cap footprints, 25 `lib_footprint_mismatch`
   rotation false positives, 2 J1 silk-vs-edge clips.
-- ⬜ If schematic changed since last export: re-export gerbers/BOM/CPL
-  (`hardware/panel-pcb/production/`, commands in git history) and re-zip.
+- ⬜ **Re-export gerbers/BOM/CPL is now MANDATORY, not conditional** — the
+  files in `hardware/panel-pcb/production/` are **STALE**. Changes since the
+  2026-07-18 export: U2 THVD1419→THVD1429, 52 MPN + 22 Datasheet properties,
+  J9 1P→2P (new footprint + placement), rail/net renames (4.e/4.k), U8
+  LM66200 added with D12/D23 → DNP, and 12 test points converted from SMD pads
+  to THT probe holes (**a drill-count change — the drill file must be
+  regenerated, not just the gerbers**). Commands are in git history; re-zip
+  after.
 - ⬜ Working tree committed and pushed.
 
 ## 3. JLC upload & BOM matching
@@ -79,7 +114,9 @@ check them off in this doc (or delete the line) as they close.
 
 - Project logo (waiting on artwork; add via the verified exposed-copper flow +
   sliver check when it exists).
-- THVD1419 cost (kept: JLC ≈$5 is the cheapest channel; DigiKey $7+.
+- THVD1429 cost (swapped from THVD1419 2026-07-19: the 1419 is the 250kbps
+  grade — can't do the 1Mbps bus; 1429 = 20Mbps, drop-in, LCSC C1850236,
+  and cheaper: $3.45@10+ vs $4.53. Verify JLC live stock at order time.
   SIT3485-class sub only if robustness trade is ever accepted).
 - Accepted-for-rev-A review items (U5 thermal, +5V post-diode margin,
   INT-into-dead-panel, hot-plug/SI/ADC-B.Cu) — these are BRING-UP

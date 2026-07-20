@@ -6,7 +6,7 @@ as new command bytes with the same framing.
 
 ## Physical layer
 
-- UART **1 Mbps, 8N1**, half-duplex RS-485 (MAX3485 / THVD1419)
+- UART **1 Mbps, 8N1**, half-duplex RS-485 (MAX3485 / THVD1429)
 - Master drives the bus by default; a panel transmits only when replying to a
   poll addressed to it
 - DE/~RE tied together per transceiver:
