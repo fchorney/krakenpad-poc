@@ -40,8 +40,8 @@
         "other_text_upright": false,
         "pads": {
           "drill": 0.0,
-          "height": 4.0,
-          "width": 4.4
+          "height": 1.5,
+          "width": 1.5
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -708,9 +708,13 @@
     },
     "net_colors": {
       "+1.1V": "rgb(255, 92, 227)",
-      "+12.0V": "rgb(255, 223, 77)",
+      "+1.1VDC": "rgb(255, 0, 208)",
+      "+12.0V": "rgb(1, 255, 0)",
+      "+12VDC": "rgb(255, 204, 22)",
+      "+3.3VDC": "rgb(201, 8, 12)",
       "+3V3": "rgb(255, 70, 74)",
       "+5.0V": "rgb(84, 94, 255)",
+      "+5VDC": "rgb(78, 117, 255)",
       "GND": "rgb(255, 147, 0)",
       "Net-(D23-A)": "rgb(43, 29, 255)",
       "VBUS": "rgb(255, 1, 235)"
