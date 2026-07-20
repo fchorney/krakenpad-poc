@@ -95,7 +95,7 @@ for bench flashing with the panel top off.
 | 4.e Rail naming (+3V3 vs +5.0V) | **DONE — pulled forward from rev B** | Standardized on a ×VDC convention: `+12VDC` / `+5VDC` / `+3.3VDC` / `+1.1VDC`, and `+5VDC_USB` on the master (the suffix is meaningful — different source). Done as one careful pass with the PCB zones re-pointed to match; netlist diffed against the previous commit to prove renames only, zero connectivity changes. |
 | 4.f MLCC DC-bias derating | **No change — already handled** | The 12V-biased input caps were re-specced as 2× parallel 0805 MLCC for exactly this reason, before the review. C38 is tantalum because the AMS1117 needs the ESR to stay stable. The 10µF X5R 25V parts on the 5V/3.3V rails retain most of their capacitance at those biases, and the AP7361C is ceramic-stable per its datasheet. On your follow-up question about the lower bound: AP7361C's datasheet minimum is 1µF and the AMS1117 wants 22µF with ESR on the output, so we have margin above both. |
 | 4.g Test clips / probe-via TPs | **DONE — pulled forward from rev B** | All 12 test points swapped from `TestPoint_Pad_1.5x1.5mm` to `TestPoint_THTPad_D2.0mm_Drill1.0mm` — probe-hole style, hookable. 12 extra THT holes is no cost change at JLC. May revisit to SMD loops if the through-holes prove annoying in layout. |
-| 4.h SW3 drawn as 2× SPDT | **Still open (cosmetic)** | It is a DPDT; boxing the two halves is a drafting fix with no electrical effect. Queued with the remaining schematic-note work. |
+| 4.h SW3 drawn as 2× SPDT | **DONE** | Redrawn as a proper DPDT in the custom `panel-pcb:EG2201A` symbol. Cosmetic only — no net or pin changes. |
 | 4.i Crystal 1k / add 1M DNP | **No change** | The 15pF/15pF/1k network is the RP2040 hardware design guide's exact reference circuit for this crystal (ABM8-272, CL=10pF). The reference contains no external 1M — oscillator biasing is on-chip — and every Pico-class board ships without one. Going with the vendor reference. |
 | 4.j 0402 parts vs hand rework | **Still open — rev A risk accepted** | Boards are JLC-assembled both sides, not hand-populated, and only a couple of 0402s exist (C9/C10 1µF near the RP2040). A space check for bumping them to 0603 is on the PCB-session list; if the room isn't there, rework under magnification stays accepted for rev A. |
 | 4.k Functional net names | **DONE — pulled forward from rev B** | Nets now read `RS485_TX`/`RX`/`DE`, `LED_DATA`, `INT_OUT`, `TERM_SENSE`, `SENSE_12V`, `DIP_ID0`–`ID3`, and `FSR_North`/`South`/`East`/`West` spelled out in full. Done in the same synced pass as 4.e — 20 clean renames, 0 connectivity changes, verified by netlist diff. |
@@ -148,14 +148,25 @@ for rev B were pulled forward while the design is still open.
 10. **WS2815 strip bench test at 5V** — the one remaining hardware verification.
     Optional insurance rather than a blocker (1.a is closed on paper), but it
     would be our first hands-on WS2815 test since the prototype used WS2812B.
-11. Schematic text notes: the FSR divider explanation at the FSR block (from
-    2.a) and the THVD1429 integrated-failsafe rationale at the RS-485 block
-    (from 3.a).
-12. SW3 drawn as DPDT (4.h) — cosmetic drafting fix.
-13. 0402 → 0603 space check (4.j) — on the PCB-session list; if the room isn't
-    there, rework under magnification stays accepted for rev A.
-14. **Logo-vs-GND clearance** — not a review item, but an open DRC finding: the
-    exposed-copper logo polygons sit 0.08–0.12mm from the GND fill, 3 clearance
-    errors. Ground the logo, add a keepout, or exclude. Order gate.
+11. 0402 → 0603 space check (4.j) — the only remaining layout question. See the
+    decoupling-layout note below; the answer may well be "leave them alone".
+
+**Closed 2026-07-20 (later):**
+
+- Schematic text notes — **DONE**. The FSR block now carries "3.3V → off board
+  FSR (J3–J7) → ADC node, 10k pull-down; ADC reads the divider directly; 10nF =
+  ADC filter, not a timing element" (closes 2.a), and the RS-485 block carries
+  "No external bus biasing: THVD1429 has integrated open/short/idle failsafe"
+  (closes 3.a).
+- SW3 drawn as DPDT (4.h) — **DONE**.
+- **Logo-vs-GND clearance — RESOLVED, and more elegantly than the options I
+  listed.** Rather than grounding the logo polys or adding a keepout, the F.Cu
+  copper polygons were simply deleted, leaving only the 5 F.Mask polys. The
+  mask opening then exposes the F.Cu GND pour that already covers that region —
+  verified by point-in-polygon test against the filled zone, 8/8 sample points
+  inside the fill. Same visual result, no separate copper island to clear, and
+  the exposed metal is now ground rather than a floating shape. **Panel DRC is
+  0 errors** (75 remaining violations are all the known benign warnings: 48 silk
+  self-clipping, 25 footprint-rotation false positives, 2 J1 silk-vs-edge).
 
 **No action (rebutted or already handled):** 2.a, 3.b, 4.f, 4.i.
