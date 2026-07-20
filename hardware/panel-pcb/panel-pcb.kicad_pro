@@ -719,7 +719,7 @@
     "netclass_patterns": [
       {
         "netclass": "Power12V",
-        "pattern": "+12.0V"
+        "pattern": "+12VDC"
       }
     ]
   },
@@ -863,7 +863,7 @@
         "uuid": "a1b2c3d4-0000-4000-8000-000000000001"
       }
     ],
-    "used_designators": "SW1-3,#FLG1-6,X1,TP1-12,U1-7,#PWR1-158,D1-29,C1-53,R1-19,J1-11",
+    "used_designators": "SW1-3,#FLG1-6,X1,TP1-12,U1-7,#PWR1-162,D1-29,C1-53,R1-19,J1-11",
     "variants": []
   },
   "sheets": [

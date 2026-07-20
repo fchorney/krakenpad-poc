@@ -27,29 +27,76 @@ for detail on any item below.
   tuning), `tools/usb_speed_test.py`. KiCad scripting via the app-bundled
   `python3.9` (`pcbnew`) + `kicad-cli` for DRC/netlist checks.
 
-## Panel PCB — where things stand
+## Panel PCB — where things stand (updated 2026-07-20)
 
-- **Schematic v1.0 signed off 2026-07-11** (full pre-layout audit passed;
-  "KrakenPad Panel PCB v1.0.pdf" in `hardware/`). Current authoritative refs:
-  table at the top of `docs/PANEL_SCHEMATIC_PLAN.md`.
-- **Layout in progress**: placement done (LED lattice at refined caliper
-  measurements, stock-style connector tabs on the outline), USB/RS-485/
-  crystal/QSPI routed and length-matched, power/FSR routing rebuilt clean,
-  JLC DRC rules calibrated. General routing cleanup still in progress.
-- **Part swaps applied 2026-07-16 (sch + PCB + BOM, uncommitted)**: U6 →
-  AP7361C-33ER-13 (`-33ER-` suffix only — plain `-33E-` is pin-reversed),
-  D12/D23 → PMEG3015EH, C38 → 22µF tantalum, C37+C52 → 2× 10µF 0805 MLCC,
-  C44/C50 → 10µF 0805 MLCC, C51 → SMD V-chip 470µF electrolytic. Pending GUI
-  pass: re-route the 6 cap sites, run Update PCB from Schematic (expect field
-  syncs only), verify RVT1E471M1010 pad fit.
-- **Remaining before fab**: stitching vias on the bottom GND pour (pour is
-  done; ViaStitching plugin now installed in the right location), silkscreen
-  pass (after placement/traces are final), C51 pad stretch to the RVT
-  datasheet land pattern, verify J9 KF301 footprint drill/pad vs the sourced
-  part, verify a PHR-2 plug against a real FSR lead. General routing cleanup
-  done 2026-07-17. Mounting-hole positions confirmed 2026-07-17 by 1:1
-  printout physically fit-tested against the standoffs — the 6/7mm edge-inset
-  question is closed (positions validated directly; exact inset split moot).
+**Layout is essentially complete; the board is not yet ordered.** It reached
+order-ready on 2026-07-18, then an external human schematic review on
+2026-07-19 reopened the design deliberately — nothing had been paid for, so
+review items originally parked for "rev B" were pulled forward into rev A.
+
+- **Schematic v1.0 signed off 2026-07-11**, but has moved since; the current
+  authoritative pin map lives in the review-response and status docs rather
+  than the table in `docs/PANEL_SCHEMATIC_PLAN.md`.
+- **Layout done**: placement, routing, GND pour with 270 stitching vias,
+  mounting holes validated by 1:1 printout fit-test, silkscreen pass complete
+  (including "Kraken Pad by SenPi / Rev. 1.0" and the personal logo as exposed
+  copper).
+- **Fab package generated 2026-07-18** in `hardware/panel-pcb/production/`
+  (untracked, regenerable via `kicad-cli`) and **quoted at JLCPCB**: $240.78
+  for qty 5, of which ~$148 is qty-independent overhead — marginal assembled
+  board is about $17.50. Not ordered.
+
+### Changes since that fab package — it is now STALE
+
+- **THVD1419 → THVD1429** (2026-07-19). The single most important find: the
+  1419 is TI's **250 kbps** speed grade and the bus runs at **1 Mbps**. It
+  never showed on the bench because the prototype used a MAX3485. Identical
+  pinout and package, and cheaper. Surfaced by the review's "complete your
+  MPNs" nitpick.
+- **LM66200 ideal-diode mux (U8)** replaces the D12/D23 Schottky power-OR,
+  removing the VF drop that left the shifter rail at ~4.7V against a 4.5V
+  minimum. D12/D23 remain as DNP fallback footprints.
+- **52 MPN + 22 Datasheet properties** added, all verified against live LCSC
+  listings; **rail and net names standardized** (`+12VDC`/`+5VDC`/`+3.3VDC`,
+  `RS485_TX`, `INT_OUT`, `FSR_North`, …) as one synced pass, netlist-diffed to
+  prove zero connectivity change.
+- **J9 INT terminal 1P → 2P** (true 1P KF301 barely exists), new custom
+  footprint, re-placed and DRC-verified.
+- **12 test points SMD pads → THT probe holes** — note this changes the drill
+  file, not just the gerbers.
+
+### Before this can be ordered
+
+1. **Update PCB from Schematic** to pull in U8, the THT test points, and the
+   net renames; re-point zones at the renamed rails, refill, save (the saved
+   file has stale zone fills).
+2. **Resolve 3 logo-vs-GND clearance DRC errors** — exposed-copper logo polys
+   sit 0.08–0.12mm from the pour. Ground the logo, keepout, or exclude.
+3. **Regenerate the whole production package** including the drill file.
+4. **Optional but wanted: bench-drive a WS2815 strip at 5V.** The reviewer's
+   only Critical finding (that WS2815 data needs a 12V shift) was rebutted from
+   the datasheet — VIH is an absolute 2.7V min and 12V would violate the 5.7V
+   abs-max — but we have only ever hands-on tested WS2812B.
+5. Physical part verification per `docs/PRE_ORDER_CHECKLIST.md` (FSR PHR-2
+   plug, SW1 row spacing, J9 drill/pad, U8 package).
+
+## Master PCB — where things stand (updated 2026-07-20)
+
+**Schematic is fully wired and verified; no PCB layout started yet.**
+
+- All 28 symbols placed and wired, **ERC 0 errors** (4 `lib_symbol_mismatch`
+  warnings on the 74AHCT125 units are the known cached-symbol noise class).
+- Every net checked pin-by-pin against a `kicad-cli` netlist export.
+- **J3 + J4 merged** into one 2-position screw terminal (J4): pin 1 =
+  underglow DATA, pin 2 = the mandatory GND tie to the PSU ground stud.
+- Status LED on GPIO17 with its resistor on the anode side.
+- **DNP RS-485 bias pair (R4/R5, 390R 1%)** added per review item 3.a — bias
+  belongs at one point on a bus, and the master is that point, if the
+  THVD1429's integrated failsafe ever proves insufficient.
+- Rails named `+3.3VDC` and `+5VDC_USB`, matching the panel convention.
+- Still open: MPNs for the 10k resistor array, the 9-pos Euroblock, and the
+  3-bit DIP; and the custom Teensy 4.0 symbol still needs verifying against
+  the PJRC pinout card, plus a matching footprint, before layout.
 
 ## Open design questions (not blocking, revisit when relevant)
 
@@ -75,16 +122,22 @@ for eligibility.
 
 ## Concrete next steps (pick from here)
 
-1. Panel PCB: finish the LDO-swap cleanup (6 cap re-routes, Update PCB from
-   Schematic, RVT1E471M1010 pad-fit check), then continue routing cleanup.
-2. Panel PCB: bottom GND pour + via stitching as the final layout step, then
-   silkscreen pass and fab-readiness DRC.
-3. Commit the in-flight sch/PCB/BOM changes (LDO/diode/cap swap work).
-4. Full pad + harness teardown: underglow splice point, PSU stud size, real
+1. **Panel PCB revision session** — the immediate next task: Update PCB from
+   Schematic (U8 + THT test points + net renames), re-point and refill zones,
+   eyeball J9's orientation (its wire entry now faces board-left), decide the
+   logo-vs-GND clearance question, and check whether the two 0402s have room
+   to become 0603.
+2. Remaining schematic notes: the FSR divider explanation (review 2.a) and the
+   THVD1429 integrated-failsafe rationale (3.a); draw SW3 as a proper DPDT
+   (4.h).
+3. Regenerate the production package and re-run the pre-order checklist.
+4. WS2815 strip bench test at 5V.
+5. Send the reviewer the 4.x replies (1.a/2.a/3.a/3.b already sent).
+6. Full pad + harness teardown: underglow splice point, PSU stud size, real
    cable run lengths.
-5. Start KiCad master PCB design (~80×60mm).
-6. Master firmware: USB HID reports to the PC (RS-485 + INT are working,
-   this is the one major master-side piece not yet started).
-7. Panel firmware: flash-backed animation playback + flash config storage /
-   per-channel calibration (design notes in `docs/PANEL_CONFIG.md`).
-8. Extend `stepmaniax-gif-maker` to export `.smxa` binary format.
+7. Master PCB layout (~80×60mm) once the Teensy footprint is settled.
+8. Master firmware: USB HID reports to the PC (RS-485 + INT already work —
+   this is the one major master-side piece not started).
+9. Panel firmware: flash-backed animation playback + config storage /
+   per-channel calibration (`docs/PANEL_CONFIG.md`).
+10. Extend `stepmaniax-gif-maker` to export `.smxa` binary format.

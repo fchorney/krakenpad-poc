@@ -12034,12 +12034,12 @@
 		)
 		(embedded_fonts no)
 	)
-	(footprint "panel-pcb:TerminalBlock_KF301-1P_P5.08mm"
+	(footprint "panel-pcb:TerminalBlock_KF301-2P_P5.08mm"
 		(layer "F.Cu")
 		(uuid "6cc086ca-d8bd-4157-8810-886c900a179d")
-		(at 90.1 116.846182 90)
-		(descr "Generic KF301-style screw terminal, 1 position, 5.08mm family. Drill 1.3mm / pad 2.6mm per common KF301 spec — VERIFY against the actual sourced part's datasheet before ordering boards.")
-		(tags "terminal block screw KF301 1x01")
+		(at 90.1 114.846182 270)
+		(descr "Generic KF301-style screw terminal, 2 positions, 5.08mm pitch (e.g. Cixi Kefa KF301-5.0-2P, LCSC C474881). Drill 1.3mm / pad 2.6mm per common KF301 spec - VERIFY against the actual sourced part datasheet before ordering boards.")
+		(tags "terminal block screw KF301 1x02")
 		(property "Reference" "J9"
 			(at 3.5 0 0)
 			(layer "F.SilkS")
@@ -12062,25 +12062,27 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C474881.pdf"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "3746713a-311d-435f-ac5b-8d859f54f452")
 			(effects
 				(font
-					(size 1.27 1.27)
+					(size 1 1)
+					(thickness 0.15)
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "2P 5.08mm screw terminal, both pins bridged to INT (either position accepts the home-run wire)."
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "576ec3ea-e2dc-4efa-94e4-63c03b34405e")
 			(effects
 				(font
-					(size 1.27 1.27)
+					(size 1 1)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -12091,50 +12093,40 @@
 		(units
 			(unit
 				(name "A")
-				(pins "1")
+				(pins "1" "2")
 			)
 		)
 		(attr through_hole)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start 2.54 -5.4)
-			(end 2.54 5.4)
-			(stroke
-				(width 0.12)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "8308d441-60ec-447d-99e7-c22445a96796")
-		)
-		(fp_line
 			(start -2.54 -5.4)
-			(end 2.54 -5.4)
+			(end 7.62 -5.4)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "b86019d4-638d-41ad-9502-c440a575c4a3")
+			(uuid "219888c7-16d3-4130-bfb1-f6c7ced3a904")
 		)
 		(fp_line
-			(start -2.54 2.7)
-			(end 2.54 2.7)
+			(start 7.62 -5.4)
+			(end 7.62 5.4)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "29976ca2-d441-4c9e-be59-b5583ae31b31")
+			(uuid "207177e8-1dd7-4258-a046-2b97a368835f")
 		)
 		(fp_line
-			(start 2.54 5.4)
+			(start 7.62 5.4)
 			(end -2.54 5.4)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "23bceac6-2168-4cdd-af19-7800c67881f0")
+			(uuid "0d055147-c92f-49ad-9263-432c5fe1abc8")
 		)
 		(fp_line
 			(start -2.54 5.4)
@@ -12144,37 +12136,57 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "08959171-5ef5-47fd-9e34-bb5cbd9237a8")
+			(uuid "c96482c6-6af6-468c-beac-b85c926987c3")
 		)
 		(fp_line
-			(start 2.79 -5.65)
-			(end 2.79 5.65)
+			(start -2.54 2.7)
+			(end 7.62 2.7)
 			(stroke
-				(width 0.05)
+				(width 0.12)
 				(type solid)
 			)
-			(layer "F.CrtYd")
-			(uuid "026b42d8-7192-43d9-9fc9-1ce57516d125")
+			(layer "F.SilkS")
+			(uuid "47db4358-a107-43fb-a75d-57d19e5e6586")
+		)
+		(fp_line
+			(start 2.54 -5.4)
+			(end 2.54 5.4)
+			(stroke
+				(width 0.12)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "a4762800-0345-4e5b-9879-23dc6cc82ce7")
 		)
 		(fp_line
 			(start -2.79 -5.65)
-			(end 2.79 -5.65)
+			(end 7.87 -5.65)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(layer "F.CrtYd")
-			(uuid "b526b7fe-efc0-41f3-a34b-52920b1956f2")
+			(uuid "830dc4b1-60fb-488e-8e07-509021a4d83a")
 		)
 		(fp_line
-			(start 2.79 5.65)
+			(start 7.87 -5.65)
+			(end 7.87 5.65)
+			(stroke
+				(width 0.05)
+				(type solid)
+			)
+			(layer "F.CrtYd")
+			(uuid "6a9e4df0-89f2-4b3d-b580-a6f83a05b446")
+		)
+		(fp_line
+			(start 7.87 5.65)
 			(end -2.79 5.65)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(layer "F.CrtYd")
-			(uuid "24fee5dd-9936-4f13-81cb-83315e9b823f")
+			(uuid "61ed29eb-08e9-4374-b487-87e2f0045d5a")
 		)
 		(fp_line
 			(start -2.79 5.65)
@@ -12184,37 +12196,37 @@
 				(type solid)
 			)
 			(layer "F.CrtYd")
-			(uuid "28ea1602-7614-4078-8ef7-4fb9cfe151be")
-		)
-		(fp_line
-			(start 2.54 -5.4)
-			(end 2.54 5.4)
-			(stroke
-				(width 0.1)
-				(type solid)
-			)
-			(layer "F.Fab")
-			(uuid "7af4cea7-ea40-4b22-b0a1-482db8f08410")
+			(uuid "4e19ed1c-50d4-41c6-aa1c-1f12ee63d6d3")
 		)
 		(fp_line
 			(start -2.54 -5.4)
-			(end 2.54 -5.4)
+			(end 7.62 -5.4)
 			(stroke
 				(width 0.1)
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "b87f10b6-7314-4bf0-9213-154f166591d7")
+			(uuid "98b7d5e8-4f73-4435-8113-f424a9c5766e")
 		)
 		(fp_line
-			(start 2.54 5.4)
+			(start 7.62 -5.4)
+			(end 7.62 5.4)
+			(stroke
+				(width 0.1)
+				(type solid)
+			)
+			(layer "F.Fab")
+			(uuid "7c3070a4-7d41-45e4-91d5-fa915cd4903e")
+		)
+		(fp_line
+			(start 7.62 5.4)
 			(end -2.54 5.4)
 			(stroke
 				(width 0.1)
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "ac32dc02-f025-4049-ba39-f02c9c64f67d")
+			(uuid "44136e7d-9661-4b3c-b0a4-87badff6dd45")
 		)
 		(fp_line
 			(start -2.54 5.4)
@@ -12224,7 +12236,17 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "1bb8ddba-1572-4e53-b82e-2359fea32dd0")
+			(uuid "85809065-ac85-49b4-88d2-6fcff0227c35")
+		)
+		(fp_line
+			(start 2.54 -5.4)
+			(end 2.54 5.4)
+			(stroke
+				(width 0.1)
+				(type solid)
+			)
+			(layer "F.Fab")
+			(uuid "01e27ee3-8112-4c64-ae44-71b65c8b6b10")
 		)
 		(fp_circle
 			(center 0 -2.7)
@@ -12235,10 +12257,21 @@
 			)
 			(fill no)
 			(layer "F.Fab")
-			(uuid "5c3ef973-505a-49d2-8730-ff803e7b0538")
+			(uuid "ee40d416-b832-4bdd-99f2-90b31858053e")
+		)
+		(fp_circle
+			(center 5.08 -2.7)
+			(end 6.58 -2.7)
+			(stroke
+				(width 0.1)
+				(type solid)
+			)
+			(fill no)
+			(layer "F.Fab")
+			(uuid "68abd4b5-97e5-4f87-9261-d775c785abf2")
 		)
 		(pad "1" thru_hole roundrect
-			(at 0 0 90)
+			(at 0 0 270)
 			(size 2.6 2.6)
 			(drill 1.3)
 			(layers "*.Cu" "*.Mask")
@@ -12248,6 +12281,17 @@
 			(pinfunction "Pin_1_1")
 			(pintype "passive")
 			(uuid "60351f02-d154-4e7d-9b79-578e9a3e19d3")
+		)
+		(pad "2" thru_hole circle
+			(at 5.08 0 270)
+			(size 2.6 2.6)
+			(drill 1.3)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net "Net-(J9-Pin_1)")
+			(pinfunction "Pin_2_2")
+			(pintype "passive")
+			(uuid "71a38121-4c00-44e3-bff1-dc3e773c39e2")
 		)
 		(embedded_fonts no)
 	)
@@ -16925,7 +16969,7 @@
 				)
 			)
 		)
-		(property "Value" "THVD1419"
+		(property "Value" "THVD1429"
 			(at 0 3.4 0)
 			(layer "F.Fab")
 			(uuid "5c288d45-7fa2-4b7b-9aaf-d023a1c88d4f")
@@ -16947,7 +16991,7 @@
 				)
 			)
 		)
-		(property "Description" "RS-485 transceiver. Symbol geometry from pin-compatible THVD1420D/LTC2850xS8 family (same SOIC-8 pinout); actual BOM part is THVD1419 (3.3V-logic, internal fail-safe biasing, integrated TVS). No external fail-safe bias resistors needed."
+		(property "Description" "RS-485 transceiver. Symbol geometry from pin-compatible THVD1420D/LTC2850xS8 family (same SOIC-8 pinout); actual BOM part is THVD1429 (3.3V-logic, internal fail-safe biasing, integrated TVS). No external fail-safe bias resistors needed."
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -16970,7 +17014,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1850234"
+		(property "LCSC" "C1850236"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -32422,6 +32466,14 @@
 			)
 			(justify left bottom mirror)
 		)
+	)
+	(segment
+		(start 90.1 114.846182)
+		(end 90.1 119.926182)
+		(width 0.2)
+		(layer "F.Cu")
+		(net "Net-(J9-Pin_1)")
+		(uuid "11cf66c0-5821-441a-83df-46b0275a4de2")
 	)
 	(segment
 		(start 139.4 88.621182)

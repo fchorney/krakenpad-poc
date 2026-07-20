@@ -14,10 +14,10 @@ sheets, one block each. All decided parts per `docs/BOM.md`.
 > | RP2040 / flash / crystal | U1 RP2040, U3 W25Q32JV, X1 12MHz, C12/C14 15pF C0G crystal caps, R5 201Ω ADC filter |
 > | LDOs | U5 AMS1117-5.0, U6 **AP7361C-33ER-13** (swapped in for AMS1117-3.3 2026-07-16 — `-33ER-` suffix ONLY, plain `-33E-` is pin-reversed); caps: C37+C52 = 2× 10µF 25V X5R 0805 MLCC in parallel (AMS1117-5.0 input, DC-bias derating fix), C38 = 22µF 16V **tantalum** (AMS1117-5.0 output — the only ESR-required spot), C44/C50 = 10µF 25V X5R 0805 MLCC (AP7361C in/out, ceramic-stable) |
 > | 12V bulk | C51 470µF 25V **SMD V-chip aluminum electrolytic** (RVT1E471M1010; swapped from TH radial 2026-07-16 — deliberately not tantalum, 12V hot-plug surge) |
-> | Power-OR (VBUS/12V) | D12, D23 (**PMEG3015EH** Schottky, SOD-123F — swapped in for 1N5819W 2026-07-16) |
+> | Power-OR (VBUS/12V) | **U8 LM66200 ideal-diode mux** (SOT-583 8-pin, LCSC C3235556 — replaced the Schottky OR 2026-07-20, review item 4.m). D12, D23 (**PMEG3015EH** Schottky, SOD-123F) stay as **DNP** fallback footprints |
 > | USB-C | J1 = GCT **USB4085-GF-A** (decided 2026-07-11, footprint `USB_C_Receptacle_GCT_USB4085`), R3/R4 27Ω 1% series, R13/R14 5.1k CC pull-downs, U7 **USBLC6-2SC6** ESD array (added 2026-07-17: dance-pad tribocharging risk, not just bench plugs; connector side of R3/R4, flow-through routed with pad-to-pad jumper traces since pads 1↔6/3↔4 join inside the chip) |
 > | SWD / BOOTSEL / RUN | J2 SWD header, SW2 BOOTSEL, R7 1k, R12 10k (fitted 2026-07-17, was DNF — design review: RP2040's internal QSPI_SS pull-up isn't guaranteed during early power-ramp), R1 10k RUN pull-up, TP1 RUN |
-> | RS-485 | U2 THVD1419, J8 IN / J10 OUT (Micro-Fit 3-pin), SW3 termination DPDT (E-Switch EG2201A, footprint panel-pcb:SW_EG2201A), R2 120Ω |
+> | RS-485 | U2 THVD1429, J8 IN / J10 OUT (Micro-Fit 3-pin), SW3 termination DPDT (E-Switch EG2201A, footprint panel-pcb:SW_EG2201A), R2 120Ω |
 > | FSR inputs | J3/J4/J6/J7 = N/E/S/W (JST-PH), R8–R11 10k 1% pull-downs, C16–C19 10nF C0G |
 > | LED chain | 25× WS2815 = D2–D11, D13–D22, D24–D28 (chain order ≠ ref order after re-annotation; footprint `panel-pcb:WS2815_PLCC6_5.0x5.0mm_P1.6mm`, corrected 2026-07-13 — the stock PLCC4/PLCC6 footprints are both wrong for WS2815), U4 SN74AHCT125 (SOIC-14), R16 330Ω, per-LED 100nF = C22–C36, C39–C43, C45–C49 (C21 is the shifter VCC decoupler, not an LED cap) |
 > | Debug LED | D1 + R15 1k (GPIO3, optional populate) |
@@ -35,8 +35,8 @@ sheets, one block each. All decided parts per `docs/BOM.md`.
 
 | GPIO | Function | Notes |
 |------|----------|-------|
-| GPIO0 | UART0 TX → THVD1419 DI | RS-485 |
-| GPIO1 | UART0 RX ← THVD1419 RO | RS-485 |
+| GPIO0 | UART0 TX → THVD1429 DI | RS-485 |
+| GPIO1 | UART0 RX ← THVD1429 RO | RS-485 |
 | GPIO2 | RS-485 DE + /RE (tied) | Driver enable, matches prototype firmware |
 | GPIO3 | Debug press LED (push-pull) | Optional populate; matches prototype |
 | GPIO5 | INT out (open-drain: drive LOW / hi-Z) | Matches prototype firmware |
@@ -128,17 +128,17 @@ Unused GPIOs → test pads if board space is free.
      `absolute = (origin_x + pin_x, origin_y − pin_y)` — X adds directly, Y must be
      subtracted. Got this wrong on the first pass (caught by ERC's pin-not-found
      errors before it caused a silent miswiring), corrected on the second.
-3. **RS-485 — drafted** in `hardware/panel-pcb/panel-pcb.kicad_sch` (U5): THVD1419,
+3. **RS-485 — drafted** in `hardware/panel-pcb/panel-pcb.kicad_sch` (U5): THVD1429,
    A/B bused across 3-pin IN (J5) + OUT (J6) Micro-Fit connectors (pin3 deliberately
    NC on both, per the "can't be confused with 2-pin power" design intent), 120Ω via
    DPDT (SW2) pole 1, pole 2 → GPIO10 sense line. **No external fail-safe biasing
-   needed** — confirmed from TI's own THVD1419 datasheet description: it has internal
+   needed** — confirmed from TI's own THVD1429 datasheet description: it has internal
    fail-safe biasing (drives RO safe-HIGH on open/short/idle bus) and integrated TVS
    surge protection, so A/B need no external bias resistors. Symbol note: KiCad has
-   no exact THVD1419 symbol; used `Interface_UART:THVD1420D` (same SOIC-8 pinout,
+   no exact THVD1429 symbol; used `Interface_UART:THVD1420D` (same SOIC-8 pinout,
    same TI family, confirmed via its `extends` chain to the standard
    `LTC2850xS8`/`MAX481E`-style RO/RE/DE/DI/GND/A/B/VCC pinout) with Value set to
-   "THVD1419" to match the actual BOM part. ~RE + DE tied together on GPIO2. ERC
+   "THVD1429" to match the actual BOM part. ~RE + DE tied together on GPIO2. ERC
    clean (0 errors); netlist-verified A/B/GPIO0-2/GPIO10 nets and the switch-gated
    termination path are all wired exactly as intended, no shorts, no duplicate refs.
 4. **FSR inputs ×4**: JST-PH 2-pin → divider (FSR to 3.3V, 10kΩ pull-down on board),
