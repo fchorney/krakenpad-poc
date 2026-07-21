@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "WS2815, 6-pin PLCC6 5.0x5.0mm, 1.6mm pad pitch. Pad numbering corrected to match the real WS2815 pin diagram (VCC=1, VDD=2, DO=3, DIN=4, GND=5, BIN=6) - see https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf. NOT the same pin numbering as KiCad's stock LED_WS2812_PLCC6 footprint, which is for the different 6-pin WS2812 part (pin 1=DO, pin 4=NC).")
+	(descr "WS2815B-V1, 6-pin PLCC6 5.0x5.0mm, 1.6mm pad pitch. Pad numbering corrected to match the WS2815 pin diagram (VCC=1, VDD=2, DO=3, DIN=4, GND=5, BIN=6) - see Worldsemi WS2815B-V1 V2.0 datasheet https://www.tme.eu/Document/56a796ed8480f117bfc4e5341d7d9a26/WS2815B-V1_V2.0_EN.pdf. Pin 1: Worldsemi V2.0 labels it 'NC (suspended)', but it is the internally-regulated ~5V logic rail (the part runs off 12V VDD); the 100nF to GND on pin 1 is an optional noise filter on that internal rail. NOT the same pin numbering as KiCad's stock LED_WS2812_PLCC6 footprint, which is for the different 6-pin WS2812 part (pin 1=DO, pin 4=NC).")
 	(tags "LED RGB NeoPixel WS2815")
 	(property "Reference" "REF**"
 		(at 0 -3.5 0)
@@ -27,7 +27,7 @@
 			)
 		)
 	)
-	(property "Datasheet" "https://www.normandled.com/upload/201808/WS2815%20LED%20Datasheet.pdf"
+	(property "Datasheet" "https://www.tme.eu/Document/56a796ed8480f117bfc4e5341d7d9a26/WS2815B-V1_V2.0_EN.pdf"
 		(at 0 0 0)
 		(unlocked yes)
 		(layer "F.Fab")
