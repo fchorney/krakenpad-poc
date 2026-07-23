@@ -9,7 +9,7 @@
 //   - Reports INT edges over USB serial with microsecond timestamps, tagged
 //     by panel
 //
-// Protocol: docs/RS485_PROTOCOL.md. Wiring: docs/PROTOTYPE_WIRING.md.
+// Protocol: docs/RS485_PROTOCOL.md. Wiring: docs/archive/PROTOTYPE_WIRING.md.
 // Flash: arduino-cli compile --fqbn teensy:avr:teensy40 firmware/master
 //        arduino-cli upload  --fqbn teensy:avr:teensy40 firmware/master
 

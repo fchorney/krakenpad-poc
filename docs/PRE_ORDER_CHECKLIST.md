@@ -7,10 +7,9 @@ check them off in this doc (or delete the line) as they close.
 
 - ⬜ **J9 (INT screw terminal)**: now **2P** (swapped 2026-07-20 — true 1P
   KF301 barely exists; both pins bridged to INT so either position takes the
-  wire). Part: Cixi Kefa KF301-5.0-2P, LCSC **C474881** (~$0.06 — add to LCSC
-  cart with the order). Measure against
-  `panel-pcb:TerminalBlock_KF301-2P_P5.08mm` (drill 1.3 / pad 2.6, 5.08mm
-  pitch) on arrival.
+  wire). Part: **Adam Tech MRR522-5.08-V** via DigiKey (superseded the KF301
+  pick 2026-07-23; footprint `TerminalBlock_MRR52-5.08-2P` rebuilt from the
+  real drawing, hole Ø1.50). Measure against the sourced part on arrival.
 - ⬜ **FSR leads vs J3/J4/J6/J7**: mate a real FSR lead's JST PHR-2 plug
   against a B2B-PH-K top-entry header (or at minimum compare datasheet drawings
   pin-for-pin). Flagged 2026-07-10, never physically verified.

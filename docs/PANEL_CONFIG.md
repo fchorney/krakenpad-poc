@@ -2,7 +2,7 @@
 
 Status: **draft / musings** — collecting config-related decisions as they come up.
 Not yet a binary format spec. Binary layout will slot into the flash config region
-alongside the animation slots (see `docs/ANIMATION_BINARY_FORMAT.md`).
+alongside the animation slots (see `docs/ANIMATIONS.md`).
 
 ## What lives where
 

@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-23** — Not a planned feature — reference only, in case SMX-MCU compatibility is ever revisited.
+
 # Potential: SMX MCU Compatibility Mode
 
 This document captures a design discussion about what it would take to make the custom panel PCBs work with the **original SMX MCU** instead of the custom master MCU. This is **not a planned feature** — it is recorded here for reference if the idea is revisited later.
