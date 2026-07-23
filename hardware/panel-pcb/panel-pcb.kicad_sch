@@ -26479,6 +26479,17 @@
 				)
 			)
 		)
+		(property "DigiKey" "WM1861-ND"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "fff7f394-b12e-40d1-928c-edc9c6765920")
 		)
@@ -28847,6 +28858,17 @@
 				)
 			)
 		)
+		(property "DigiKey" "WM1860-ND"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "f0caa681-a19f-4aa1-8945-392e9a7bc602")
 		)
@@ -30787,6 +30809,17 @@
 				)
 			)
 		)
+		(property "DigiKey" "2073-USB4085-GF-ACT-ND"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "A1"
 			(uuid "114354f5-3475-4d3a-991d-150169713d4d")
 		)
@@ -31184,6 +31217,17 @@
 		)
 		(property "MPN" "43650-0300"
 			(at 261.62 267.97 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "DigiKey" "WM1861-ND"
+			(at 0 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32947,6 +32991,17 @@
 				)
 			)
 		)
+		(property "DigiKey" "WM1860-ND"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "ad0b0ca6-ba25-4425-9c72-afe8f34eca4a")
 		)
@@ -33603,6 +33658,17 @@
 		)
 		(property "MPN" "EG2201A"
 			(at 23.622 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "DigiKey" "EG1905-ND"
+			(at 0 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -36502,6 +36568,28 @@
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
 			(at 203.2 193.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "61300311121"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "DigiKey" "732-5316-ND"
+			(at 0 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -42337,7 +42425,7 @@
 				)
 			)
 		)
-		(property "MPN" "DSWB04LHGET"
+		(property "MPN" "DS01C-254-S-04BE"
 			(at 38.1 33.02 0)
 			(hide yes)
 			(show_name no)
@@ -42348,8 +42436,19 @@
 				)
 			)
 		)
-		(property "LCSC" "C99418"
+		(property "LCSC" ""
 			(at 38.1 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "DigiKey" "2223-DS01C-254-S-04BE-ND"
+			(at 0 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
