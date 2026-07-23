@@ -39844,7 +39844,7 @@
 				)
 			)
 		)
-		(property "Footprint" "panel-pcb:TerminalBlock_KF301-2P_P5.08mm"
+		(property "Footprint" "panel-pcb:TerminalBlock_MRR52-5.08-2P"
 			(at 220.98 234.95 0)
 			(hide yes)
 			(show_name no)
@@ -39855,7 +39855,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/C474881.pdf"
+		(property "Datasheet" "https://dcomponents.com/uploads/375571_MRR52-5.08-V.pdf"
 			(at 220.98 234.95 0)
 			(hide yes)
 			(show_name no)
@@ -39866,7 +39866,7 @@
 				)
 			)
 		)
-		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+		(property "Description" "Adam Tech MRR522-5.08-V, 2P 5.08mm Eurostyle PCB screw terminal (INT out, single conductor used)"
 			(at 220.98 234.95 0)
 			(hide yes)
 			(show_name no)
@@ -39877,7 +39877,7 @@
 				)
 			)
 		)
-		(property "MPN" "KF301-5.0-2P"
+		(property "MPN" "MRR522-5.08-V"
 			(at 220.98 234.95 0)
 			(hide yes)
 			(show_name no)
@@ -39888,8 +39888,19 @@
 				)
 			)
 		)
-		(property "LCSC" "C474881"
+		(property "LCSC" ""
 			(at 220.98 234.95 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "DigiKey" "5245-MRR522-5.08-V-ND"
+			(at 0 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
