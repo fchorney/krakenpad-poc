@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-23** — Record of the first external schematic review and its follow-ups; all action items were resolved and folded into the design by 2026-07-20.
+
 # Human Schematic Review — Responses & Action Items (2026-07-19)
 
 First external human review of the panel PCB **schematic** (PCB layout not yet reviewed).

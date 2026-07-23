@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-23** — LED family decision closed 2026-07-10 (WS2815 confirmed). Kept for the rationale; the decision summary lives in docs/BOM.md and CLAUDE.md.
+
 # Panel LED Options (exploratory)
 
 Status: **exploratory — WS2815 remains the working default.** Captures a

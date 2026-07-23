@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-23** — Breadboard-prototype era (pre-PCB). The bench findings that carried into the final design (10nF ADC caps, DE timing, shared-GND requirement) are captured in CLAUDE.md and the board docs.
+
 # Breadboard Prototype Wiring Guide
 
 One master MCU (Teensy 4.0) and one panel MCU (Raspberry Pi Pico) connected via RS-485,

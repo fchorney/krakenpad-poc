@@ -1,143 +1,107 @@
 # Project Status / Next Steps
 
 Living doc — updated at the end of each work session so it's easy to pick
-back up. See CLAUDE.md for full architecture, and the topic docs in `docs/`
-for detail on any item below.
+back up. See `CLAUDE.md` for architecture; topic docs in `docs/` for detail.
+Last updated **2026-07-23** (doc reorganization pass — see note at bottom).
 
-## What's proven and working (as of 2026-07-16)
+## What's proven and working on the bench
 
 - **Full sensor path**: FSR → ADC (hysteresis + persistence filter, no
   chatter) → open-drain INT wire → Teensy interrupt, sub-millisecond,
   validated end to end.
-- **Multi-panel RS-485 bus**: 2 Picos + 1 Teensy, 1 Mbps, **100% poll
-  replies, 0 CRC errors** sustained. Per-panel addressing works for both LED
-  frames (`'L'`) and FSR telemetry (`'F'`/`'f'`), plus live threshold tuning
-  over the bus (`'C'`/`'c'`).
-- **USB High Speed confirmed** on Teensy 4.0 — 8000Hz HID polling is
-  achievable off-the-shelf (`bInterval=1`), not custom stack work as
-  originally assumed.
+- **Multi-panel RS-485 bus**: 2 Picos + 1 Teensy, 1 Mbps, 100% poll replies,
+  0 CRC errors sustained; per-panel LED frames + FSR telemetry + live
+  threshold tuning (`docs/RS485_PROTOCOL.md`).
+- **USB High Speed confirmed** on Teensy 4.0 — 8000Hz HID polling achievable
+  off-the-shelf (`bInterval=1`).
 - **ADC mux crosstalk fixed in hardware** — 10nF caps per FSR channel,
-  bench-verified, required on the final panel PCB.
-- **Power cascade bench-verified (2026-07-16)**: AMS1117-5.0 → 3.3V-stage
-  cascade run from 12V under realistic load (2× Pico + 2× 5V logic chips);
-  3.3V stage cool, 5V stage mildly warm. Findings carry over to the AP7361C
-  swap (lighter-duty part; meter-check when real chips arrive).
-- **Tooling**: full CLI flashing workflow (`arduino-cli`, `picotool`) for
-  both boards, `tools/fsr_monitor.py` (live per-panel FSR bars + threshold
-  tuning), `tools/usb_speed_test.py`. KiCad scripting via the app-bundled
-  `python3.9` (`pcbnew`) + `kicad-cli` for DRC/netlist checks.
+  bench-verified, on the panel PCB.
+- **Power cascade bench-verified** from 12V under realistic load.
+- **Tooling**: CLI flashing for both MCUs, `tools/fsr_monitor.py`,
+  `tools/usb_speed_test.py`, KiCad scripting via bundled python + `kicad-cli`.
 
-## Panel PCB — where things stand (updated 2026-07-20)
+## Panel PCB — complete, not ordered
 
-**Layout is essentially complete; the board is not yet ordered.** It reached
-order-ready on 2026-07-18, then an external human schematic review on
-2026-07-19 reopened the design deliberately — nothing had been paid for, so
-review items originally parked for "rev B" were pulled forward into rev A.
+Schematic + layout done; **ERC 0 / DRC 0 with no exclusions** (all former
+exclusions eliminated at the cause, 2026-07-21). As-built reference:
+`docs/PANEL_PCB.md`. Incorporates the full 2026-07-19 human-review rework
+(THVD1429, LM66200 power-OR, net/rail renames, J9 → MRR522 2-pos, 12V-sense
+divider + D29 clamp).
 
-- **Schematic v1.0 signed off 2026-07-11**, but has moved since; the current
-  authoritative pin map lives in the review-response and status docs rather
-  than the table in `docs/PANEL_SCHEMATIC_PLAN.md`.
-- **Layout done**: placement, routing, GND pour with 270 stitching vias,
-  mounting holes validated by 1:1 printout fit-test, silkscreen pass complete
-  (including "Kraken Pad by SenPi / Rev. 1.0" and the personal logo as exposed
-  copper).
-- **Fab package generated 2026-07-18** in `hardware/panel-pcb/production/`
-  (untracked, regenerable via `kicad-cli`) and **quoted at JLCPCB**: $240.78
-  for qty 5, of which ~$148 is qty-independent overhead — marginal assembled
-  board is about $17.50. Not ordered.
+Before ordering (`docs/PRE_ORDER_CHECKLIST.md` is the authority):
 
-### Changes since that fab package — it is now STALE
+1. **Regenerate the production package** — `hardware/panel-pcb/production/`
+   is **STALE** (changes since the 2026-07-18 export include a drill-count
+   change from the THT test points, so the drill file must be regenerated
+   too).
+2. Physical part verification (FSR PHR-2 mate, J9/SW1/SW3 vs sourced parts,
+   U8 package).
+3. Optional insurance: **bench-drive a WS2815 strip at 5V** (only WS2812B has
+   been hands-on tested; datasheet closes the question on paper).
 
-- **THVD1419 → THVD1429** (2026-07-19). The single most important find: the
-  1419 is TI's **250 kbps** speed grade and the bus runs at **1 Mbps**. It
-  never showed on the bench because the prototype used a MAX3485. Identical
-  pinout and package, and cheaper. Surfaced by the review's "complete your
-  MPNs" nitpick.
-- **LM66200 ideal-diode mux (U8)** replaces the D12/D23 Schottky power-OR,
-  removing the VF drop that left the shifter rail at ~4.7V against a 4.5V
-  minimum. D12/D23 remain as DNP fallback footprints.
-- **52 MPN + 22 Datasheet properties** added, all verified against live LCSC
-  listings; **rail and net names standardized** (`+12VDC`/`+5VDC`/`+3.3VDC`,
-  `RS485_TX`, `INT_OUT`, `FSR_North`, …) as one synced pass, netlist-diffed to
-  prove zero connectivity change.
-- **J9 INT terminal 1P → 2P** (true 1P KF301 barely exists), new custom
-  footprint, re-placed and DRC-verified.
-- **12 test points SMD pads → THT probe holes** — note this changes the drill
-  file, not just the gerbers.
+Reference quote (2026-07-18, qty 5): $240.78, ~$148 of it qty-independent →
+marginal assembled board ≈ $17.50. Order all boards in one run (need 18+2 →
+order 20).
 
-### Before this can be ordered
+## Master PCB — complete, not ordered
 
-1. **Update PCB from Schematic** to pull in U8, the THT test points, and the
-   net renames; re-point zones at the renamed rails, refill, save (the saved
-   file has stale zone fills).
-2. **Resolve 3 logo-vs-GND clearance DRC errors** — exposed-copper logo polys
-   sit 0.08–0.12mm from the pour. Ground the logo, keepout, or exclude.
-3. **Regenerate the whole production package** including the drill file.
-4. **Optional but wanted: bench-drive a WS2815 strip at 5V.** The reviewer's
-   only Critical finding (that WS2815 data needs a 12V shift) was rebutted from
-   the datasheet — VIH is an absolute 2.7V min and 12V would violate the 5.7V
-   abs-max — but we have only ever hands-on tested WS2812B.
-5. Physical part verification per `docs/PRE_ORDER_CHECKLIST.md` (FSR PHR-2
-   plug, SW1 row spacing, J9 drill/pad, U8 package).
+Schematic + layout done, ERC/DRC clean, committed. As-built reference:
+`docs/MASTER_PCB.md`. Notable as-builts: RS-485 on **Serial2** (GPIO 7/8),
+INT on GPIO 15–23 with **J2 position 1 = panel 8 (DR) … position 9 = panel 0
+(UL)**, 9× discrete SMAJ5.0A TVS, hand-assembly only (no PCBA).
 
-## Master PCB — where things stand (updated 2026-07-20)
+## Reviews
 
-**Schematic is fully wired and verified; no PCB layout started yet.**
+- 2026-07-19 human schematic review: fully triaged and folded in
+  (`docs/archive/REVIEW_RESPONSES_2026-07-19.md`).
+- **2026-07-23: fresh external AI review packets sent for BOTH boards**
+  (bundles in `tmp/review-2026-07-23/`) — triage findings when they return.
 
-- All 28 symbols placed and wired, **ERC 0 errors** (4 `lib_symbol_mismatch`
-  warnings on the 74AHCT125 units are the known cached-symbol noise class).
-- Every net checked pin-by-pin against a `kicad-cli` netlist export.
-- **J3 + J4 merged** into one 2-position screw terminal (J4): pin 1 =
-  underglow DATA, pin 2 = the mandatory GND tie to the PSU ground stud.
-- Status LED on GPIO17 with its resistor on the anode side.
-- **DNP RS-485 bias pair (R4/R5, 390R 1%)** added per review item 3.a — bias
-  belongs at one point on a bus, and the master is that point, if the
-  THVD1429's integrated failsafe ever proves insufficient.
-- Rails named `+3.3VDC` and `+5VDC_USB`, matching the panel convention.
-- Still open: MPNs for the 10k resistor array, the 9-pos Euroblock, and the
-  3-bit DIP; and the custom Teensy 4.0 symbol still needs verifying against
-  the PJRC pinout card, plus a matching footprint, before layout.
+## Sourcing / BOM
 
-## Open design questions (not blocking, revisit when relevant)
+`docs/BOM.md` (merged 2026-07-23) is the single sourcing doc: quantities for
+the 2-pad build, priced DigiKey cart snapshot ($559.86 CAD), AliExpress
+candidates with match-checks, THT hand-solder analysis. Open sourcing items:
+FSR JST headers (B2B-PH-K, ×80) need a source; wire lengths are placeholders
+until the pad harness is measured.
 
-- **Underglow harness splice point**: electrical spec fully resolved (12V
-  native, 44 groups-of-3, master outputs DATA only — see `docs/UNDERGLOW.md`),
-  but the stock leads crimp directly into a 12-pin Dupont housing at the old
-  MCU with no reusable intermediate connector — cleanest splice point needs
-  the full pad/harness teardown. Gates the master PCB's underglow connector.
-- **Slotted broadcast polling**: possible future protocol optimization
-  (15-20x tighter telemetry sweep) — not needed now. See
-  `docs/RS485_PROTOCOL.md`.
-- **PSU stud size + real harness run lengths** — measure at teardown, feeds
-  BOM lug/wire quantities.
+## Open design questions (not blocking)
+
+- **Underglow harness splice point** — needs the full pad/harness teardown
+  (`docs/UNDERGLOW.md`); also PSU stud size + real harness run lengths.
+- **Master INT filter caps** (~1nF per line, under the socket) — leaning yes,
+  not on the board yet.
+- **Slotted broadcast polling** — future protocol optimization
+  (`docs/RS485_PROTOCOL.md`).
 
 ## Naming / branding
 
-Working project name: **"KrakenPad"** (not final, open to more
-workshopping). Logo idea: circuit-trace-style kraken, echoing the master's
-single connector fanning out to 9 panel connectors like tentacles. VID/PID
-plan is pid.codes — repo now lives at `github.com/fchorney/krakenpad-poc`
-with active commits, but still needs a LICENSE file (and public visibility)
-for eligibility.
+Working name **"KrakenPad"** (not final). Repo: `github.com/fchorney/krakenpad-poc`.
+pid.codes VID/PID registration still gated on a LICENSE file + public repo.
+Project logo pending artwork (personal logo already on the panel silk as
+exposed copper).
 
 ## Concrete next steps (pick from here)
 
-1. **Panel PCB revision session** — the immediate next task: Update PCB from
-   Schematic (U8 + THT test points + net renames), re-point and refill zones,
-   eyeball J9's orientation (its wire entry now faces board-left), decide the
-   logo-vs-GND clearance question, and check whether the two 0402s have room
-   to become 0603.
-2. Remaining schematic notes: the FSR divider explanation (review 2.a) and the
-   THVD1429 integrated-failsafe rationale (3.a); draw SW3 as a proper DPDT
-   (4.h).
-3. Regenerate the production package and re-run the pre-order checklist.
+1. Triage the 2026-07-23 AI review findings for both boards.
+2. Run `docs/PRE_ORDER_CHECKLIST.md` → regenerate production files → order
+   panels (JLC PCBA) + master bare boards.
+3. Place the parts orders (`docs/BOM.md`) — AliExpress match-checks first,
+   DigiKey fallback.
 4. WS2815 strip bench test at 5V.
-5. Send the reviewer the 4.x replies (1.a/2.a/3.a/3.b already sent).
-6. Full pad + harness teardown: underglow splice point, PSU stud size, real
-   cable run lengths.
-7. Master PCB layout (~80×60mm) once the Teensy footprint is settled.
-8. Master firmware: USB HID reports to the PC (RS-485 + INT already work —
-   this is the one major master-side piece not started).
-9. Panel firmware: flash-backed animation playback + config storage /
-   per-channel calibration (`docs/PANEL_CONFIG.md`).
-10. Extend `stepmaniax-gif-maker` to export `.smxa` binary format.
+5. Full pad + harness teardown: underglow splice, PSU stud size, cable runs.
+6. Master firmware: USB HID reports to the PC (the one major master piece not
+   started).
+7. Panel firmware: flash-backed animation playback + config storage
+   (`docs/PANEL_CONFIG.md`, `docs/ANIMATIONS.md`).
+8. Extend `stepmaniax-gif-maker` to export `.smxa`.
+
+---
+
+**Doc reorganization 2026-07-23:** merged `ANIMATION_FORMAT` +
+`ANIMATION_BINARY_FORMAT` + `PROTOTYPE_LED_LAYOUT` → `ANIMATIONS.md`;
+`STOCK_PANEL_CHIPS` + `STOCK_PANEL_PCB_MEASUREMENTS` →
+`STOCK_PANEL_REFERENCE.md`; `BOM` + `DIGIKEY_SHOPPING_LIST` + `BOM_PRICED` →
+`BOM.md`; `PANEL_SCHEMATIC_PLAN` + `PANEL_PCB_LAYOUT_NOTES` → `PANEL_PCB.md`
+(as-built); `MASTER_SCHEMATIC_PLAN` → `MASTER_PCB.md` (as-built). Historical
+docs moved to `docs/archive/`. Old content is all in git history.
