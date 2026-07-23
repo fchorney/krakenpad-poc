@@ -146,6 +146,39 @@ crimps.
 Pad is ~850mm square (3× ~280mm panels); the estimates above assume routing slack. Verify
 against the stock harness before cutting/ordering.
 
+## AliExpress sourcing candidates (2026-07-23) — primary; DigiKey = fallback
+
+Sourcing strategy: **AliExpress for panel parts** (needed in 9× multiples, where bulk packs pay
+off) and cable; **DigiKey for master-only parts** (only ~1–2 needed, so the higher unit price is
+fine and not worth a separate AliExpress order/min-qty). Candidates below are unverified against
+datasheets/footprints — **each has a match-check that must pass before ordering.** DigiKey PNs in
+`BOM_PRICED.md` remain the fallback for anything that fails its check.
+
+### Cable (see Wire/cable section above for full spec)
+| Run | AliExpress candidate | Price | Match-check |
+|-----|----------------------|-------|-------------|
+| 12V power | PVC 2C 20AWG oxygen-free tinned copper — [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | ~$14.68/10m + $9.39 ship (~$2.41/m) | 20 AWG (not 22/24), stranded, 2-cond jacketed round |
+| RS-485 | 22AWG shielded twisted pair — [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | ~$20.92/10m free ship | genuine twisted pair, pure copper; **leave shield/drain unconnected** |
+| INT + hookup | 10-color 24AWG stranded pack — [1005008982254390](https://www.aliexpress.com/item/1005008982254390.html) | ~$16.44 free ship | **stranded not solid**, colors cover the 9-panel map (record actual mapping if not exact), pure copper |
+
+### Connectors & switches
+| Part / use | Qty needed | AliExpress candidate | Match-check | Fallback |
+|-----------|-----------|----------------------|-------------|----------|
+| Euroblock 9p (master INT), header+plug | 1 | pack of 5 — [1005012001482158](https://www.aliexpress.com/item/1005012001482158.html) | **5.08mm pitch**, 9-pos, single-row (master ftpt = Molex 39531 P5.08; master not laid out yet so ftpt adjustable) | DigiKey |
+| DPDT slide, RS-485 term (panel SW3) | 9 (+spares) | SS-22H88 — [1005010555541589](https://www.aliexpress.com/item/1005010555541589.html) | **⚠️ different footprint from `SW_EG2201A`** (panel's current ftpt). Only viable if panel SW3 footprint is changed to SS-22H88 first | E-Switch **EG2201A** @ DigiKey (matches current ftpt) |
+| 4-pos DIP, panel ID (panel SW1) | 9 (+spares) | [1005009296124199](https://www.aliexpress.com/item/1005009296124199.html) (~$2.43) or 10-pk [1005005866801107](https://www.aliexpress.com/item/1005005866801107.html) | **4-position, 2.54mm pitch, 7.62mm (0.3") wide**; qty ≥9 | DigiKey |
+| 3-pos DIP, player ID (master SW1) | 1–2 | (use panel 4-pos + re-foot master to 4-pos, OR buy 3-pos) | master ftpt = SPSTx03 W7.62 P2.54 | **DigiKey (priced OK, only need ~2)** |
+| Micro-Fit 3.0 **3p** PCB header, RA | ~19 (18 panel + 1 master) | [1005008706326809](https://www.aliexpress.com/item/1005008706326809.html) | **RIGHT-ANGLE (horizontal)**, 3.0mm pitch = 43650-0300 | DigiKey |
+| Micro-Fit 3.0 **2p** PCB header, RA | ~18 | [1005012059959598](https://www.aliexpress.com/item/1005012059959598.html) | **RIGHT-ANGLE (horizontal)**, 3.0mm pitch = 43650-0200 | DigiKey |
+| Micro-Fit 3.0 crimp terminals | 66 (buy ~100 for waste) | [1005011606773268](https://www.aliexpress.com/item/1005011606773268.html) | Micro-Fit **3.0** (not Mini-Fit 4.2), gauge range covers **20 AWG** | DigiKey |
+| Micro-Fit 3.0 **2p** plug housing (cable side) | ~15 | [1005008919717941](https://www.aliexpress.com/item/1005008919717941.html) (marginal savings) | 3.0mm; **buy housings + crimps same ecosystem** so they seat/latch | DigiKey |
+| Micro-Fit 3.0 **3p** plug housing (cable side) | ~18 | — (AliExpress ≈ or > DigiKey per pricing check) | — | **DigiKey (primary here)** |
+
+Cross-cutting notes: Micro-Fit clones are fine for this 5A hobby load; the traps are (1) vertical
+vs **right-angle** on PCB headers, and (2) mixing clone crimps into a different clone housing —
+buy mating housing+crimp from one source. Link #2 originally pasted a duplicate URL; the DPDT and
+the 4-pos DIP are genuinely different parts/links (now split above).
+
 ## FSR connector — JST-PH, not XH (corrected 2026-07-10)
 
 User identified the existing FSR leads use **JST PHR-2** plugs (PH series, 2.0mm pitch) —
