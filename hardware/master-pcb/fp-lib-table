@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "master-pcb")(type "KiCad")(uri "${KIPRJMOD}/master-pcb.pretty")(options "")(descr "Master PCB project footprints"))
+)
