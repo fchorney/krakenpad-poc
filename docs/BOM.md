@@ -173,11 +173,34 @@ datasheets/footprints — **each has a match-check that must pass before orderin
 | Micro-Fit 3.0 crimp terminals | 66 (buy ~100 for waste) | [1005011606773268](https://www.aliexpress.com/item/1005011606773268.html) | Micro-Fit **3.0** (not Mini-Fit 4.2), gauge range covers **20 AWG** | DigiKey |
 | Micro-Fit 3.0 **2p** plug housing (cable side) | ~15 | [1005008919717941](https://www.aliexpress.com/item/1005008919717941.html) (marginal savings) | 3.0mm; **buy housings + crimps same ecosystem** so they seat/latch | DigiKey |
 | Micro-Fit 3.0 **3p** plug housing (cable side) | ~18 | — (AliExpress ≈ or > DigiKey per pricing check) | — | **DigiKey (primary here)** |
+| **FSR JST B2B-PH-K header** (panel J3/J4/J6/J7), 4/panel | 36/pad | JST-PH kit (headers+hsg+crimps), cheap 50-pc bags on AliExpress | **B2B-PH-K top-entry 2.0mm**; verify a stock **PHR-2** FSR lead seats before buying qty. Cable side NOT needed (reuse stock FSR leads) | DigiKey (was out of stock — that's why it fell off) |
 
 Cross-cutting notes: Micro-Fit clones are fine for this 5A hobby load; the traps are (1) vertical
 vs **right-angle** on PCB headers, and (2) mixing clone crimps into a different clone housing —
 buy mating housing+crimp from one source. Link #2 originally pasted a duplicate URL; the DPDT and
 the 4-pos DIP are genuinely different parts/links (now split above).
+
+### Order quantities — per pad vs 2 pads
+
+**All "Qty needed" above is PER PAD (1 master + 9 panels).** For a 2-pad build (matching the
+`BOM_PRICED.md` 2-master/20-panel scope) most lines double. Exceptions where one pack already
+covers 2 pads: **Euroblock 5-pack** and the **10-colour hookup pack**.
+
+| Item | Per pad (1M+9P) | 2 pads | Note |
+|------|-----------------|--------|------|
+| Micro-Fit 2p header | 18 | 36 | ×2 |
+| Micro-Fit 3p header | 19 | 38 | ×2 |
+| Micro-Fit 2p plug housing | 15 | 30 | ×2 |
+| Micro-Fit 3p plug housing | 18 | 36 | ×2 |
+| Micro-Fit crimps | 66 (buy ~100) | 132 (buy ~200) | ×2 |
+| Panel DIP 4-pos | 9 | 18 | ×2 (two 10-packs) |
+| DPDT | 9 | 18 | ×2 |
+| FSR JST B2B-PH-K header | 36 | 72 | ×2 |
+| Master DIP 3-pos | 1 | 2 | trivial |
+| Euroblock 9p | 1 | 2 | **pack of 5 covers both** |
+| Power cable | ~5m | ~10m | 10m reel tight for 2 — buy 2 |
+| RS-485 cable | ~5m | ~10m | buy 2 reels |
+| Hookup 10-colour pack | ~1 pad | ~2 pads | **one pack covers 2** |
 
 ## FSR connector — JST-PH, not XH (corrected 2026-07-10)
 
