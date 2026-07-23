@@ -53,7 +53,7 @@ the **Unit** column is what to compare against other vendors. Quantities cover t
 
 | Part | MPN | DigiKey PN | Qty | Unit $ | Ext $ | Used on |
 |------|-----|-----------|-----|--------|-------|---------|
-| 2C 20AWG shielded | 5400FE 008500 | 135-5400FE008500-DS-ND | 10 | 1.446 | 14.46 | 12V power (ft) |
+| 2C 20AWG jacketed (unshielded) | 5400FE 008500 | 135-5400FE008500-DS-ND | 10 | 1.446 | 14.46 | 12V power (ft) — shield not required; this Belden PN is shielded/premium, sub a plain jacketed 2C 20AWG |
 | 2C 22AWG twisted RS-485 | 8761 06010000 | 135-876106010000-DS-ND | 10 | 4.157 | 41.57 | RS-485 (ft) |
 | 24AWG stranded x9 colors | 3xxx-24-... | (9 lines) | 90 | ~0.10-1.25 | 91.52 | INT wires (ft) |
 | | | | | **subtotal** | **147.55** | |
