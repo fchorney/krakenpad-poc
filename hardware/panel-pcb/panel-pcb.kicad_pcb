@@ -95,7 +95,7 @@
 			(layer "B.SilkS"
 				(type "Bottom Silk Screen")
 			)
-			(copper_finish "None")
+			(copper_finish "ENIG")
 			(dielectric_constraints no)
 		)
 		(pad_to_mask_clearance 0)
@@ -15220,7 +15220,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 0 1.68 0)
 			(layer "F.Fab")
 			(uuid "577fcedd-3a87-469d-9c86-28eeb2a182b3")
@@ -18296,7 +18296,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 0 1.68 180)
 			(layer "F.Fab")
 			(uuid "7b64ecde-c060-43f0-9566-213bef6bece0")
@@ -23013,7 +23013,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 0 1.68 0)
 			(layer "F.Fab")
 			(uuid "06e2ad6f-22f1-4688-8acc-0ffc05e6c568")
@@ -26042,7 +26042,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 0 1.68 180)
 			(layer "F.Fab")
 			(uuid "6ab64077-b3cc-4c4c-a7d4-20406187683a")

@@ -6768,7 +6768,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UR (panel 2 UR)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DL (panel 6 DL)"
 			(at 212.09 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -10091,7 +10091,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DR (panel 8 DR)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UL (panel 0 UL)"
 			(at 158.75 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -10204,7 +10204,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_D (panel 7 D)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_U (panel 1 U)"
 			(at 167.64 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -10855,7 +10855,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_U (panel 1 U)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_D (panel 7 D)"
 			(at 220.98 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -11768,7 +11768,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DL (panel 6 DL)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UR (panel 2 UR)"
 			(at 176.53 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -11881,7 +11881,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_R (panel 5 R)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_L (panel 3 L)"
 			(at 185.42 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -12725,7 +12725,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_L (panel 3 L)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_R (panel 5 R)"
 			(at 203.2 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -13642,7 +13642,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UL (panel 0 UL)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DR (panel 8 DR)"
 			(at 229.87 71.12 0)
 			(hide yes)
 			(show_name no)

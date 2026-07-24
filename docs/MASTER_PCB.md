@@ -45,7 +45,7 @@ XenGi/teensy_library (MIT), locally trimmed; 3D model + attribution in
 | 13 | 11 | `UNDERGLOW_DATA` | U3 gate A input |
 | 22–30 | 15–23 | `INT_DR` … `INT_UL` | see INT table below |
 | 31 | — | `+3.3VDC` | Teensy 3V3 out → U2 VCC, RN1 common, TP4 |
-| 33 | — | `+5VDC_USB` | Teensy VIN (USB 5V via intact VUSB↔VIN link) → U3 VCC |
+| 33 | — | `+5VDC_USB` | Teensy VIN (USB 5V via intact VUSB↔VIN link) → U3 VCC. **The board taps VIN, not the raw VUSB pad — the on-Teensy VUSB↔VIN bridge must stay intact (do not cut it), or U3 loses its 5V supply.** |
 | spare | 0, 2, 9, 10, 12, 13, 14 | — | GPIO13 deliberately spare (onboard LED) |
 
 The one hard constraint is that RS-485 TX/RX sit on a matched hardware UART

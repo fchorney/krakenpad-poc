@@ -22,7 +22,7 @@ LED/level-shifter rationale) lives in `CLAUDE.md` — not repeated here.
 | 6 | `RS485_DE` | THVD1429 DE + /RE (tied) |
 | 10 | `INT_OUT` | Open-drain INT to master, via R17 100R → J9 |
 | 13 | `TERM_SENSE` | Termination DPDT pole 2 (internal pull-up; LOW = terminated) |
-| 17 | `SENSE_12V` | 12V-presence divider (R18 100k / R19 33k, ~2.98V at 12V; C53 100nF filter; D29 PMEG3015EH clamp to +3.3VDC) |
+| 17 | `SENSE_12V` | 12V-presence divider (R18 100k / R19 33k, ~2.98V at 12V; C53 100nF filter; D29 PMEG3015EH clamp to +3.3VDC). **Digital present/absent check only** — firmware reads it as a plain GPIO HIGH/LOW to decide whether the 12V LED rail is live and it's safe to drive the WS2815s. Deliberately **not** on an ADC pin (all four ADCs are on the FSRs); it was never meant to measure bus voltage, so GPIO17 being non-ADC is correct, not a defect. |
 | 18–21 | `DIP_ID3`–`DIP_ID0` | Panel-ID DIP (note bit order: GPIO18 = bit 3, GPIO21 = bit 0); switch to GND, internal pull-ups |
 | 22 | `DEBUG_LED` | R15 1k → D1 (diagnostic-mode-gated, see PANEL_CONFIG.md) |
 | 26–29 | ADC0–3 | FSR **South / West / North / East** (in that ADC order); 10nF C0G at each pin (C16–C19), 10k 1% pull-downs (R8–R11) |
@@ -59,7 +59,7 @@ official Pico schematic); TESTEN → GND.
 | J3/J4/J6/J7 | JST B2B-PH-K (FSR N/E/S/W) | pin 2 = 3.3V, pin 1 = ADC node; FSR is non-polarized |
 | J5/J11 | Micro-Fit 43650-0200 (12V IN/OUT) | straight-through heavy copper |
 | J8/J10 | Micro-Fit 43650-0300 (RS-485 IN/OUT) | pin 3 unpopulated (keying vs power) |
-| J9 | MRR522-5.08-V 2-pos screw terminal (INT) | both pins bridged — either position takes the wire |
+| J9 | MRR522-5.08-V 2-pos screw terminal (INT) | **pin 1 = INT signal (`Net-(J9-Pin_1)`, via R17), pin 2 = dedicated GND** (decided 2026-07-24, supersedes both-pins-bridged). D30 SMAJ5.0A clamps signal→pin-2 GND at the connector. Single-conductor cable leaves pin 2 unpopulated; pin 2 pre-provisions a signal+GND paired cable for free if the bench ever shows spurious triggers |
 | SW1 | DS01C-254-S-04BE (DIP-4) | panel ID 0–8, diag modes 9–13 (`docs/PANEL_CONFIG.md`) |
 | SW2 | B3U-1000P | BOOTSEL |
 | SW3 | EG2201A (DPDT) | pole 1 = 120R (R2) across A/B; pole 2 = TERM_SENSE |

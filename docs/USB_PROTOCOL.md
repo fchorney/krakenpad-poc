@@ -59,6 +59,43 @@ one command in flight, response carries FINISHED flag) is simple and proven —
   latency) plus heartbeat. Add a monotonic 8-bit sequence number so the host
   can detect missed transitions between polls.
 
+#### The INT lines are the **sole, authoritative** press path
+
+The per-panel interrupt wires *are* the gameplay input. The RS-485 FSR poll is
+**telemetry/diagnostics only** and never gates a press (see RS485_PROTOCOL.md
+"Future idea" note). There is **no software veto** of an INT edge against FSR
+data — a spurious INT edge would be reported as a real press. That is why the
+INT line gets hardware conditioning (per-end TVS + series R + 1 nF RC, see
+MASTER_PCB.md / PANEL_PCB.md) **and** a firmware glitch-qualify (below). Do not
+design any part of the press path to depend on the FSR telemetry.
+
+#### Latency budget — keep the press path in µs, never ms
+
+A press must reach the host as fast as possible; **1 ms is the "getting dicey"
+line**, and everything below is dominated by the USB poll quantization we
+already accept (8 kHz HS = 125 µs period, 0–125 µs wait; 4 kHz = 250 µs).
+
+| Stage | Typical | Note |
+|-------|---------|------|
+| Panel FSR sample → threshold | ~10–80 µs | at ~100 kHz sampling; keep **detection** averaging light (SNR is huge: rest ~110 vs press ~3900) — reserve 8× averaging for calibration only, off the hot path |
+| Wire prop (~4 ft) | ~5 ns | negligible |
+| RC settle (330 Ω·1 nF) | ~1 µs | |
+| Master edge → glitch-qualify | ~5–20 µs | see below — hidden in USB dead-time, ~0 net |
+| USB poll quantization | 0–125 µs (8k) | inherent, the dominant term |
+| **Device-side total** | **~sub-200 µs typ** | ≥5× under the 1 ms line |
+
+**Master glitch-qualify (the backstop that replaces the non-existent FSR veto):**
+latch the INT edge in the ISR immediately, then confirm the line is *still* LOW
+when building the next USB report (that free 0–125 µs pre-poll window). Real
+press (tens of ms) confirms; sub-µs ESD/EMI residue (already gutted by the RC)
+is discarded. Net added latency ≈ 0 in the typical case; worst case is one extra
+frame (+125 µs at 8 kHz) if the edge lands right at a poll boundary. **Rules:**
+keep the qualify window single-digit-to-low-tens of µs; **never do multi-sample
+averaging on the master** — it reads a clean 1-bit line after the RC and needs
+only an "is it still low?" check. Averaging is strictly a panel-side (analog)
+concern. If latency ever needs squeezing, the biggest lever is **8 kHz vs 4 kHz
+USB**, not the qualify window.
+
 ## Command inventory (from stock → ours)
 
 ### Keep (with cleanups)

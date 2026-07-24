@@ -15468,7 +15468,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 313.436 236.474 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18822,7 +18822,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 304.292 236.22 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23807,7 +23807,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/thvd1420.pdf"
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/thvd1429.pdf"
 			(at 91.44 64.77 0)
 			(hide yes)
 			(show_name no)
@@ -36123,7 +36123,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 377.444 220.98 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -42692,7 +42692,7 @@
 				)
 			)
 		)
-		(property "Value" "10uF X5R 25V"
+		(property "Value" "10uF X5R 50V"
 			(at 399.796 220.98 90)
 			(show_name no)
 			(do_not_autoplace no)

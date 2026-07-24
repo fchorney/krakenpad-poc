@@ -12,7 +12,7 @@
 		(date "2026-07-21")
 		(rev "0.1")
 		(company "SenPi")
-		(comment 1 "4-layer: L1 sig, L2 GND (solid), L3 power pours, L4 sig")
+		(comment 1 "4-layer: L1 sig, L2 GND (solid), L3 GND (solid), L4 sig")
 	)
 	(layers
 		(0 "F.Cu" signal)
@@ -95,7 +95,7 @@
 			(layer "B.SilkS"
 				(type "Bottom Silk Screen")
 			)
-			(copper_finish "None")
+			(copper_finish "ENIG")
 			(dielectric_constraints no)
 		)
 		(pad_to_mask_clearance 0)
@@ -531,7 +531,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UL (panel 0 UL)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DR (panel 8 DR)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -966,7 +966,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DR (panel 8 DR)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UL (panel 0 UL)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -2960,7 +2960,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DL (panel 6 DL)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UR (panel 2 UR)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -4634,7 +4634,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_UR (panel 2 UR)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_DL (panel 6 DL)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5272,7 +5272,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_U (panel 1 U)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_D (panel 7 D)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6355,7 +6355,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_D (panel 7 D)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_U (panel 1 U)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6859,7 +6859,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_L (panel 3 L)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_R (panel 5 R)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -7587,7 +7587,7 @@
 				)
 			)
 		)
-		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_R (panel 5 R)"
+		(property "Description" "Unidirectional TVS, 5V standoff - ESD clamp on INT_L (panel 3 L)"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
