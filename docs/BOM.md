@@ -10,7 +10,8 @@ Per-board part identity (refs, MPNs, footprints) lives in the schematics and in
 
 **Assembly split (decided):**
 
-- **Panel SMD → JLCPCB PCBA** (110 placements/board, double-sided). Part
+- **Panel SMD → JLCPCB PCBA** (113 placements/board — 93 top / 20 bottom,
+  DNP excluded; recounted from the PCB 2026-07-24). Part
   identity for those lines is the schematic's `LCSC` + `MPN` fields — the
   exported BOM/CPL auto-match at JLC. They never reach the bench and are not
   in the shopping lists below.
@@ -40,7 +41,8 @@ any AliExpress candidate that fails its match-check.
 | 20 | SW1 | DIP slide switch, 4-pos SPST, 2.54mm, W7.62mm (panel ID) | 1 | CUI **DS01C-254-S-04BE** | decided |
 | 20 | SW3 | Slide switch DPDT (RS-485 termination) | 1 | E-Switch **EG2201A** | decided (custom footprint `panel-pcb:SW_EG2201A`) |
 
-TP1–TP12 are bare probe holes — no parts. SW2 (BOOTSEL) is SMD — JLC places
+TP1–TP14 are bare probe holes — no parts (TP13 `RS485+` / TP14 `RS485-` added
+2026-07-24). SW2 (BOOTSEL) is SMD — JLC places
 it, do not order.
 
 Notes carried from the design phase:
@@ -73,7 +75,7 @@ Notes carried from the design phase:
 | 2 | R3 | 330R 0805 (underglow data series) | RC0805FR-07330RL | 311-330CRCT-ND |
 | 18 | D2–D10 | TVS 5V unidirectional, DO-214AC/SMA (INT ESD) | SMAJ5.0A | SMAJ5.0ALFCT-ND |
 | 18 | R6–R14 | 330R 0805 (INT series R / RC filter) | RC0805FR-07330RL | 311-330CRCT-ND |
-| 18 | C3–C11 | 1nF C0G 0805 (INT filter cap) | *pick std 0805 C0G/NP0 1nF* | — |
+| 18 | C3–C11 | 1nF C0G 0805 (INT filter cap) | KEMET C0805C102J5GACTU | 399-C0805C102J5GACTUCT-ND |
 | 2 | R15 | 10k 0805 (underglow pull-down) | RC0805FR-0710KL | 311-10.0KCRCT-ND |
 
 **R4/R5 (390R 1% RS-485 bias) are DNP — do not order.**
@@ -134,7 +136,11 @@ service-loop slack so a panel can be lifted out while connected.
 The **Unit** column is what to compare against other vendors. This snapshot is
 the DigiKey / hand-solder side only (panel SMD is JLC).
 
-### Master electronics (×2 boards) — subtotal **149.94**
+### Master electronics (×2 boards) — subtotal **153.48**
+
+Passives updated 2026-07-24 for the post-review rework (status LED D1/R2 gone;
+INT RC filter R6–R14 + C3–C11 and underglow pull-down R15 added). Resistor
+unit price is the 0805 thick-film cut-tape rate from the same snapshot.
 
 | Part | MPN | Qty | Unit $ | Ext $ |
 |------|-----|-----|--------|-------|
@@ -146,8 +152,10 @@ the DigiKey / hand-solder side only (panel SMD is JLC).
 | Euro header 9-pos | 0395316009 | 2 | 5.400 | 10.80 |
 | Euro plug 9-pos | 0395337009 | 2 | 13.980 | 27.96 |
 | 100nF 0805 | C0805F104K1RACAUTO | 4 | 0.360 | 1.44 |
-| 120R / 1k / 330R 0805 | (3 lines) | 6 | 0.160 | 0.96 |
-| LED blue 0805 | 150080BS75000 | 2 | 0.300 | 0.60 |
+| 1nF C0G 0805 (INT filter) | C0805C102J5GACTU | 18 | 0.070 | 1.26 |
+| 120R 0805 | RC0805FR-07120RL | 2 | 0.160 | 0.32 |
+| 330R 0805 (R3 + R6–R14) | RC0805FR-07330RL | 20 | 0.160 | 3.20 |
+| 10k 0805 (R15) | RC0805FR-0710KL | 2 | 0.160 | 0.32 |
 | TVS SMAJ5.0A | SMAJ5.0A | 18 | 0.431 | 7.76 |
 | Teensy socket 14-pos | PPPC141LFBN-RC | 4 | 1.470 | 5.88 |
 
@@ -183,11 +191,11 @@ the DigiKey / hand-solder side only (panel SMD is JLC).
 
 | Section | CAD |
 |---------|-----|
-| Master electronics | 149.94 |
+| Master electronics | 153.48 |
 | Panel THT | 212.10 |
 | Harness | 50.27 |
 | Wire | 147.55 |
-| **GRAND TOTAL** | **559.86** |
+| **GRAND TOTAL** | **563.40** |
 
 Cost-shopping notes: wire is ~26% of the cart and all placeholder — the
 biggest lever. Teensy 4.0 ($36) is the biggest single line and rarely

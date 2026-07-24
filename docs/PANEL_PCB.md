@@ -48,8 +48,8 @@ official Pico schematic); TESTEN → GND.
 | U5 | AMS1117-5.0 (SOT-223) | 12V→5V stage; C38 22µF tantalum output (ESR required), C37+C52 2× 10µF 0805 input |
 | U6 | AP7361C-33ER-13 (SOT-223R) | 5V→3.3V; **`-33ER-` suffix only** — plain `-33E-` is pin-reversed |
 | U7 | USBLC6-2SC6 (SOT-23-6) | USB ESD array, connector side of R3/R4 27R |
-| U8 | LM66200 (SOT-583-8) | ideal-diode 5V power-OR (VBUS vs AMS1117 output); pins 2/7 are the one shared VOUT (+5VDC). Local bypass **C54 1µF (VIN1/VBUS)**, **C56 1µF (VIN2/AMS1117 = Net-(D23-A))**, **C55 100nF (VOUT/+5VDC)** — all added 2026-07-24 per review F4 |
-| D30 | SMAJ5.0A TVS (SMA/DO-214AC) | INT ESD clamp at J9 (added 2026-07-24): cathode → signal node, anode → GND at J9 pin 2. **R17 100R is the series element** into the RP2040 (mirror of the master INT front-end); no local cap on this side (the panel drives the line, it doesn't sense it) |
+| U8 | LM66200 (SOT-583-8) | ideal-diode 5V power-OR (VBUS vs AMS1117 output); pins 2/7 are the one shared VOUT (+5VDC). Local bypass **C54 1µF (VIN1/VBUS)**, **C56 1µF (VIN2/AMS1117 = `/+5VDC_AMS`)**, **C55 100nF (VOUT/+5VDC)** — all added 2026-07-24 per review F4 |
+| D30 | SMAJ5.0A TVS (SMA/DO-214AC) | INT ESD clamp at J9 (added 2026-07-24): cathode → signal node, anode → GND at J9 pin 2. **R17 100R is the series element** into the RP2040 (mirror of the master INT front-end); no local cap on this side (the panel drives the line, it doesn't sense it). LCSC **C113952** (MDD SMAJ5.0A, extended part) — confirm live stock in the JLC BOM dialog; alternates C87074 (Diodes SMAJ5.0A-13-F) / C98802 (ST) |
 | D12, D23 | PMEG3015EH — **DNP** | Schottky-OR fallback: populate both + remove U8 to rescue by hand |
 | D29 | PMEG3015EH — fitted | SENSE_12V clamp to +3.3VDC |
 | D2–D28 (except D12/D23) | 25× WS2815B-V1 | 12V addressable, custom PLCC6 footprint; per-LED 100nF on **VCC (pin 1)** to GND (internal-regulator filter — correct per datasheet, do not "fix"); chain rule: BIN(n) ← DIN-signal(n−1), **first LED's BIN → GND**, last DOUT NC |
@@ -60,7 +60,7 @@ official Pico schematic); TESTEN → GND.
 | J3/J4/J6/J7 | JST B2B-PH-K (FSR N/E/S/W) | pin 2 = 3.3V, pin 1 = ADC node; FSR is non-polarized |
 | J5/J11 | Micro-Fit 43650-0200 (12V IN/OUT) | straight-through heavy copper |
 | J8/J10 | Micro-Fit 43650-0300 (RS-485 IN/OUT) | pin 3 unpopulated (keying vs power) |
-| J9 | MRR522-5.08-V 2-pos screw terminal (INT) | **pin 1 = INT signal (`Net-(J9-Pin_1)`, via R17), pin 2 = dedicated GND** (decided 2026-07-24, supersedes both-pins-bridged). D30 SMAJ5.0A clamps signal→pin-2 GND at the connector. Single-conductor cable leaves pin 2 unpopulated; pin 2 pre-provisions a signal+GND paired cable for free if the bench ever shows spurious triggers |
+| J9 | MRR522-5.08-V 2-pos screw terminal (INT) | **pin 1 = INT signal (net `Net-(D30-K)`, via R17), pin 2 = dedicated GND** (decided 2026-07-24, supersedes both-pins-bridged). D30 SMAJ5.0A clamps signal→pin-2 GND at the connector. Single-conductor cable leaves pin 2 unpopulated; pin 2 pre-provisions a signal+GND paired cable for free if the bench ever shows spurious triggers |
 | SW1 | DS01C-254-S-04BE (DIP-4) | panel ID 0–8, diag modes 9–13 (`docs/PANEL_CONFIG.md`) |
 | SW2 | B3U-1000P | BOOTSEL |
 | SW3 | EG2201A (DPDT) | pole 1 = 120R (R2) across A/B; pole 2 = TERM_SENSE |
@@ -83,8 +83,37 @@ in `docs/BOM.md`.
   Panel THT (connectors/switches) is hand-soldered, not JLC.
 - **High-current path:** 12V IN→OUT daisy-chain carries up to ~2.7A
   pass-through (+~0.9A local LED load at the IN side) — fat copper on L1/In2.
-- Impedance-controlled pairs (from the real stackup): USB 90Ω W=0.528/S=0.15mm;
-  RS-485 120Ω W=0.2787/S=0.2mm.
+- **Differential pairs — re-routed 2026-07-24 for the real stackup.** Measured
+  as built: USB **W=0.25 / S=0.15mm** (→ ~90Ω), RS-485 **W=0.15 / S=0.2mm**
+  (→ ~119Ω), both on F.Cu over the solid In1 GND plane. Calculated with
+  Hammerstad-Jensen and cross-checked against IPC-2141 (agree within 5%);
+  ±10% is the honest band for a non-impedance-controlled order.
+  - *History, so this isn't re-derived again:* the original widths
+    (USB 0.528, RS-485 0.2787) were correct for the KiCad **default** stackup
+    (3 × 0.48mm FR4) they were calculated against, but the real
+    JLC04161H-7628 stackup applied a day later in `2bfc9a1` (2026-07-22) put
+    the reference plane at **0.2104mm** instead of 0.48mm. Impedance follows
+    w/h, so a 2.28× thinner dielectric needs a ~2.1× narrower trace — the old
+    geometry was landing near 55Ω / 92Ω. Rule of thumb: 90Ω USB on a normal
+    4-layer stackup is 0.2–0.3mm; 0.5mm means the stackup is wrong.
+- **Length matching (verified 2026-07-24, via barrel length included at
+  1.5862mm each):** USB D+ 40.176mm vs D− 40.153mm → **0.023mm skew**;
+  RS-485 A 155.196mm vs B 155.176mm → **0.019mm skew**. Note the minus/plus
+  legs carry different via counts (the crossover), so raw copper length alone
+  understates the match — always add the barrels before comparing.
+- **The one-sided B.Cu hops on USB D+ and RS485+ are INTENTIONAL crossovers —
+  do not "fix" them.** Each pair arrives in the wrong order for its
+  destination pins, so one conductor dives to B.Cu to pass under its partner
+  and come back up. Two traces cannot cross on a single layer; the alternative
+  is a 0Ω jumper, which is strictly worse. USB D+ is on B.Cu for ~2.61mm,
+  RS485+ for ~3.4mm. **Every automated/AI review flags these** (2026-07-23
+  review findings F7 and F8) because geometry alone doesn't reveal the
+  pin-order constraint — they are CLOSED-WONTFIX, not open items. The
+  reference does change (F.Cu sees In1 GND, B.Cu sees the In2 power pour)
+  across those few mm; at 12 Mbps FS USB and 1 Mbps RS-485 that is
+  inconsequential. If ever worth hardening: a 100nF +3.3VDC→GND cap adjacent
+  to the transition gives the return current a plane-to-plane path (nearest
+  existing ones are 7.8–11.4mm away).
 - Routing discipline: B.Cu traces stay under their own net's In2 island;
   post-shifter LED data is F.Cu-only (the pre-shifter RP2040→U4 segment
   legitimately uses vias to escape the QFN nest).
@@ -105,7 +134,14 @@ in `docs/BOM.md`.
 | Ground (non-trunk) | 2mm | 0.3mm |
 | Decoupling | ~2mm (short > wide) | 0.3mm |
 | USB / RS-485 | per impedance calc above | — |
-| QSPI / crystal | 1.5–2mm, length-matched | — |
+| QSPI / crystal | **0.15mm**, length-matched | — |
+
+As-built check (2026-07-24): all six QSPI nets and XIN/XOUT measure 0.15mm —
+the "1.5–2mm" previously in this row was a 10× typo carried down from the
+power row. **Minimum gap on the QSPI bundle is 0.127mm** (SD0↔SD2 pinch,
+widened from 0.09mm — JLC's absolute multilayer floor — in `2f86a19`,
+2026-07-17, per AI-review finding P5-06). Keep 0.127mm as the floor if these
+are ever re-routed.
 
 ## Physical
 

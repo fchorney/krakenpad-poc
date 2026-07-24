@@ -78,12 +78,12 @@
         {
           "gap": 0.2,
           "via_gap": 0.2,
-          "width": 0.2787
+          "width": 0.15
         },
         {
           "gap": 0.15,
           "via_gap": 0.15,
-          "width": 0.528
+          "width": 0.25
         }
       ],
       "drc_exclusions": [],
@@ -109,7 +109,7 @@
         "footprint_symbol_mismatch": "warning",
         "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
-        "hole_to_hole": "ignore",
+        "hole_to_hole": "error",
         "holes_co_located": "warning",
         "invalid_outline": "error",
         "isolated_copper": "warning",
@@ -121,7 +121,7 @@
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
         "mirrored_text_on_front_layer": "warning",
-        "missing_courtyard": "ignore",
+        "missing_courtyard": "warning",
         "missing_footprint": "warning",
         "missing_tuning_profile": "warning",
         "net_conflict": "warning",
@@ -148,7 +148,7 @@
         "track_segment_length": "error",
         "track_width": "error",
         "tracks_crossing": "error",
-        "tuning_profile_track_geometries": "ignore",
+        "tuning_profile_track_geometries": "warning",
         "unconnected_items": "error",
         "unresolved_variable": "error",
         "via_dangling": "warning",
@@ -574,9 +574,10 @@
       "+3V3": "rgb(255, 70, 74)",
       "+5.0V": "rgb(84, 94, 255)",
       "+5VDC": "rgb(78, 117, 255)",
-      "GND": "rgb(255, 147, 0)",
+      "/+5VDC_AMS": "rgb(0, 185, 255)",
+      "GND": "rgb(0, 0, 0)",
       "Net-(D23-A)": "rgb(43, 29, 255)",
-      "VBUS": "rgb(255, 1, 235)"
+      "VBUS": "rgb(126, 164, 255)"
     },
     "netclass_assignments": null,
     "netclass_patterns": [
@@ -726,7 +727,7 @@
         "uuid": "a1b2c3d4-0000-4000-8000-000000000001"
       }
     ],
-    "used_designators": "SW1-3,#FLG1-6,X1,TP1-12,U1-7,#PWR1-166,D1-29,C1-53,C56,R1-19,J1-11",
+    "used_designators": "SW1-3,#FLG1-6,X1,TP1-14,U1-7,#PWR1-166,D1-29,C1-53,C56,R1-19,J1-11",
     "variants": []
   },
   "sheets": [
