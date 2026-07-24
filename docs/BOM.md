@@ -70,10 +70,11 @@ Notes carried from the design phase:
 | 4 | — | Female header 14-pos 2.54mm (Teensy socket, 2/board) | PPPC141LFBN-RC | S7047-ND |
 | 4 | C1, C2 | 100nF X7R 50V, 0805 | C0805F104K1RACAUTO | 399-C0805F104K1RACAUTOCT-ND |
 | 2 | R1 | 120R 0805 (RS-485 termination) | RC0805FR-07120RL | 311-120CRCT-ND |
-| 2 | R2 | 1k 0805 (status LED) | CRCW08051K00FKEA | 541-1.00KCCT-ND |
 | 2 | R3 | 330R 0805 (underglow data series) | RC0805FR-07330RL | 311-330CRCT-ND |
-| 2 | D1 | LED blue 0805 | 150080BS75000 | 732-4982-1-ND |
 | 18 | D2–D10 | TVS 5V unidirectional, DO-214AC/SMA (INT ESD) | SMAJ5.0A | SMAJ5.0ALFCT-ND |
+| 18 | R6–R14 | 330R 0805 (INT series R / RC filter) | RC0805FR-07330RL | 311-330CRCT-ND |
+| 18 | C3–C11 | 1nF C0G 0805 (INT filter cap) | *pick std 0805 C0G/NP0 1nF* | — |
+| 2 | R15 | 10k 0805 (underglow pull-down) | RC0805FR-0710KL | 311-10.0KCRCT-ND |
 
 **R4/R5 (390R 1% RS-485 bias) are DNP — do not order.**
 
