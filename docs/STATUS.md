@@ -45,8 +45,11 @@ order 20).
 
 ## Master PCB — complete, not ordered
 
-Schematic + layout done, ERC/DRC clean, committed. As-built reference:
-`docs/MASTER_PCB.md`. Notable as-builts: RS-485 on **Serial2** (GPIO 7/8),
+Schematic + layout done. **DRC 0 / unconnected 0 / ERC 0 as of 2026-07-24 —
+verified with all three ignored rule severities lifted and zones refilled**
+(only 3 `footprint_filters_mismatch` naming notes remain). RS-485 pair
+re-checked against the real stackup: W=0.15/S=0.2, ~119Ω, 0.000mm skew.
+As-built reference: `docs/MASTER_PCB.md`. Notable as-builts: RS-485 on **Serial2** (GPIO 7/8),
 INT on GPIO 15–23 with **J2 position 1 = panel 8 (DR) … position 9 = panel 0
 (UL)**, 9× discrete SMAJ5.0A TVS, hand-assembly only (no PCBA).
 

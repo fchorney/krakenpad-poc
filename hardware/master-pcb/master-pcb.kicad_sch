@@ -4937,6 +4937,16 @@
 	)
 	(wire
 		(pts
+			(xy 59.69 165.1) (xy 59.69 167.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "041cf8a0-829d-48d7-8cc2-b9b9a649b462")
+	)
+	(wire
+		(pts
 			(xy 190.5 41.91) (xy 194.31 41.91)
 		)
 		(stroke
@@ -5888,6 +5898,16 @@
 	)
 	(wire
 		(pts
+			(xy 48.26 175.26) (xy 59.69 175.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ab02b2ab-410c-4f2a-82b8-300e8668ad5e")
+	)
+	(wire
+		(pts
 			(xy 189.23 41.91) (xy 190.5 41.91)
 		)
 		(stroke
@@ -5938,6 +5958,16 @@
 	)
 	(wire
 		(pts
+			(xy 59.69 175.26) (xy 59.69 177.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b22cc672-bf9c-40f4-9f4b-423bf4e3c1de")
+	)
+	(wire
+		(pts
 			(xy 355.6 33.02) (xy 374.65 33.02)
 		)
 		(stroke
@@ -5945,6 +5975,16 @@
 			(type default)
 		)
 		(uuid "b41a2134-e7a5-4466-a7b6-8d791bbfaf0a")
+	)
+	(wire
+		(pts
+			(xy 48.26 165.1) (xy 59.69 165.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b6967a61-01fa-447e-ba2e-a88bd4397993")
 	)
 	(wire
 		(pts
@@ -7019,6 +7059,85 @@
 			(project "master-pcb"
 				(path "/b2c3d4e5-0000-4000-8000-000000000002"
 					(reference "D4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 48.26 175.26 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "02b31b9e-f810-4f5e-a509-fff31c4d6389")
+		(property "Reference" "TP10"
+			(at 42.926 177.038 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "RS-485 TX"
+			(at 48.26 172.72 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
+			(at 48.26 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 48.26 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "PARKED UNWIRED - probe test point, connect to RS-485 DE"
+			(at 48.26 175.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1711c225-1ff6-42e2-8513-3b07f303e7a1")
+		)
+		(instances
+			(project "master-pcb"
+				(path "/b2c3d4e5-0000-4000-8000-000000000002"
+					(reference "TP10")
 					(unit 1)
 				)
 			)
@@ -13229,6 +13348,85 @@
 			(project "master-pcb"
 				(path "/b2c3d4e5-0000-4000-8000-000000000002"
 					(reference "#PWR031")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 48.26 165.1 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a42b94c7-5286-418b-89ff-a815b42958ad")
+		(property "Reference" "TP9"
+			(at 42.926 166.878 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "RS-485 RX"
+			(at 48.26 162.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
+			(at 48.26 165.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 48.26 165.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "PARKED UNWIRED - probe test point, connect to RS-485 DE"
+			(at 48.26 165.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "04aac574-d64f-419a-aa0e-696c4b72067e")
+		)
+		(instances
+			(project "master-pcb"
+				(path "/b2c3d4e5-0000-4000-8000-000000000002"
+					(reference "TP9")
 					(unit 1)
 				)
 			)

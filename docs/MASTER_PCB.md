@@ -131,6 +131,22 @@ mitigation if the bench ever shows spurious triggers — no board change needed.
   logic-only currents (single-digit mA on 3.3V). The +3.3V net is routed on
   the outer layers. In1/In2 stitched liberally (same net), concentrated at J2,
   U2, and the Teensy.
+- **RS-485 pair `/RS485+` `/RS485-` (as measured 2026-07-24):** W=**0.15mm**,
+  gap **0.2mm**, F.Cu only, **zero vias**, both legs **45.39mm — 0.000mm
+  skew**. That geometry gives ~119Ω against a 120Ω target on this stackup
+  (Hammerstad-Jensen, cross-checked vs IPC-2141, ±10% for an
+  uncontrolled-impedance order). Same stackup and therefore the same target
+  geometry as the panel — see `docs/PANEL_PCB.md` for the derivation and the
+  history of the earlier default-stackup miscalculation.
+  - ~69% of the run is coupled at 0.2mm; the remaining ~14mm fans out
+    progressively to reach pads that are simply farther apart than the pair
+    pitch (U2 pins 6/7, J1 Micro-Fit, R1 termination, TP1/TP2 — five pad
+    landings on the + net). That fan-out is unavoidable and inconsequential at
+    1 Mbps. **Do not "fix" it.**
+  - Master inner layers are **both GND** (`In1.Cu "GND_1"`, `In2.Cu "GND_2"`),
+    unlike the panel's GND/power split — so there is no reference-plane-type
+    change anywhere on this board, and any future via transition is fully
+    solved by a nearby GND stitching via.
 - No SMD parts under the Teensy socket; hot-air approach room around D2–D10
   and the 0805s (electrically they belong at J2, but clear of the tall
   Euroblock body and socket).

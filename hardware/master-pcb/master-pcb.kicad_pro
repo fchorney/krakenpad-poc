@@ -78,12 +78,7 @@
         {
           "gap": 0.2,
           "via_gap": 0.2,
-          "width": 0.2787
-        },
-        {
-          "gap": 0.15,
-          "via_gap": 0.15,
-          "width": 0.528
+          "width": 0.15
         }
       ],
       "drc_exclusions": [],
@@ -697,7 +692,7 @@
         "uuid": "b2c3d4e5-0000-4000-8000-000000000002"
       }
     ],
-    "used_designators": "R15,H1-4,#FLG1-3,#PWR1-42",
+    "used_designators": "R15,TP9-10,H1-4,#FLG1-3,#PWR1-42",
     "variants": []
   },
   "sheets": [
