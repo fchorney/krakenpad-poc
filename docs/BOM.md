@@ -38,7 +38,7 @@ any AliExpress candidate that fails its match-check.
 | 20 | J1 | USB-C receptacle, 16P USB2.0, all-THT | 1 | GCT **USB4085-GF-A** | decided |
 | 20 | J2 | Pin header 1×03, 2.54mm vertical (SWD) | 1 | Würth 61300311121 or generic | pick any |
 | 20 | J9 | Screw terminal 2-pos 5.08mm (INT out) | 1 | Adam Tech **MRR522-5.08-V** | decided 2026-07-23 (footprint rebuilt from drawing; replaced the earlier KF301 pick) |
-| 20 | SW1 | DIP slide switch, 4-pos SPST, 2.54mm, W7.62mm (panel ID) | 1 | CUI **DS01C-254-S-04BE** | decided |
+| 20 | SW1 | DIP slide switch, 4-pos SPST, 2.54mm, W7.62mm (panel ID) | 1 | CUI **DS01C-254-S-04BE** | **decided (source settled 2026-07-24: DigiKey, $0.70 ea — LCSC/AliExpress alternatives dropped)** |
 | 20 | SW3 | Slide switch DPDT (RS-485 termination) | 1 | E-Switch **EG2201A** | decided (custom footprint `panel-pcb:SW_EG2201A`) |
 
 TP1–TP14 are bare probe holes — no parts (TP13 `RS485+` / TP14 `RS485-` added
@@ -112,14 +112,30 @@ master GND tie (match the PSU stud size — teardown item); wire ferrules
 ## E. Wire (types decided 2026-07-22; lengths placeholder until pad is measured)
 
 General spec, all runs: **stranded pure copper** (never solid — vibration/flex
-work-hardening; never CCA), **unshielded** (RS-485 is differential, INT is
-filtered open-drain; shield buys nothing at <3m / 1 Mbps), PVC insulation
-(UL1007-class), any ≥80°C/300V rating.
+work-hardening; never CCA), PVC insulation (UL1007-class), any ≥80°C/300V
+rating. Shielding is **not required** — RS-485 is differential, INT is
+filtered open-drain, and shield buys nothing at <3m / 1 Mbps.
+
+**RS-485 shield decision (settled 2026-07-24, do not re-litigate):** the
+sourced cable *is* shielded, because jacketed twisted pair **without** a
+shield is effectively unavailable on AliExpress. The drain is left
+**unconnected at both ends**, and that is electrically fine here: the shield
+couples symmetrically to both conductors of a balanced pair, so what it picks
+up appears as common mode and the receiver rejects it. The "never leave a
+shield floating" rule is EMC-certification guidance about radiated emissions
+and quarter-wave resonance on long cables — neither applies to a 3m hobby run
+at 1 Mbps with no emissions requirement.
+
+- **The one real risk is an *intermittent* shield**, not a floating one. Trim
+  the drain flush and heatshrink over it at both ends so it can never
+  intermittently touch a connector pin or the frame.
+- If the bench ever shows noise, landing the drain on the master's GND tie
+  (one end only, never both) is a five-minute change.
 
 | Signal | Spec | Notes |
 |--------|------|-------|
 | 12V power | 2×20 AWG jacketed round, red/black | 3 columns × 2 pads; ~5m/pad |
-| RS-485 | 22–24 AWG **actual twisted pair** | 9 segments/pad, ~5m/pad; fix an A/B color convention and never deviate |
+| RS-485 | 22–24 AWG **actual twisted pair** | 9 segments/pad, ~5m/pad; fix an A/B color convention and never deviate. **Shielded cable is fine and is what's sourced** — see the shield note below |
 | INT | 24 AWG, **9 distinct colors** | ~7–10m/pad total. Stock SMX color map (confirmed against the pad): 0=Red 1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black — feeds panel-ID mismatch detection |
 | Master GND tie | 1 lead (18 AWG on hand) to PSU GND stud | **mandatory** — not optional wiring |
 
@@ -159,7 +175,7 @@ unit price is the 0805 thick-film cut-tape rate from the same snapshot.
 | TVS SMAJ5.0A | SMAJ5.0A | 18 | 0.431 | 7.76 |
 | Teensy socket 14-pos | PPPC141LFBN-RC | 4 | 1.470 | 5.88 |
 
-### Panel THT (×20 boards) + shared — subtotal **212.10**
+### Panel THT (×20 boards) + shared — subtotal **208.06**
 
 | Part | MPN | Qty | Unit $ | Ext $ |
 |------|-----|-----|--------|-------|
@@ -167,7 +183,7 @@ unit price is the 0805 thick-film cut-tape rate from the same snapshot.
 | Micro-Fit 3pin RA | 0436500300 | 42 | 1.551 | 65.14 |
 | USB-C USB4085-GF-A | USB4085-GF-A | 20 | 1.158 | 23.16 |
 | Terminal 2-pos MRR52 | MRR522-5.08-V | 25 | 0.674 | 16.85 |
-| DIP 4-pos | DS01C-254-S-04BE | 20 | 0.902 | 18.04 |
+| DIP 4-pos | DS01C-254-S-04BE | 20 | 0.700 | 14.00 |
 | DPDT EG2201A | EG2201A | 20 | 1.529 | 30.58 |
 | Pin header 3-pos | 61300311121 | 25 | 0.141 | 3.53 |
 
@@ -192,10 +208,10 @@ unit price is the 0805 thick-film cut-tape rate from the same snapshot.
 | Section | CAD |
 |---------|-----|
 | Master electronics | 153.48 |
-| Panel THT | 212.10 |
+| Panel THT | 208.06 |
 | Harness | 50.27 |
 | Wire | 147.55 |
-| **GRAND TOTAL** | **563.40** |
+| **GRAND TOTAL** | **559.36** |
 
 Cost-shopping notes: wire is ~26% of the cart and all placeholder — the
 biggest lever. Teensy 4.0 ($36) is the biggest single line and rarely
@@ -214,7 +230,7 @@ fallback for anything that fails.
 | Run | Candidate | Price | Match-check |
 |-----|-----------|-------|-------------|
 | 12V power | PVC 2C 20AWG oxygen-free tinned copper — [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | ~$14.68/10m + $9.39 ship | 20 AWG (not 22/24), stranded, 2-cond jacketed round |
-| RS-485 | 22AWG shielded twisted pair — [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | ~$20.92/10m free ship | genuine twisted pair, pure copper; **leave shield/drain unconnected** |
+| RS-485 | 22AWG shielded twisted pair — [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | ~$20.92/10m free ship | genuine twisted pair, pure copper; **leave shield/drain unconnected at BOTH ends — deliberate, see §E** |
 | INT + hookup | 10-color 24AWG stranded pack — [1005008982254390](https://www.aliexpress.com/item/1005008982254390.html) | ~$16.44 free ship | **stranded not solid**, colors cover the 9-panel map, pure copper |
 
 ### Connectors & switches
@@ -223,7 +239,7 @@ fallback for anything that fails.
 |-----------|-----------|-------------|----------|
 | Euroblock 9p (master J2), header+plug | pack of 5 — [1005012001482158](https://www.aliexpress.com/item/1005012001482158.html) | 5.08mm pitch, 9-pos, single-row (master ftpt = Molex 39531 P5.08) | DigiKey |
 | DPDT slide (panel SW3) | SS-22H88 — [1005010555541589](https://www.aliexpress.com/item/1005010555541589.html) | **⚠️ different footprint from `SW_EG2201A`** — only viable if the panel footprint is changed first | EG2201A @ DigiKey (matches current ftpt) |
-| 4-pos DIP (panel SW1) | [1005009296124199](https://www.aliexpress.com/item/1005009296124199.html) or 10-pk [1005005866801107](https://www.aliexpress.com/item/1005005866801107.html) | 4-pos, 2.54mm pitch, 7.62mm (0.3") wide | DigiKey |
+| ~~4-pos DIP (panel SW1)~~ | **DROPPED 2026-07-24 — buy from DigiKey** (CUI DS01C-254-S-04BE, $0.70 ea, in stock). No LCSC order exists to attach the $0.12 alternative to, so a separate shipment would cost more than it saves | — | — |
 | 3-pos DIP (master SW1) | (use panel 4-pos + re-foot master, OR buy 3-pos) | master ftpt = SPSTx03 W7.62 P2.54 | **DigiKey (primary — only need 2)** |
 | Micro-Fit 3p header RA | [1005008706326809](https://www.aliexpress.com/item/1005008706326809.html) | **RIGHT-ANGLE**, 3.0mm pitch = 43650-0300 | DigiKey |
 | Micro-Fit 2p header RA | [1005012059959598](https://www.aliexpress.com/item/1005012059959598.html) | **RIGHT-ANGLE**, 3.0mm pitch = 43650-0200 | DigiKey |

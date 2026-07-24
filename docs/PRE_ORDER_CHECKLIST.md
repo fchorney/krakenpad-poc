@@ -63,14 +63,14 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
   quote. Confirm live stock in the JLC BOM dialog and re-pick if short
   (C87074 Diodes, C98802 ST are the same part in the same DO-214AC body).
 - ⬜ **SW1 (DIP-4) and SW3 (EG2201A DPDT)**: confirm sourced parts match the
-  footprints (SW3 uses the custom `panel-pcb:SW_EG2201A`). SW1 part decided
-  2026-07-20: YE DSWB04LHGET (LCSC C99418, ~$0.12, THT hand-solder — add to
-  LCSC cart with the board order); verify row spacing 7.62mm vs footprint on
-  arrival. **⚠ Conflict to resolve before ordering:** `docs/BOM.md` §A lists
-  SW1 as **CUI DS01C-254-S-04BE via DigiKey** ("decided", 20 pcs, $0.902 ea in
-  the priced cart) and §G lists AliExpress 10-packs as a third candidate.
-  Pick one source for the 20 switches — either is fine electrically, they just
-  must not all get ordered.
+  footprints (SW3 uses the custom `panel-pcb:SW_EG2201A`); verify SW1 row
+  spacing 7.62mm vs footprint on arrival.
+  **SW1 source SETTLED 2026-07-24: CUI `DS01C-254-S-04BE` from DigiKey**
+  ($0.70 ea, 7,376 in stock at decision time; 20 pcs = ~$14). It rides on the
+  panel-THT DigiKey order that's happening anyway. The earlier LCSC pick
+  (YE DSWB04LHGET, C99418, ~$0.12) is **dropped** — there is no LCSC order to
+  attach it to, so it would mean a separate shipment to save ~$12. The
+  AliExpress 10-packs are likewise dropped.
 - ✅ **WS2815 datasheet-variant confirm** (human review finding 1.a, closed
   2026-07-19): LCSC C5446699 confirmed = WS2815B-V1, the exact part of the
   WS2815B-V1 V2.0 datasheet (VIH abs 2.7V min / input abs-max 5.7V — closed
