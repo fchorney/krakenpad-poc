@@ -221,7 +221,7 @@ fallback for anything that fails.
 | Micro-Fit crimps | [1005011606773268](https://www.aliexpress.com/item/1005011606773268.html) | Micro-Fit **3.0** (not Mini-Fit 4.2), covers 20 AWG | DigiKey |
 | Micro-Fit 2p plug housing | [1005008919717941](https://www.aliexpress.com/item/1005008919717941.html) (marginal savings) | 3.0mm; same ecosystem as crimps | DigiKey |
 | Micro-Fit 3p plug housing | — (AliExpress ≈ or > DigiKey) | — | **DigiKey (primary here)** |
-| FSR JST B2B-PH-K header | JST-PH kits, cheap 50-pc bags | **B2B-PH-K top-entry 2.0mm**; verify a stock PHR-2 FSR lead seats before buying qty. Cable side NOT needed (reuse stock FSR leads) | DigiKey (**was out of stock** — that's why it fell off the cart; still needs a source) |
+| FSR JST B2B-PH-K header | **100-pc B2B-PH-K-S** — [1005012304829514](https://www.aliexpress.com/item/1005012304829514.html) ($9.89 + $8.07 ship) | **B2B-PH-K top-entry 2.0mm**; 100 pc covers both pads (72 needed). Verify a stock PHR-2 FSR lead seats before buying qty. Cable side NOT needed (reuse stock FSR leads) | AliExpress (**primary** — DigiKey was out of stock) |
 
 Traps: (1) vertical vs **right-angle** on PCB headers; (2) clone-mixing across
 housings/crimps. Micro-Fit clones are otherwise fine for this 5A hobby load.
@@ -240,7 +240,7 @@ double for the 2-pad build except where one pack covers both:
 | Micro-Fit crimps | 66 (buy ~100) | 132 (buy ~200) | ×2 |
 | Panel DIP 4-pos | 9 | 18 | two 10-packs |
 | DPDT | 9 | 18 | ×2 |
-| FSR JST header | 36 | 72 | ×2 |
+| FSR JST header | 36 | 72 | **one 100-pc pack covers both** |
 | Master DIP 3-pos | 1 | 2 | trivial |
 | Euroblock 9p | 1 | 2 | **pack of 5 covers both** |
 | Power cable | ~5m | ~10m | 10m reel tight — buy 2 |
@@ -252,7 +252,7 @@ double for the 2-pad build except where one pack covers both:
 | Item | Status |
 |------|--------|
 | FSR sensors | reuse stock SMX (Interlink FSR 408) |
-| FSR JST headers (B2B-PH-K-S) | **NEEDS A SOURCE** — 80 needed, out of stock at DigiKey |
+| FSR JST headers (B2B-PH-K-S) | **SOURCED** — AliExpress 100-pc pack, see §G table (verify PHR-2 mate before qty buy) |
 | 18 AWG stranded (underglow/GND-tie) | have at home |
 | Spade/fork lugs (PSU ends + master GND tie) | have at home (size vs PSU stud = teardown item) |
 | M3 mounting hardware | have at home |
