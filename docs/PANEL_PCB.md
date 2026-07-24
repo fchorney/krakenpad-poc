@@ -48,7 +48,8 @@ official Pico schematic); TESTEN → GND.
 | U5 | AMS1117-5.0 (SOT-223) | 12V→5V stage; C38 22µF tantalum output (ESR required), C37+C52 2× 10µF 0805 input |
 | U6 | AP7361C-33ER-13 (SOT-223R) | 5V→3.3V; **`-33ER-` suffix only** — plain `-33E-` is pin-reversed |
 | U7 | USBLC6-2SC6 (SOT-23-6) | USB ESD array, connector side of R3/R4 27R |
-| U8 | LM66200 (SOT-583-8) | ideal-diode 5V power-OR (VBUS vs AMS1117 output) |
+| U8 | LM66200 (SOT-583-8) | ideal-diode 5V power-OR (VBUS vs AMS1117 output); pins 2/7 are the one shared VOUT (+5VDC). Local bypass **C54 1µF (VIN1/VBUS)**, **C56 1µF (VIN2/AMS1117 = Net-(D23-A))**, **C55 100nF (VOUT/+5VDC)** — all added 2026-07-24 per review F4 |
+| D30 | SMAJ5.0A TVS (SMA/DO-214AC) | INT ESD clamp at J9 (added 2026-07-24): cathode → signal node, anode → GND at J9 pin 2. **R17 100R is the series element** into the RP2040 (mirror of the master INT front-end); no local cap on this side (the panel drives the line, it doesn't sense it) |
 | D12, D23 | PMEG3015EH — **DNP** | Schottky-OR fallback: populate both + remove U8 to rescue by hand |
 | D29 | PMEG3015EH — fitted | SENSE_12V clamp to +3.3VDC |
 | D2–D28 (except D12/D23) | 25× WS2815B-V1 | 12V addressable, custom PLCC6 footprint; per-LED 100nF on **VCC (pin 1)** to GND (internal-regulator filter — correct per datasheet, do not "fix"); chain rule: BIN(n) ← DIN-signal(n−1), **first LED's BIN → GND**, last DOUT NC |
