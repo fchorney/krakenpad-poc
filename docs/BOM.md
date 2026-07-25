@@ -33,7 +33,7 @@ specific reason:
 |-------|------|-----------------|
 | **1. JLCPCB** | Both bare PCBs + **panel SMD assembly** (PCBA) | Only JLC does the panel's 113 SMD placements; the fab and assembly are one order. Master is bare-fab only (hand-assembled — PCBA's ~$148 fixed overhead buys nothing for 19 parts). |
 | **2. LCSC** | Master semis + passives, all Micro-Fit (headers/housings/crimps), DIP + DPDT switches, screw terminals, RN1 array — the whole hand-solder electronics tier | **Cheapest by far (~$94.57 vs $267 DigiKey, ~65% off) and genuine Molex, not clones.** **Combined-shipped with the JLC order** (email `support@lcsc.com` with both order numbers) so it costs no extra freight. See §G2. |
-| **3. DigiKey** | Teensy 4.0 ×2, anything LCSC lacks | Residual only, and shrinking. Teensy is PJRC-direct (never on LCSC). USB-C **is** on LCSC as THT after all (§G2) and moved there; Teensy sockets likely follow once the right female 2.54mm part is picked. Unit price irrelevant on these low quantities. |
+| **3. DigiKey** | **Teensy 4.0 ×2 only** | Everything else migrated to LCSC (USB-C, sockets, passives all turned out to be there). Teensy is PJRC-direct — the one part LCSC never carries. Could also buy it from PJRC/Adafruit directly. |
 | **4. AliExpress** | Euroblock (header+plug), cable/wire, lugs, ferrules, heatshrink, consumables | Cheapest for bulk/multiple commodity items and the parts neither LCSC nor DigiKey win on. Each candidate carries a match-check (§G) before ordering. |
 
 **Rule of thumb for future parts:** price LCSC first (combined-ship makes it
@@ -345,21 +345,21 @@ all-THT USB-C" claim, which was wrong):
 | master R1 | 120R 1% 0805 (Vishay CRCW0805120RFKEA) | **C844816** | 100 | 0.86 | verified 0805 1% |
 | master R15 | 10k 1% 0805 (Yageo AF0805FR-0710KL) | **C192906** | 50 | 0.90 | verified 0805 1% |
 | panel J2 (SWD) | male 1×3 2.54mm header (XFCN PZ254V-11-03P) | **C2937625** | 50 | 0.94 | matches the SWD pin-header footprint |
+| master U1 socket ×4 | **female 1×14 2.54mm THT** socket (KH-2.54FH-1X14P-H8.5) | **C2905420** | 10 | 1.52 | correct Teensy socket (2/board); fits the `Teensy40_Socketed` pin holes |
 
 ### Still NOT in the LCSC cart — source elsewhere
 
 | Ref | Part | Where | Note |
 |-----|------|-------|------|
-| master U1 ×2 | Teensy 4.0 | **DigiKey / PJRC** | $72.52, PJRC-direct, unavoidable — the biggest single line |
+| master U1 ×2 | Teensy 4.0 | **DigiKey / PJRC** | $72.52, PJRC-direct, unavoidable — **the only thing left on the DigiKey order** |
 | master J2 ×2 | Euroblock 9-pos header + plug | **AliExpress** | cheapest there (§G, pack of 5); the DigiKey Molex was a fallback only |
-| Teensy socket ×4 | **female 1×14, 2.54mm, THT** | LCSC (searching) | ⚠ NOT C41370746 — that's 1.27mm **male**, wrong pitch AND gender. Need female 2.54mm socket (like PPTC141LFBN / generic). 2 per board. |
 | wire / lugs / ferrules / heatshrink | — | **AliExpress** / hand | §E, §D |
 
 ### Four-order plan (confirmed viable)
 
 1. **JLCPCB** — both bare PCBs + panel PCBA (SMD placement from the panel BOM/CPL).
 2. **LCSC** — this cart (~$94.57), **combined-shipped with the JLC order** (email `support@lcsc.com` with both order numbers).
-3. **DigiKey** — Teensy ×2, anything LCSC lacks. (USB-C moved to LCSC; Teensy sockets likely LCSC once the right female part is found.)
+3. **DigiKey** — **Teensy 4.0 ×2 only** (PJRC-direct). Everything else migrated to LCSC.
 4. **AliExpress** — Euroblock (header+plug), cable/wire, lugs, ferrules, heatshrink, consumables.
 
 ### Order quantities — per pad vs 2 pads
