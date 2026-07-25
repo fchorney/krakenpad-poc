@@ -34,7 +34,7 @@ specific reason:
 | **1. JLCPCB** | Both bare PCBs + **panel SMD assembly** (PCBA) | Only JLC does the panel's 113 SMD placements; the fab and assembly are one order. Master is bare-fab only (hand-assembled — PCBA's ~$148 fixed overhead buys nothing for 19 parts). |
 | **2. LCSC** | Master semis + passives, all Micro-Fit (headers/housings/crimps), DIP + DPDT switches, screw terminals, RN1 array — the whole hand-solder electronics tier | **Cheapest by far (~$94.57 vs $267 DigiKey, ~65% off) and genuine Molex, not clones.** **Combined-shipped with the JLC order** (email `support@lcsc.com` with both order numbers) so it costs no extra freight. See §G2. |
 | **3. DigiKey** | Teensy 4.0 ×2, USB-C USB4085 ×20, Teensy sockets, anything LCSC lacks | Residual only. Teensy is PJRC-direct (never on LCSC); USB4085's all-THT 16P land pattern wasn't found on LCSC. Unit price irrelevant on these low quantities. |
-| **4. AliExpress** | Euroblock (header+plug), FSR JST headers, cable/wire, lugs, ferrules, heatshrink, consumables | Cheapest for bulk/multiple commodity items and the parts neither LCSC nor DigiKey win on. Each candidate carries a match-check (§G) before ordering. |
+| **4. AliExpress** | Euroblock (header+plug), cable/wire, lugs, ferrules, heatshrink, consumables | Cheapest for bulk/multiple commodity items and the parts neither LCSC nor DigiKey win on. Each candidate carries a match-check (§G) before ordering. |
 
 **Rule of thumb for future parts:** price LCSC first (combined-ship makes it
 nearly free freight), fall to DigiKey only for what LCSC can't supply, and use
@@ -50,7 +50,7 @@ tables.
 |-----|-----------|------|-----------|-----|--------|
 | 40 | J5, J11 | Micro-Fit 3.0 2-pin, right-angle THT (12V IN/OUT) | 2 | Molex **43650-0200** | decided |
 | 40 | J8, J10 | Micro-Fit 3.0 3-pin, right-angle THT (RS-485 IN/OUT) | 2 | Molex **43650-0300** | decided |
-| 80 | J3, J4, J6, J7 | JST-PH 2-pin vertical, board side (FSR) | 4 | JST **B2B-PH-K-S** | decided — stock FSR leads already have PHR-2 plugs; **verify mating before ordering qty** |
+| 80 | J3, J4, J6, J7 | JST-PH 2-pin vertical, board side (FSR) | 4 | JST **B2B-PH-K-S** | decided — **LCSC C131337** (genuine JST, 100/$3.53); footprint matches exactly. Stock FSR leads have PHR-2 plugs; **verify mating before ordering qty** |
 | 20 | J1 | USB-C receptacle, 16P USB2.0, all-THT | 1 | GCT **USB4085-GF-A** | decided |
 | 20 | J2 | Pin header 1×03, 2.54mm vertical (SWD) | 1 | Würth 61300311121 or generic | pick any |
 | 20 | J9 | Screw terminal 2-pos 5.08mm (INT out) | 1 | Adam Tech **MRR522-5.08-V** | decided 2026-07-23 (footprint rebuilt from drawing; replaced the earlier KF301 pick) |
@@ -269,7 +269,7 @@ fallback for anything that fails.
 | Micro-Fit crimps | [1005011606773268](https://www.aliexpress.com/item/1005011606773268.html) | Micro-Fit **3.0** (not Mini-Fit 4.2), covers 20 AWG | DigiKey |
 | Micro-Fit 2p plug housing | [1005008919717941](https://www.aliexpress.com/item/1005008919717941.html) (marginal savings) | 3.0mm; same ecosystem as crimps | DigiKey |
 | Micro-Fit 3p plug housing | — (AliExpress ≈ or > DigiKey) | — | **DigiKey (primary here)** |
-| FSR JST B2B-PH-K header | **100-pc B2B-PH-K-S** — [1005012304829514](https://www.aliexpress.com/item/1005012304829514.html) ($9.89 + $8.07 ship) | **B2B-PH-K top-entry 2.0mm**; 100 pc covers both pads (72 needed). Verify a stock PHR-2 FSR lead seats before buying qty. Cable side NOT needed (reuse stock FSR leads) | AliExpress (**primary** — DigiKey was out of stock) |
+| ~~FSR JST B2B-PH-K header~~ | **SUPERSEDED 2026-07-25 → LCSC C131337** (genuine JST, 100/$3.53, combined-ship). Old AliExpress pack [1005012304829514](https://www.aliexpress.com/item/1005012304829514.html) ($9.89 + $8.07 ship) was a clone at ~5× the cost | — | — |
 
 Traps: (1) vertical vs **right-angle** on PCB headers; (2) clone-mixing across
 housings/crimps. Micro-Fit clones are otherwise fine for this 5A hobby load.
@@ -311,6 +311,14 @@ doesn't carry.
 | harness | Micro-Fit 2p housing | **C114089** = Molex 436450200 | 50 | 3.79 | 30 |
 | harness | Micro-Fit 3p housing | **C259740** = Molex 436450300 | 50 | 5.68 | 36 |
 | harness | Micro-Fit crimp 20–24AWG | **C259786** = Molex 430300001 | 300 | 4.47 | 132 |
+| panel J3/J4/J6/J7 | JST **B2B-PH-K-S** 2p 2mm vertical THT | **C131337** (genuine JST) | 100 | 3.53 | 72 (80 w/ spares) |
+
+The JST row is a **guaranteed mate**: it's genuine JST B2B-PH-K-S and the
+footprint (`Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical`) was drawn
+for exactly that part. It replaces the AliExpress 100-pc pack (~$18 shipped,
+*clone* with a mate-risk) — cheaper, genuine, and combined-shipped free.
+Still worth the one-time physical check that a stock FSR lead's PHR-2 plug
+seats, but that's now confirming the real part, not a substitute.
 
 **Footprint WILL change (user accepted 2026-07-25) — build/verify before order:**
 
@@ -331,7 +339,6 @@ doesn't carry.
 | master J2 ×2 | Euroblock 9-pos header + plug | **AliExpress** | cheapest there (§G, pack of 5); the DigiKey Molex was a fallback only |
 | Teensy socket ×4 | 14-pos female header | DigiKey / LCSC | generic 2.54mm; could add to LCSC cart |
 | master R1 / R15 | 120R / 10k 0805 | **LCSC — being added 2026-07-25** | were missing from the first cart export; user adding with the order |
-| panel J3/J4/J6/J7 | FSR JST B2B-PH headers | **AliExpress** | 100-pc pack, §G |
 | SWD header (panel J2) | 1×3 2.54mm | any | trivial |
 | wire / lugs / ferrules / heatshrink | — | **AliExpress** / hand | §E, §D |
 
@@ -340,7 +347,7 @@ doesn't carry.
 1. **JLCPCB** — both bare PCBs + panel PCBA (SMD placement from the panel BOM/CPL).
 2. **LCSC** — this cart (~$94.57), **combined-shipped with the JLC order** (email `support@lcsc.com` with both order numbers).
 3. **DigiKey** — Teensy ×2, USB-C ×20, Teensy sockets, anything LCSC lacks.
-4. **AliExpress** — Euroblock (header+plug), FSR JST headers, cable/wire, lugs, ferrules, heatshrink, consumables.
+4. **AliExpress** — Euroblock (header+plug), cable/wire, lugs, ferrules, heatshrink, consumables.
 
 ### Order quantities — per pad vs 2 pads
 
@@ -368,7 +375,7 @@ double for the 2-pad build except where one pack covers both:
 | Item | Status |
 |------|--------|
 | FSR sensors | reuse stock SMX (Interlink FSR 408) |
-| FSR JST headers (B2B-PH-K-S) | **SOURCED** — AliExpress 100-pc pack, see §G table (verify PHR-2 mate before qty buy) |
+| FSR JST headers (B2B-PH-K-S) | **SOURCED — LCSC C131337** (genuine JST, 100/$3.53, combined-ship; verify PHR-2 mate before qty buy) |
 | 18 AWG stranded (underglow/GND-tie) | have at home |
 | Spade/fork lugs (PSU ends + master GND tie) | have at home (size vs PSU stud = teardown item) |
 | M3 mounting hardware | have at home |
