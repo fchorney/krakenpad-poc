@@ -18,13 +18,29 @@ Per-board part identity (refs, MPNs, footprints) lives in the schematics and in
 - **Panel through-hole → hand-solder** (~57 joints/panel; see the THT analysis
   at the bottom).
 - **Master → bare PCB fab only, everything hand-assembled** (19 parts once —
-  PCBA's ~$148 fixed overhead buys nothing; sourcing unconstrained by LCSC
-  stock).
+  PCBA's ~$148 fixed overhead buys nothing). Parts still bought from LCSC (see
+  strategy below), just hand-soldered rather than machine-placed.
 
-**Sourcing strategy (2026-07-23): AliExpress primary for panel-multiple parts
-and cable** (9×/20× multiples where bulk packs pay off), **DigiKey for
-master-only parts** (1–2 needed, unit price irrelevant) **and as fallback** for
-any AliExpress candidate that fails its match-check.
+## Sourcing strategy — four orders (revised 2026-07-25)
+
+Supersedes the old "AliExpress primary + DigiKey fallback" plan. Building an
+LCSC cart (2026-07-25) showed LCSC beats DigiKey by ~65% on everything it
+carries and stocks the key connectors as **genuine Molex**, so LCSC became the
+primary and DigiKey shrank to a residual. Four orders, each chosen for a
+specific reason:
+
+| Order | Gets | Why this vendor |
+|-------|------|-----------------|
+| **1. JLCPCB** | Both bare PCBs + **panel SMD assembly** (PCBA) | Only JLC does the panel's 113 SMD placements; the fab and assembly are one order. Master is bare-fab only (hand-assembled — PCBA's ~$148 fixed overhead buys nothing for 19 parts). |
+| **2. LCSC** | Master semis + passives, all Micro-Fit (headers/housings/crimps), DIP + DPDT switches, screw terminals, RN1 array — the whole hand-solder electronics tier | **Cheapest by far (~$94.57 vs $267 DigiKey, ~65% off) and genuine Molex, not clones.** **Combined-shipped with the JLC order** (email `support@lcsc.com` with both order numbers) so it costs no extra freight. See §G2. |
+| **3. DigiKey** | Teensy 4.0 ×2, USB-C USB4085 ×20, Teensy sockets, anything LCSC lacks | Residual only. Teensy is PJRC-direct (never on LCSC); USB4085's all-THT 16P land pattern wasn't found on LCSC. Unit price irrelevant on these low quantities. |
+| **4. AliExpress** | Euroblock (header+plug), FSR JST headers, cable/wire, lugs, ferrules, heatshrink, consumables | Cheapest for bulk/multiple commodity items and the parts neither LCSC nor DigiKey win on. Each candidate carries a match-check (§G) before ordering. |
+
+**Rule of thumb for future parts:** price LCSC first (combined-ship makes it
+nearly free freight), fall to DigiKey only for what LCSC can't supply, and use
+AliExpress for cable and high-count commodity connectors. The per-part vendor
++ C-number breakdown is **§G2**; per-part reasoning is in that section's
+tables.
 
 ---
 
@@ -147,7 +163,14 @@ service-loop slack so a panel can be lifted out while connected.
 
 ---
 
-## F. Priced DigiKey cart — snapshot 2026-07-22, CAD
+## F. Priced DigiKey cart — snapshot 2026-07-22, CAD (mostly SUPERSEDED)
+
+> **⚠ Historical / fallback only.** As of 2026-07-25 most of these lines move
+> to **LCSC (§G2)** at ~65% less, or to AliExpress. Keep this as the DigiKey
+> price reference and the fallback if an LCSC/AliExpress part fails its check,
+> but **do not build the actual order from here** — the live plan is the
+> four-order strategy at the top. Only Teensy, USB-C, and Teensy sockets are
+> still genuinely DigiKey lines.
 
 The **Unit** column is what to compare against other vendors. This snapshot is
 the DigiKey / hand-solder side only (panel SMD is JLC).
