@@ -286,12 +286,15 @@ difference). If either order has already shipped, it's too late. That makes a
 **⚠ Prices and stock are point-in-time and have burned us before — verify
 live in the LCSC cart before committing.**
 
-### The actual LCSC cart (built 2026-07-25, `tmp/export_project_20260725_100317.xls`)
+### The actual LCSC cart (latest export `tmp/export_cart_20260725_104011.csv`)
 
-**EST TOTAL $94.57** for 16 lines — and most lines include spares (either
-free headroom or the LCSC minimum/multiple). The comparable DigiKey lines, at
-*exact* quantities needed, came to **$267.21**, so this saves **~$173 (65%)
-while buying MORE parts.** The Micro-Fit family alone drops from **$170 →
+**EST TOTAL ~$110.02 for 22 lines** (was $94.57/16 lines before R1/R15, the
+JST header, SWD header, USB-C, and the Teensy socket were added). **Verified
+2026-07-25: every hand-solder / master part both boards need is present, every
+quantity ≥ need with spares, and no line is extraneous.** Most lines carry
+spares (free headroom or the LCSC MOQ/multiple). The comparable DigiKey lines,
+at *exact* quantities, were ~$267 for a strict subset — so this covers *more*
+of the build for well under half the price. The Micro-Fit family alone drops from **$170 →
 $55**, and LCSC stocks it as **genuine Molex**, not clones. This clearly beats
 DigiKey for everything it covers; DigiKey shrinks to just the parts LCSC
 doesn't carry.
