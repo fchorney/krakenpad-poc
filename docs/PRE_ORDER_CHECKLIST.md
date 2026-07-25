@@ -13,28 +13,42 @@ Adopting the LCSC cart (`docs/BOM.md` §G2) swaps several parts for ones with
 different land patterns. Must be closed before ordering. Two need new
 footprints, four need a confirm.
 
-**New footprint (pull EasyEDA/JLC footprint from the LCSC page):**
-- ⬜ **J1 USB-C** → C53184807 (LCKELEC, vertical THT), replaces
-  `panel-pcb:USB_C_Receptacle_GCT_USB4085_EdgeTrim`. **Highest risk** — 16-pin
-  CC/D+/D−/shield mapping. Must map to J1's existing schematic pins
-  (A6/B6=D+, A7/B7=D−, A5=CC1, B5=CC2, VBUS/GND/SBU unchanged).
-- ⬜ **SW3 DPDT** → C609835 (XKB SS22E01L5, 11×6.2mm), replaces
-  `panel-pcb:SW_EG2201A`. Keep pin numbering 1‑2‑3 / 4‑5‑6 so nets map
-  (pin2=RS485+, pin1→R2, pin5=TERM_SENSE, pin4=GND, 3&6 NC). The earlier
-  `SW_SS-22F04` footprint is superseded by this.
+**Method (2026-07-25):** footprints pulled with `easyeda2kicad` (free pip CLI,
+no EasyEDA subscription) straight from LCSC by C-number:
+`easyeda2kicad --footprint --lcsc_id=Cxxxxxx --output <dir>/lcsc`. Pulled parts
+staged in `panel-pcb.pretty/`.
 
-**Confirm existing footprint fits (grab datasheet dim drawing):**
-- ⬜ **RN1** → C840655 (Bourns 4610**X**-101-103LF) vs
-  `Resistor_THT:R_Array_SIP10` — SIP-10 2.54mm + pin 1 = common bus. Low risk.
-- ⬜ **panel SW1 DIP-4** → C52177925 (Zhongdi DS-04) vs
-  `SW_DIP_SPSTx04_Slide_9.78x12.34mm_W7.62mm_P2.54mm` — 2.54 pitch / 7.62 width.
-- ⬜ **master SW1 DIP-3** → C46595747 (DORABO DS-3P-BU) vs
-  `SW_DIP_SPSTx03_Slide_9.78x9.8mm_W7.62mm_P2.54mm` — 2.54 pitch / 7.62 width.
-- ⬜ **J9 (panel) + J4 (master)** → C8465 (KANGNEX WJ500V-5.08-2P) vs
-  `TerminalBlock_MRR52-5.08-2P` — 5.08 pitch matches; check pin Ø fits the
-  1.5mm holes + body land. **Affects both boards.**
+**Confirmed via easyeda2kicad — existing footprint fits, NO change needed:**
+- ✅ **RN1** C840655 (4610X): pulled = SIP-10 2.54mm, pin-1 marker — identical
+  to `R_Array_SIP10`. Only confirm the schematic wires RN1 pin 1 = the common
+  bus (it does).
+- ✅ **panel SW1 DIP-4** C52177925 (DS-04): pulled = 8 pads, 2.54mm, 7.62mm
+  rows — matches `SW_DIP_SPSTx04…W7.62`.
+- ✅ **master SW1 DIP-3** C46595747 (DS-3P-BU): pulled = 6 pads, 2.54mm, 7.62mm
+  rows — matches `SW_DIP_SPSTx03…W7.62`.
+- ✅ **J9 + J4** C8465 (WJ500V): pulled = 5.08mm pitch, 1.3mm drill — our
+  `MRR52-5.08-2P` (1.5mm holes) accepts it. Just eyeball body-silk clearance
+  vs neighbours when placing.
 
-After each: re-run ERC/DRC on the affected board, keep both at 0/0.
+**New footprint built — staged, needs a board swap + re-DRC:**
+- ⬜ **SW3 DPDT** → `panel-pcb:SW_SS22E01L5` (built from C609835 EasyEDA data;
+  6 pads 2.5/2.5mm + MP1/MP2 posts). Pin numbering 1‑2‑3 / 4‑5‑6 matches the
+  EG2201A symbol, so **keep the EG2201A symbol, change only SW3's footprint**.
+  Pads are smaller/closer than EG2201A → re-place + re-route SW3. **Verify**
+  against the SS22E01L5 datasheet that pin 2 = pole-A common and pin 1 pairs
+  with pin 4 (both = terminated side). `SW_SS-22F04` deleted (was moot).
+- ⬜ **J1 USB-C** → `panel-pcb:USB_C_Receptacle_LCK_TCF829D_TEMPLATE`
+  (C53184807 has **no** EasyEDA data — hand-built from the datasheet).
+  **TEMPLATE, not final.** *Certain:* pad names A1..B12 + SH match the J1
+  symbol → net mapping correct; X-columns from the datasheet chain (±0.5, 1.5,
+  2.5, 3.5; posts ±4.225). *Must verify/adjust vs datasheet:* A/B row Y-spacing
+  (±1.43 assumed), whether the real layout is **staggered** (datasheet view
+  suggests it may be), post Y (±2.5), hole sizes (signal Ø0.5 / power Ø0.8 /
+  posts oval 1.3×1.8). **Fallback if refinement is too fiddly:** right-angle
+  C49302689 (GT-USB-7107B) has a clean verified all-THT footprint already
+  pulled (`USB-C-TH_GT-USB-7107B`), +~$5 total, orientation is "free".
+
+After each new footprint: re-place + re-route the ref, re-run ERC/DRC, keep 0/0.
 
 ## Layout rework closed 2026-07-24
 
