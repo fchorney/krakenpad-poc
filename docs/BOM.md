@@ -260,61 +260,64 @@ split/unbound afterwards, and shipping is recalculated (they invoice any
 difference). If either order has already shipped, it's too late. That makes a
 "parts ride along with the boards" strategy viable.
 
-**⚠ Prices and stock below are point-in-time and have burned us before —
-verify live in the LCSC cart before committing.** All C-numbers are from
-LCSC product pages, not guessed; rows marked *verify* have no confirmed
-C-number yet and need a manual catalogue search.
+**⚠ Prices and stock are point-in-time and have burned us before — verify
+live in the LCSC cart before committing.**
 
-### Drop-in — no footprint risk (standard packages)
+### The actual LCSC cart (built 2026-07-25, `tmp/export_project_20260725_100317.xls`)
 
-| Part | Ref | DigiKey unit | LCSC | LCSC unit |
-|------|-----|--------------|------|-----------|
-| THVD1429DR (SOIC-8) | master U2 | $7.150 | **C1850236** | already the panel's part |
-| SN74AHCT125N **DIP-14** | master U3 | $1.520 | **C354152** (genuine TI) | verify |
-| SMAJ5.0A DO-214AC | master D2–D10 | $0.431 | **C113952** | ~$0.02 |
-| 10k ×9 bussed SIP-10 array | master RN1 | $1.330 | **C8692** (FH A09-103JP) | ~$0.06 |
-| 100nF X7R 50V 0805 | master C1/C2 | $0.360 | **C83055** (Walsin) / **C49678** (Yageo) / **C123316** (AVX) | $0.0024–0.0046 |
-| 1nF C0G 0805 | master C3–C11 | $0.070 | *verify* — Samsung/Walsin C0G 0805 exist | ~$0.01 |
-| 120R / 330R / 10k 0805 | master R1/R3/R6–R15 | $0.160 | *verify* — any LCSC "basic" 0805 1% | ~$0.002 |
+**EST TOTAL $94.57** for 16 lines — and most lines include spares (either
+free headroom or the LCSC minimum/multiple). The comparable DigiKey lines, at
+*exact* quantities needed, came to **$267.21**, so this saves **~$173 (65%)
+while buying MORE parts.** The Micro-Fit family alone drops from **$170 →
+$55**, and LCSC stocks it as **genuine Molex**, not clones. This clearly beats
+DigiKey for everything it covers; DigiKey shrinks to just the parts LCSC
+doesn't carry.
 
-Master passives + semis are roughly **$20 at DigiKey vs ~$3 at LCSC**. Real,
-but small — this tier is worth doing only because it's zero-risk, not because
-it moves the total.
+**Drop-in — genuine/standard package, footprint unchanged:**
 
-### Where the money actually is — but footprint risk applies
+| Ref | Part | LCSC | Cart qty | Ext $ | Need |
+|-----|------|------|----------|-------|------|
+| master D2–D10 | SMAJ5.0A TVS | **C113952** (MDD) | 40 | 1.64 | 18 |
+| master U3 | SN74AHCT125N DIP-14 | **C354152** (TI) | 5 | 3.04 | 2 |
+| master C1/C2 | 100nF X7R 0805 | **C83055** (Walsin) | 10 | 0.24 | 4 |
+| master C3–C11 | 1nF C0G 0805 | **C1791** (Samsung) | 30 | 0.35 | 18 |
+| master R3,R6–R14 | 330R 1% 0805 | **C844839** (Vishay) | 50 | 0.75 | 20 |
+| master U2 | THVD1429DR SOIC-8 | **C1850236** (TI) | 4 | 16.28 | 2 |
+| panel J8/J10 + master J1 | Micro-Fit 3p RA header | **C503478** = Molex **436500300** | 50 | 21.10 | 42 |
+| panel J5/J11 | Micro-Fit 2p RA header | **C192562** = Molex **436500200** | 50 | 19.93 | 40 |
+| harness | Micro-Fit 2p housing | **C114089** = Molex 436450200 | 50 | 3.79 | 30 |
+| harness | Micro-Fit 3p housing | **C259740** = Molex 436450300 | 50 | 5.68 | 36 |
+| harness | Micro-Fit crimp 20–24AWG | **C259786** = Molex 430300001 | 300 | 4.47 | 132 |
 
-**Every connector and switch footprint on these boards was drawn for a
-specific part** (SW3 uses the custom `SW_EG2201A`, J9 was rebuilt from the
-MRR52 drawing, J1 from the USB4085 drawing). Substituting an LCSC equivalent
-is *not* a pure sourcing decision — it needs a footprint re-check, and
-possibly a footprint edit + re-DRC. Budget that time before chasing the saving.
+**Footprint WILL change (user accepted 2026-07-25) — build/verify before order:**
 
-| Part | Qty | DigiKey ext | LCSC status |
-|------|-----|-------------|-------------|
-| Micro-Fit 3.0 2-pin + 3-pin RA headers | 40 + 42 | **$119.94** | **Most promising lead.** LCSC stocks *genuine* Molex MX3.0 (e.g. 430250400 = C122417, 447640401 = C3323241) plus HCTL clones (HC-MX3.0-3AW = C5441112). **43650-0200/-0300 right-angle not yet confirmed** — search these exact MPNs |
-| Euroblock 9-pos header + plug | 2 + 2 | **$38.76** | Molex 0395316009/0395337009 **not found**. Generic 5.08 9-pos pluggables exist; master footprint is Molex 39531 P5.08 — verify pin/mounting geometry |
-| DPDT slide EG2201A | 20 | **$30.58** | Not found. Custom footprint `SW_EG2201A` — a substitute means editing the footprint first |
-| USB-C 16P all-THT (USB4085-GF-A) | 20 | **$23.16** | GCT part not found. LCSC has USB-C receptacles, but all-THT 16P with this exact land pattern is the hard part |
-| MRR522-5.08-V 2-pos terminal | 25 | **$16.85** | Adam Tech not found; generic 5.08mm 2P terminals are plentiful. Footprint was rebuilt from the MRR52 drawing (hole Ø1.50) — check drill/pad |
-| DIP-4 slide (panel SW1) | 20 | **$14.00** | **C54950** (YE DSIC04LSGET, $0.221) or **C319038** (XKB DSIC04LS-P, $0.329). ⚠ **verify 7.62mm row spacing** — the footprint is W7.62mm P2.54 |
-| DIP-3 slide (master SW1) | 2 | $2.02 | Same YE/XKB families; only 2 needed, so not worth the check |
-| Teensy 4.0 | 2 | **$72.52** | **Not available — PJRC sells direct.** Stays at DigiKey/PJRC no matter what |
-| Teensy socket, 14-pos female header | 4 | $5.88 | *verify* — generic 2.54mm female headers are abundant |
+| Ref | LCSC part | Cart | Ext $ | Footprint action |
+|-----|-----------|------|-------|------------------|
+| master RN1 | **C840655** Bourns **4610X**-101-103LF | 5 | 1.66 | Was 4610**M**. Both are bussed 10k×9 SIP-10 (9 res, pin 1 = common) — same land pattern; just **confirm pin-1-common orientation** against the master `R_Network09` symbol. Low risk. |
+| panel SW1 | **C52177925** Zhongdi **DS-04** | 30 | 6.03 | 4-pos DIP slide. Verify 2.54mm pitch / 7.62mm row width vs `SW_DIP_SPSTx04...W7.62`. Supersedes the CUI DigiKey pick settled 2026-07-24. |
+| master SW1 | **C46595747** DORABO **DS-3P-BU** | 5 | 1.23 | 3-pos DIP slide. Verify vs `SW_DIP_SPSTx03...W7.62`. |
+| panel J9 + master J4 | **C8465** KANGNEX **WJ500V-5.08-2P** | 30 | 4.01 | Different maker from Adam Tech MRR52. 5.08mm pitch matches; **check body/pin Ø against `TerminalBlock_MRR52-5.08-2P` (1.5mm holes)** — likely compatible, verify. Affects BOTH boards. |
+| panel SW3 | **C609835** XKB **SS22E01L5** (DPDT, 11×6.2mm) | 25 | 4.37 | **Needs a NEW footprint** — matches neither `SW_EG2201A` nor the `SW_SS-22F04` built 2026-07-25 (that one is now likely moot). Pull the EasyEDA/JLC footprint or build from the SS22E01 datasheet (6 pins 2×3, get pitch/row from the drawing). |
 
-### Honest read
+### Still NOT in the LCSC cart — source elsewhere
 
-The addressable saving is dominated by **Micro-Fit ($120)**, and Micro-Fit is
-also the only big line where LCSC demonstrably carries the genuine
-manufacturer. Start there: search `43650-0200` and `43650-0300` directly. If
-LCSC has them, that single line justifies the combined-shipping exercise.
+| Ref | Part | Where | Note |
+|-----|------|-------|------|
+| master U1 ×2 | Teensy 4.0 | **DigiKey / PJRC** | $72.52, PJRC-direct, unavoidable — the biggest single line |
+| panel J1 ×20 | USB-C USB4085-GF-A | **DigiKey** (check LCSC) | all-THT 16P land pattern is the hard match; not yet found on LCSC |
+| master J2 ×2 | Euroblock 9-pos header + plug | **DigiKey** | Molex 0395316009/0395337009 not found on LCSC |
+| Teensy socket ×4 | 14-pos female header | DigiKey / LCSC | generic 2.54mm; could add to LCSC cart |
+| master R1 / R15 | 120R / 10k 0805 | **add to LCSC** | not in cart — cheap, add with the order |
+| panel J3/J4/J6/J7 | FSR JST B2B-PH headers | **AliExpress** | 100-pc pack, §G |
+| SWD header (panel J2) | 1×3 2.54mm | any | trivial |
+| wire / lugs / ferrules / heatshrink | — | **AliExpress** / hand | §E, §D |
 
-Everything else splits into "trivial money" (passives) or "real money but the
-footprint was drawn for a specific part" (EG2201A, USB4085, MRR52). Chasing
-those means footprint work on a board that is currently DRC-clean and
-order-ready — a poor trade this close to ordering unless a part is
-unobtainable at DigiKey.
+### Four-order plan (confirmed viable)
 
-The Teensy ($72.52, the single largest line) is unaffected either way.
+1. **JLCPCB** — both bare PCBs + panel PCBA (SMD placement from the panel BOM/CPL).
+2. **LCSC** — this cart (~$94.57), **combined-shipped with the JLC order** (email `support@lcsc.com` with both order numbers).
+3. **DigiKey** — Teensy ×2, USB-C ×20, Euroblock, Teensy sockets, anything LCSC lacks.
+4. **AliExpress** — FSR JST headers, wire, lugs, ferrules, heatshrink, consumables.
 
 ### Order quantities — per pad vs 2 pads
 
