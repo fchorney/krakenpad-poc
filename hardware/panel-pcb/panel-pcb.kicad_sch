@@ -6747,7 +6747,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "panel-pcb:EG2201A"
+		(symbol "panel-pcb:SS22E01L5"
 			(pin_names
 				(offset 1.016)
 			)
@@ -6776,7 +6776,7 @@
 					)
 				)
 			)
-			(property "Footprint" "panel-pcb:SW_EG2201A"
+			(property "Footprint" "panel-pcb:SW_SS22E01L5"
 				(at 0.254 -34.544 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -6787,7 +6787,7 @@
 					)
 				)
 			)
-			(property "Datasheet" "https://www.digikey.com/en/products/detail/e-switch/EG2201A/101732"
+			(property "Datasheet" "https://www.lcsc.com/product-detail/C609835.html"
 				(at 0 -31.496 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -6809,7 +6809,7 @@
 					)
 				)
 			)
-			(property "MPN" "EG2201A"
+			(property "MPN" "SS22E01L5"
 				(at 0 15.748 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -6820,7 +6820,18 @@
 					)
 				)
 			)
-			(symbol "EG2201A_0_0"
+					(property "LCSC" "C609835"
+				(at 0 18.288 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "SS22E01L5_0_0"
 				(pin passive line
 					(at -7.62 7.62 270)
 					(length 2.54)
@@ -6929,8 +6940,44 @@
 						)
 					)
 				)
+				(pin passive line
+					(at -12.7 0 0)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 0 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
 			)
-			(symbol "EG2201A_0_1"
+			(symbol "SS22E01L5_0_1"
 				(polyline
 					(pts
 						(xy -8.89 3.81) (xy -8.89 5.08) (xy -6.35 5.08) (xy -6.35 3.81) (xy -1.27 3.81) (xy -1.27 5.08)
@@ -31945,7 +31992,7 @@
 				)
 			)
 		)
-		(property "MPN" "USB4085-GF-A"
+		(property "MPN" "LCK-TCF829D"
 			(at 137.16 160.02 0)
 			(hide yes)
 			(show_name no)
@@ -31956,7 +32003,7 @@
 				)
 			)
 		)
-		(property "DigiKey" "2073-USB4085-GF-ACT-ND"
+		(property "LCSC" "C53184807"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -34740,7 +34787,7 @@
 		)
 	)
 	(symbol
-		(lib_id "panel-pcb:EG2201A")
+		(lib_id "panel-pcb:SS22E01L5")
 		(at 39.37 99.06 90)
 		(unit 1)
 		(body_style 1)
@@ -34781,7 +34828,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.digikey.com/en/products/detail/e-switch/EG2201A/101732"
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C609835.html"
 			(at 70.866 99.06 0)
 			(hide yes)
 			(show_name no)
@@ -34803,7 +34850,7 @@
 				)
 			)
 		)
-		(property "MPN" "EG2201A"
+		(property "MPN" "SS22E01L5"
 			(at 23.622 99.06 0)
 			(hide yes)
 			(show_name no)
@@ -34814,7 +34861,7 @@
 				)
 			)
 		)
-		(property "DigiKey" "EG1905-ND"
+		(property "LCSC" "C609835"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -34842,6 +34889,12 @@
 		)
 		(pin "6"
 			(uuid "70c71eac-0208-40f0-bda7-cc22914043de")
+		)
+		(pin "7"
+			(uuid "e4fdd140-d298-4054-a87b-092b7bfdfd7b")
+		)
+		(pin "8"
+			(uuid "215f9214-8e5a-45fe-b0de-0970f36409e9")
 		)
 		(instances
 			(project "panel-pcb"

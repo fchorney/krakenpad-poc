@@ -133,7 +133,7 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "EG2201A"
+	(symbol "SS22E01L5"
 		(pin_names
 			(offset 1.016)
 		)
@@ -162,7 +162,7 @@
 				)
 			)
 		)
-		(property "Footprint" "panel-pcb:SW_EG2201A"
+		(property "Footprint" "panel-pcb:SW_SS22E01L5"
 			(at 0.254 -34.544 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -173,7 +173,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.digikey.com/en/products/detail/e-switch/EG2201A/101732"
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C609835.html"
 			(at 0 -31.496 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -195,7 +195,7 @@
 				)
 			)
 		)
-		(property "MPN" "EG2201A"
+		(property "MPN" "SS22E01L5"
 			(at 0 15.748 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -206,7 +206,18 @@
 				)
 			)
 		)
-		(symbol "EG2201A_0_0"
+				(property "LCSC" "C609835"
+			(at 0 18.288 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "SS22E01L5_0_0"
 			(pin passive line
 				(at -7.62 7.62 270)
 				(length 2.54)
@@ -315,8 +326,44 @@
 					)
 				)
 			)
+			(pin passive line
+				(at -12.7 0 0)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 12.7 0 180)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
 		)
-		(symbol "EG2201A_0_1"
+		(symbol "SS22E01L5_0_1"
 			(polyline
 				(pts
 					(xy -8.89 3.81) (xy -8.89 5.08) (xy -6.35 5.08) (xy -6.35 3.81) (xy -1.27 3.81) (xy -1.27 5.08)

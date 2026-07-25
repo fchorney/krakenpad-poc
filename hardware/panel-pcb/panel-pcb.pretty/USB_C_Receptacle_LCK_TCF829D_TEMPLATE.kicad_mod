@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "LCK-TCF829D vertical all-THT USB-C 16P (LCSC C53184807). *** BEST-GUESS TEMPLATE built 2026-07-25 from the datasheet PCB-layout view -- VERIFY EVERY COORDINATE against the datasheet before use. *** WHAT IS CERTAIN: pad NAMES match the J1 symbol and the datasheet pin table, so the electrical net mapping is correct (A1/A12/B1/B12=GND, A4/A9/B4/B9=VBUS, A5=CC1, B5=CC2, A6/B6=D+, A7/B7=D-, A8=SBU1, B8=SBU2). X-columns are from the datasheet dimension chain (1.00/3.00/5.00/7.00 full-widths -> pins at +/-0.5, 1.5, 2.5, 3.5; posts at +/-4.225 from 8.45). WHAT TO VERIFY/ADJUST: (1) A/B row Y-spacing -- set to +/-1.43 here from the '2.86' vertical dim, but the datasheet layout looks STAGGERED, so A and B may be offset in X and/or at different Y than a clean 2-row; (2) whether B-row X is offset 0.5mm from A-row; (3) post Y position (+/-2.5 assumed); (4) hole sizes (signal Ø0.5, power Ø0.8, posts oval 1.3x1.8 read from '8-Ø0.50', '8-Ø0.80', '4-1.30/4-1.80').")
+	(descr "LCK-TCF829D vertical all-THT USB-C 16P (LCSC C53184807). *** BEST-GUESS TEMPLATE built 2026-07-25 from the datasheet PCB-layout view -- VERIFY EVERY COORDINATE against the datasheet before use. *** WHAT IS CERTAIN: pad NAMES match the J1 symbol and the datasheet pin table, so the electrical net mapping is correct (A1/A12/B1/B12=GND, A4/A9/B4/B9=VBUS, A5=CC1, B5=CC2, A6/B6=D+, A7/B7=D-, A8=SBU1, B8=SBU2). X-columns are from the datasheet dimension chain (1.00/3.00/5.00/7.00 full-widths -> pins at +/-0.5, 1.5, 2.5, 3.5; posts at +/-4.225 from 8.45). WHAT TO VERIFY/ADJUST: (1) A/B row Y-spacing -- set to +/-1.43 here from the '2.86' vertical dim, but the datasheet layout looks STAGGERED, so A and B may be offset in X and/or at different Y than a clean 2-row; (2) whether B-row X is offset 0.5mm from A-row; (3) post Y position (+/-2.5 assumed); (4) hole sizes (signal Ø0.5, power Ø0.8, posts oval 1.3x1.8 read from '8-Ø0.50', '8-Ø0.80', '4-1.30/4-1.80'). *** The attached 3D model is a PLACEHOLDER (CMUCF661016C, a DIFFERENT USB-C part) for visual bulk only -- it is NOT the LCK-TCF829D geometry. Do not use it for fit/clearance decisions. ***")
 	(tags "USB-C Type-C 16P THT vertical LCK-TCF829D TEMPLATE verify")
 	(property "Reference" "REF**"
 		(at 0 -4.2 0)
@@ -138,6 +138,7 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "20770d3a-635b-406d-a0ca-b1083e1be51b")
+		(zone_connect 2)
 	)
 	(pad "A4" thru_hole oval
 		(at -2.5 0)
@@ -194,6 +195,7 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "a5fe2104-9c7c-4b26-a5b4-6da4393ebcd5")
+		(zone_connect 2)
 	)
 	(pad "B1" thru_hole oval
 		(at 3.5 0)
@@ -202,6 +204,7 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "71a69b7a-1551-42d7-a1c0-61932d1d5edf")
+		(zone_connect 2)
 	)
 	(pad "B4" thru_hole oval
 		(at 2.5 0)
@@ -258,6 +261,7 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "57c9daf4-ede1-4c0b-aec6-8bfececebb7a")
+		(zone_connect 2)
 	)
 	(pad "SH" thru_hole oval
 		(at -4.225 -1.43 90)
@@ -267,6 +271,7 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "977355f8-c932-427e-8e58-c52c1e682fb9")
+		(zone_connect 2)
 	)
 	(pad "SH" thru_hole oval
 		(at -4.225 1.43 90)
@@ -276,6 +281,7 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "4ffd6cb7-8bc4-43b3-96ed-8918d36ebe0a")
+		(zone_connect 2)
 	)
 	(pad "SH" thru_hole oval
 		(at 4.225 -1.43 90)
@@ -285,6 +291,7 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "e0f1b8c3-88c2-4045-b2e5-51b9eaedb2fe")
+		(zone_connect 2)
 	)
 	(pad "SH" thru_hole oval
 		(at 4.225 1.43 90)
@@ -294,6 +301,12 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "b4c5872a-105f-4dae-ae2b-6d0552a0d573")
+		(zone_connect 2)
 	)
 	(embedded_fonts no)
+	(model "${KIPRJMOD}/3dmodels/PLACEHOLDER_USB_C_CMUCF661016C.stp"
+		(offset (xyz 0 0 2.551))
+		(scale (xyz 1 1 1))
+		(rotate (xyz 0 0 0))
+	)
 )
