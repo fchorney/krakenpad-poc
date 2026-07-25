@@ -305,9 +305,9 @@ doesn't carry.
 |-----|------|-------|------|
 | master U1 ×2 | Teensy 4.0 | **DigiKey / PJRC** | $72.52, PJRC-direct, unavoidable — the biggest single line |
 | panel J1 ×20 | USB-C USB4085-GF-A | **DigiKey** (check LCSC) | all-THT 16P land pattern is the hard match; not yet found on LCSC |
-| master J2 ×2 | Euroblock 9-pos header + plug | **DigiKey** | Molex 0395316009/0395337009 not found on LCSC |
+| master J2 ×2 | Euroblock 9-pos header + plug | **AliExpress** | cheapest there (§G, pack of 5); the DigiKey Molex was a fallback only |
 | Teensy socket ×4 | 14-pos female header | DigiKey / LCSC | generic 2.54mm; could add to LCSC cart |
-| master R1 / R15 | 120R / 10k 0805 | **add to LCSC** | not in cart — cheap, add with the order |
+| master R1 / R15 | 120R / 10k 0805 | **LCSC — being added 2026-07-25** | were missing from the first cart export; user adding with the order |
 | panel J3/J4/J6/J7 | FSR JST B2B-PH headers | **AliExpress** | 100-pc pack, §G |
 | SWD header (panel J2) | 1×3 2.54mm | any | trivial |
 | wire / lugs / ferrules / heatshrink | — | **AliExpress** / hand | §E, §D |
@@ -316,8 +316,8 @@ doesn't carry.
 
 1. **JLCPCB** — both bare PCBs + panel PCBA (SMD placement from the panel BOM/CPL).
 2. **LCSC** — this cart (~$94.57), **combined-shipped with the JLC order** (email `support@lcsc.com` with both order numbers).
-3. **DigiKey** — Teensy ×2, USB-C ×20, Euroblock, Teensy sockets, anything LCSC lacks.
-4. **AliExpress** — FSR JST headers, wire, lugs, ferrules, heatshrink, consumables.
+3. **DigiKey** — Teensy ×2, USB-C ×20, Teensy sockets, anything LCSC lacks.
+4. **AliExpress** — Euroblock (header+plug), FSR JST headers, cable/wire, lugs, ferrules, heatshrink, consumables.
 
 ### Order quantities — per pad vs 2 pads
 
