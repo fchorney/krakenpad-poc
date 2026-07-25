@@ -7,6 +7,35 @@ check them off in this doc (or delete the line) as they close.
 (2 × 9 + 2 spares). Every quantity in this doc and in `docs/BOM.md` is sized
 to that; if the scope ever changes, both docs move together.
 
+## Footprint reconciliation for the LCSC parts (opened 2026-07-25)
+
+Adopting the LCSC cart (`docs/BOM.md` §G2) swaps several parts for ones with
+different land patterns. Must be closed before ordering. Two need new
+footprints, four need a confirm.
+
+**New footprint (pull EasyEDA/JLC footprint from the LCSC page):**
+- ⬜ **J1 USB-C** → C53184807 (LCKELEC, vertical THT), replaces
+  `panel-pcb:USB_C_Receptacle_GCT_USB4085_EdgeTrim`. **Highest risk** — 16-pin
+  CC/D+/D−/shield mapping. Must map to J1's existing schematic pins
+  (A6/B6=D+, A7/B7=D−, A5=CC1, B5=CC2, VBUS/GND/SBU unchanged).
+- ⬜ **SW3 DPDT** → C609835 (XKB SS22E01L5, 11×6.2mm), replaces
+  `panel-pcb:SW_EG2201A`. Keep pin numbering 1‑2‑3 / 4‑5‑6 so nets map
+  (pin2=RS485+, pin1→R2, pin5=TERM_SENSE, pin4=GND, 3&6 NC). The earlier
+  `SW_SS-22F04` footprint is superseded by this.
+
+**Confirm existing footprint fits (grab datasheet dim drawing):**
+- ⬜ **RN1** → C840655 (Bourns 4610**X**-101-103LF) vs
+  `Resistor_THT:R_Array_SIP10` — SIP-10 2.54mm + pin 1 = common bus. Low risk.
+- ⬜ **panel SW1 DIP-4** → C52177925 (Zhongdi DS-04) vs
+  `SW_DIP_SPSTx04_Slide_9.78x12.34mm_W7.62mm_P2.54mm` — 2.54 pitch / 7.62 width.
+- ⬜ **master SW1 DIP-3** → C46595747 (DORABO DS-3P-BU) vs
+  `SW_DIP_SPSTx03_Slide_9.78x9.8mm_W7.62mm_P2.54mm` — 2.54 pitch / 7.62 width.
+- ⬜ **J9 (panel) + J4 (master)** → C8465 (KANGNEX WJ500V-5.08-2P) vs
+  `TerminalBlock_MRR52-5.08-2P` — 5.08 pitch matches; check pin Ø fits the
+  1.5mm holes + body land. **Affects both boards.**
+
+After each: re-run ERC/DRC on the affected board, keep both at 0/0.
+
 ## Layout rework closed 2026-07-24
 
 Verified against the board after the fact, not just claimed:
