@@ -63,12 +63,32 @@ official Pico schematic); TESTEN → GND.
 | J9 | MRR522-5.08-V 2-pos screw terminal (INT) | **pin 1 = INT signal (net `Net-(D30-K)`, via R17), pin 2 = dedicated GND** (decided 2026-07-24, supersedes both-pins-bridged). D30 SMAJ5.0A clamps signal→pin-2 GND at the connector. Single-conductor cable leaves pin 2 unpopulated; pin 2 pre-provisions a signal+GND paired cable for free if the bench ever shows spurious triggers |
 | SW1 | DS01C-254-S-04BE (DIP-4) | panel ID 0–8, diag modes 9–13 (`docs/PANEL_CONFIG.md`) |
 | SW2 | B3U-1000P | BOOTSEL |
-| SW3 | EG2201A (DPDT) | pole 1 = 120R (R2) across A/B; pole 2 = TERM_SENSE |
+| SW3 | EG2201A (DPDT) | pole 1 = 120R (R2) across A/B; pole 2 = TERM_SENSE. Wiring: pin2=RS485+ (pole-A common), pin1→R2→RS485−, pin5=TERM_SENSE/GPIO13 (pole-B common), pin4=GND, pins 3&6 NC. Alt footprint `panel-pcb:SW_SS-22F04` exists (AliExpress candidate, same pin numbering) — see note below |
 | R13/R14 | 5.1k CC pull-downs | required for C-to-C cables |
 | C51 | 470µF 25V SMD electrolytic | 12V bulk — deliberately not tantalum (hot-plug surge) |
 
 Full identity (MPN/LCSC per line) lives in the schematic fields; ordering info
 in `docs/BOM.md`.
+
+**SW3 termination-switch alternate (`panel-pcb:SW_SS-22F04`, added 2026-07-25):**
+The AliExpress DPDT candidate has a **different body/land pattern** from the
+E-Switch EG2201A (13.0×8.5mm body, col pitch 3.0 / row 3.2mm, legs 12.5mm
+apart, vs the EG2201A's 4.0/2.5mm pin grid). Because both parts are
+electrically the *same* DPDT with the same 1-2-3 / 4-5-6 numbering, **the
+symbol and all nets are unchanged** — only the footprint differs. Two ways to
+use it:
+- **Just swap** if you buy the AliExpress part: change SW3's Footprint field
+  from `panel-pcb:SW_EG2201A` to `panel-pcb:SW_SS-22F04`, re-run DRC (the body
+  is a different size, so re-check clearance to neighbours), done.
+- **Compare both on-board:** add a DNP twin `SW4` reusing the EG2201A symbol,
+  assign it `SW_SS-22F04`, wire it to SW3's four live nets (RS485+, RS485−-via
+  a second 120R or the same R2 node, TERM_SENSE, GND), place its footprint
+  next to SW3, mark DNP. Left to a hands-on KiCad session — a wired duplicate
+  is easy to get subtly wrong and the board is currently ERC/DRC-clean.
+
+⚠ Footprint dims came from the listing's PCB-layout drawing, **not a
+datasheet** — verify against the physical part (especially drill Ø for the
+0.5mm flat terminals) before trusting it for an order.
 
 ## Layout (as built)
 

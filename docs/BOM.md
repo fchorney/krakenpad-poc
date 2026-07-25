@@ -238,7 +238,7 @@ fallback for anything that fails.
 | Part / use | Candidate | Match-check | Fallback |
 |-----------|-----------|-------------|----------|
 | Euroblock 9p (master J2), header+plug | pack of 5 — [1005012001482158](https://www.aliexpress.com/item/1005012001482158.html) | 5.08mm pitch, 9-pos, single-row (master ftpt = Molex 39531 P5.08) | DigiKey |
-| DPDT slide (panel SW3) | SS-22H88 — [1005010555541589](https://www.aliexpress.com/item/1005010555541589.html) | **⚠️ different footprint from `SW_EG2201A`** — only viable if the panel footprint is changed first | EG2201A @ DigiKey (matches current ftpt) |
+| DPDT slide (panel SW3) | listing calls it SS-22H88 — [1005010555541589](https://www.aliexpress.com/item/1005010555541589.html); **the dimensional drawing on the listing is actually labelled `SS-22F04`** (verify which part actually ships) | **Footprint built 2026-07-25: `panel-pcb:SW_SS-22F04`** (from the listing's PCB-layout view — 6 pins 2×3, col pitch 3.0mm, row 3.2mm, legs 12.5mm apart, pin numbering matches SW_EG2201A so it's a drop-in for SW3). **Verify dims + drill against the physical part before ordering.** | EG2201A @ DigiKey (matches the *current* `SW_EG2201A` footprint) |
 | ~~4-pos DIP (panel SW1)~~ | **DROPPED 2026-07-24 — buy from DigiKey** (CUI DS01C-254-S-04BE, $0.70 ea, in stock). No LCSC order exists to attach the $0.12 alternative to, so a separate shipment would cost more than it saves | — | — |
 | 3-pos DIP (master SW1) | (use panel 4-pos + re-foot master, OR buy 3-pos) | master ftpt = SPSTx03 W7.62 P2.54 | **DigiKey (primary — only need 2)** |
 | Micro-Fit 3p header RA | [1005008706326809](https://www.aliexpress.com/item/1005008706326809.html) | **RIGHT-ANGLE**, 3.0mm pitch = 43650-0300 | DigiKey |
