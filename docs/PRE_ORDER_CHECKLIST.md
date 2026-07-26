@@ -88,6 +88,35 @@ Verified against the board after the fact, not just claimed:
 sweep — J9 pinout, ERC/DRC status, placement counts, DNP handling, and the
 re-export delta were all re-derived from the KiCad files, not carried forward).
 
+## 0. Opened 2026-07-26 — INT twisted pair + RS-485 shield
+
+Two harness changes landed after the 2026-07-24 audit. Both touch board files,
+so everything below invalidates part of the audit above.
+
+- ⬜ **Master routing** — the 9-pos Euroblock (old J2) was deleted and nine JST
+  XH 2-pin headers (J2, J3, J5–J11) placed in its footprint. Placement and nets
+  verified (pin 1 = `INT_xx` via TVS + 330R, pin 2 = GND, all nine). **Routing
+  and a fresh DRC/ERC pass are still outstanding.**
+- ⬜ **The `footprint_filters_mismatch` note for "Euroblock" above is stale** —
+  that footprint no longer exists on the board. Re-derive the master's note list.
+- ✅ **Panel shield** — `RS485_Shield` J8 pad 3 → J10 pad 3, 0.25mm B.Cu, no
+  local GND tie; C57 100nF ‖ R20 1M to GND near J8, GND vias 0.88/0.92mm from
+  the pads. DRC + ERC clean.
+- ✅ **Master shield tie** — J1 pin 3 → GND.
+- 🟡 **Isolated B.Cu island below the shield trace** — likely already resolved.
+  The panel's `filled_polygon` count went 62 → 61 across this change, consistent
+  with KiCad's remove-islands dropping the ~11mm B.Cu strip below the shield
+  trace (Y 143 → 153.7) on refill. Harmless either way; confirm visually in the
+  B.Cu zone view rather than treating the count as proof.
+- ⬜ **Re-run `tools/bom_census.py` and reconcile `docs/BOM.md`.** Part counts
+  changed: +18 B2B-XH-A (C158012), +18 XHP-2, +36 SXH-001T contacts, +4 C57/R20
+  per-panel parts, Micro-Fit crimps 132 → 168 (RS-485 housings now populate all
+  three circuits), Euroblock removed from the AliExpress order.
+- ⬜ **INT cable OD check on arrival** — conductor insulation must be 1.3–1.9mm
+  for the XH contact. See `docs/BOM.md` → Order 4. Do this **before** crimping 36
+  contacts.
+- ⬜ **INT cable length** — gated on the pad teardown; 9 home runs, not a chain.
+
 ## 1. Physical part verification (needs parts in hand)
 
 - ✅ **J9 / master J4 (screw terminals) CLOSED 2026-07-26 — nothing to verify on

@@ -59,7 +59,7 @@ official Pico schematic); TESTEN → GND.
 | J2 | 1×3 SWD header | SWDIO/GND/SWCLK |
 | J3/J4/J6/J7 | JST B2B-PH-K (FSR N/E/S/W) | pin 2 = 3.3V, pin 1 = ADC node; FSR is non-polarized |
 | J5/J11 | Micro-Fit 43650-0200 (12V IN/OUT) | straight-through heavy copper |
-| J8/J10 | Micro-Fit 43650-0300 (RS-485 IN/OUT) | pin 3 unpopulated (keying vs power) |
+| J8/J10 | Micro-Fit 43650-0300 (RS-485 IN/OUT) | pins 1/2 = A/B pair. **Pin 3 = cable shield as of 2026-07-26** (was unpopulated): net `RS485_Shield` runs J8 pad 3 → J10 pad 3 as a 0.25mm B.Cu pass-through with **no local GND tie**, plus C57 100nF ‖ R20 1M to GND near J8. DC-grounded only at the master (J1 pin 3). Full rationale in `docs/MASTER_PCB.md` → "RS-485 shield". 3-circuit keying vs 2-pin power is unaffected — pin 3 carries shield only |
 | J9 | WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) (INT) | **pin 1 = INT signal (net `Net-(D30-K)`, via R17), pin 2 = dedicated GND** (decided 2026-07-24, supersedes both-pins-bridged). D30 SMAJ5.0A clamps signal→pin-2 GND at the connector. Single-conductor cable leaves pin 2 unpopulated; pin 2 pre-provisions a signal+GND paired cable for free if the bench ever shows spurious triggers |
 | SW1 | Zhongdi DS-04 (DIP-4, LCSC C52177925) | panel ID 0–8, diag modes 9–13 (`docs/PANEL_CONFIG.md`) |
 | SW2 | B3U-1000P | BOOTSEL |

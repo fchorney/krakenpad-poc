@@ -692,7 +692,7 @@
         "uuid": "b2c3d4e5-0000-4000-8000-000000000002"
       }
     ],
-    "used_designators": "R15,TP9-10,H1-4,#FLG1-3,#PWR1-42",
+    "used_designators": "J2-3,J5-11,R15,TP9-10,H1-4,#FLG1-3,#PWR1-51",
     "variants": []
   },
   "sheets": [

@@ -77,8 +77,13 @@ TP1–TP14 are bare probe holes and SW2 (BOOTSEL) is SMD — neither is ordered.
 | **C83055** | 100nF X7R 0805 (Walsin) | C1, C2 | 4 | 10 | 0.24 |
 | **C844816** | 120R 1% 0805 (Vishay) | R1 | 2 | 100 | 0.86 |
 | **C192906** | 10k 1% 0805 (Yageo) | R15 | 2 | 50 | 0.90 |
+| **C158012** | JST B2B-XH-A 2-pin 2.5mm vertical THT | J2, J3, J5–J11 (INT) | 18 | 40 | — |
 
 Master J1 and J4 share the panel's Micro-Fit and terminal lines above.
+
+**J2/J3/J5–J11 replaced the 9-pos Euroblock 2026-07-26** (INT went to twisted
+pair, signal + dedicated GND). That moved the INT connector off the AliExpress
+order and onto this one. Nine per board, 18 for two pads.
 
 **Two of these part numbers also appear on the panel, and the quantities here
 deliberately do not cover that:** the panel's D30 (SMAJ5.0A, **C113952**) and U2
@@ -93,14 +98,25 @@ TVS and 20 transceivers short — that is correct, not an under-order.
 |------|------|------|------|-------|
 | **C114089** | Molex 436450200 Micro-Fit 2-ckt receptacle housing | 30 | 50 | 3.79 |
 | **C259740** | Molex 436450300 Micro-Fit 3-ckt receptacle housing | 36 | 50 | 5.68 |
-| **C259786** | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 132 | 300 | 4.47 |
+| **C259786** | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 168 | 300 | 4.47 |
+| **C144401** | JST XHP-2 2-pos housing (INT, wire side) | 18 | 50 | — |
+| **C385122** | JST SXH-001T-P0.6N XH crimp, 22–26 AWG | 36 | 100 | — |
 
 Housing/crimp counts derive from the stock SMX topology: 3 power columns of 3
 panels (5 housings per column × 3 × 2 pads = 30), RS-485 serpentine with 9
-segments × 2 ends × 2 pads = 36, and 132 crimps total. Buy crimps in bulk —
-crimping has a learning curve. RS-485 3-pin housings populate only 2 circuits
-(the empty third is the keying that stops 12V reaching a transceiver). Power
-feed cables crimp only the panel end; the PSU end is fork/spade lugs.
+segments × 2 ends × 2 pads = 36 housings. Buy crimps in bulk — crimping has a
+learning curve.
+
+**Micro-Fit crimp count rose 132 → 168 on 2026-07-26:** RS-485 3-pin housings
+now populate **all three** circuits, because pin 3 carries the cable shield
+(36 housings × 3 = 108, plus 60 for power). The third position is no longer
+empty — keying against 2-pin power is the 3-circuit housing itself, and pin 3
+carries shield only, so a mis-mate still cannot put 12V on a transceiver.
+
+XH counts: 9 INT connectors per pad × 2 pads = 18 housings, 2 contacts each =
+36. 100 contacts ordered deliberately — XH crimping wants practice crimps.
+
+Power feed cables crimp only the panel end; the PSU end is fork/spade lugs.
 
 ## Order 3 — DigiKey / PJRC
 
@@ -115,12 +131,27 @@ needs its match-check to pass before ordering.
 
 | Item | Qty | Candidate | Match-check |
 |------|-----|-----------|-------------|
-| Euroblock 9-pos header **+ plug** (master J2) | 2 sets | [pack of 5](https://www.aliexpress.com/item/1005012001482158.html) | 5.08mm pitch, 9-pos, single-row; footprint is Molex 39531 P5.08. One pack covers both pads |
 | 12V power cable, 2C 20 AWG jacketed | ~10m | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
-| RS-485 cable, 22 AWG twisted pair | ~10m | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | genuine twisted pair, pure copper. Shielded is fine — see the shield note below |
-| INT + hookup wire, 24 AWG, 10 colors | 1 pack | [1005008982254390](https://www.aliexpress.com/item/1005008982254390.html) | **stranded not solid**, pure copper, covers the 9-panel color map |
-| Wire ferrules (~0.25mm² for 24 AWG) | ~60 | assortment box | for the INT screw terminations, ~30/pad |
-| Heatshrink assortment, zip-tie anchors, grommets | — | — | grommets where cable crosses frame metal |
+| RS-485 cable, 22 AWG shielded twisted pair (RVSP) | ~10m | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | **shield is now required, not merely tolerated** — it lands on Micro-Fit pin 3. See the shield note below |
+| INT cable, 24 AWG 2-core shielded twisted pair (RVSP) | **length TBD — gated on the pad teardown** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (same listing, 24 AWG / 2-core) | See the three checks below. Listing offers 10/20/30/50m; unverified estimate is ~8.5m of actual need, so **10m has almost no margin** |
+| Wire ferrules (~0.25mm² for 24 AWG) | ~40 | assortment box | panel-side **J9 screw terminal only** — 2 conductors × 9 panels × 2 pads = 36. The master end is now JST XH crimps, not screw terminations |
+| Colored + printed heatshrink, zip-tie anchors, grommets | — | — | heatshrink is now **load-bearing**: it carries the per-panel INT identification (see wire spec). Grommets where cable crosses frame metal |
+
+**INT cable — verify on arrival before crimping 36 contacts:**
+
+1. **Conductor insulation OD must be 1.3–1.9mm** (SXH-001T-P0.6N spec). This is
+   the *individual conductor's* insulation, **not** the outer jacket OD. It is a
+   **floor**, and typical RVSP 24 AWG measures ~1.3–1.4mm — right at the edge.
+   If it comes up short: fold the insulation back, or step to 22 AWG (the contact
+   covers 22–26 and current here is microamps, so gauge is purely mechanical).
+2. **Genuinely twisted**, not 2-core parallel/zip.
+3. **Stranded, not solid** — solid cracks at the crimp after a few re-dresses.
+
+Checks 2 and 3 are already satisfied by the type code: **RVSP** = R 软 flexible
+(stranded) + V PVC + S 双绞 (twisted) + P shielded. Only the OD is open.
+
+The Euroblock line (master J2 header + plug) was **removed 2026-07-26** — INT
+moved to JST XH, which is sourced on the LCSC order.
 
 Buy mating housings and crimps from the **same** ecosystem — mixing clone
 crimps into a different clone housing risks seat/latch failures. Micro-Fit
@@ -149,25 +180,57 @@ rating.
 |--------|------|----------|
 | 12V power | 2×20 AWG jacketed round, red/black | 3 columns × 2 pads, ~5m/pad |
 | RS-485 | 22–24 AWG **actual twisted pair** | 9 segments/pad, ~5m/pad. Fix an A/B color convention and never deviate |
-| INT | 24 AWG, **9 distinct colors** | ~7–10m/pad. Stock SMX map, confirmed against the pad: 0=Red 1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black. The colours are what let you find the offending wire when the slot↔ID self-test reports a mismatch (`docs/RS485_PROTOCOL.md`) |
+| INT | 24 AWG **2-core twisted pair** (signal + dedicated GND), single color | Length **gated on the pad teardown** — 9 *home runs* per pad, not a chain, so the stock harness is no guide. Unverified estimate ~8.5m/pad |
 | Master GND tie | 1 lead (18 AWG on hand) to the PSU GND stud | **mandatory**, not optional wiring |
 
-Spool quantization (25/100 ft) makes precise footage moot; the 9-color INT
-requirement is the awkward line, and a multi-color assortment kit beats nine
-spool minimums. Leave service-loop slack so a panel can be lifted out while
-still connected.
+**INT identification changed 2026-07-26.** The old spec called for 9 distinct
+wire colors; the twisted-pair cable that meets the mechanical requirements
+(RVSP) only comes in one color, so per-panel identity moved to **colored or
+printed heat-shrink at both ends of every cable**, plus silkscreen panel names
+on the master (`UL`/`U`/`UR`/`L`/`C`/`R`/`DL`/`D`/`DR`, left to right = panel
+0→8). The stock SMX map is retained as the marker scheme: 0=Red 1=Orange
+2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black.
 
-**RS-485 shield (settled 2026-07-24, do not re-litigate):** the sourced cable
-*is* shielded, because unshielded jacketed twisted pair is effectively
-unavailable on AliExpress. The drain is left **unconnected at both ends**, and
-that is electrically fine here — a shield couples symmetrically to both
-conductors of a balanced pair, so what it picks up arrives as common mode and
-the receiver rejects it. "Never leave a shield floating" is EMC-certification
-guidance about radiated emissions and quarter-wave resonance on long cables;
-neither applies to a 3m hobby run at 1 Mbps with no emissions requirement. The
-real risk is an *intermittent* shield, so trim the drain flush and heatshrink
-over it at both ends. If the bench ever shows noise, landing the drain on the
-master's GND tie — one end only, never both — is a five-minute change.
+Prefer heat-shrink over tape — tape unwinds and its adhesive migrates in a warm
+pad. Printed labels under clear heat-shrink beat colors outright, since "P4"
+needs no lookup table. Marking is a convenience, not a correctness requirement:
+the `'I'` identify pulse learns the real mapping and reports mismatches
+(`docs/RS485_PROTOCOL.md`).
+
+Spool quantization (25/100 ft) makes precise footage moot. Leave service-loop
+slack so a panel can be lifted out while still connected.
+
+**RS-485 shield — REVERSED 2026-07-26.** The previous decision (settled
+2026-07-24) left the drain **unconnected at both ends**, reasoning that a shield
+couples symmetrically to a balanced pair so its pickup arrives as common mode
+and the receiver rejects it, and that resonance guidance targets EMC
+certification rather than a 3m hobby run. That reasoning was sound as far as it
+went, and the reversal is not a correction of an error — it is taking the
+five-minute upgrade the old note itself described as available.
+
+**The shield is now terminated on Micro-Fit pin 3**, previously left
+unpopulated. Hybrid grounding, one continuous shield master → panel 8:
+
+- **Master:** J1 pin 3 → GND, plain trace. The single DC reference for the
+  whole network. Omit it and the shield floats — strictly worse than no shield.
+- **Each panel:** `RS485_Shield` passes J8 pad 3 → J10 pad 3 with **no local
+  GND tie**, plus C57 100nF ‖ R20 1M to GND. The cap RF-grounds the shield
+  (~6–8m of single-end-grounded foil resonates near 10 MHz, inside 1 Mbps
+  harmonic content) while blocking DC, so no ground loop forms against the 12V
+  ground network. The 1M bleeds tribocharge — rubber soles on the panels charge
+  the pad, the same reasoning behind the panel USB ESD array.
+- **Panel 8:** far end, shield terminates.
+
+Each cable segment lands the shield at **both** its connectors; the panel
+pass-through traces make it continuous. "Grounded at one end" describes the
+network, not each segment. If the cable has no drain wire, gather the braid,
+solder a short lead, heatshrink the joint, and crimp that — an intermittent or
+stray-strand shield is still the real failure mode, exactly as the old note said.
+
+**Not applied to INT.** JST XH has only 2 positions, so a shield on the INT
+cable is trimmed and heatshrunk at both ends. Do **not** bond it to the INT GND
+conductor: that is a signal return, and paralleling a shield across it restores
+the loop area the twisting exists to eliminate.
 
 ## Rules of thumb
 

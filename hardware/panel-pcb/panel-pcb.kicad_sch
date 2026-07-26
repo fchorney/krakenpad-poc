@@ -8251,6 +8251,12 @@
 		(uuid "35b30de4-8b4c-44d4-a5d3-a8789620a528")
 	)
 	(junction
+		(at 267.97 270.51)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3753381b-339c-4d58-986a-ca7d346c69d8")
+	)
+	(junction
 		(at 57.15 140.97)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -8549,6 +8555,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9b299674-9c30-4c8f-921c-256213dc2d47")
+	)
+	(junction
+		(at 275.59 270.51)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a1e1f132-3636-44c5-937b-7aed74f4567d")
 	)
 	(junction
 		(at 312.42 115.57)
@@ -8869,14 +8881,6 @@
 	(no_connect
 		(at 364.49 217.17)
 		(uuid "d45bbe74-b82b-44e6-ac8c-f348b6190166")
-	)
-	(no_connect
-		(at 266.7 270.51)
-		(uuid "de44338f-168d-44b2-a7f7-f8d18fd5542c")
-	)
-	(no_connect
-		(at 242.57 234.95)
-		(uuid "df2fd6a0-f20d-49f7-a792-1ac8706753b2")
 	)
 	(no_connect
 		(at 85.09 193.04)
@@ -9279,6 +9283,16 @@
 			(type default)
 		)
 		(uuid "192eb0b4-a44d-481d-bc9f-9eac0f5b6552")
+	)
+	(wire
+		(pts
+			(xy 280.67 270.51) (xy 275.59 270.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "19aa6a49-3760-4456-93ea-2ec1972eef31")
 	)
 	(wire
 		(pts
@@ -9983,6 +9997,16 @@
 	)
 	(wire
 		(pts
+			(xy 267.97 270.51) (xy 257.81 270.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "48f6f302-e0ff-4479-b7e4-d7d7d6b68e44")
+	)
+	(wire
+		(pts
 			(xy 284.48 220.98) (xy 284.48 218.44)
 		)
 		(stroke
@@ -10260,6 +10284,16 @@
 			(type default)
 		)
 		(uuid "582695ab-d1ff-4be1-9de6-6efa0051a3d3")
+	)
+	(wire
+		(pts
+			(xy 275.59 270.51) (xy 267.97 270.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "582b1ca1-5b02-416d-9975-7f447b57c3f8")
 	)
 	(wire
 		(pts
@@ -14230,6 +14264,30 @@
 			)
 		)
 	)
+	(global_label "RS485_Shield"
+		(shape passive)
+		(at 242.57 234.95 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "4322b8c4-eb94-4e79-a18b-b9707ddab77b")
+		(property "Intersheetrefs" "⬚"
+			(at 227.7544 234.95 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+	)
 	(global_label "FSR_South"
 		(shape input)
 		(at 92.71 238.76 0)
@@ -14459,6 +14517,30 @@
 		(uuid "747e404c-3b48-46c9-b720-017b8875b4d8")
 		(property "Intersheetrefs" "⬚"
 			(at 105.3713 243.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+	)
+	(global_label "RS485_Shield"
+		(shape passive)
+		(at 280.67 270.51 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "7577520c-36db-48de-ba0c-192d37ee9f61")
+		(property "Intersheetrefs" "⬚"
+			(at 295.4856 270.51 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14976,7 +15058,7 @@
 	)
 	(global_label "RS485+"
 		(shape bidirectional)
-		(at 266.7 265.43 0)
+		(at 257.81 265.43 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -14986,7 +15068,7 @@
 		)
 		(uuid "bb6e531f-2a17-4a7a-b23c-59d33eb3e29c")
 		(property "Intersheetrefs" "⬚"
-			(at 278.4769 265.43 0)
+			(at 269.5869 265.43 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15432,7 +15514,7 @@
 	)
 	(global_label "RS485-"
 		(shape bidirectional)
-		(at 266.7 267.97 0)
+		(at 257.81 267.97 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -15442,7 +15524,7 @@
 		)
 		(uuid "fcb0e1d6-4b4d-47d6-9e27-82ccc600d125")
 		(property "Intersheetrefs" "⬚"
-			(at 278.4769 267.97 0)
+			(at 269.5869 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -28985,6 +29067,83 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 275.59 278.13 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "6f0ff429-eadb-4839-9b49-4523470259e5")
+		(property "Reference" "#PWR0170"
+			(at 275.59 283.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 275.59 282.448 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 275.59 278.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 275.59 278.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 275.59 278.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "89b899ac-e5ab-4853-a0cb-a865ba10da8d")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "#PWR0170")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector_Generic:Conn_01x02")
 		(at 121.92 64.77 180)
 		(unit 1)
@@ -30885,6 +31044,96 @@
 	)
 	(symbol
 		(lib_id "Device:C")
+		(at 275.59 274.32 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "838d6a43-639f-46f9-bf51-4355c7329d7d")
+		(property "Reference" "C57"
+			(at 277.876 272.288 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF X7R 50V"
+			(at 283.718 276.606 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 275.59 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 275.59 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 275.59 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
+			(at 275.59 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b6701a5f-e15c-46a6-b173-e062ee684bbb")
+		)
+		(pin "2"
+			(uuid "6a43a173-86b6-4206-a02b-72d49f08e181")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "C57")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
 		(at 215.9 111.76 0)
 		(unit 1)
 		(body_style 1)
@@ -32480,7 +32729,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x03")
-		(at 261.62 267.97 0)
+		(at 252.73 267.97 0)
 		(mirror y)
 		(unit 1)
 		(body_style 1)
@@ -32491,7 +32740,7 @@
 		(dnp no)
 		(uuid "907bcd86-d4c7-4fab-8df9-be68753966a3")
 		(property "Reference" "J8"
-			(at 261.62 262.382 0)
+			(at 252.73 262.382 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -32501,7 +32750,7 @@
 			)
 		)
 		(property "Value" "RS-485 IN"
-			(at 261.62 273.558 0)
+			(at 252.73 273.558 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -32511,7 +32760,7 @@
 			)
 		)
 		(property "Footprint" "Connector_Molex:Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal"
-			(at 261.62 267.97 0)
+			(at 252.73 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32522,7 +32771,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.molex.com/en-us/products/part-detail/436500300"
-			(at 261.62 267.97 0)
+			(at 252.73 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32533,7 +32782,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 261.62 267.97 0)
+			(at 252.73 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32544,7 +32793,7 @@
 			)
 		)
 		(property "MPN" "43650-0300"
-			(at 261.62 267.97 0)
+			(at 252.73 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32555,7 +32804,7 @@
 			)
 		)
 		(property "LCSC" "C503478"
-			(at 261.62 267.97 0)
+			(at 252.73 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -42802,6 +43051,83 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 267.97 278.13 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "e5eeac8a-fd12-494d-864f-fd71f9d2222e")
+		(property "Reference" "#PWR0169"
+			(at 267.97 283.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 267.97 282.448 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 267.97 278.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 267.97 278.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 267.97 278.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ff08d93f-c455-411f-aa04-bb90b6271990")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "#PWR0169")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 276.86 85.09 0)
 		(unit 1)
@@ -43042,6 +43368,96 @@
 			(project "panel-pcb"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001"
 					(reference "#PWR0115")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 267.97 274.32 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "e8eb7eab-b2e0-4eb9-b9ca-7d6335cb3758")
+		(property "Reference" "R20"
+			(at 263.398 274.32 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1M"
+			(at 265.43 274.32 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 267.97 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 267.97 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 267.97 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C4216"
+			(at 267.97 274.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "9a189b14-c0c3-40af-aba5-167e8871e462")
+		)
+		(pin "2"
+			(uuid "b1cdd948-62ab-4bcb-930d-40a5bffd37d3")
+		)
+		(instances
+			(project "panel-pcb"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001"
+					(reference "R20")
 					(unit 1)
 				)
 			)

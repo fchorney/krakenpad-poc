@@ -64,27 +64,45 @@ the socketed pins — which is why the DIP was placed on GPIO 3/4/5 (plain GPIOs
 rather than 0/1, keeping Serial1 open for a future debug/aux UART.
 All digital pins are interrupt-capable, so the INT lines are unconstrained.
 
-### INT block mapping (J2 position ↔ panel ↔ GPIO)
+### INT block mapping (connector ↔ panel ↔ GPIO)
 
-**Note the order: J2 position 1 is panel 8 (DR) and position 9 is panel 0
-(UL)** — reversed from the original plan; the netlist is authoritative. Wire
-colors are the stock SMX map.
+**Superseded 2026-07-26: the 9-position Euroblock (old J2) was replaced by nine
+discrete JST XH 2-pin connectors**, one per panel, each carrying INT signal +
+a dedicated GND return (see "INT cabling" below). The old "J2 position 1 = panel
+8" reversal note no longer applies — **connectors now run left-to-right across
+the board in panel order 0→8**, silkscreened with the panel's position name
+(`UL`, `U`, `UR`, `L`, `C`, `R`, `DL`, `D`, `DR`) rather than a refdes, so the
+non-contiguous refdes numbering below never has to be read during assembly.
 
-| J2 pos | Net | Panel | Color | TVS | RN1 | Teensy pad / GPIO |
-|-------:|-----|-------|-------|-----|-----|-------------------|
-| 1 | `INT_DR` | 8 (DR) | Black | D2 | .10 | 22 / GPIO15 |
-| 2 | `INT_D` | 7 (D) | White | D3 | .9 | 23 / GPIO16 |
-| 3 | `INT_DL` | 6 (DL) | Grey | D4 | .8 | 24 / GPIO17 |
-| 4 | `INT_R` | 5 (R) | Brown | D5 | .7 | 25 / GPIO18 |
-| 5 | `INT_C` | 4 (C) | Blue | D6 | .6 | 26 / GPIO19 |
-| 6 | `INT_L` | 3 (L) | Green | D7 | .5 | 27 / GPIO20 |
-| 7 | `INT_UR` | 2 (UR) | Yellow | D8 | .4 | 28 / GPIO21 |
-| 8 | `INT_U` | 1 (U) | Orange | D9 | .3 | 29 / GPIO22 |
-| 9 | `INT_UL` | 0 (UL) | Red | D10 | .2 | 30 / GPIO23 |
+Every connector: **pin 1 = INT signal, pin 2 = GND** (matches panel J9).
+
+| Silk | Conn | Net | Panel | Color | TVS | Series R | Filter C | RN1 | Teensy pad / GPIO |
+|------|------|-----|-------|-------|-----|----------|----------|-----|-------------------|
+| `UL` | J11 | `INT_UL` | 0 (UL) | Red | D10 | R14 | C11 | .2 | 30 / GPIO23 |
+| `U` | J10 | `INT_U` | 1 (U) | Orange | D9 | R13 | C10 | .3 | 29 / GPIO22 |
+| `UR` | J9 | `INT_UR` | 2 (UR) | Yellow | D8 | R12 | C9 | .4 | 28 / GPIO21 |
+| `L` | J8 | `INT_L` | 3 (L) | Green | D7 | R11 | C8 | .5 | 27 / GPIO20 |
+| `C` | J7 | `INT_C` | 4 (C) | Blue | D6 | R10 | C7 | .6 | 26 / GPIO19 |
+| `R` | J6 | `INT_R` | 5 (R) | Brown | D5 | R9 | C6 | .7 | 25 / GPIO18 |
+| `DL` | J5 | `INT_DL` | 6 (DL) | Grey | D4 | R8 | C5 | .8 | 24 / GPIO17 |
+| `D` | J3 | `INT_D` | 7 (D) | White | D3 | R7 | C4 | .9 | 23 / GPIO16 |
+| `DR` | J2 | `INT_DR` | 8 (DR) | Black | D2 | R6 | C3 | .10 | 22 / GPIO15 |
+
+Refdes are non-contiguous because J1 (RS-485) and J4 (underglow/GND) were left
+in place rather than renumbered. Physical order on the board is J11 → J2 at 7mm
+pitch, left to right.
+
+**Color column:** the stock SMX per-panel map. The chosen INT cable (RVSP
+twisted pair) is only available in a single color, so these are **end markers —
+colored or printed heat-shrink at both cable ends — not conductor insulation
+colors.** Slot↔panel agreement is still not assumed: the master learns the real
+mapping with the `'I'` identify pulse and reports mismatches
+(`docs/RS485_PROTOCOL.md`).
 
 **Per line — two-stage ESD/EMI protection + filter (added 2026-07-24, resolves
 review F3/F4):**
-1. Off J2 the line first meets an **SMAJ5.0A unidirectional TVS to GND** (Dx,
+1. Off its connector the line first meets an **SMAJ5.0A unidirectional TVS to
+   GND** (Dx,
    cathode on the line / anode to GND, own GND via — negative transients
    forward-conduct at ~0.7V). This is the *entry* node.
 2. Then a **330Ω series R** (R6–R14) into the Teensy-side node `INT_xx`, which
@@ -100,8 +118,34 @@ sits on the Teensy-side node so the pin is defined HIGH locally and stays safe
 if the series R ever opens. **Per-line refs:** DR=R6/C3, D=R7/C4, DL=R8/C5,
 R=R9/C6, C=R10/C7, L=R11/C8, UR=R12/C9, U=R13/C10, UL=R14/C11. TVS orientation
 matters at assembly. (The discrete TVS-per-line approach replaced 3× SRV05-4
-arrays 2026-07-22.) A twisted-pair signal+GND return is a reserved cabling-only
-mitigation if the bench ever shows spurious triggers — no board change needed.
+arrays 2026-07-22.)
+
+### INT cabling (twisted pair, adopted 2026-07-26)
+
+Each INT line is a **twisted pair: signal + its own GND return**, rather than a
+single conductor returning through the shared power ground network. This was
+previously listed as a reserved mitigation to hold in case the bench showed
+spurious triggers; it was adopted up front instead, since the panel side already
+had the GND position provisioned (J9 pin 2, 2026-07-24) and the master side only
+needed a connector change.
+
+- **Master side:** the 9-position pluggable Euroblock was replaced by **nine
+  JST XH 2-pin vertical headers** (B2B-XH-A). Nine discrete 5.08mm screw blocks
+  were rejected — ~92mm of board edge against a 77.5mm board. XH is top-entry,
+  so it needs no board edge at all and the nine fit in roughly the footprint the
+  Euroblock vacated (~42 × 13.5mm vs 45.72 × 12.0mm).
+- **Why XH over a terminal block:** it is keyed, so signal and GND cannot be
+  swapped at assembly. On a screw terminal that swap ties INT to GND and reads
+  as a permanently stuck press — an expensive bug to chase at bring-up. Using XH
+  here while the panel FSR connectors stay PH also means an FSR lead physically
+  cannot be plugged into an INT header.
+- **Cost:** the harness loses single-action bulk disconnect (nine plugs instead
+  of one block). Accepted — per-panel disconnect is more useful for servicing a
+  single dead panel, and the master retains no other reason to detach all nine
+  at once.
+- The dedicated return does form a loop against the shared power ground, but the
+  twisting collapses the loop *area*, which is what governs pickup, and the
+  current involved is microamps. Standard practice, not a compromise.
 
 ## Parts (refs → identity)
 
@@ -118,8 +162,8 @@ mitigation if the bench ever shows spurious triggers — no board change needed.
 | R4/R5 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1429's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
 | RN1 | Bourns 4610**X**-101-103LF (SIP-10, 10k ×9 bussed, LCSC C840655) | pin 1 common → +3.3VDC |
 | SW1 | DORABO DS-3P-BU (DIP-3, LCSC C46595747) | player ID 0–7 to GND, internal pull-ups |
-| J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, pin 3 unpopulated — **matches panel J8/J10 exactly** so the cable is straight-through |
-| J2 | Molex 0395316009 9-pos 5.08mm pluggable Euroblock (+ 0395337009 plug) | all 9 INT wires detach as one block; no GND position (return rides the power ground network); footprint rebuilt from the real drawing |
+| J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, **pin 3 = cable shield, tied directly to GND here** (see "RS-485 shield" below) — **matches panel J8/J10 exactly** so the cable is straight-through |
+| J2, J3, J5–J11 | JST B2B-XH-A 2-pos 2.5mm vertical THT (LCSC C158012) | one per INT line; pin 1 = INT signal, pin 2 = dedicated GND return. Mating half is XHP-2 housing (C144401) + SXH-001T-P0.6N contacts (C385122), 22–26 AWG. Symbol is generic `Connector_Generic:Conn_01x02`; there is no JST-specific symbol in KiCad. Replaced the 9-pos Euroblock 2026-07-26 |
 | J4 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R3), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
 | TP1–TP8 | THT probe holes | RS485+ / RS485− / DE / +3.3VDC / +5VDC_USB / GND / underglow 3.3V side / underglow 5V side |
 | H1–H4 | M3 mounting holes | |
@@ -148,8 +192,9 @@ mitigation if the bench ever shows spurious triggers — no board change needed.
     change anywhere on this board, and any future via transition is fully
     solved by a nearby GND stitching via.
 - No SMD parts under the Teensy socket; hot-air approach room around D2–D10
-  and the 0805s (electrically they belong at J2, but clear of the tall
-  Euroblock body and socket).
+  and the 0805s (electrically they belong at the INT connectors, but clear of
+  the socket — this constraint predates the Euroblock→JST XH swap and the
+  low-profile XH bodies only relax it).
 - Target ~80×60mm; enclosure to be modeled from the KiCad 3D export once
   boards are in hand.
 
@@ -160,8 +205,47 @@ mitigation if the bench ever shows spurious triggers — no board change needed.
   provides shifter VCC) and an underglow presence-sense pin — UI/config
   gating for now; the harness teardown may reopen it (a 12V-sense divider like
   the panel's is the known upgrade path).
-- GND position on the INT Euroblock — return via the power ground network.
+- ~~GND position on the INT Euroblock~~ — **reversed 2026-07-26.** The Euroblock
+  is gone and every INT connector now has a dedicated GND pin; the return no
+  longer rides the power ground network. See "INT cabling" above.
 - RS-485 termination switch — master end is always terminated (R1 fixed).
+
+## RS-485 shield (adopted 2026-07-26)
+
+The RS-485 cable is shielded (RVSP foil + braid), and the third Micro-Fit
+position — previously left deliberately unpopulated — now carries that shield.
+This **reverses the earlier "drain floating at both ends" decision.** Micro-Fit
+2- vs 3-circuit keying still prevents 12V from ever reaching a transceiver, and
+pin 3 carries shield only: no rail, no signal.
+
+Topology is **hybrid grounding**, one continuous shield from master to panel 8:
+
+- **Master (here):** J1 pin 3 → `GND`, plain trace, no parts. This is the
+  **single DC reference for the entire shield network.** Without it the shield
+  floats and the scheme is worse than not having one.
+- **Each panel:** `RS485_Shield` runs J8 pad 3 → J10 pad 3 as a pass-through
+  with **no local GND tie**, plus 100nF (C57) ‖ 1MΩ (R20) to GND near J8.
+- **Panel 8:** far end, shield simply terminates.
+
+The per-panel caps are not optional decoration: ~6–8m of foil grounded at one
+end only resonates near 10 MHz, inside the harmonic content of 1 Mbps edges.
+The 100nF grounds the shield at RF while blocking DC, so no ground loop forms
+against the 12V ground network; the 1MΩ bleeds tribocharge (rubber-soled shoes
+on the panels charge the pad — the same reasoning behind the panel's USB ESD
+array). Keep the cap's GND via at the pad: series inductance there directly
+undoes it.
+
+Each cable segment lands the shield at **both** its connectors — the pass-through
+traces make it electrically continuous end to end. "Grounded at one end" refers
+to the whole network, not to each segment. If the cable has no drain wire, gather
+the braid into a pigtail, solder a short lead to it, heatshrink the joint, and
+crimp that lead — a stray braid strand bridging a signal pin is the classic
+failure here.
+
+**Not applied to the INT harness:** JST XH has only two positions, so if the INT
+cable arrives shielded the shield is trimmed and heatshrunk at both ends. Do
+**not** bond it to the INT GND conductor — that is a signal return, and paralleling
+a shield across it re-creates the loop area the twisting exists to remove.
 
 ## Open items
 
