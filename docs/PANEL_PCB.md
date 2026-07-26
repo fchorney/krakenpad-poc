@@ -55,40 +55,29 @@ official Pico schematic); TESTEN → GND.
 | D2–D28 (except D12/D23) | 25× WS2815B-V1 | 12V addressable, custom PLCC6 footprint; per-LED 100nF on **VCC (pin 1)** to GND (internal-regulator filter — correct per datasheet, do not "fix"); chain rule: BIN(n) ← DIN-signal(n−1), **first LED's BIN → GND**, last DOUT NC |
 | D1 | debug LED (0603) | in the JLC BOM (not DNP-flagged) — decide at order time |
 | X1 | ABM8-272-T3 12MHz | 15pF C0G loads (C12/C14) |
-| J1 | GCT USB4085-GF-A | all-THT USB-C, bench flashing only |
+| J1 | LCKELEC LCK-TCF829D (LCSC C53184807) | all-THT **vertical** USB-C, bench flashing only; footprint `USB_C_Receptacle_LCK_TCF829D_TEMPLATE` hand-built (no EasyEDA data), 3D model is a **placeholder from a different part** — not for fit checks. Supersedes GCT USB4085-GF-A |
 | J2 | 1×3 SWD header | SWDIO/GND/SWCLK |
 | J3/J4/J6/J7 | JST B2B-PH-K (FSR N/E/S/W) | pin 2 = 3.3V, pin 1 = ADC node; FSR is non-polarized |
 | J5/J11 | Micro-Fit 43650-0200 (12V IN/OUT) | straight-through heavy copper |
 | J8/J10 | Micro-Fit 43650-0300 (RS-485 IN/OUT) | pin 3 unpopulated (keying vs power) |
-| J9 | MRR522-5.08-V 2-pos screw terminal (INT) | **pin 1 = INT signal (net `Net-(D30-K)`, via R17), pin 2 = dedicated GND** (decided 2026-07-24, supersedes both-pins-bridged). D30 SMAJ5.0A clamps signal→pin-2 GND at the connector. Single-conductor cable leaves pin 2 unpopulated; pin 2 pre-provisions a signal+GND paired cable for free if the bench ever shows spurious triggers |
-| SW1 | DS01C-254-S-04BE (DIP-4) | panel ID 0–8, diag modes 9–13 (`docs/PANEL_CONFIG.md`) |
+| J9 | WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) (INT) | **pin 1 = INT signal (net `Net-(D30-K)`, via R17), pin 2 = dedicated GND** (decided 2026-07-24, supersedes both-pins-bridged). D30 SMAJ5.0A clamps signal→pin-2 GND at the connector. Single-conductor cable leaves pin 2 unpopulated; pin 2 pre-provisions a signal+GND paired cable for free if the bench ever shows spurious triggers |
+| SW1 | Zhongdi DS-04 (DIP-4, LCSC C52177925) | panel ID 0–8, diag modes 9–13 (`docs/PANEL_CONFIG.md`) |
 | SW2 | B3U-1000P | BOOTSEL |
-| SW3 | EG2201A (DPDT) | pole 1 = 120R (R2) across A/B; pole 2 = TERM_SENSE. Wiring: pin2=RS485+ (pole-A common), pin1→R2→RS485−, pin5=TERM_SENSE/GPIO13 (pole-B common), pin4=GND, pins 3&6 NC. Alt footprint `panel-pcb:SW_SS-22F04` exists (AliExpress candidate, same pin numbering) — see note below |
+| SW3 | XKB SS22E01L5 (DPDT, LCSC C609835) | pole 1 = 120R (R2) across A/B; pole 2 = TERM_SENSE. Wiring: pin2=RS485+ (pole-A common), pin1→R2→RS485−, pin5=TERM_SENSE/GPIO13 (pole-B common), pin4=GND, pins 3&6 NC. **Pins 7/8 = mounting lugs, tied to GND.** Footprint `panel-pcb:SW_SS22E01L5` + symbol `SS22E01L5`, both renamed from EG2201A |
 | R13/R14 | 5.1k CC pull-downs | required for C-to-C cables |
 | C51 | 470µF 25V SMD electrolytic | 12V bulk — deliberately not tantalum (hot-plug surge) |
 
 Full identity (MPN/LCSC per line) lives in the schematic fields; ordering info
 in `docs/BOM.md`.
 
-**SW3 termination-switch alternate (`panel-pcb:SW_SS-22F04`, added 2026-07-25):**
-The AliExpress DPDT candidate has a **different body/land pattern** from the
-E-Switch EG2201A (13.0×8.5mm body, col pitch 3.0 / row 3.2mm, legs 12.5mm
-apart, vs the EG2201A's 4.0/2.5mm pin grid). Because both parts are
-electrically the *same* DPDT with the same 1-2-3 / 4-5-6 numbering, **the
-symbol and all nets are unchanged** — only the footprint differs. Two ways to
-use it:
-- **Just swap** if you buy the AliExpress part: change SW3's Footprint field
-  from `panel-pcb:SW_EG2201A` to `panel-pcb:SW_SS-22F04`, re-run DRC (the body
-  is a different size, so re-check clearance to neighbours), done.
-- **Compare both on-board:** add a DNP twin `SW4` reusing the EG2201A symbol,
-  assign it `SW_SS-22F04`, wire it to SW3's four live nets (RS485+, RS485−-via
-  a second 120R or the same R2 node, TERM_SENSE, GND), place its footprint
-  next to SW3, mark DNP. Left to a hands-on KiCad session — a wired duplicate
-  is easy to get subtly wrong and the board is currently ERC/DRC-clean.
-
-⚠ Footprint dims came from the listing's PCB-layout drawing, **not a
-datasheet** — verify against the physical part (especially drill Ø for the
-0.5mm flat terminals) before trusting it for an order.
+**SW3 history (resolved 2026-07-26):** SW3 was drawn for the E-Switch EG2201A,
+then briefly against an AliExpress DPDT whose land pattern was reverse-
+engineered from a listing drawing (`panel-pcb:SW_SS-22F04`). Both are gone: the
+part is now XKB **SS22E01L5** (LCSC C609835) on `panel-pcb:SW_SS22E01L5`, built
+from the vendor's own EasyEDA data, and `SW_SS-22F04` was deleted as moot. All
+three parts are electrically the same DPDT with 1-2-3 / 4-5-6 numbering, so the
+nets never changed — only the footprint and, for SS22E01L5, the two grounded
+mounting lugs (pads 7/8) that the earlier footprints did not expose.
 
 ## Layout (as built)
 

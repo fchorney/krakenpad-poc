@@ -26,27 +26,34 @@ staged in `panel-pcb.pretty/`.
   rows — matches `SW_DIP_SPSTx04…W7.62`.
 - ✅ **master SW1 DIP-3** C46595747 (DS-3P-BU): pulled = 6 pads, 2.54mm, 7.62mm
   rows — matches `SW_DIP_SPSTx03…W7.62`.
-- ✅ **J9 + J4** C8465 (WJ500V): pulled = 5.08mm pitch, 1.3mm drill — our
-  `MRR52-5.08-2P` (1.5mm holes) accepts it. Just eyeball body-silk clearance
-  vs neighbours when placing.
+- ✅ **J9 + J4** C8465 (WJ500V): **CLOSED 2026-07-26 by adopting the vendor land
+  pattern** `TerminalBlock_WJ500V-5.08-2P` (1.30mm holes, 2.00mm pads, vendor 3D
+  model) on BOTH boards, re-placed and re-routed; the hand-built
+  `MRR52-5.08-2P` (1.5mm holes, Adam Tech drawing) is retired. Pitch 5.08mm and
+  body 10.16×10.16mm matched our numbers. Left for arrival: eyeball pin-1
+  orientation and body-silk clearance vs neighbours.
 
-**New footprint built — staged, needs a board swap + re-DRC:**
-- ⬜ **SW3 DPDT** → `panel-pcb:SW_SS22E01L5` (built from C609835 EasyEDA data;
-  6 pads 2.5/2.5mm + MP1/MP2 posts). Pin numbering 1‑2‑3 / 4‑5‑6 matches the
-  EG2201A symbol, so **keep the EG2201A symbol, change only SW3's footprint**.
-  Pads are smaller/closer than EG2201A → re-place + re-route SW3. **Verify**
-  against the SS22E01L5 datasheet that pin 2 = pole-A common and pin 1 pairs
-  with pin 4 (both = terminated side). `SW_SS-22F04` deleted (was moot).
-- ⬜ **J1 USB-C** → `panel-pcb:USB_C_Receptacle_LCK_TCF829D_TEMPLATE`
-  (C53184807 has **no** EasyEDA data — hand-built from the datasheet).
-  **TEMPLATE, not final.** *Certain:* pad names A1..B12 + SH match the J1
-  symbol → net mapping correct; X-columns from the datasheet chain (±0.5, 1.5,
-  2.5, 3.5; posts ±4.225). *Must verify/adjust vs datasheet:* A/B row Y-spacing
-  (±1.43 assumed), whether the real layout is **staggered** (datasheet view
-  suggests it may be), post Y (±2.5), hole sizes (signal Ø0.5 / power Ø0.8 /
-  posts oval 1.3×1.8). **Fallback if refinement is too fiddly:** right-angle
-  C49302689 (GT-USB-7107B) has a clean verified all-THT footprint already
-  pulled (`USB-C-TH_GT-USB-7107B`), +~$5 total, orientation is "free".
+**New footprints — DONE 2026-07-26, both swapped, re-placed, re-routed, re-DRC'd:**
+- ✅ **SW3 DPDT** → `panel-pcb:SW_SS22E01L5` (built from C609835 EasyEDA data;
+  6 pads 2.5/2.5mm). Pin numbering 1‑2‑3 / 4‑5‑6 matched, so nets were unchanged;
+  the **symbol was renamed EG2201A → `SS22E01L5`** (lib + schematic cache +
+  lib_id) and the vendor's two **mounting lugs are now pads 7/8, tied to GND**
+  (user-confirmed against the datasheet: 2/5 are the pole commons, 1/4 left,
+  3/6 right). `SW_SS-22F04` deleted (was moot). Vendor 3D model attached.
+- ✅ **J1 USB-C** → `panel-pcb:USB_C_Receptacle_LCK_TCF829D_TEMPLATE`
+  (C53184807 has **no** EasyEDA data — hand-built from the datasheet, then
+  **refined by the user in KiCad 2026-07-25**: 8 signal pins staggered at
+  y=±0.825, VBUS/GND as **shared A/B posts** (A1+B12 in one hole, A12+B1 in
+  another), 4 mounting posts; pad names A1..B12+SH still match the J1 symbol so
+  the net mapping is correct. Swapped, re-placed, re-routed (U7 ESD + R3/R4 27Ω
+  front end), DRC 0. All 8 GND pads were set to **solid zone connection** —
+  at 1mm pitch with a 0.5mm thermal gap a second spoke cannot fit, and the SH
+  post copper already merges with A12/B1. The name keeps the `_TEMPLATE` suffix
+  for continuity; it is no longer a template. **3D model is a placeholder from a
+  different part (CMUCF661016C) — visual bulk only, NOT valid for fit checks.**
+  Unused fallback, if the part ever disappoints: right-angle C49302689
+  (GT-USB-7107B), clean verified all-THT footprint already pulled
+  (`USB-C-TH_GT-USB-7107B`), +~$5 total, orientation "free".
 
 After each new footprint: re-place + re-route the ref, re-run ERC/DRC, keep 0/0.
 
@@ -72,7 +79,7 @@ Verified against the board after the fact, not just claimed:
 - ✅ **Master PCB RS-485 done too** — W=0.15/S=0.2, F.Cu only, no vias,
   45.39mm both legs (**0.000mm skew**). Master DRC is **0 violations even with
   its three ignored rules lifted**, 0 unconnected, ERC 0; only 3
-  `footprint_filters_mismatch` naming notes (Euroblock, MRR52, DIP-3). The
+  `footprint_filters_mismatch` naming notes (Euroblock, WJ500V terminal, DIP-3). The
   master's ignore list does **not** include `hole_to_hole` — that suppression
   is panel-only. Details in `docs/MASTER_PCB.md`.
 
@@ -87,10 +94,13 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
   GND** as of 2026-07-24 — this supersedes the earlier both-pins-bridged
   arrangement, so the wire is no longer position-agnostic. A single-conductor
   cable lands on pin 1 and leaves pin 2 empty; pin 2 exists to pre-provision a
-  paired signal+GND return if the bench shows spurious triggers. Part: **Adam
-  Tech MRR522-5.08-V** via DigiKey (superseded the KF301 pick 2026-07-23;
-  footprint `TerminalBlock_MRR52-5.08-2P` rebuilt from the real drawing, hole
-  Ø1.50). Measure against the sourced part on arrival.
+  paired signal+GND return if the bench shows spurious triggers. Part: **KANGNEX
+  WJ500V-5.08-2P**, LCSC **C8465** (2026-07-26; superseded Adam Tech
+  MRR522-5.08-V, which superseded the KF301 pick). Footprint
+  `TerminalBlock_WJ500V-5.08-2P` is the **vendor's own** land pattern, hole
+  Ø1.30, pad 2.00. Pitch and body already match on paper — on arrival just
+  confirm **which physical position is pin 1** (it is no longer
+  position-agnostic) and that the pins pass the 1.30mm holes.
 - ⬜ **FSR leads vs J3/J4/J6/J7**: mate a real FSR lead's JST PHR-2 plug
   against a B2B-PH-K top-entry header (or at minimum compare datasheet drawings
   pin-for-pin). Flagged 2026-07-10, never physically verified.
@@ -105,10 +115,13 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
   schematic — an *extended* part, so it adds a feeder/handling line to the
   quote. Confirm live stock in the JLC BOM dialog and re-pick if short
   (C87074 Diodes, C98802 ST are the same part in the same DO-214AC body).
-- ⬜ **SW1 (DIP-4) and SW3 (EG2201A DPDT)**: confirm sourced parts match the
-  footprints (SW3 uses the custom `panel-pcb:SW_EG2201A`); verify SW1 row
-  spacing 7.62mm vs footprint on arrival.
-  **SW1 source SETTLED 2026-07-24: CUI `DS01C-254-S-04BE` from DigiKey**
+- ⬜ **SW1 (DIP-4) and SW3 (DPDT)**: confirm sourced parts match the footprints
+  (SW3 now uses `panel-pcb:SW_SS22E01L5`, SW1 is Zhongdi DS-04 / **C52177925**
+  from the LCSC cart); verify SW1 row spacing 7.62mm vs footprint on arrival.
+  **SW1 source RE-SETTLED 2026-07-25: Zhongdi `DS-04`, LCSC C52177925** (30/$6.03),
+  riding the LCSC order the pivot created. The note below is the superseded
+  2026-07-24 reasoning, kept for context:
+  **~~SW1 source SETTLED 2026-07-24: CUI `DS01C-254-S-04BE` from DigiKey~~**
   ($0.70 ea, 7,376 in stock at decision time; 20 pcs = ~$14). It rides on the
   panel-THT DigiKey order that's happening anyway. The earlier LCSC pick
   (YE DSWB04LHGET, C99418, ~$0.12) is **dropped** — there is no LCSC order to

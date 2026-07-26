@@ -116,11 +116,11 @@ mitigation if the bench ever shows spurious triggers — no board change needed.
 | R15 | 10k 0805 | `UNDERGLOW_DATA` pull-down (defines U3 gate-A input LOW at boot) |
 | R1 | 120R | RS-485 termination, always fitted (master is always a bus end — no switch) |
 | R4/R5 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1429's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
-| RN1 | 4610M-101-103LF (SIP-10, 10k ×9 bussed) | pin 1 common → +3.3VDC |
-| SW1 | DS01C-254-S-03BE (DIP-3) | player ID 0–7 to GND, internal pull-ups |
+| RN1 | Bourns 4610**X**-101-103LF (SIP-10, 10k ×9 bussed, LCSC C840655) | pin 1 common → +3.3VDC |
+| SW1 | DORABO DS-3P-BU (DIP-3, LCSC C46595747) | player ID 0–7 to GND, internal pull-ups |
 | J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, pin 3 unpopulated — **matches panel J8/J10 exactly** so the cable is straight-through |
 | J2 | Molex 0395316009 9-pos 5.08mm pluggable Euroblock (+ 0395337009 plug) | all 9 INT wires detach as one block; no GND position (return rides the power ground network); footprint rebuilt from the real drawing |
-| J4 | MRR522-5.08-V 2-pos screw terminal | pin 1 = underglow DATA (from R3), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
+| J4 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R3), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
 | TP1–TP8 | THT probe holes | RS485+ / RS485− / DE / +3.3VDC / +5VDC_USB / GND / underglow 3.3V side / underglow 5V side |
 | H1–H4 | M3 mounting holes | |
 

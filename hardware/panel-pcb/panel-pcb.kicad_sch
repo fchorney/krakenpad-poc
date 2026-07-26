@@ -17965,6 +17965,17 @@
 				)
 			)
 		)
+		(property "LCSC" "C131337"
+			(at 121.92 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "5b0271a9-8c1e-4f52-bbff-7b448339f2c2")
 		)
@@ -24274,6 +24285,17 @@
 				)
 			)
 		)
+		(property "LCSC" "C131337"
+			(at 160.02 64.77 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "0eed0a2d-c49f-4ea6-9649-1e43a6e63627")
 		)
@@ -27542,8 +27564,8 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1861-ND"
-			(at 0 0 0)
+		(property "LCSC" "C503478"
+			(at 247.65 232.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -29037,6 +29059,17 @@
 				)
 			)
 		)
+		(property "LCSC" "C131337"
+			(at 121.92 64.77 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "5e79aeee-0352-400b-9143-004390629da0")
 		)
@@ -30076,8 +30109,8 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1860-ND"
-			(at 0 0 0)
+		(property "LCSC" "C192562"
+			(at 242.57 199.39 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32521,8 +32554,8 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1861-ND"
-			(at 0 0 0)
+		(property "LCSC" "C503478"
+			(at 261.62 267.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -34286,8 +34319,8 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1860-ND"
-			(at 0 0 0)
+		(property "LCSC" "C192562"
+			(at 201.93 269.24 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -37980,7 +38013,7 @@
 				)
 			)
 		)
-		(property "MPN" "61300311121"
+		(property "MPN" "PZ254V-11-03P"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -37991,7 +38024,7 @@
 				)
 			)
 		)
-		(property "DigiKey" "732-5316-ND"
+		(property "LCSC" "C2937625"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -41737,6 +41770,17 @@
 				)
 			)
 		)
+		(property "LCSC" "C131337"
+			(at 160.02 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "d21c54b4-0c47-4f8d-89e8-ef3bd2895b74")
 		)
@@ -43872,7 +43916,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/C99418.pdf"
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C52177925.html"
 			(at 38.1 33.02 0)
 			(hide yes)
 			(show_name no)
@@ -43894,7 +43938,7 @@
 				)
 			)
 		)
-		(property "MPN" "DS01C-254-S-04BE"
+		(property "MPN" "DS-04"
 			(at 38.1 33.02 0)
 			(hide yes)
 			(show_name no)
@@ -43905,19 +43949,8 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C52177925"
 			(at 38.1 33.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "DigiKey" "2223-DS01C-254-S-04BE-ND"
-			(at 0 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

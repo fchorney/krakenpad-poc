@@ -5371,6 +5371,19 @@
 				)
 			)
 		)
+		(property "LCSC" "C131337"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c3bc44ad-bd90-4f20-82bd-3772875ee213")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "Connector*:*_1x??_*")
 		(path "/4cb5dc76-04c3-46ed-a2ef-71b7d14a6e7f")
 		(sheetname "/")
@@ -7688,12 +7701,12 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1860-ND"
+		(property "LCSC" "C192562"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2ba5a401-a208-41cb-bd89-d86cd1571430")
+			(uuid "fee621f1-6f18-4d94-a1bd-12547b2bd839")
 			(effects
 				(font
 					(size 1 1)
@@ -9996,7 +10009,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/C99418.pdf"
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C52177925.html"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -10030,7 +10043,7 @@
 				)
 			)
 		)
-		(property "MPN" "DS01C-254-S-04BE"
+		(property "MPN" "DS-04"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -10043,25 +10056,12 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C52177925"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "77126e3f-f62a-4d4a-b62b-0889e6c6f1f2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "2223-DS01C-254-S-04BE-ND"
-			(at 0 0 270)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "9bae1635-5c95-43ee-9573-b5c0a71ab168")
 			(effects
 				(font
 					(size 1 1)
@@ -12732,6 +12732,19 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "53e62929-f245-4c61-a627-60150b0bf402")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC" "C131337"
+			(at 0 0 270)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "533036ff-0901-4896-83e3-0f89ac055fcd")
 			(effects
 				(font
 					(size 1 1)
@@ -16267,12 +16280,12 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1861-ND"
+		(property "LCSC" "C503478"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "55007774-bddd-4b13-a2d4-965ba0201a32")
+			(uuid "80f52cb5-8593-481f-8440-8c385c6c47d8")
 			(effects
 				(font
 					(size 1 1)
@@ -19649,12 +19662,12 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1861-ND"
+		(property "LCSC" "C503478"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d7d15b86-3320-4a98-9753-6dfc75c135b8")
+			(uuid "c3543ac6-c46f-4c0c-bc3c-7b6b24d51ebc")
 			(effects
 				(font
 					(size 1 1)
@@ -20017,6 +20030,19 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "c7f9f6b2-5986-4c20-81ba-1a1621df1652")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC" "C131337"
+			(at 0 0 180)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "993e0ab6-66c4-4ab8-bcea-b3da8d9b4e5f")
 			(effects
 				(font
 					(size 1 1)
@@ -23964,6 +23990,19 @@
 				)
 			)
 		)
+		(property "LCSC" "C131337"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "32a3ba4b-89a9-4562-a9c1-c6577ccfc5ab")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "Connector*:*_1x??_*")
 		(path "/def637dc-be60-4051-b0fb-3ed5eb87dee5")
 		(sheetname "/")
@@ -24532,12 +24571,12 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1860-ND"
+		(property "LCSC" "C192562"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "b760820c-a76f-44e8-9568-534eb8ef7210")
+			(uuid "d7666498-6996-4ab6-bdaf-f6d6d9882c1d")
 			(effects
 				(font
 					(size 1 1)
@@ -29120,7 +29159,7 @@
 				)
 			)
 		)
-		(property "MPN" "61300311121"
+		(property "MPN" "PZ254V-11-03P"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -29133,12 +29172,12 @@
 				)
 			)
 		)
-		(property "DigiKey" "732-5316-ND"
+		(property "LCSC" "C2937625"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "396fe661-1cd1-45ed-a718-a93f0f5871b4")
+			(uuid "d9a1bc8d-9176-4252-8ace-111ada2d0edc")
 			(effects
 				(font
 					(size 1 1)

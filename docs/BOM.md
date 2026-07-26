@@ -51,11 +51,11 @@ tables.
 | 40 | J5, J11 | Micro-Fit 3.0 2-pin, right-angle THT (12V IN/OUT) | 2 | Molex **43650-0200** | decided |
 | 40 | J8, J10 | Micro-Fit 3.0 3-pin, right-angle THT (RS-485 IN/OUT) | 2 | Molex **43650-0300** | decided |
 | 80 | J3, J4, J6, J7 | JST-PH 2-pin vertical, board side (FSR) | 4 | JST **B2B-PH-K-S** | decided — **LCSC C131337** (genuine JST, 100/$3.53); footprint matches exactly. Stock FSR leads have PHR-2 plugs; **verify mating before ordering qty** |
-| 20 | J1 | USB-C receptacle, 16P USB2.0, all-THT | 1 | GCT **USB4085-GF-A** | decided |
-| 20 | J2 | Pin header 1×03, 2.54mm vertical (SWD) | 1 | Würth 61300311121 or generic | pick any |
-| 20 | J9 | Screw terminal 2-pos 5.08mm (INT out) | 1 | Adam Tech **MRR522-5.08-V** | decided 2026-07-23 (footprint rebuilt from drawing; replaced the earlier KF301 pick) |
-| 20 | SW1 | DIP slide switch, 4-pos SPST, 2.54mm, W7.62mm (panel ID) | 1 | CUI **DS01C-254-S-04BE** | **decided (source settled 2026-07-24: DigiKey, $0.70 ea — LCSC/AliExpress alternatives dropped)** |
-| 20 | SW3 | Slide switch DPDT (RS-485 termination) | 1 | E-Switch **EG2201A** | decided (custom footprint `panel-pcb:SW_EG2201A`) |
+| 20 | J1 | USB-C receptacle, 16P USB2.0, all-THT, **vertical** | 1 | LCKELEC **LCK-TCF829D** | decided 2026-07-25 — **LCSC C53184807**; footprint `panel-pcb:USB_C_Receptacle_LCK_TCF829D_TEMPLATE` (hand-built, no EasyEDA data). Supersedes GCT USB4085-GF-A |
+| 20 | J2 | Pin header 1×03, 2.54mm vertical (SWD) | 1 | XFCN **PZ254V-11-03P** | **LCSC C2937625**; generic part, any 1×03 2.54mm works |
+| 20 | J9 | Screw terminal 2-pos 5.08mm (INT out) | 1 | KANGNEX **WJ500V-5.08-2P** | decided 2026-07-26 — **LCSC C8465**, vendor land pattern `panel-pcb:TerminalBlock_WJ500V-5.08-2P` (hole 1.30mm) + vendor 3D model. Supersedes Adam Tech MRR522-5.08-V, which superseded the KF301 pick |
+| 20 | SW1 | DIP slide switch, 4-pos SPST, 2.54mm, W7.62mm (panel ID) | 1 | Zhongdi **DS-04** | **LCSC C52177925** (supersedes the CUI DS01C-254-S-04BE / DigiKey decision of 2026-07-24 — the LCSC pivot gave it an order to ride along with); drops into `SW_DIP_SPSTx04…W7.62` |
+| 20 | SW3 | Slide switch DPDT (RS-485 termination) | 1 | XKB **SS22E01L5** | **LCSC C609835**; footprint `panel-pcb:SW_SS22E01L5` + symbol `SS22E01L5` (both renamed from EG2201A 2026-07-25/26). Lugs are pads 7/8, tied to GND |
 
 TP1–TP14 are bare probe holes — no parts (TP13 `RS485+` / TP14 `RS485-` added
 2026-07-24). SW2 (BOOTSEL) is SMD — JLC places
@@ -79,12 +79,12 @@ Notes carried from the design phase:
 | 2 | U1 | Teensy 4.0 | PJRC 15583 | 1568-15583-ND |
 | 2 | U2 | RS-485 transceiver, SOIC-8 | THVD1429DR | 296-THVD1429DRCT-ND |
 | 2 | U3 | Quad buffer 5V, DIP-14 | SN74AHCT125N | 296-4655-5-ND |
-| 2 | RN1 | Resistor array 10k ×9 bussed, SIP-10 | Bourns 4610M-101-103LF | 4610M-101-103LF-ND |
-| 2 | SW1 | DIP slide switch 3-pos (player ID) | CUI DS01C-254-S-03BE | 2223-DS01C-254-S-03BE-ND |
+| 2 | RN1 | Resistor array 10k ×9 bussed, SIP-10 | Bourns **4610X**-101-103LF | **LCSC C840655** (4610**M** was the DigiKey-era pick — different series, same land pattern) |
+| 2 | SW1 | DIP slide switch 3-pos (player ID) | DORABO **DS-3P-BU** | **LCSC C46595747** (supersedes CUI DS01C-254-S-03BE) |
 | 2 | J2 | Euroblock 9-pos 5.08mm pluggable, header | Molex 0395316009 | WM25993-ND |
 | 2 | J2 | … matching plug | Molex 0395337009 | WM25575-ND |
 | 2 | J1 | Micro-Fit 3.0 3-pin RA (RS-485 out) | 43650-0300 | (shared line, see C) |
-| 2 | J4 | Screw terminal 2-pos 5.08mm (GND tie + underglow DATA) | MRR522-5.08-V | (shared line, see C) |
+| 2 | J4 | Screw terminal 2-pos 5.08mm (GND tie + underglow DATA) | KANGNEX **WJ500V-5.08-2P** | (shared line, see C) |
 | 4 | — | Female header 14-pos 2.54mm (Teensy socket, 2/board) | PPPC141LFBN-RC | S7047-ND |
 | 4 | C1, C2 | 100nF X7R 50V, 0805 | C0805F104K1RACAUTO | 399-C0805F104K1RACAUTOCT-ND |
 | 2 | R1 | 120R 0805 (RS-485 termination) | RC0805FR-07120RL | 311-120CRCT-ND |
@@ -101,7 +101,7 @@ Notes carried from the design phase:
 | Qty | Part | Breakdown |
 |-----|------|-----------|
 | **42** | Molex 43650-0300 (3-pin RA) | 40 panel (J8/J10) + 2 master (J1) |
-| **25** | MRR522-5.08-V (2-pos screw terminal) | 20 panel (J9) + 2 master (J4) + spares |
+| **25** | WJ500V-5.08-2P (2-pos screw terminal, LCSC C8465) | 20 panel (J9) + 2 master (J4) + spares |
 
 ## D. Harness — mating connectors (per 2 pads)
 
@@ -261,9 +261,9 @@ fallback for anything that fails.
 | Part / use | Candidate | Match-check | Fallback |
 |-----------|-----------|-------------|----------|
 | Euroblock 9p (master J2), header+plug | pack of 5 — [1005012001482158](https://www.aliexpress.com/item/1005012001482158.html) | 5.08mm pitch, 9-pos, single-row (master ftpt = Molex 39531 P5.08) | DigiKey |
-| DPDT slide (panel SW3) | listing calls it SS-22H88 — [1005010555541589](https://www.aliexpress.com/item/1005010555541589.html); **the dimensional drawing on the listing is actually labelled `SS-22F04`** (verify which part actually ships) | **Footprint built 2026-07-25: `panel-pcb:SW_SS-22F04`** (from the listing's PCB-layout view — 6 pins 2×3, col pitch 3.0mm, row 3.2mm, legs 12.5mm apart, pin numbering matches SW_EG2201A so it's a drop-in for SW3). **Verify dims + drill against the physical part before ordering.** | EG2201A @ DigiKey (matches the *current* `SW_EG2201A` footprint) |
-| ~~4-pos DIP (panel SW1)~~ | **DROPPED 2026-07-24 — buy from DigiKey** (CUI DS01C-254-S-04BE, $0.70 ea, in stock). No LCSC order exists to attach the $0.12 alternative to, so a separate shipment would cost more than it saves | — | — |
-| 3-pos DIP (master SW1) | (use panel 4-pos + re-foot master, OR buy 3-pos) | master ftpt = SPSTx03 W7.62 P2.54 | **DigiKey (primary — only need 2)** |
+| ~~DPDT slide (panel SW3)~~ **SUPERSEDED 2026-07-25 — on the LCSC cart** as XKB SS22E01L5 (C609835); the AliExpress candidate and its reverse-engineered `SW_SS-22F04` footprint are both dropped. Original note: listing calls it SS-22H88 — [1005010555541589](https://www.aliexpress.com/item/1005010555541589.html); **the dimensional drawing on the listing is actually labelled `SS-22F04`** (verify which part actually ships) | **Footprint built 2026-07-25: `panel-pcb:SW_SS-22F04`** (from the listing's PCB-layout view — 6 pins 2×3, col pitch 3.0mm, row 3.2mm, legs 12.5mm apart, pin numbering matches SW_EG2201A so it's a drop-in for SW3). **Verify dims + drill against the physical part before ordering.** | EG2201A @ DigiKey (matches the *current* `SW_EG2201A` footprint) |
+| ~~4-pos DIP (panel SW1)~~ | **SUPERSEDED 2026-07-25 — now on the LCSC cart** as Zhongdi DS-04 (**C52177925**, 30/$6.03). The 2026-07-24 "buy from DigiKey" call assumed no LCSC order existed to attach it to; the pivot created one | — | — |
+| 3-pos DIP (master SW1) | **SUPERSEDED — on the LCSC cart** as DORABO DS-3P-BU (**C46595747**, 5/$1.23) | master ftpt = SPSTx03 W7.62 P2.54 — verified match | ~~DigiKey~~ |
 | Micro-Fit 3p header RA | [1005008706326809](https://www.aliexpress.com/item/1005008706326809.html) | **RIGHT-ANGLE**, 3.0mm pitch = 43650-0300 | DigiKey |
 | Micro-Fit 2p header RA | [1005012059959598](https://www.aliexpress.com/item/1005012059959598.html) | **RIGHT-ANGLE**, 3.0mm pitch = 43650-0200 | DigiKey |
 | Micro-Fit crimps | [1005011606773268](https://www.aliexpress.com/item/1005011606773268.html) | Micro-Fit **3.0** (not Mini-Fit 4.2), covers 20 AWG | DigiKey |
@@ -330,9 +330,9 @@ seats, but that's now confirming the real part, not a substitute.
 | master RN1 | **C840655** Bourns **4610X**-101-103LF | 5 | 1.66 | Was 4610**M**. Both are bussed 10k×9 SIP-10 (9 res, pin 1 = common) — same land pattern; just **confirm pin-1-common orientation** against the master `R_Network09` symbol. Low risk. |
 | panel SW1 | **C52177925** Zhongdi **DS-04** | 30 | 6.03 | 4-pos DIP slide. Verify 2.54mm pitch / 7.62mm row width vs `SW_DIP_SPSTx04...W7.62`. Supersedes the CUI DigiKey pick settled 2026-07-24. |
 | master SW1 | **C46595747** DORABO **DS-3P-BU** | 5 | 1.23 | 3-pos DIP slide. Verify vs `SW_DIP_SPSTx03...W7.62`. |
-| panel J9 + master J4 | **C8465** KANGNEX **WJ500V-5.08-2P** | 30 | 4.01 | Different maker from Adam Tech MRR52. 5.08mm pitch matches; **check body/pin Ø against `TerminalBlock_MRR52-5.08-2P` (1.5mm holes)** — likely compatible, verify. Affects BOTH boards. |
-| panel SW3 | **C609835** XKB **SS22E01L5** (DPDT, 11×6.2mm) | 25 | 4.37 | **Needs a NEW footprint** — matches neither `SW_EG2201A` nor the `SW_SS-22F04` built 2026-07-25 (that one is now likely moot). Pull the EasyEDA/JLC footprint or build from the SS22E01 datasheet (6 pins 2×3, get pitch/row from the drawing). |
-| panel J1 ×20 | USB-C, THT (see options below) | — | — | **Needs a NEW footprint** — any of these is a different land pattern from the GCT USB4085 the custom `USB_C_Receptacle_GCT_USB4085_EdgeTrim` was drawn for. USB-C is the highest-risk footprint to hand-build (16-pin mapping + CC/D+/D−/shield tabs) — **pull the EasyEDA/JLC footprint**, don't reverse-engineer. Must re-map to the same J1 schematic pins (A6/B6=D+, A7/B7=D−, A5=CC1, B5=CC2, VBUS/GND/SBU as-is). |
+| panel J9 + master J4 | **C8465** KANGNEX **WJ500V-5.08-2P** | 30 | 4.01 | **CLOSED 2026-07-26:** vendor land pattern pulled via easyeda2kicad and adopted on BOTH boards as `TerminalBlock_WJ500V-5.08-2P` (hole 1.30mm, pad 2.00mm, body 10.16×10.16mm, origin centred between pins) with the vendor 3D model; the hand-built Adam Tech MRR52 pattern is retired. Pitch and body envelope matched our drawing-derived numbers. Only pin-1 orientation still wants an eyeball on arrival. |
+| panel SW3 | **C609835** XKB **SS22E01L5** (DPDT, 11×6.2mm) | 25 | 4.37 | **DONE 2026-07-26:** footprint `panel-pcb:SW_SS22E01L5` built from the vendor's EasyEDA data, symbol renamed EG2201A → `SS22E01L5`, mounting lugs exposed as pads 7/8 tied to GND, swapped + re-routed. `SW_SS-22F04` deleted. |
+| panel J1 ×20 | **C53184807** LCKELEC **LCK-TCF829D** (vertical, all-THT) | 30 | 7.70 | **DONE 2026-07-26:** C53184807 has **no EasyEDA data**, so the footprint was hand-built from the datasheet and then refined by the user in KiCad — `panel-pcb:USB_C_Receptacle_LCK_TCF829D_TEMPLATE` (8 signal pins staggered ±0.825, VBUS/GND as shared A/B posts, 4 mounting posts, pad names A1..B12+SH matching the symbol). All 8 GND pads set to solid zone connection (relief rings starved the thermals). Swapped + re-routed. 3D model is a **placeholder from a different part** — not valid for fit checks. |
 
 USB-C options found on LCSC (2026-07-25 — correcting the earlier "LCSC has no
 all-THT USB-C" claim, which was wrong):

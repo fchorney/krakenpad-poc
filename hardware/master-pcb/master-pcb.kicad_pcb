@@ -214,7 +214,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1087,7 +1087,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1285,25 +1285,12 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C354152"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "cb606287-89c5-4a2c-ab93-6cd7eb28c92e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "296-4655-5-ND"
-			(at 0 0 180)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "3508465a-9a2b-4d77-9fe2-7a2cda5d6e1c")
 			(effects
 				(font
 					(size 1 1)
@@ -1807,7 +1794,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -2115,7 +2102,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -2911,7 +2898,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -3254,7 +3241,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -3417,7 +3404,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.bourns.com/docs/Product-Datasheets/4600M.pdf"
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C840655.html"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -3439,7 +3426,7 @@
 				)
 			)
 		)
-		(property "MPN" "4610M-101-103LF"
+		(property "MPN" "4610X-101-103LF"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -3452,12 +3439,12 @@
 				)
 			)
 		)
-		(property "DigiKey" "4610M-101-103LF-ND"
+		(property "LCSC" "C840655"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "7ed7820d-4aac-455b-bd16-1729ecc7ebbe")
+			(uuid "a1e3b2b5-28cc-4bfc-a3e6-e5e9cf6680b5")
 			(effects
 				(font
 					(size 1 1)
@@ -4895,7 +4882,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C83055"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -4908,25 +4895,12 @@
 				)
 			)
 		)
-		(property "MPN" "C0805F104K1RACAUTO"
+		(property "MPN" ""
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "0e250f2f-d013-4e16-9522-0ab7ea7d5e08")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "399-C0805F104K1RACAUTOCT-ND"
-			(at 0 0 0)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "5384a89c-0aef-4017-9430-07e914494913")
 			(effects
 				(font
 					(size 1 1)
@@ -5319,7 +5293,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5504,7 +5478,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5517,25 +5491,12 @@
 				)
 			)
 		)
-		(property "MPN" "RC0805FR-07330RL"
+		(property "MPN" ""
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "e32de143-5651-45ce-87c5-8ead211d4e6d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "311-330CRCT-ND"
-			(at 0 0 270)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "6c3093e7-8261-411f-a10a-d4c836a824d7")
 			(effects
 				(font
 					(size 1 1)
@@ -5689,7 +5650,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1850236"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5708,19 +5669,6 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "a09c3417-19ba-4580-a5c6-8452b62fe471")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "296-THVD1429DRCT-ND"
-			(at 0 0 0)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "17116fa8-6a12-42aa-921f-7be733f0ccf2")
 			(effects
 				(font
 					(size 1 1)
@@ -6320,7 +6268,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844816"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6333,25 +6281,12 @@
 				)
 			)
 		)
-		(property "MPN" "RC0805FR-07120RL"
+		(property "MPN" ""
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "8859395e-3395-47db-90e6-ed5957dbd5ec")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "311-120CRCT-ND"
-			(at 0 0 180)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "9b7d8a49-376d-4f5b-9759-de13b4a280e4")
 			(effects
 				(font
 					(size 1 1)
@@ -6517,7 +6452,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6791,7 +6726,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.cuidevices.com/product/switches/dip-switches/ds01c-254-s-03be"
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C46595747.html"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -6813,7 +6748,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C46595747"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6826,25 +6761,12 @@
 				)
 			)
 		)
-		(property "MPN" "DS01C-254-S-03BE"
+		(property "MPN" "DS-3P-BU"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "7a00ed4c-21fe-4973-b38a-6d28233413df")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "2223-DS01C-254-S-03BE-ND"
-			(at 0 0 270)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "75a00d3d-7320-4897-8f64-143ddd0782fb")
 			(effects
 				(font
 					(size 1 1)
@@ -7329,7 +7251,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C83055"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -7342,25 +7264,12 @@
 				)
 			)
 		)
-		(property "MPN" "C0805F104K1RACAUTO"
+		(property "MPN" ""
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "68b8f4a4-6ebd-40a2-9fec-5dd439306259")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "DigiKey" "399-C0805F104K1RACAUTOCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "9177e949-5ebe-4462-b9c8-922da6835ea5")
 			(effects
 				(font
 					(size 1 1)
@@ -7526,7 +7435,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C844839"
 			(at 0 0 270)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -7724,12 +7633,12 @@
 				)
 			)
 		)
-		(property "DigiKey" "WM1861-ND"
+		(property "LCSC" "C503478"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d15243f4-3f2d-4a2a-8c80-f7fa36355ca7")
+			(uuid "61e77fac-1d12-4e17-ad9c-24b4d79e490a")
 			(effects
 				(font
 					(size 1 1)
@@ -8082,7 +7991,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -8102,20 +8011,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "230b52e1-bc2d-41e2-b5af-cb988d5151fd")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "42ab453c-0931-4867-aa7b-b9f047039713")
 			(effects
 				(font
 					(size 1 1)
@@ -8418,7 +8313,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -8615,7 +8510,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -8635,20 +8530,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "5eeabd8e-47d9-4d8a-8b5a-3d6202ed5c6c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "e5690da3-dd49-400e-955a-892143e40a28")
 			(effects
 				(font
 					(size 1 1)
@@ -8951,7 +8832,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C192906"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -9157,7 +9038,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -9363,7 +9244,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -9569,7 +9450,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -9766,7 +9647,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -9786,20 +9667,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "a3272369-9acf-485f-85c2-d8f4969fce2b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "147a0aa9-d485-4aa9-9f2b-9c8653c420df")
 			(effects
 				(font
 					(size 1 1)
@@ -10093,7 +9960,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -10113,20 +9980,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "77fe220a-d429-4a11-b862-16c08e3af413")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "aaa93948-9288-4d36-bb5a-b4cb77d611c3")
 			(effects
 				(font
 					(size 1 1)
@@ -10420,7 +10273,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -10440,20 +10293,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "b6b730b3-4850-4e7d-86c8-c8e59f6cc243")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "ae0aa277-598a-4614-be0c-130c1d54cd38")
 			(effects
 				(font
 					(size 1 1)
@@ -10756,7 +10595,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -10953,7 +10792,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -10973,20 +10812,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "9e3f84d3-9ec9-4881-a3fe-ce993e6ed66d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "3a3563b4-15e9-4529-8740-f847d05534bc")
 			(effects
 				(font
 					(size 1 1)
@@ -11289,7 +11114,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -11495,7 +11320,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -11692,7 +11517,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -11712,20 +11537,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "619e7621-c480-4ef1-8f35-b3f0b4599b79")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "de2c1013-3b27-4afa-b288-d80d39407da8")
 			(effects
 				(font
 					(size 1 1)
@@ -12019,7 +11830,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -12039,20 +11850,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "86c31c8a-cbf9-4cd0-91be-c1b4ef01d03c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "9d53c915-25cf-49da-bdc6-1e799c2ef270")
 			(effects
 				(font
 					(size 1 1)
@@ -12355,7 +12152,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -12552,7 +12349,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C113952"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -12572,20 +12369,6 @@
 			(layer "B.Fab")
 			(hide yes)
 			(uuid "4a86ab36-2d2f-40b2-bf98-bb4cc8f7cdee")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(justify mirror)
-			)
-		)
-		(property "DigiKey" "SMAJ5.0ALFCT-ND"
-			(at 0 0 90)
-			(unlocked yes)
-			(layer "B.Fab")
-			(hide yes)
-			(uuid "d63004ad-6bc4-4d1a-828e-66695c025b7d")
 			(effects
 				(font
 					(size 1 1)
@@ -12888,7 +12671,7 @@
 				(justify mirror)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C1791"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "B.Fab")
