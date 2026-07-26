@@ -8,9 +8,32 @@ while it's being played with.
 
 ```
 hardware/dual-panel/
+  3dmodels/      shared by both copies (one copy of 6.5MB, not two)
   display-pcb/   the LED + IO carrier — sits where panel-pcb sits today
   brain-pcb/     the MCU/power/comms board — sockets underneath, in the frame cavity
 ```
+
+**Both are full copies of `panel-pcb` as of 2026-07-26**, taken so you can pick
+each apart rather than build up from nothing. Each is a self-contained KiCad
+project with its own `.kicad_pro/.kicad_sch/.kicad_pcb/.kicad_sym/.kicad_dru`,
+its own `<name>.pretty`, and its own lib tables. All 397 schematic + 186 board
+`panel-pcb:` library references were rewritten to the new project name, so
+nothing points back at the production design. 3D models are the one shared
+thing — footprints reference `${KIPRJMOD}/../3dmodels/` so the 6.5MB of STEP
+files isn't duplicated twice more.
+
+Both copies verify **DRC 0 / unconnected 0 / schematic-parity 0 / ERC 0**, i.e.
+they open as clean projects, not half-renamed ones.
+
+**Metadata already changed:** project + sheet names, lib nicknames and URIs,
+title block (`KrakenPad Display/Brain PCB (dual-board exploration)`), rev `0.1`,
+and comment 1 noting the copy's provenance.
+
+**Metadata deliberately left as-is**, because it's role-specific and yours to
+decide as each board takes shape: the 4-layer stackup and its physical layer
+settings, net classes (`Default`/`Power12V`), the `.kicad_dru` JLC rules (right
+for 4-layer — revisit if the carrier goes 2-layer or the brain goes 6), the
+127×127mm board outline with its connector tabs, and `used_designators`.
 
 ## The idea
 
