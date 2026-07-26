@@ -93,10 +93,11 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
 Two harness changes landed after the 2026-07-24 audit. Both touch board files,
 so everything below invalidates part of the audit above.
 
-- ⬜ **Master routing** — the 9-pos Euroblock (old J2) was deleted and nine JST
-  XH 2-pin headers (J2, J3, J5–J11) placed in its footprint. Placement and nets
-  verified (pin 1 = `INT_xx` via TVS + 330R, pin 2 = GND, all nine). **Routing
-  and a fresh DRC/ERC pass are still outstanding.**
+- ✅ **Master INT rework DONE** — the 9-pos Euroblock (old J2) was deleted and
+  nine JST XH 2-pin headers (J2, J3, J5–J11) placed in its footprint. Nets
+  verified (pin 1 = `INT_xx` via TVS + 330R, pin 2 = GND, all nine), **routed —
+  0 unconnected, 17.8–38.4mm per line, zero vias (each stays on one layer) —
+  and DRC + ERC clean.**
 - ⬜ **The `footprint_filters_mismatch` note for "Euroblock" above is stale** —
   that footprint no longer exists on the board. Re-derive the master's note list.
 - ✅ **Panel shield** — `RS485_Shield` J8 pad 3 → J10 pad 3, 0.25mm B.Cu, no
