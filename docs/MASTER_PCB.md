@@ -21,8 +21,8 @@ common reference; separate grounds was a real bench failure mode.
 **Assembly: bare PCB fab only, hand-soldered** (PCBA's ~$148 fixed overhead
 still isn't worth it at this volume × 2 boards; the 2026-07-24 INT-filter
 additions — 9× 330R + 9× 1nF, all 0805 — roughly double the passive count but
-stay easy to hand-place). Sourcing is by MPN,
-not LCSC stock — see `docs/BOM.md` section B. Hot air available; SOT-23-6 and
+stay easy to hand-place). Sourcing: the whole master is
+hand-assembled from the LCSC order — see `docs/BOM.md` order 2. Hot air available; SOT-23-6 and
 SOIC-8 are fine. Do not re-litigate: THVD1429 has no DIP equivalent worth the
 downgrade (MAX3485CPA loses failsafe + surge), and the passives are 0805 by
 choice (hand-placed, not dense).

@@ -62,10 +62,13 @@ INT on GPIO 15–23 with **J2 position 1 = panel 8 (DR) … position 9 = panel 0
 
 ## Sourcing / BOM
 
-`docs/BOM.md` (merged 2026-07-23) is the single sourcing doc: quantities for
-the 2-pad build, priced DigiKey cart snapshot ($559.86 CAD), AliExpress
-candidates with match-checks, THT hand-solder analysis. Open sourcing items:
-FSR JST headers (B2B-PH-K, ×80) need a source; wire lengths are placeholders
+`docs/BOM.md` (rewritten 2026-07-26) is the single sourcing doc, organised as
+the four orders — JLCPCB, LCSC (~$110), DigiKey (Teensy only), AliExpress — and
+**derived from the boards** via `tools/bom_census.py`, so it cannot drift from
+the design. Superseded material (DigiKey price snapshot, AliExpress
+comparisons, THT-vs-PCBA analysis) moved to
+`docs/archive/BOM_SOURCING_HISTORY.md`. FSR JST headers are now sourced (LCSC
+C131337, genuine JST); wire lengths remain placeholders
 until the pad harness is measured.
 
 ## Open design questions (not blocking)

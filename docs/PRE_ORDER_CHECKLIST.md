@@ -9,9 +9,10 @@ to that; if the scope ever changes, both docs move together.
 
 ## Footprint reconciliation for the LCSC parts (opened 2026-07-25)
 
-Adopting the LCSC cart (`docs/BOM.md` §G2) swaps several parts for ones with
-different land patterns. Must be closed before ordering. Two need new
-footprints, four need a confirm.
+Adopting the LCSC cart (`docs/BOM.md` order 2) swapped several parts for ones
+with different land patterns. **All closed as of 2026-07-26** — two needed new
+footprints (SW3, J1), one adopted the vendor pattern (J9/J4), three confirmed
+as drop-in (RN1, both DIP switches).
 
 **Method (2026-07-25):** footprints pulled with `easyeda2kicad` (free pip CLI,
 no EasyEDA subscription) straight from LCSC by C-number:
