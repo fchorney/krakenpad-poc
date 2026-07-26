@@ -105,20 +105,31 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
 - ⬜ **FSR leads vs J3/J4/J6/J7**: mate a real FSR lead's JST PHR-2 plug
   against a B2B-PH-K top-entry header (or at minimum compare datasheet drawings
   pin-for-pin). Flagged 2026-07-10, never physically verified.
-- ⬜ **U8 (LM66200, SOT-583 8-pin)**: new part as of 2026-07-20 (review 4.m,
-  replaces the D12/D23 Schottky OR). LCSC **C3235556**, ~$0.38 @10+ — add to
-  the assembly BOM (it is SMD and not DNP, so **JLC places it** — it is not a
-  hand-solder cart item) and confirm the footprint is the 8-pin DRL
-  package (2.1×1.6mm), *not* the 6-pin SOT-583 variant. D12/D23 are now DNP;
-  confirm they are excluded from the assembly BOM but their footprints are
-  still on the board (the hand-solder fallback depends on that).
+- ✅ **U8 (LM66200) package CONFIRMED 2026-07-26 — no parts needed.** Pulled
+  C3235556 via easyeda2kicad: LCSC's own footprint is
+  `SOT-583-8_L2.1-W1.2-P0.50-LS1.6-BL` — **8 pads, 0.50mm pitch, 2.1×1.2mm body,
+  1.6mm lead span**, i.e. the 8-pin DRL, not the 6-pin variant. Land pattern vs
+  the KiCad `SOT-583-8` the board uses: identical pitch and pad size
+  (0.28×0.68 vs 0.30×0.67), rotated 90° by library convention, row separation
+  1.28 vs 1.48mm — ~0.1mm of toe-vs-heel fillet allocation, normal between
+  library sources, leads land inside both. No footprint change.
+  U8 is SMD and not DNP so **JLC places it** — it is not a hand-solder cart item.
+- ⬜ **D12/D23 DNP handling** (order-time BOM/CPL check, not a parts check):
+  confirm the regenerated BOM/CPL **exclude** them while their footprints stay on
+  the board — the hand-solder Schottky-OR rescue depends on the pads existing.
 - ⬜ **D30 (SMAJ5.0A, new 2026-07-24)**: LCSC **C113952** written into the
   schematic — an *extended* part, so it adds a feeder/handling line to the
   quote. Confirm live stock in the JLC BOM dialog and re-pick if short
   (C87074 Diodes, C98802 ST are the same part in the same DO-214AC body).
-- ⬜ **SW1 (DIP-4) and SW3 (DPDT)**: confirm sourced parts match the footprints
-  (SW3 now uses `panel-pcb:SW_SS22E01L5`, SW1 is Zhongdi DS-04 / **C52177925**
-  from the LCSC cart); verify SW1 row spacing 7.62mm vs footprint on arrival.
+- ✅ **SW1 (DIP-4) and SW3 (DPDT) CLOSED 2026-07-25/26 — nothing left to verify
+  on arrival.** Both were settled from the vendors' own EasyEDA data, not
+  guessed: panel SW1 (Zhongdi DS-04, **C52177925**) pulled as 8 pads / 2.54mm
+  pitch / **7.62mm rows**, matching `SW_DIP_SPSTx04…W7.62`; master SW1 (DORABO
+  DS-3P-BU, **C46595747**) as 6 pads / 2.54 / 7.62 matching the x03 variant; and
+  SW3's footprint (`panel-pcb:SW_SS22E01L5`) was *built* from C609835's vendor
+  data with the pole grouping user-confirmed against the datasheet (2/5 = pole
+  commons, 1/4 left, 3/6 right, lugs = pads 7/8 → GND). The earlier "verify row
+  spacing on arrival" line predated that work.
   **SW1 source RE-SETTLED 2026-07-25: Zhongdi `DS-04`, LCSC C52177925** (30/$6.03),
   riding the LCSC order the pivot created. The note below is the superseded
   2026-07-24 reasoning, kept for context:
