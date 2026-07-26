@@ -38,6 +38,13 @@ Adopting 3 of stock's ideas plus 2 new ones our extra headroom allows for:
 | 13 | **Factory Reset Trigger** (new) | Forces the flash animation/config magic-byte wipe-and-rewrite-defaults path on boot — a recovery mechanism that doesn't depend on any working host software or bus command, useful if config/animation flash ever gets corrupted and normal boot can't get far enough to accept a reset command. |
 | 14–15 | Reserved | Unused for now, headroom for future diagnostic modes |
 
+These are all **panel-local**. The one diagnostic that is inherently
+master-driven — the **slot ↔ panel-ID self-test**, which proves each panel's INT
+wire lands in the Euroblock position the master thinks it does — lives in the bus
+protocol instead, as the `'I'` identify command (`docs/RS485_PROTOCOL.md`). It
+needs no DIP code: the master addresses a panel normally and the panel pulses its
+INT line so the master can see which input it arrives on.
+
 **How to apply:** panel firmware reads the DIP value once at boot (same as it already
 does for panel ID); values 9–13 branch into a diagnostic routine instead of normal
 main-loop operation (mirrors stock's documented behavior: "panels will not function

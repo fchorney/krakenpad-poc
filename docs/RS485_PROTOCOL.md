@@ -1,8 +1,9 @@
 # RS-485 Bus Protocol (v0 — prototype)
 
-Status: **v0, prototype bring-up.** Minimal framing + two commands. Config
-write/read, calibration, and multi-panel LED addressing come later; they slot in
-as new command bytes with the same framing.
+Status: **v0, prototype bring-up.** Minimal framing; `'L'`/`'F'`/`'f'`/`'C'`/`'c'`
+are implemented and bench-proven, **`'I'`/`'i'` (identify) are specified but not
+yet implemented** — there is no master firmware yet. Config write/read and
+calibration come later; they slot in as new command bytes with the same framing.
 
 ## Physical layer
 
@@ -65,6 +66,62 @@ Good enough for v0; re-sync loss just costs one frame.)
   reboot restores compile-time defaults. Flash persistence arrives with the full
   config system (see `docs/PANEL_CONFIG.md`).
 - Panel acks with `'c'` echoing the payload it applied.
+
+### `'I'` — identify / INT self-test (master → one panel)
+
+- addr = panel ID, len 1
+- Payload: `[duration_ms]`, 1–50 (panel clamps out-of-range; **2ms nominal**)
+- Panel replies `'i'` **first**, then — after letting its transceiver release the
+  bus — pulls its **INT line LOW for `duration_ms`** and releases it.
+- Reply-then-pulse ordering is deliberate: the master gets an explicit "expect a
+  pulse in the next N ms" window, so correlating the edge needs no guesswork.
+
+### `'i'` — identify ack (panel → master, reply only)
+
+- addr = panel ID, len 0
+
+## Slot ↔ panel-ID self-test
+
+Two independent things claim to say which panel is which: the **physical slot**
+(master INT input *N* is whatever panel is plugged into Euroblock position *N*)
+and the panel's **self-reported ID** (read from its DIP at boot, used as the
+`addr` byte). Nothing guarantees they agree, and because **INT is the sole
+gameplay press path**, a disagreement means presses register as the wrong arrow
+— a silent bug that feels like "the pad is broken". `'I'` exists to learn the
+true mapping empirically instead of assuming it.
+
+**Master algorithm:**
+
+1. **Idle pre-check** — all 9 INT inputs must read HIGH. A line already LOW is a
+   stood-on panel, a stuck FSR, or a shorted wire; it cannot show a transition,
+   so report it and stop rather than mis-attributing later pulses.
+2. For each ID 0–8: send `'I'`, wait for `'i'`, then watch **all nine** inputs
+   for a falling edge inside the expected window.
+3. Require exactly one slot to fire, its LOW time to be ≈ `duration_ms`, and the
+   line to return HIGH. Record slot ↔ ID.
+
+**What each failure tells you:**
+
+| Symptom | Meaning |
+|---------|---------|
+| `'i'` ack, edge on an unexpected slot | INT wire in the wrong Euroblock position — the per-panel wire colour (`docs/BOM.md`) names which one to move |
+| `'i'` ack, no edge on any slot | INT wire not landed, open, or the panel's open-drain GPIO is dead |
+| `'i'` ack, **two** slots fire | two panels share a DIP ID — both answered the address and both pulsed |
+| Edge fires but no `'i'` ack | panel lives on INT but not on RS-485: transceiver, termination, or A/B swapped |
+| Neither ack nor edge | panel absent, unpowered, or dead |
+| Pre-check finds a LOW line | stuck FSR / shorted INT wire, or someone is standing on the pad |
+
+**It is also a continuity test of the input path.** The pulse uses the same
+open-drain driver a real press uses, so a pass proves panel GPIO → wire →
+master pull-up and RC filter → master input pin, end to end. That is the one
+path where a fault costs gameplay latency or correctness, and it is otherwise
+only exercised by pressing every panel by hand.
+
+**Gating:** diagnostic only — run at bring-up and after any re-cabling, never
+during gameplay. To the master an identify pulse is indistinguishable from a
+press (that is the point), so the host must gate it: no HID input reporting
+while a self-test runs. Keep the learned map in RAM and re-derive it each run;
+persisting it risks caching a wrong mapping.
 
 ## Timing budget (v0, single panel)
 

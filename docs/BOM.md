@@ -149,7 +149,7 @@ rating.
 |--------|------|----------|
 | 12V power | 2×20 AWG jacketed round, red/black | 3 columns × 2 pads, ~5m/pad |
 | RS-485 | 22–24 AWG **actual twisted pair** | 9 segments/pad, ~5m/pad. Fix an A/B color convention and never deviate |
-| INT | 24 AWG, **9 distinct colors** | ~7–10m/pad. Stock SMX map, confirmed against the pad: 0=Red 1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black — feeds panel-ID mismatch detection |
+| INT | 24 AWG, **9 distinct colors** | ~7–10m/pad. Stock SMX map, confirmed against the pad: 0=Red 1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black. The colours are what let you find the offending wire when the slot↔ID self-test reports a mismatch (`docs/RS485_PROTOCOL.md`) |
 | Master GND tie | 1 lead (18 AWG on hand) to the PSU GND stud | **mandatory**, not optional wiring |
 
 Spool quantization (25/100 ft) makes precise footage moot; the 9-color INT
