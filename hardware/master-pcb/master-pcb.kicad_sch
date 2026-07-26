@@ -11080,7 +11080,7 @@
 				)
 			)
 		)
-		(property "Footprint" "master-pcb:TerminalBlock_MRR52-5.08-2P"
+		(property "Footprint" "master-pcb:TerminalBlock_WJ500V-5.08-2P"
 			(at 225.55 41.42 0)
 			(hide yes)
 			(show_name no)
@@ -11091,7 +11091,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://dcomponents.com/uploads/375571_MRR52-5.08-V.pdf"
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C8465.html"
 			(at 225.55 41.42 0)
 			(hide yes)
 			(show_name no)
@@ -11102,7 +11102,7 @@
 				)
 			)
 		)
-		(property "Description" "Adam Tech MRR522-5.08-V, 2P 5.08mm top-entry screw terminal: GND + LED-DATA-OUT (5V logic). UI-gated; no sense pin"
+		(property "Description" "KANGNEX WJ500V-5.08-2P (LCSC C8465), 2P 5.08mm top-entry screw terminal: GND + LED-DATA-OUT (5V logic). UI-gated; no sense pin"
 			(at 225.55 41.42 0)
 			(hide yes)
 			(show_name no)
@@ -11113,7 +11113,7 @@
 				)
 			)
 		)
-		(property "LCSC" ""
+		(property "LCSC" "C8465"
 			(at -135.89 -120.65 0)
 			(hide yes)
 			(show_name no)
@@ -11124,19 +11124,8 @@
 				)
 			)
 		)
-		(property "MPN" "MRR522-5.08-V"
+		(property "MPN" "WJ500V-5.08-2P"
 			(at -135.89 -120.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "DigiKey" "5245-MRR522-5.08-V-ND"
-			(at -166.37 -143.51 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

@@ -120,6 +120,28 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
   the reviewer's "must shift to 12V" finding; 12V would violate abs-max).
   Optional extra insurance only: bench-drive a WS2815 strip from the
   prototype's SN74AHCT125N at 5V (we've only personally tested WS2812B).
+  **WAIVED 2026-07-26** — not worth buying WS2815s just to test. The datasheet
+  confirm above is the substantive check; the 5V-shifter question rests on
+  VIH 2.7V min, which is a spec guarantee, not a marginal reading. Residual
+  risk is accepted: if a bring-up board shows flaky LED data, the shifter rail
+  is the first suspect.
+- ✅ **Per-LED pin-1 caps (C22–C49) are vendor-sanctioned — CLOSED 2026-07-26.**
+  **Two** Worldsemi documents that bracket our revision in time — the original
+  2018-era **WS2815** doc (`led-stuebchen.de/download/WS2815.pdf`, the same doc
+  NORMAND hosts) and **WS2815B-V3** (`ledlightinghut.com/files/WS2815B.pdf`) —
+  both give pin 1 verbatim as *"VCC … IC POWER SUPPLY, Suspended or connected
+  with a filter capacitor to GROUND"*. Our **V1 V2.0 doc is the outlier**, the
+  only one calling it "NC / Suspended PIN"; it is also the only one labelling
+  pins 4/6 "DIN1/DIN2" instead of "DIN/BIN", so that column looks edited from a
+  different source. Caveat kept deliberately: paper does **not** prove V1
+  silicon brings the rail out to pin 1 — but a 100nF is no DC load, so if V1 is
+  truly NC the cap is merely inert. Safe either way; only probing a powered
+  part (≈5V vs floating) would settle it outright. **No per-LED VDD decoupling is wanted**: V3 states the part
+  needs "NO extra components", neither revision contains an application
+  circuit, and the channels are constant-current (~10–12mA fixed) so there is
+  no per-pixel switching transient to decouple. Leave C22–C49 as drawn.
+  Watch-out: V3 silicon uses VIH = 0.7·VDD (~3.5V) vs V1's 2.7V absolute — the
+  5V shifter clears both, but don't accept a V3 substitution silently.
 
 ## 2. Design-file state (all scriptable/checkable from the repo)
 

@@ -133,48 +133,42 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "SS22E01L5"
+	(symbol "FSR"
+		(pin_numbers
+			(hide yes)
+		)
 		(pin_names
-			(offset 1.016)
+			(offset 0)
 		)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
-		(property "Reference" "SW3"
-			(at 15.24 0 90)
+		(property "Reference" "FSR"
+			(at 3.81 1.2701 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
-		(property "Value" "RS-485 Termination"
-			(at 12.192 0 90)
+		(property "Value" "408"
+			(at 3.81 -1.2699 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
-		(property "Footprint" "panel-pcb:SW_SS22E01L5"
-			(at 0.254 -34.544 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.lcsc.com/product-detail/C609835.html"
-			(at 0 -31.496 0)
+		(property "Footprint" ""
+			(at 1.016 -0.254 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -184,8 +178,8 @@
 				)
 			)
 		)
-		(property "Description" "DPDT slide switch, RS-485 termination. Common pins (2, 5) are the switch wiper; pole 1 (pins 1-3) routes the 120R termination resistor in/out of the A/B pair, pole 2 (pins 4-6) ganged on the same physical actuator reports termination state to GPIO10 (pin 4 = GND so the position that inserts the 120R also reads LOW = terminated). See docs/MODULAR_PANEL_COUNT.md."
-			(at -0.254 -28.448 0)
+		(property "Datasheet" "https://www.interlinkelectronics.com/downloads/datasheets/fsr-400-series-datasheet.pdf"
+			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -195,8 +189,8 @@
 				)
 			)
 		)
-		(property "MPN" "SS22E01L5"
-			(at 0 15.748 0)
+		(property "Description" "Force Sensitive Resistor"
+			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -206,8 +200,8 @@
 				)
 			)
 		)
-				(property "LCSC" "C609835"
-			(at 0 18.288 0)
+		(property "ki_keywords" "R res resistor FSR force sensitive"
+			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -217,157 +211,21 @@
 				)
 			)
 		)
-		(symbol "SS22E01L5_0_0"
-			(pin passive line
-				(at -7.62 7.62 270)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "1"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at 0 7.62 270)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "2"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at 7.62 7.62 270)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "3"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -7.62 -7.62 90)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "4"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at 0 -7.62 90)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "5"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at 7.62 -7.62 90)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "6"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -12.7 0 0)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "7"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at 12.7 0 180)
-				(length 2.54)
-				(name "~"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "8"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
+		(property "ki_fp_filters" "R_*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
 				)
 			)
 		)
-		(symbol "SS22E01L5_0_1"
+		(symbol "FSR_0_1"
 			(polyline
 				(pts
-					(xy -8.89 3.81) (xy -8.89 5.08) (xy -6.35 5.08) (xy -6.35 3.81) (xy -1.27 3.81) (xy -1.27 5.08)
-					(xy 1.27 5.08) (xy 1.27 2.54) (xy -8.89 2.54) (xy -8.89 3.81)
+					(xy -2.286 -2.032) (xy 1.778 2.032) (xy 1.778 -2.032)
 				)
 				(stroke
 					(width 0)
@@ -379,7 +237,7 @@
 			)
 			(polyline
 				(pts
-					(xy -8.89 0) (xy 8.89 0)
+					(xy 0 2.286) (xy 0 2.54)
 				)
 				(stroke
 					(width 0)
@@ -391,8 +249,7 @@
 			)
 			(polyline
 				(pts
-					(xy 1.27 -3.81) (xy 1.27 -5.08) (xy -1.27 -5.08) (xy -1.27 -3.81) (xy -6.35 -3.81) (xy -6.35 -5.08)
-					(xy -8.89 -5.08) (xy -8.89 -2.54) (xy 1.27 -2.54) (xy 1.27 -3.81)
+					(xy 0 2.286) (xy 1.016 1.905) (xy 0 1.524) (xy -1.016 1.143) (xy 0 0.762)
 				)
 				(stroke
 					(width 0)
@@ -404,7 +261,43 @@
 			)
 			(polyline
 				(pts
-					(xy 9.652 0) (xy 7.62 0.254) (xy 7.62 -0.254) (xy 9.652 0)
+					(xy 0 0.762) (xy 1.016 0.381) (xy 0 0) (xy -1.016 -0.381) (xy 0 -0.762)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0 -0.762) (xy 1.016 -1.143) (xy 0 -1.524) (xy -1.016 -1.905) (xy 0 -2.286)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0 -2.286) (xy 0 -2.54)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.778 -2.032) (xy 2.286 -1.27) (xy 1.27 -1.27) (xy 1.778 -2.032)
 				)
 				(stroke
 					(width 0)
@@ -412,6 +305,44 @@
 				)
 				(fill
 					(type outline)
+				)
+			)
+		)
+		(symbol "FSR_1_1"
+			(pin passive line
+				(at 0 3.81 270)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -3.81 90)
+				(length 1.27)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
 				)
 			)
 		)
@@ -663,53 +594,37 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "FSR"
-		(pin_numbers
-			(hide yes)
-		)
+	(symbol "SS22E01L5"
 		(pin_names
-			(offset 0)
+			(offset 1.016)
 		)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
-		(property "Reference" "FSR"
-			(at 3.81 1.2701 0)
+		(property "Reference" "SW3"
+			(at 15.24 0 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Value" "408"
-			(at 3.81 -1.2699 0)
+		(property "Value" "RS-485 Termination"
+			(at 12.192 0 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Footprint" ""
-			(at 1.016 -0.254 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.interlinkelectronics.com/downloads/datasheets/fsr-400-series-datasheet.pdf"
-			(at 0 0 0)
+		(property "Footprint" "panel-pcb:SW_SS22E01L5"
+			(at 0.254 -34.544 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -719,8 +634,8 @@
 				)
 			)
 		)
-		(property "Description" "Force Sensitive Resistor"
-			(at 0 0 0)
+		(property "Datasheet" "https://www.lcsc.com/product-detail/C609835.html"
+			(at 0 -31.496 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -730,8 +645,8 @@
 				)
 			)
 		)
-		(property "ki_keywords" "R res resistor FSR force sensitive"
-			(at 0 0 0)
+		(property "Description" "DPDT slide switch, RS-485 termination. Common pins (2, 5) are the switch wiper; pole 1 (pins 1-3) routes the 120R termination resistor in/out of the A/B pair, pole 2 (pins 4-6) ganged on the same physical actuator reports termination state to GPIO10 (pin 4 = GND so the position that inserts the 120R also reads LOW = terminated). See docs/MODULAR_PANEL_COUNT.md."
+			(at -0.254 -28.448 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -741,8 +656,8 @@
 				)
 			)
 		)
-		(property "ki_fp_filters" "R_*"
-			(at 0 0 0)
+		(property "MPN" "SS22E01L5"
+			(at 0 15.748 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -752,10 +667,167 @@
 				)
 			)
 		)
-		(symbol "FSR_0_1"
+		(property "LCSC" "C609835"
+			(at 0 18.288 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "SS22E01L5_0_0"
+			(pin passive line
+				(at -7.62 7.62 270)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 7.62 270)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 7.62 270)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -7.62 -7.62 90)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 7.62 -7.62 90)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -15.24 -7.62 90)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -15.24 7.62 270)
+				(length 2.54)
+				(name "~"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+		)
+		(symbol "SS22E01L5_0_1"
 			(polyline
 				(pts
-					(xy -2.286 -2.032) (xy 1.778 2.032) (xy 1.778 -2.032)
+					(xy -15.24 -5.08) (xy -15.24 5.08)
 				)
 				(stroke
 					(width 0)
@@ -767,67 +839,7 @@
 			)
 			(polyline
 				(pts
-					(xy 0 2.286) (xy 0 2.54)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0 2.286) (xy 1.016 1.905) (xy 0 1.524) (xy -1.016 1.143) (xy 0 0.762)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0 0.762) (xy 1.016 0.381) (xy 0 0) (xy -1.016 -0.381) (xy 0 -0.762)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0 -0.762) (xy 1.016 -1.143) (xy 0 -1.524) (xy -1.016 -1.905) (xy 0 -2.286)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0 -2.286) (xy 0 -2.54)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 1.778 -2.032) (xy 2.286 -1.27) (xy 1.27 -1.27) (xy 1.778 -2.032)
+					(xy -9.652 0) (xy -7.62 -0.254) (xy -7.62 0.254) (xy -9.652 0)
 				)
 				(stroke
 					(width 0)
@@ -837,42 +849,54 @@
 					(type outline)
 				)
 			)
-		)
-		(symbol "FSR_1_1"
-			(pin passive line
-				(at 0 3.81 270)
-				(length 1.27)
-				(name ""
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
+			(polyline
+				(pts
+					(xy -8.89 3.81) (xy -8.89 5.08) (xy -6.35 5.08) (xy -6.35 3.81) (xy -1.27 3.81) (xy -1.27 5.08)
+					(xy 1.27 5.08) (xy 1.27 2.54) (xy -8.89 2.54) (xy -8.89 3.81)
 				)
-				(number "1"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
 				)
 			)
-			(pin passive line
-				(at 0 -3.81 90)
-				(length 1.27)
-				(name ""
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
+			(polyline
+				(pts
+					(xy -8.89 0) (xy 8.89 0)
 				)
-				(number "2"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 -3.81) (xy 1.27 -5.08) (xy -1.27 -5.08) (xy -1.27 -3.81) (xy -6.35 -3.81) (xy -6.35 -5.08)
+					(xy -8.89 -5.08) (xy -8.89 -2.54) (xy 1.27 -2.54) (xy 1.27 -3.81)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 9.652 0) (xy 7.62 0.254) (xy 7.62 -0.254) (xy 9.652 0)
+				)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type outline)
 				)
 			)
 		)
