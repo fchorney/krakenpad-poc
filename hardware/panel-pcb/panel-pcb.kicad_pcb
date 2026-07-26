@@ -11643,6 +11643,7 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+					(thickness 0.15)
 				)
 			)
 		)
@@ -34249,7 +34250,7 @@
 		)
 	)
 	(gr_text "Signal"
-		(at 85 107.9 90)
+		(at 85 113 90)
 		(layer "F.SilkS")
 		(uuid "38255c37-038c-4dfa-8f83-eb3d31d40960")
 		(effects
@@ -34260,7 +34261,7 @@
 		)
 	)
 	(gr_text "GND"
-		(at 85.1 113 90)
+		(at 85.1 107.9 90)
 		(layer "F.SilkS")
 		(uuid "604d723c-4ce8-466b-8f7a-3ee363b8a6ed")
 		(effects

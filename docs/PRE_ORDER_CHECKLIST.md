@@ -90,18 +90,22 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
 
 ## 1. Physical part verification (needs parts in hand)
 
-- ⬜ **J9 (INT screw terminal)**: **2P** (swapped 2026-07-20 — true 1P KF301
-  barely exists). **Pin 1 = INT signal (net `Net-(D30-K)`), pin 2 = dedicated
-  GND** as of 2026-07-24 — this supersedes the earlier both-pins-bridged
-  arrangement, so the wire is no longer position-agnostic. A single-conductor
-  cable lands on pin 1 and leaves pin 2 empty; pin 2 exists to pre-provision a
-  paired signal+GND return if the bench shows spurious triggers. Part: **KANGNEX
-  WJ500V-5.08-2P**, LCSC **C8465** (2026-07-26; superseded Adam Tech
-  MRR522-5.08-V, which superseded the KF301 pick). Footprint
-  `TerminalBlock_WJ500V-5.08-2P` is the **vendor's own** land pattern, hole
-  Ø1.30, pad 2.00. Pitch and body already match on paper — on arrival just
-  confirm **which physical position is pin 1** (it is no longer
-  position-agnostic) and that the pins pass the 1.30mm holes.
+- ✅ **J9 / master J4 (screw terminals) CLOSED 2026-07-26 — nothing to verify on
+  arrival.** **2P** (swapped 2026-07-20 — true 1P KF301 barely exists), part
+  KANGNEX WJ500V-5.08-2P / LCSC **C8465** on the vendor's own land pattern
+  `TerminalBlock_WJ500V-5.08-2P` (1.30mm holes, 2.00mm pads). Nets: panel J9
+  **pin 1 = INT signal (`Net-(D30-K)`, via R17), pin 2 = dedicated GND**
+  (2026-07-24, supersedes both-pins-bridged); master J4 pin 1 = underglow DATA,
+  pin 2 = the mandatory GND tie to the PSU stud. D30 (SMAJ5.0A) clamps
+  signal→pin-2 GND at the connector.
+  An earlier "verify pin-1 orientation on arrival" line was **wrong-headed and
+  has been removed**: a 2-position screw terminal is two identical clamps with no
+  polarity or keying, so the part cannot be fitted the wrong way round and "pin
+  1" is only whichever hole the footprint names. The thing that actually matters
+  is that the **silkscreen says which clamp is which** — labels added by the user
+  2026-07-26 on both boards (panel: `Signal` / `GND`; master: `UG` / `GND`).
+  Body rotation still decides which way the wire enters, but that is visible in
+  the 3D view, not a parts-in-hand check.
 - ⬜ **FSR leads vs J3/J4/J6/J7**: mate a real FSR lead's JST PHR-2 plug
   against a B2B-PH-K top-entry header (or at minimum compare datasheet drawings
   pin-for-pin). Flagged 2026-07-10, never physically verified.
@@ -265,7 +269,16 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
   placement preview.
 - ⬜ WS2815s use our custom PLCC6 footprint — JLC may render a generic body;
   orient by pads against the part-detail photo, not the render.
-- ⬜ C51: confirm 10mm can diameter sits correctly on the pads.
+- ✅ **C51 can-vs-pads CLOSED 2026-07-26 from vendor data.** Pulled the part's own
+  land pattern (C82014 → `CAP-SMD_BD10.0-L10.3-W10.3-LS11.3-FD`): **BD10.0 = a
+  10.0mm can**, matching our footprint's 5.0mm body radius exactly. Terminal
+  lands: vendor pads at x=±4.50, 4.50×1.65mm; ours at ±4.00, 4.40×**4.00**mm —
+  ours are far taller and sit 0.5mm inboard, covering **~88% of the vendor land
+  area** (overlap 3.95 × 1.65mm), leaving a 0.55mm strip of terminal past the
+  outer pad edge. Electrically and mechanically fine, and the part self-centres
+  because both pads are offset equally. **Deliberately not "improved"**: C22's
+  bounding box is 0.1mm away, so growing the pads outward risks a clearance
+  fight for a cosmetic fillet gain.
 - ⬜ Fix any rotation issues in their preview UI (select + rotate), not by
   re-uploading the CPL.
 

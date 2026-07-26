@@ -13,6 +13,11 @@ __pycache__/
 hardware/**/.history/
 hardware/**/*.kicad_prl
 hardware/**/~*.lck
+hardware/**/*.bak
+# Fab output — regenerated from the boards when an order is actually placed
+# (kicad-cli commands are in git history / docs/PRE_ORDER_CHECKLIST.md).
+# Commit an as-ordered snapshot only if a real order gets placed.
+hardware/**/production/
 
 # tmp folder
 /tmp
