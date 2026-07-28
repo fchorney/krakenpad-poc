@@ -1,4 +1,0 @@
-(sym_lib_table
-  (version 7)
-  (lib (name "brain-pcb")(type "KiCad")(uri "${KIPRJMOD}/brain-pcb.kicad_sym")(options "")(descr "Project-local symbols (SnapEDA imports etc.)"))
-)

@@ -226,6 +226,7 @@
         0.3,
         0.5,
         1.0,
+        1.5,
         2.0,
         2.5
       ],
@@ -282,7 +283,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": "1.0"
+      "sch_revision": "0.1"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -530,7 +531,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "brain-pcb.kicad_pro",
+    "filename": "dual-panel.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -542,10 +543,10 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.25,
+        "track_width": 0.2,
         "tuning_profile": "",
-        "via_diameter": 0.8,
-        "via_drill": 0.4,
+        "via_diameter": 0.45,
+        "via_drill": 0.3,
         "wire_width": 6
       },
       {
@@ -555,10 +556,10 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 2.0,
+        "track_width": 0.5,
         "tuning_profile": "",
-        "via_diameter": 1.2,
-        "via_drill": 0.6,
+        "via_diameter": 0.45,
+        "via_drill": 0.3,
         "wire_width": 6
       }
     ],
@@ -569,11 +570,11 @@
       "+1.1V": "rgb(255, 92, 227)",
       "+1.1VDC": "rgb(255, 0, 208)",
       "+12.0V": "rgb(1, 255, 0)",
-      "+12VDC": "rgb(255, 204, 22)",
-      "+3.3VDC": "rgb(201, 8, 12)",
+      "+12VDC": "rgb(132, 132, 0)",
+      "+3.3VDC": "rgb(204, 102, 0)",
       "+3V3": "rgb(255, 70, 74)",
       "+5.0V": "rgb(84, 94, 255)",
-      "+5VDC": "rgb(78, 117, 255)",
+      "+5VDC": "rgb(0, 132, 0)",
       "/+5VDC_AMS": "rgb(0, 185, 255)",
       "GND": "rgb(27, 27, 27)",
       "Net-(D23-A)": "rgb(43, 29, 255)",
@@ -722,18 +723,26 @@
     "subpart_id_separator": 0,
     "top_level_sheets": [
       {
-        "filename": "brain-pcb.kicad_sch",
-        "name": "brain-pcb",
+        "filename": "dual-panel.kicad_sch",
+        "name": "dual-panel",
         "uuid": "a1b2c3d4-0000-4000-8000-000000000001"
       }
     ],
-    "used_designators": "SW1-3,#FLG1-6,X1,TP1-14,U1-7,#PWR1-168,D1-29,C1-53,C56,R1-19,J1-11",
+    "used_designators": "FSR2,J1-16,R1-20,C1-53,C56-58,D1-29,#PWR1-185,U1-7,TP1-17,X1,#FLG1-6,#FLG30,SW1-3",
     "variants": []
   },
   "sheets": [
     [
       "a1b2c3d4-0000-4000-8000-000000000001",
-      "brain-pcb"
+      "dual-panel"
+    ],
+    [
+      "a1b2c3d4-0000-4000-8000-00000000dc01",
+      "carrier"
+    ],
+    [
+      "a1b2c3d4-0000-4000-8000-00000000db01",
+      "brain"
     ]
   ],
   "text_variables": {},

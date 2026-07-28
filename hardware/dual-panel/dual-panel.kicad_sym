@@ -623,7 +623,7 @@
 				)
 			)
 		)
-		(property "Footprint" "brain-pcb:SW_SS22E01L5"
+		(property "Footprint" "dual-panel:SW_SS22E01L5"
 			(at 0.254 -34.544 0)
 			(show_name no)
 			(do_not_autoplace no)

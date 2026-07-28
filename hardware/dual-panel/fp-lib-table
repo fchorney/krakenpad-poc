@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "dual-panel")(type "KiCad")(uri "${KIPRJMOD}/dual-panel.pretty")(options "")(descr "Project-local footprints (SnapEDA imports etc.)"))
+)

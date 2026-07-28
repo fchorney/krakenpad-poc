@@ -1,4 +1,0 @@
-(fp_lib_table
-  (version 7)
-  (lib (name "brain-pcb")(type "KiCad")(uri "${KIPRJMOD}/brain-pcb.pretty")(options "")(descr "Project-local footprints (SnapEDA imports etc.)"))
-)

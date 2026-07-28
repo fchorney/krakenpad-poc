@@ -1,0 +1,99 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "a1b2c3d4-0000-4000-8000-00000000d001")
+	(paper "A4")
+	(title_block
+		(title "KrakenPad Dual-Panel (exploration)")
+		(date "2026-07-27")
+		(rev "0.1")
+		(comment 1 "Two-board split: display/IO carrier + socketed brain, one netlist, one .kicad_pcb")
+		(comment 2 "Both sheets seeded from panel-pcb rev 1.0 - each to be stripped down to its role")
+	)
+	(lib_symbols)
+	(sheet
+		(at 63.5 114.3)
+		(size 63.5 25.4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "a1b2c3d4-0000-4000-8000-00000000db01")
+		(property "Sheetname" "brain"
+			(at 63.5 113.5884 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "brain.kicad_sch"
+			(at 63.5 141.1993 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+	)
+	(sheet
+		(at 63.5 63.5)
+		(size 63.5 25.4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "a1b2c3d4-0000-4000-8000-00000000dc01")
+		(property "Sheetname" "carrier"
+			(at 63.5 62.7884 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "carrier.kicad_sch"
+			(at 63.5 90.3993 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
