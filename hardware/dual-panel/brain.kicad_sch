@@ -22260,7 +22260,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "233b8583-9884-4de6-8fef-29b1c7df9024")
+			(uuid "233b8583-9884-4de6-8fef-29b1c7df9025")
 		)
 		(instances
 			(project "dual-panel"
