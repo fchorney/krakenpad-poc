@@ -11,9 +11,14 @@ sits relative to the board was never established. The design currently assumes i
 centred on the mounting-hole pattern (centre `85.80, 78.90`), giving a usable window
 of `x 41.80-129.80, y 28.90-128.90`.
 
-That assumption is load-bearing. The brain's east/west margins are only **~5.8 / 6.1 mm**,
-so an opening a few millimetres off-centre puts the brain into the frame wall. This
-template replaces the assumption with a measurement.
+That assumption is load-bearing, so it was checked. **Verified 2026-07-30:** the
+dashed rectangle matched the real frame edge on all four sides, so the window above
+is now measured rather than assumed.
+
+The same test caught a real clash — J1's USB-C body overhung the west edge by 3.20mm,
+leaving 2.94mm to the cavity wall where the outline alone showed 6.11mm. J1 has since
+moved to the brain's south edge (24.70mm of clearance) and the generator now draws
+overhanging bodies (see below).
 
 ## Use
 
@@ -47,8 +52,9 @@ boxes, not just the outline** — a body that overhangs is what actually hits th
 - **Plan only.** It does not test depth. The brain sits ~14 mm down; if the frame is
   moulded with draft, the walls close in over that distance. Re-check with a stiff
   copy of the cut-out dropped to the cavity floor.
-- **Not a height check.** Mated connector height + 1.6 mm of brain PCB + the tallest
-  bottom-side brain part must fit the 20 mm of measured depth. Separate check.
+- **Not a height check.** The measured assembly stack is recorded in
+  [`../README.md`](../README.md) under *Mechanical stack* — 15.35 mm used of 20 mm
+  available, with an 11 mm M3 spacer between the boards.
 - **Don't read it to tenths.** ⌀4.50 holes on M3 screws let the board sit up to
   0.75 mm off in any direction, and PCB outline tolerance adds ~±0.2 mm.
 

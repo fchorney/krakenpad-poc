@@ -184,22 +184,93 @@ would have, and it's worth paying for on its own merits.
 - **Protection lives at the ports on the carrier**, same philosophy as USB: D30
   (SMAJ5.0A) and R17 stay next to the INT terminal, not on the brain.
 
+## Mechanical stack (measured 2026-07-30)
+
+### The cavity
+
+Measured from the carrier's underside: **6mm** to the frame floor everywhere under
+the board, plus a further **14mm** inside the opening — so **20mm of usable depth,
+but only inside the opening**. The opening is **88 (X) × 100 (Y)**.
+
+The printed fit test (see `fit-test/`) **confirmed the opening is centred on the
+mounting-hole pattern**, which had been an assumption since the first measurement.
+In carrier coordinates the usable window is **`x 41.80–129.80, y 28.90–128.90`**.
+
+### The assembly
+
+Measured off real parts with calipers, not taken from datasheets:
+
+| item | mm |
+|---|---|
+| male header plastic body | 2.45 |
+| female socket body | 8.30 |
+| **→ board-to-board separation** | **10.75** |
+| brain PCB | 1.60 |
+| M3 socket-cap screw head, brain underside | 3.00 |
+| **total below the carrier underside** | **15.35** |
+| available | 20.00 |
+| **spare** | **4.65** |
+
+The separation is set by **the two plastics meeting, not by the pins bottoming
+out** — which only holds while the header's mating pin is shorter than the socket
+is deep. The 8mm-mating headers on hand bottom out in the 8.30mm socket and will
+not seat flush.
+
+**Source headers as 6.0mm mating pin with a ≥3.0mm solder tail** (the standard
+11.6mm total pin). Some "short" headers trim the tail rather than the mating end,
+which would leave under 1.6mm and not protrude through the carrier to solder at all.
+
+### Spacer: 11mm M3, deliberately erring tall
+
+Nominal separation is 10.75mm, so an 11mm spacer holds the boards 0.25mm proud of
+full seating — pins still engaged ~5.75mm, harmless. **A 10mm spacer would be
+0.75mm short**, and the screws would close that gap by flexing the boards across
+the 69.1mm between H5 and H6, putting exactly the load on the connectors that the
+spacer exists to remove. Err tall, never short.
+
+**Never omit the spacer.** Without one, tightening pulls the brain up into the
+carrier and the connectors absorb the entire clamping force.
+
+### M3 hardware on the carrier's top face
+
+Holes are **H5 `(58.0, 95.5)`** and **H6 `(103.8, 43.7)`**. An M3 nut measures
+2.2mm tall × 5.45mm across flats (≈6.29mm across corners) — **shorter than the
+3.00mm socket-cap head, so keep the nut on this face**, not a screw head. A
+button-head screw (~1.65mm) is the option if that last 0.55mm is ever wanted.
+
+Lateral clearance is ample: nearest top-side part is **D5 at 7.81mm** from H5
+(4.66mm of nut margin) and **C45 at 10.42mm** from H6 (7.27mm) — a 5.5mm nut
+driver at ~8mm OD fits at both. The nut stands ~0.6mm proud of the WS2815s
+(PLCC6, ~1.6mm); confirmed a non-issue, there is ample height to the panel above.
+
+### Everything deep must sit inside the opening
+
+Required, because the stack is 10.75mm deep at the connectors while the frame
+floor is only 6mm below the carrier — anything over the floor would foul. The four
+connectors span `x 61.4–110.5, y 47.9–90.6` and the screws sit at `(58.0, 95.5)`
+and `(103.8, 43.7)`, all comfortably inside `x 41.80–129.80, y 28.90–128.90`.
+
+The carrier's underside now carries only **D30 (SMA, ~2.3mm), R2, R17** plus the
+four interface headers, all well within the 6mm to the floor. The old worry about
+20 bottom-side parts dissolved rather than being solved.
+
 ## Open gates
 
-1. **Cavity depth + standoff height** — the only hard physical gate. Need: how
-   far the PCB underside sits above the frame's inner floor, and how much deeper
-   the recess goes. Stack is socket height + 1.6mm brain PCB + its tallest part
-   (~3mm, the AMS1117 or the electrolytic) + clearance.
-2. **The carrier's underside is already populated** in the current design — 20
-   parts spread over X 82–203, Y 46–110mm, tallest being **D30 (SMA, ~2.3mm)**.
-   Either the socket stands off >~3mm, or those parts move to the top on the
-   carrier redesign (there's room now that the brain is gone).
-3. **Can the carrier really be 2 layers?** LED chain + 12V distribution + a GND
-   pour, with the RS-485 pair and four FSR lines crossing to the connector. Looks
-   plausible; wants a real routing attempt to confirm, since the GND pour gets
-   chopped by the brain footprint and the remaining bottom-side parts.
-4. **Interface spec** — the one mistake that would force changes on *both*
-   boards. See below.
+1. **Cavity draft / depth at the brain's level.** The printed fit test is
+   plan-view only and was taken at the top of the opening. If the frame is moulded
+   with draft, the walls close in over the ~14mm the brain sits down — and the USB
+   plug now inserts *horizontally at that depth* on the south side. Re-check with a
+   stiff copy of the cut-out dropped to the cavity floor.
+2. **Schematic parity: 92 `net_conflict`s.** Pre-existing and unchanged by *Update
+   PCB from Schematic*. It is net **naming**, not topology — the exported netlist
+   agrees with the PCB pad-for-pad, and gerbers carry no net names. Exclude it.
+3. **Panelising** the two outlines — deliberately last, after the shapes settle.
+
+Closed since this list was written: cavity depth and standoff height (above);
+the carrier's populated underside (dissolved, above); "can the carrier be 2
+layers?" (moot — see [Why not split the stackups](#why-not-split-the-stackups-2026-07-27),
+both boards ship at 4 layers on one panel); and the interface spec, which is now
+built and verified pin-for-pin across all 32 pins.
 
 ## Board-to-board interface
 

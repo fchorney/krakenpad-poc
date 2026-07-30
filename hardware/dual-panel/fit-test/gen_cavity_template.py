@@ -31,10 +31,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PCB = os.path.join(HERE, "..", "dual-panel.kicad_pcb")
 OUT = os.path.join(HERE, "cavity-fit-template.svg")
 
-# Frame cavity opening, in CARRIER coordinates. This is the unverified
-# assumption the whole test exists to check: the measured 88 x 100 mm opening
-# taken to be centred on the mounting-hole pattern centre (85.80, 78.90).
-# Update once measured, then re-run.
+# Frame cavity opening, in CARRIER coordinates: the measured 88 x 100 mm opening,
+# centred on the mounting-hole pattern centre (85.80, 78.90).
+# VERIFIED 2026-07-30 by the printed fit test - the dashed rectangle matched the
+# real frame edge on all four sides, so this is measured, not assumed.
 WINDOW = (41.80, 129.80, 28.90, 128.90)  # x0, x1, y0, y1
 
 CARRIER_ANCHOR = "H5"  # carrier-side M3 for the brain
