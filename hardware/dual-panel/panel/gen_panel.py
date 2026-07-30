@@ -220,7 +220,13 @@ def main():
                              openingDiameter=2*mm)
     panel.addCornerTooling(holeCount=TOOLING_COUNT, horizontalOffset=5*mm,
                            verticalOffset=2.5*mm, diameter=1.5*mm)
-    panel.save()
+
+    # refillAllZones is not optional here. Zone fills are copied from the source
+    # board as-is, so if it was saved with zones dirty -- trivially easy, e.g.
+    # after moving a zone outline and forgetting to press B -- the panel is
+    # generated "successfully" with no copper pours at all, and gerbers off it
+    # would be boards with no ground plane. Refill unconditionally.
+    panel.save(refillAllZones=True)
 
     # Verify, because KiKit will happily emit a panel whose boards are still loose:
     # an earlier run reported no error yet produced 0 tabs and 2 separate pieces.
