@@ -4,6 +4,8 @@
 <text x="62.850" y="31.700" font-family="Helvetica,Arial" font-size="2.6" text-anchor="start" fill="#c00" >ASSUMED opening 88 x 100 &#8212; reference only, do NOT cut</text>
 <path d="M 35.150,98.054 L 43.350,89.854 L 43.350,57.000 L 39.350,53.000 L 39.350,37.000 L 43.350,33.000 L 43.350,20.000 L 170.350,20.000 L 170.350,33.000 L 174.350,37.000 L 174.350,53.000 L 170.350,57.000 L 170.350,62.500 L 174.850,67.000 L 174.850,80.000 L 170.350,84.500 L 170.350,109.000 L 174.350,113.000 L 174.350,133.000 L 170.350,137.000 L 170.350,147.000 L 152.850,147.000 L 43.350,147.000 L 43.350,136.000 L 39.350,132.000 L 39.350,114.100 L 39.350,113.554 L 35.150,109.354 Z" fill="none" stroke="#000" stroke-width="0.4"/>
 <path d="M 68.956,75.270 L 68.956,106.720 L 85.556,106.720 L 85.556,98.270 L 145.056,98.270 L 145.056,50.270 L 131.056,50.270 L 131.056,43.170 L 118.956,43.180 L 118.956,50.270 L 79.056,50.270 L 79.056,75.270 Z" fill="none" stroke="#000" stroke-width="0.9"/>
+<rect x="65.785" y="80.860" width="10.170" height="10.550" fill="none" stroke="#06c" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="70.870" y="79.660" font-family="Helvetica,Arial" font-size="2.4" text-anchor="middle" fill="#06c" >J1 body</text>
 <text x="107.006" y="73.945" font-family="Helvetica,Arial" font-size="4.0" text-anchor="middle" fill="#000" >CUT OUT THIS SHAPE</text>
 <text x="107.006" y="78.945" font-family="Helvetica,Arial" font-size="2.8" text-anchor="middle" fill="#000" >brain silhouette, viewed from above</text>
 <circle cx="49.850" cy="140.500" r="2.250" fill="none" stroke="#000" stroke-width="0.4"/>
@@ -18,7 +20,7 @@
 <circle cx="163.850" cy="140.500" r="2.250" fill="none" stroke="#000" stroke-width="0.4"/>
 <line x1="159.850" y1="140.500" x2="167.850" y2="140.500" stroke="#000" stroke-width="0.2"/>
 <line x1="163.850" y1="136.500" x2="163.850" y2="144.500" stroke="#000" stroke-width="0.2"/>
-<text x="41.150" y="143.000" font-family="Helvetica,Arial" font-size="2.4" text-anchor="start" fill="#000" >&#8853; punch these &#8212; they seat on the frame standoffs</text>
+<text x="61.150" y="143.000" font-family="Helvetica,Arial" font-size="2.4" text-anchor="start" fill="#000" >&#8853; punch these &#8212; they seat on the frame standoffs</text>
 <circle cx="76.550" cy="102.100" r="1.6" fill="none" stroke="#777" stroke-width="0.3"/>
 <text x="76.550" y="99.500" font-family="Helvetica,Arial" font-size="2.2" text-anchor="middle" fill="#777" >M3</text>
 <circle cx="124.850" cy="48.300" r="1.6" fill="none" stroke="#777" stroke-width="0.3"/>

@@ -168,6 +168,59 @@ def bbox(pts):
     return min(xs), max(xs), min(ys), max(ys)
 
 
+def inside(poly, p):
+    """Ray-cast point-in-polygon."""
+    x, y = p
+    hit = False
+    for i in range(len(poly)):
+        x0, y0 = poly[i]
+        x1, y1 = poly[(i + 1) % len(poly)]
+        if (y0 > y) != (y1 > y):
+            xc = x0 + (y - y0) * (x1 - x0) / (y1 - y0)
+            if x < xc:
+                hit = not hit
+    return hit
+
+
+def overhangs(src, outline):
+    """Courtyard boxes of parts that stick out past the board edge.
+
+    Edge-mount connectors (USB-C, right-angle headers) have bodies that extend
+    beyond Edge.Cuts. Plotting the outline alone understates how much room the
+    board actually needs - which is exactly the kind of clash a cavity fit test
+    is supposed to catch, so draw them.
+    """
+    out = []
+    for b in blocks(src, "footprint"):
+        ref = re.search(r'\(property "Reference" "([^"]+)"', b)
+        at = re.search(r"\(at (-?[\d.]+) (-?[\d.]+)(?: (-?[\d.]+))?\)", b)
+        if not ref or not at:
+            continue
+        fx, fy = float(at.group(1)), float(at.group(2))
+        rot = math.radians(-float(at.group(3) or 0))
+        cos, sin = math.cos(rot), math.sin(rot)
+
+        # Courtyards live as fp_line on F/B.CrtYd in LOCAL footprint coords,
+        # so they need the footprint's placement and rotation applied.
+        pts = []
+        for g in blocks(b, "fp_line"):
+            if "CrtYd" not in g:
+                continue
+            for lx, ly in re.findall(r"\((?:start|end) (-?[\d.]+) (-?[\d.]+)\)", g):
+                lx, ly = float(lx), float(ly)
+                pts.append((fx + lx * cos - ly * sin, fy + lx * sin + ly * cos))
+        if not pts:
+            continue
+
+        bb = bbox(pts)
+        corners = [(bb[0], bb[2]), (bb[1], bb[2]), (bb[0], bb[3]), (bb[1], bb[3])]
+        if not contains(bbox(outline), (fx, fy)):
+            continue  # belongs to the other board
+        if any(not inside(outline, c) for c in corners):
+            out.append((ref.group(1), bb))
+    return out
+
+
 def contains(box, p):
     return box[0] - 1 <= p[0] <= box[1] + 1 and box[2] - 1 <= p[1] <= box[3] + 1
 
@@ -175,6 +228,7 @@ def contains(box, p):
 # ----------------------------------------------------------------------- draw
 
 def main():
+    src = open(PCB).read()
     segs, circles, holes = load(PCB)
     for h in (CARRIER_ANCHOR, BRAIN_ANCHOR):
         if h not in holes:
@@ -236,6 +290,23 @@ def main():
 
     o.append(f'<path d="{P(carrier)}" fill="none" stroke="#000" stroke-width="0.4"/>')
     o.append(f'<path d="{P(brain_c)}" fill="none" stroke="#000" stroke-width="0.9"/>')
+
+    # parts whose bodies overhang the brain outline (edge-mount connectors):
+    # cut wide enough to clear these, not just the Edge.Cuts line
+    over = overhangs(src, brain)
+    for ref, obb in over:
+        x0, x1 = obb[0] - ox, obb[1] - ox
+        y0, y1 = obb[2] - oy, obb[3] - oy
+        o.append(f'<rect x="{x0+tx:.3f}" y="{y0+ty:.3f}" width="{x1-x0:.3f}" '
+                 f'height="{y1-y0:.3f}" fill="none" stroke="#06c" '
+                 f'stroke-width="0.5" stroke-dasharray="1.5,1"/>')
+        o.append(text((x0 + x1) / 2, y0 - 1.2, f"{ref} body", 2.4, "middle", "#06c"))
+        print(f"  overhang: {ref} extends past the outline -> carrier "
+              f"x {x0:.2f}..{x1:.2f}  y {y0:.2f}..{y1:.2f}")
+        for name, val, lim in (("west", x0 - WINDOW[0], None), ("east", WINDOW[1] - x1, None),
+                               ("north", y0 - WINDOW[2], None), ("south", WINDOW[3] - y1, None)):
+            if val < 10:
+                print(f"      {name} clearance to assumed opening: {val:.2f} mm")
     o.append(text((bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2 - 1, "CUT OUT THIS SHAPE", 4.0))
     o.append(text((bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2 + 4,
                   "brain silhouette, viewed from above", 2.8))
@@ -248,7 +319,7 @@ def main():
                      f'x2="{c[0]+dx+tx:.3f}" y2="{c[1]+dy+ty:.3f}" '
                      f'stroke="#000" stroke-width="0.2"/>')
     if standoffs:
-        o.append(text(cbox[0] + 6, cbox[3] - 4,
+        o.append(text(cbox[0] + 26, cbox[3] - 4,
                       "&#8853; punch these &#8212; they seat on the frame standoffs",
                       2.4, "start"))
     for p in m3:

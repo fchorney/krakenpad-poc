@@ -34,6 +34,14 @@ python3 gen_cavity_template.py     # regenerates cavity-fit-template.svg
 Then update `WINDOW` at the top of the generator and re-run, so the printed margins
 reflect reality instead of the assumption.
 
+## Overhanging parts
+
+Edge-mount connectors have bodies that stick out past `Edge.Cuts`, so plotting the
+outline alone understates how much room the board needs. The generator detects any
+footprint whose courtyard crosses the outline and draws it as a dashed blue box,
+printing its clearance to the assumed opening. **Cut wide enough to clear those
+boxes, not just the outline** — a body that overhangs is what actually hits the frame.
+
 ## Limits
 
 - **Plan only.** It does not test depth. The brain sits ~14 mm down; if the frame is
