@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210.0mm" height="297.0mm" viewBox="0 0 210.0 297.0">
+<rect x="0" y="0" width="210.0" height="297.0" fill="#fff"/>
+<rect x="62.850" y="33.500" width="88.000" height="100.000" fill="none" stroke="#c00" stroke-width="0.3" stroke-dasharray="3,2"/>
+<text x="62.850" y="31.700" font-family="Helvetica,Arial" font-size="2.6" text-anchor="start" fill="#c00" >ASSUMED opening 88 x 100 &#8212; reference only, do NOT cut</text>
+<path d="M 35.150,98.054 L 43.350,89.854 L 43.350,57.000 L 39.350,53.000 L 39.350,37.000 L 43.350,33.000 L 43.350,20.000 L 170.350,20.000 L 170.350,33.000 L 174.350,37.000 L 174.350,53.000 L 170.350,57.000 L 170.350,62.500 L 174.850,67.000 L 174.850,80.000 L 170.350,84.500 L 170.350,109.000 L 174.350,113.000 L 174.350,133.000 L 170.350,137.000 L 170.350,147.000 L 152.850,147.000 L 43.350,147.000 L 43.350,136.000 L 39.350,132.000 L 39.350,114.100 L 39.350,113.554 L 35.150,109.354 Z" fill="none" stroke="#000" stroke-width="0.4"/>
+<path d="M 68.956,75.270 L 68.956,106.720 L 85.556,106.720 L 85.556,98.270 L 145.056,98.270 L 145.056,50.270 L 131.056,50.270 L 131.056,43.170 L 118.956,43.180 L 118.956,50.270 L 79.056,50.270 L 79.056,75.270 Z" fill="none" stroke="#000" stroke-width="0.9"/>
+<text x="107.006" y="73.945" font-family="Helvetica,Arial" font-size="4.0" text-anchor="middle" fill="#000" >CUT OUT THIS SHAPE</text>
+<text x="107.006" y="78.945" font-family="Helvetica,Arial" font-size="2.8" text-anchor="middle" fill="#000" >brain silhouette, viewed from above</text>
+<circle cx="49.850" cy="140.500" r="2.250" fill="none" stroke="#000" stroke-width="0.4"/>
+<line x1="45.850" y1="140.500" x2="53.850" y2="140.500" stroke="#000" stroke-width="0.2"/>
+<line x1="49.850" y1="136.500" x2="49.850" y2="144.500" stroke="#000" stroke-width="0.2"/>
+<circle cx="50.350" cy="26.500" r="2.250" fill="none" stroke="#000" stroke-width="0.4"/>
+<line x1="46.350" y1="26.500" x2="54.350" y2="26.500" stroke="#000" stroke-width="0.2"/>
+<line x1="50.350" y1="22.500" x2="50.350" y2="30.500" stroke="#000" stroke-width="0.2"/>
+<circle cx="163.350" cy="26.500" r="2.250" fill="none" stroke="#000" stroke-width="0.4"/>
+<line x1="159.350" y1="26.500" x2="167.350" y2="26.500" stroke="#000" stroke-width="0.2"/>
+<line x1="163.350" y1="22.500" x2="163.350" y2="30.500" stroke="#000" stroke-width="0.2"/>
+<circle cx="163.850" cy="140.500" r="2.250" fill="none" stroke="#000" stroke-width="0.4"/>
+<line x1="159.850" y1="140.500" x2="167.850" y2="140.500" stroke="#000" stroke-width="0.2"/>
+<line x1="163.850" y1="136.500" x2="163.850" y2="144.500" stroke="#000" stroke-width="0.2"/>
+<text x="41.150" y="143.000" font-family="Helvetica,Arial" font-size="2.4" text-anchor="start" fill="#000" >&#8853; punch these &#8212; they seat on the frame standoffs</text>
+<circle cx="76.550" cy="102.100" r="1.6" fill="none" stroke="#777" stroke-width="0.3"/>
+<text x="76.550" y="99.500" font-family="Helvetica,Arial" font-size="2.2" text-anchor="middle" fill="#777" >M3</text>
+<circle cx="124.850" cy="48.300" r="1.6" fill="none" stroke="#777" stroke-width="0.3"/>
+<text x="124.850" y="45.700" font-family="Helvetica,Arial" font-size="2.2" text-anchor="middle" fill="#777" >M3</text>
+<text x="105.000" y="16.000" font-family="Helvetica,Arial" font-size="3.0" text-anchor="middle" fill="#000" >N  (FSR North)</text>
+<text x="105.000" y="153.000" font-family="Helvetica,Arial" font-size="3.0" text-anchor="middle" fill="#000" >S  (FSR South)</text>
+<text x="30.150" y="83.500" font-family="Helvetica,Arial" font-size="3.0" text-anchor="middle" fill="#000" transform="rotate(-90 30.15 83.50)">W  12V IN</text>
+<text x="181.850" y="83.500" font-family="Helvetica,Arial" font-size="3.0" text-anchor="middle" fill="#000" transform="rotate(90 181.85 83.50)">E  12V OUT</text>
+<line x1="20.0" y1="275.0" x2="120.0" y2="275.0" stroke="#000" stroke-width="0.4"/>
+<line x1="20.0" y1="275.0" x2="20.0" y2="271.0" stroke="#000" stroke-width="0.4"/>
+<line x1="30.0" y1="275.0" x2="30.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="40.0" y1="275.0" x2="40.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="50.0" y1="275.0" x2="50.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="60.0" y1="275.0" x2="60.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="70.0" y1="275.0" x2="70.0" y2="271.0" stroke="#000" stroke-width="0.4"/>
+<line x1="80.0" y1="275.0" x2="80.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="90.0" y1="275.0" x2="90.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="100.0" y1="275.0" x2="100.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="110.0" y1="275.0" x2="110.0" y2="273.0" stroke="#000" stroke-width="0.4"/>
+<line x1="120.0" y1="275.0" x2="120.0" y2="271.0" stroke="#000" stroke-width="0.4"/>
+<text x="20.0" y="280.0" font-family="Helvetica,Arial" font-size="3.2">CALIBRATION: this bar must measure exactly 100.0 mm.</text>
+<text x="20.0" y="284.5" font-family="Helvetica,Arial" font-size="3.2">Print at 100% / "Actual size" on A4 &#8212; never fit-to-page.</text>
+<text x="20.0" y="289.0" font-family="Helvetica,Arial" font-size="3.2">This tests the opening in plan only. It does NOT test depth: if the cavity walls have draft they close in over the ~14 mm the brain sits down,</text>
+<text x="20.0" y="293.5" font-family="Helvetica,Arial" font-size="3.2">so re-check with a stiff copy of the cut-out dropped to the cavity floor.</text>
+<text x="20.0" y="298.0" font-family="Helvetica,Arial" font-size="3.2">dual-panel cavity fit test &#8212; carrier outline + brain silhouette, 1:1</text>
+</svg>
