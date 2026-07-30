@@ -31,8 +31,15 @@ OUT = os.path.join(HERE, "panel.kicad_pcb")
 SPACE_MM = 3.0     # gap board-to-frame and board-to-board
 FRAME_MM = 5.0     # rail width; JLC's conveyor wants a rail to clamp
 TAB_MM = 3.0       # mouse-bite tab width
-TABS_H = 2         # tabs per horizontal edge
-TABS_V = 2         # tabs per vertical edge
+# Tabs per edge. 3 gives the brain 6 tabs (3 east + 3 west) rather than 4.
+# It only ever gets east/west: KiKit's partition line comes from bounding boxes,
+# and the brain's bbox sits inside the carrier's y-span, so the layout reads as
+# two columns with one item each and the brain has no north/south neighbour to
+# bridge to. Tight frames, explicit TabAnnotations and buildFullTabs were all
+# tried and produce nothing there -- the only real fix is filling the brain's
+# column above and below it, i.e. more brains per panel.
+TABS_H = 3
+TABS_V = 3
 BITE_DRILL_MM = 0.5
 BITE_SPACING_MM = 1.0
 FIDUCIAL_COUNT = 3
@@ -185,6 +192,24 @@ def main():
     if not cuts:
         sys.exit("error: zero tabs generated -- the boards would not be joined. "
                  "Check the framing substrates.")
+
+    # Report tabs per board and edge. This is the "will it fall off the panel?"
+    # check, so make it visible rather than trusting a total.
+    names = {0: "carrier", 1: "brain"}
+    tally = {}
+    for cut in cuts:
+        c = cut.centroid
+        idx = min(range(len(panel.substrates)),
+                  key=lambda i: panel.substrates[i].substrates.distance(c))
+        x0, y0, x1, y1 = panel.substrates[idx].bounds()
+        edge = min((("W", abs(c.x - x0)), ("E", abs(c.x - x1)),
+                    ("N", abs(c.y - y0)), ("S", abs(c.y - y1))), key=lambda t: t[1])[0]
+        tally[(idx, edge)] = tally.get((idx, edge), 0) + 1
+    for idx in sorted({k[0] for k in tally}):
+        per = {e: n for (i, e), n in tally.items() if i == idx}
+        total = sum(per.values())
+        detail = " ".join(f"{e}={per.get(e, 0)}" for e in "NSEW")
+        print(f"  {names.get(idx, idx):8s}: {total:2d} tabs   {detail}")
 
     panel.makeFrame(widthH=FRAME_MM*mm, widthV=FRAME_MM*mm,
                     hspace=SPACE_MM*mm, vspace=SPACE_MM*mm)

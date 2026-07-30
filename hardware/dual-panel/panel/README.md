@@ -25,9 +25,31 @@ router.
 
 ## Current output
 
-~228 × 143 mm (≈326 cm²), 253 footprints, verified as one contiguous piece.
-Tunable parameters are at the top of the script — rail width, tab count and width,
-mouse-bite drill and spacing, fiducial and tooling-hole counts.
+~228 × 143 mm (≈326 cm²), 289 footprints, verified as one contiguous piece.
+
+```
+carrier : 16 tabs   N=3 S=3 E=7 W=3
+brain   :  6 tabs   N=0 S=0 E=3 W=3
+```
+
+The script prints that breakdown every run — it's the "will a board come off the
+panel?" check, so read it rather than trusting the total. Tunable parameters are at
+the top: rail width, tab count and width, mouse-bite drill and spacing, fiducial
+and tooling-hole counts.
+
+**The brain only ever gets east/west tabs**, and that is a KiKit limitation rather
+than a setting. `buildPartitionLineFromBB` tiles the panel by bounding boxes; the
+brain's bbox sits inside the carrier's y-span, so the layout reads as two columns
+with one item each and the brain has no north/south neighbour to bridge to — its
+partition line is literally two vertical segments. Tight frames, explicit
+`TabAnnotation`s on the N/S edges (both direction conventions) and `buildFullTabs`
+were all tried and produce nothing there. Stacking the boards vertically instead
+just rotates the problem, since the brain is then the narrower board. The only real
+fix is filling the brain's column above and below it — i.e. more brains per panel,
+which costs a full extra assembly each.
+
+Three tabs per side on a 71 × 63 mm board is ample support, so this is a
+non-issue in practice.
 
 ## Requirements
 
