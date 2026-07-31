@@ -26,6 +26,7 @@ Upload the zip as a **customer panel** ("panel by customer"), not as a single
 board -- JLC's own panelization only arrays one design.
 """
 
+import argparse
 import collections
 import csv
 import os
@@ -34,9 +35,6 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PANEL = os.path.join(HERE, "panel.kicad_pcb")
-OUTDIR = os.path.join(HERE, "production")
-GERBERDIR = os.path.join(OUTDIR, "gerbers")
 CLI = "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli"
 
 LAYERS = ("F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,"
@@ -51,8 +49,25 @@ def run(args):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
+    ap.add_argument("--board", default=os.path.join(HERE, "panel.kicad_pcb"),
+                    help="board to export (default: the generated panel)")
+    ap.add_argument("--out", default=None,
+                    help="output directory (default: production/ beside the board)")
+    ap.add_argument("--allow-part-clash", action="store_true",
+                    help="downgrade the LCSC-collision check to a warning. For "
+                         "comparison quotes only -- never for a real order.")
+    args = ap.parse_args()
+
+    PANEL = os.path.abspath(args.board)
     if not os.path.isfile(PANEL):
-        sys.exit(f"error: {PANEL} not found -- run gen_panel.py first")
+        sys.exit(f"error: {PANEL} not found"
+                 + (" -- run gen_panel.py first" if PANEL.endswith("panel.kicad_pcb") else ""))
+    stem = os.path.splitext(os.path.basename(PANEL))[0]
+    OUTDIR = os.path.abspath(args.out) if args.out else os.path.join(
+        os.path.dirname(PANEL), "production")
+    GERBERDIR = os.path.join(OUTDIR, "gerbers")
+
     try:
         import pcbnew
     except ImportError:
@@ -67,7 +82,7 @@ def main():
          "--format", "excellon", "--drill-origin", "absolute",
          "--excellon-separate-th", "--generate-map", "--map-format", "gerberx2",
          PANEL])
-    zip_base = os.path.join(OUTDIR, "panel-gerbers")
+    zip_base = os.path.join(OUTDIR, f"{stem}-gerbers")
     shutil.make_archive(zip_base, "zip", GERBERDIR)
 
     # CPL. --smd-only drops through-hole parts AND the test points, which carry
@@ -84,7 +99,7 @@ def main():
     not_a_part = {fp.GetReference() for fp in board.GetFootprints()
                   if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_BOM}
 
-    cpl = os.path.join(OUTDIR, "panel-CPL.csv")
+    cpl = os.path.join(OUTDIR, f"{stem}-CPL.csv")
     placed, dropped = set(), 0
     with open(pos_raw, newline="") as fh, open(cpl, "w", newline="") as out:
         r = csv.DictReader(fh)
@@ -144,9 +159,13 @@ def main():
                 who = [r for (v, f, l), rs in groups.items()
                        if l == code and v == val for r in rs]
                 print(f"      {val:16s} {fpname:24s} {','.join(sorted(who))}")
-        sys.exit("Fix the LCSC fields before ordering -- the wrong part would be fitted.")
+        if not args.allow_part_clash:
+            sys.exit("Fix the LCSC fields before ordering -- the wrong part would "
+                     "be fitted.\nRe-run with --allow-part-clash only for a "
+                     "comparison quote.")
+        print("  proceeding anyway (--allow-part-clash) -- DO NOT ORDER FROM THIS")
 
-    bom = os.path.join(OUTDIR, "panel-BOM.csv")
+    bom = os.path.join(OUTDIR, f"{stem}-BOM.csv")
     missing = []
     with open(bom, "w", newline="") as out:
         w = csv.writer(out)
@@ -156,10 +175,10 @@ def main():
                 missing.append((val, len(refs)))
             w.writerow([val, ",".join(sorted(refs, key=sortkey)), fpname, lcsc])
 
-    print(f"wrote {OUTDIR}/")
-    print(f"  panel-gerbers.zip  ({len(os.listdir(GERBERDIR))} files)")
-    print(f"  panel-CPL.csv      {len(placed)} placements")
-    print(f"  panel-BOM.csv      {len(groups)} component lines")
+    print(f"\nwrote {OUTDIR}/")
+    print(f"  {stem}-gerbers.zip  ({len(os.listdir(GERBERDIR))} files)")
+    print(f"  {stem}-CPL.csv      {len(placed)} placements")
+    print(f"  {stem}-BOM.csv      {len(groups)} component lines")
     if missing:
         print(f"\n  WARNING: {len(missing)} BOM line(s) without an LCSC number:")
         for val, n in missing:
