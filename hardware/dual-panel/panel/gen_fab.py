@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""
+Generate the JLCPCB fabrication package from panel.kicad_pcb.
+
+    python3 gen_panel.py     # first, to build/refresh the panel
+    python3 gen_fab.py       # then this
+
+Writes into production/:
+    panel-gerbers.zip        gerbers + Excellon drill + map
+    panel-BOM.csv            JLC format: Comment, Designator, Footprint, LCSC
+    panel-CPL.csv            JLC format: Designator, Mid X, Mid Y, Layer, Rotation
+
+**Assembly scope: SMD only.** Through-hole parts -- all the connectors, both
+switches and the eight interface headers/sockets -- are hand-soldered, matching
+what was done on panel-pcb. That also sidesteps the fact that the interface
+headers/sockets carry no LCSC number.
+
+Three groups are filtered out, for different reasons:
+  - through-hole parts, per the decision above
+  - the 30 test points, which are bare plated holes with nothing to place; their
+    "value" is a net name, so left in they become 30 unmatched BOM lines
+  - KiKit's mouse bites, tooling holes and fiducials, which it already flags
+    exclude_from_bom
+
+Upload the zip as a **customer panel** ("panel by customer"), not as a single
+board -- JLC's own panelization only arrays one design.
+"""
+
+import collections
+import csv
+import os
+import shutil
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PANEL = os.path.join(HERE, "panel.kicad_pcb")
+OUTDIR = os.path.join(HERE, "production")
+GERBERDIR = os.path.join(OUTDIR, "gerbers")
+CLI = "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli"
+
+LAYERS = ("F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,"
+          "F.Mask,B.Mask,Edge.Cuts")
+
+
+def run(args):
+    r = subprocess.run(args, capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.exit(f"error: {' '.join(args[:3])}... failed\n{r.stdout}\n{r.stderr}")
+    return r.stdout
+
+
+def main():
+    if not os.path.isfile(PANEL):
+        sys.exit(f"error: {PANEL} not found -- run gen_panel.py first")
+    try:
+        import pcbnew
+    except ImportError:
+        sys.exit("error: run this under KiCad's Python (see README).")
+
+    shutil.rmtree(OUTDIR, ignore_errors=True)
+    os.makedirs(GERBERDIR)
+
+    run([CLI, "pcb", "export", "gerbers", "--output", GERBERDIR + os.sep,
+         "--layers", LAYERS, "--no-protel-ext", "--subtract-soldermask", PANEL])
+    run([CLI, "pcb", "export", "drill", "--output", GERBERDIR + os.sep,
+         "--format", "excellon", "--drill-origin", "absolute",
+         "--excellon-separate-th", "--generate-map", "--map-format", "gerberx2",
+         PANEL])
+    zip_base = os.path.join(OUTDIR, "panel-gerbers")
+    shutil.make_archive(zip_base, "zip", GERBERDIR)
+
+    # CPL. --smd-only drops through-hole parts AND the test points, which carry
+    # neither the SMD nor the through-hole attribute.
+    pos_raw = os.path.join(OUTDIR, "_pos.csv")
+    run([CLI, "pcb", "export", "pos", "--output", pos_raw, "--format", "csv",
+         "--units", "mm", "--side", "both", "--smd-only", "--exclude-dnp", PANEL])
+    board = pcbnew.LoadBoard(PANEL)
+
+    # --smd-only honours the SMD attribute but NOT exclude_from_bom, so KiKit's
+    # fiducials are SMD-attributed and sail straight into the position file.
+    # They are copper markers, not parts. Anything not a BOM item is not a
+    # placement either, so drop the whole excluded set here.
+    not_a_part = {fp.GetReference() for fp in board.GetFootprints()
+                  if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_BOM}
+
+    cpl = os.path.join(OUTDIR, "panel-CPL.csv")
+    placed, dropped = set(), 0
+    with open(pos_raw, newline="") as fh, open(cpl, "w", newline="") as out:
+        r = csv.DictReader(fh)
+        w = csv.writer(out)
+        w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
+        for row in r:
+            ref = row["Ref"]
+            if ref in not_a_part:
+                dropped += 1
+                continue
+            placed.add(ref)
+            w.writerow([ref, row["PosX"], row["PosY"],
+                        "top" if row["Side"].lower() in ("top", "front") else "bottom",
+                        row["Rot"]])
+    os.remove(pos_raw)
+    if dropped:
+        print(f"  (dropped {dropped} non-part footprint(s) from the CPL: "
+              f"fiducials/tooling)")
+
+    # BOM, restricted to exactly what the CPL places so the two cannot disagree.
+    groups = collections.defaultdict(list)
+    for fp in board.GetFootprints():
+        ref = fp.GetReference()
+        if ref not in placed:
+            continue
+        try:
+            fields = dict(fp.GetFieldsShownText())
+        except Exception:
+            fields = {}
+        lcsc = fields.get("LCSC") or fields.get("lcsc") or ""
+        groups[(fp.GetValue(), fp.GetFPIDAsString().split(":")[-1], lcsc)].append(ref)
+
+    def sortkey(ref):
+        head = ref.rstrip("0123456789")
+        return (head, int(ref[len(head):] or 0))
+
+    bom = os.path.join(OUTDIR, "panel-BOM.csv")
+    missing = []
+    with open(bom, "w", newline="") as out:
+        w = csv.writer(out)
+        w.writerow(["Comment", "Designator", "Footprint", "LCSC"])
+        for (val, fpname, lcsc), refs in sorted(groups.items()):
+            if not lcsc:
+                missing.append((val, len(refs)))
+            w.writerow([val, ",".join(sorted(refs, key=sortkey)), fpname, lcsc])
+
+    print(f"wrote {OUTDIR}/")
+    print(f"  panel-gerbers.zip  ({len(os.listdir(GERBERDIR))} files)")
+    print(f"  panel-CPL.csv      {len(placed)} placements")
+    print(f"  panel-BOM.csv      {len(groups)} component lines")
+    if missing:
+        print(f"\n  WARNING: {len(missing)} BOM line(s) without an LCSC number:")
+        for val, n in missing:
+            print(f"    {n:4d} x {val}")
+        print("  JLC will ask you to pick these by hand at quote time.")
+    else:
+        print("  every BOM line carries an LCSC number")
+
+
+if __name__ == "__main__":
+    main()

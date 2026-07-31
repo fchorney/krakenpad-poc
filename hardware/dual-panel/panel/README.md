@@ -51,6 +51,37 @@ which costs a full extra assembly each.
 Three tabs per side on a 71 × 63 mm board is ample support, so this is a
 non-issue in practice.
 
+## Fabrication package
+
+```sh
+python3 gen_panel.py     # build/refresh the panel
+python3 gen_fab.py       # then the fab package
+```
+
+Writes `production/` (gitignored, regenerable): `panel-gerbers.zip` (4 copper +
+paste + silk + mask + Edge.Cuts, separate PTH/NPTH Excellon and drill maps),
+`panel-BOM.csv` and `panel-CPL.csv` in JLC column format.
+
+**Assembly scope is SMD only** — 115 placements, 101 top and 14 bottom, across 35
+component lines, every one carrying an LCSC number. Through-hole parts (all
+connectors, both switches, and the eight interface headers/sockets) are
+hand-soldered, matching panel-pcb. That also sidesteps the interface
+headers/sockets having no LCSC number.
+
+Three groups are filtered out, for different reasons:
+
+- **through-hole parts**, per the decision above
+- **the 30 test points** — bare plated holes with nothing to place, whose "value"
+  is a net name, so left in they become 30 unmatched BOM lines
+- **KiKit's fiducials, tooling holes and mouse bites**. Note `--smd-only` honours
+  the SMD attribute but *not* `exclude_from_bom`, so the fiducials are
+  SMD-attributed and sail into the position file unless dropped explicitly.
+
+The BOM is built from exactly the set the CPL places, so the two cannot disagree.
+
+**Upload the zip as a customer panel** ("panel by customer"), not as a single
+board — JLC's own panelization only arrays one design.
+
 ## Requirements
 
 KiKit, importable from **KiCad's Python** (`pcbnew` only exists there). KiKit 1.8.0
