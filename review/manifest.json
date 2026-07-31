@@ -1,0 +1,70 @@
+{
+  "01-master": [
+    "01-schematic-1-master.png",
+    "01-schematic.pdf",
+    "02-2d-top.png",
+    "03-2d-in1.png",
+    "04-2d-in2.png",
+    "05-2d-bottom-mirrored.png",
+    "06-2d-silkscreen-top.png",
+    "07-2d-top-no-pour.png",
+    "08-2d-in1-no-pour.png",
+    "09-2d-in2-no-pour.png",
+    "10-2d-bottom-no-pour-mirrored.png",
+    "11-3d-top.png",
+    "12-3d-bottom.png"
+  ],
+  "02-panel-single": [
+    "01-schematic-1-panel.png",
+    "01-schematic.pdf",
+    "02-2d-top.png",
+    "03-2d-in1.png",
+    "04-2d-in2.png",
+    "05-2d-bottom-mirrored.png",
+    "06-2d-silkscreen-top.png",
+    "07-2d-top-no-pour.png",
+    "08-2d-in1-no-pour.png",
+    "09-2d-in2-no-pour.png",
+    "10-2d-bottom-no-pour-mirrored.png",
+    "11-3d-top.png",
+    "12-3d-bottom.png"
+  ],
+  "03-dual-carrier": [
+    "01-schematic-1-carrier.png",
+    "01-schematic.pdf",
+    "02-2d-top.png",
+    "03-2d-in1.png",
+    "04-2d-in2.png",
+    "05-2d-bottom-mirrored.png",
+    "06-2d-silkscreen-top.png",
+    "07-2d-top-no-pour.png",
+    "08-2d-in1-no-pour.png",
+    "09-2d-in2-no-pour.png",
+    "10-2d-bottom-no-pour-mirrored.png",
+    "11-3d-top.png",
+    "12-3d-bottom.png"
+  ],
+  "04-dual-brain": [
+    "01-schematic-1-brain.png",
+    "01-schematic.pdf",
+    "02-2d-top.png",
+    "03-2d-in1.png",
+    "04-2d-in2.png",
+    "05-2d-bottom-mirrored.png",
+    "06-2d-silkscreen-top.png",
+    "07-2d-top-no-pour.png",
+    "08-2d-in1-no-pour.png",
+    "09-2d-in2-no-pour.png",
+    "10-2d-bottom-no-pour-mirrored.png",
+    "11-3d-top.png",
+    "12-3d-bottom.png"
+  ],
+  "_root": [
+    "00-context-single-vs-dual.png",
+    "POST-01-master.md",
+    "POST-02-panel-single.md",
+    "POST-03-dual-panel.md",
+    "README.md",
+    "RULES-CHECKLIST.md"
+  ]
+}
