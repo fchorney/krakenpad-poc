@@ -21,3 +21,6 @@ hardware/**/production/
 
 # tmp folder
 /tmp
+
+# KiCad auto-restore backups
+hardware/**/_restore_backup_*/
