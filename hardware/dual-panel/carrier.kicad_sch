@@ -8930,7 +8930,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "03d7b104-df37-40b7-96e7-7d72d0a8c8f8")
-		(property "Reference" "C48"
+		(property "Reference" "C226"
 			(at 383.032 172.974 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9003,7 +9003,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C48")
+					(reference "C226")
 					(unit 1)
 				)
 			)
@@ -9021,7 +9021,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "03e825f4-6e12-42cd-8c75-f7edb20d5f31")
-		(property "Reference" "TP25"
+		(property "Reference" "TP218"
 			(at 363.474 208.788 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9081,7 +9081,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP25")
+					(reference "TP218")
 					(unit 1)
 				)
 			)
@@ -9099,7 +9099,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "042333da-24f2-481f-b3c6-c1284fadcd11")
-		(property "Reference" "TP24"
+		(property "Reference" "TP217"
 			(at 363.474 161.798 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9159,7 +9159,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP24")
+					(reference "TP217")
 					(unit 1)
 				)
 			)
@@ -9176,7 +9176,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "054da94c-8f77-48c1-a000-a9dff3d38e08")
-		(property "Reference" "#PWR054"
+		(property "Reference" "#PWR0212"
 			(at 105.41 130.81 0)
 			(hide yes)
 			(show_name no)
@@ -9236,7 +9236,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR054")
+					(reference "#PWR0212")
 					(unit 1)
 				)
 			)
@@ -9253,7 +9253,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "056d70ab-f1c4-48bf-9fc1-c9f40a7bf429")
-		(property "Reference" "#PWR0124"
+		(property "Reference" "#PWR0276"
 			(at 339.09 147.32 0)
 			(hide yes)
 			(show_name no)
@@ -9313,7 +9313,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0124")
+					(reference "#PWR0276")
 					(unit 1)
 				)
 			)
@@ -9331,7 +9331,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0680074a-e42f-4206-841b-fcaaa5d71cf8")
-		(property "Reference" "H1"
+		(property "Reference" "H201"
 			(at 138.43 245.1099 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9392,7 +9392,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "H1")
+					(reference "H201")
 					(unit 1)
 				)
 			)
@@ -9409,7 +9409,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "06ce149b-fce6-4e89-b52f-c43519e19483")
-		(property "Reference" "#PWR0103"
+		(property "Reference" "#PWR0258"
 			(at 294.64 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -9469,7 +9469,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0103")
+					(reference "#PWR0258")
 					(unit 1)
 				)
 			)
@@ -9487,7 +9487,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "077f0346-967a-41bf-8baa-c0aed0b00f2f")
-		(property "Reference" "TP20"
+		(property "Reference" "TP206"
 			(at 137.16 41.656 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9547,7 +9547,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP20")
+					(reference "TP206")
 					(unit 1)
 				)
 			)
@@ -9564,7 +9564,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0967c0eb-0147-4e26-b1aa-85ce0b164654")
-		(property "Reference" "#PWR0132"
+		(property "Reference" "#PWR0217"
 			(at 153.67 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -9624,7 +9624,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0132")
+					(reference "#PWR0217")
 					(unit 1)
 				)
 			)
@@ -9641,7 +9641,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0abaa8c3-5318-477a-a595-943e9446b2b6")
-		(property "Reference" "C30"
+		(property "Reference" "C211"
 			(at 259.842 172.974 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9714,7 +9714,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C30")
+					(reference "C211")
 					(unit 1)
 				)
 			)
@@ -9731,7 +9731,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0ba320f4-5d57-4d33-9b87-56bf25ac6cba")
-		(property "Reference" "D18"
+		(property "Reference" "D218"
 			(at 349.25 43.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9827,7 +9827,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D18")
+					(reference "D218")
 					(unit 1)
 				)
 			)
@@ -9844,7 +9844,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0bdd861d-25eb-4c7e-a165-7423fc4c2bcb")
-		(property "Reference" "#PWR0126"
+		(property "Reference" "#PWR0278"
 			(at 339.09 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -9904,7 +9904,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0126")
+					(reference "#PWR0278")
 					(unit 1)
 				)
 			)
@@ -9921,7 +9921,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0edc9b33-7861-4531-901b-4f22029ad68c")
-		(property "Reference" "#PWR0145"
+		(property "Reference" "#PWR0294"
 			(at 389.89 38.1 0)
 			(hide yes)
 			(show_name no)
@@ -9981,7 +9981,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0145")
+					(reference "#PWR0294")
 					(unit 1)
 				)
 			)
@@ -9998,7 +9998,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0f8acff6-02b6-4af1-bbb9-96ce2b36ca07")
-		(property "Reference" "C33"
+		(property "Reference" "C214"
 			(at 300.482 78.994 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10071,7 +10071,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C33")
+					(reference "C214")
 					(unit 1)
 				)
 			)
@@ -10088,7 +10088,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0f9ff506-5e86-489c-aa4f-6ddcf6d9ffce")
-		(property "Reference" "#PWR0129"
+		(property "Reference" "#PWR0281"
 			(at 349.25 132.08 0)
 			(hide yes)
 			(show_name no)
@@ -10148,7 +10148,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0129")
+					(reference "#PWR0281")
 					(unit 1)
 				)
 			)
@@ -10165,7 +10165,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0fbd9570-1f34-44ad-b41d-bdf4399d6de1")
-		(property "Reference" "TP15"
+		(property "Reference" "TP210"
 			(at 157.48 25.146 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10225,7 +10225,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP15")
+					(reference "TP210")
 					(unit 1)
 				)
 			)
@@ -10242,7 +10242,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1064f83a-7dc3-4904-8ee4-70c47efd8047")
-		(property "Reference" "D26"
+		(property "Reference" "D225"
 			(at 389.89 137.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10338,7 +10338,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D26")
+					(reference "D225")
 					(unit 1)
 				)
 			)
@@ -10355,7 +10355,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "108d782d-2897-4450-ad66-a078d413ad14")
-		(property "Reference" "#PWR080"
+		(property "Reference" "#PWR0237"
 			(at 226.06 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -10415,7 +10415,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR080")
+					(reference "#PWR0237")
 					(unit 1)
 				)
 			)
@@ -10432,7 +10432,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "11e16890-a7b7-4fe2-b0f1-6d523aff7184")
-		(property "Reference" "#PWR0147"
+		(property "Reference" "#PWR0296"
 			(at 389.89 132.08 0)
 			(hide yes)
 			(show_name no)
@@ -10492,7 +10492,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0147")
+					(reference "#PWR0296")
 					(unit 1)
 				)
 			)
@@ -10509,7 +10509,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "14c8afae-0aba-48cf-a36a-acc85c9ed156")
-		(property "Reference" "C24"
+		(property "Reference" "C205"
 			(at 218.694 125.984 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10582,7 +10582,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C24")
+					(reference "C205")
 					(unit 1)
 				)
 			)
@@ -10599,7 +10599,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "15bd45db-bb0f-4df3-840f-9fff581ab5de")
-		(property "Reference" "#PWR0109"
+		(property "Reference" "#PWR0263"
 			(at 297.18 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -10659,7 +10659,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0109")
+					(reference "#PWR0263")
 					(unit 1)
 				)
 			)
@@ -10676,7 +10676,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "16b2d050-c06e-40fa-a512-528887f20505")
-		(property "Reference" "C29"
+		(property "Reference" "C210"
 			(at 259.842 125.984 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10749,7 +10749,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C29")
+					(reference "C210")
 					(unit 1)
 				)
 			)
@@ -10766,7 +10766,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "170a1688-9f76-49e0-813b-218f15b41c30")
-		(property "Reference" "#PWR068"
+		(property "Reference" "#PWR0227"
 			(at 213.36 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -10826,7 +10826,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR068")
+					(reference "#PWR0227")
 					(unit 1)
 				)
 			)
@@ -10843,7 +10843,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1798b4cb-deb7-4993-92bb-f51fb0fef367")
-		(property "Reference" "J7"
+		(property "Reference" "J201"
 			(at 17.78 128.524 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10927,7 +10927,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J7")
+					(reference "J201")
 					(unit 1)
 				)
 			)
@@ -10944,7 +10944,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "17debe1d-1946-4750-a064-e79d1292feea")
-		(property "Reference" "D2"
+		(property "Reference" "D203"
 			(at 226.06 43.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11040,7 +11040,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D2")
+					(reference "D203")
 					(unit 1)
 				)
 			)
@@ -11057,7 +11057,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1836a1f4-1dee-4d05-956b-1a344d5bc612")
-		(property "Reference" "#PWR0127"
+		(property "Reference" "#PWR0279"
 			(at 349.25 38.1 0)
 			(hide yes)
 			(show_name no)
@@ -11117,7 +11117,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0127")
+					(reference "#PWR0279")
 					(unit 1)
 				)
 			)
@@ -11135,7 +11135,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "18419c71-a96f-4bf8-95b0-6c5767e37145")
-		(property "Reference" "TP21"
+		(property "Reference" "TP211"
 			(at 160.02 159.766 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11195,7 +11195,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP21")
+					(reference "TP211")
 					(unit 1)
 				)
 			)
@@ -11213,7 +11213,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "18cd99d6-4ac9-447b-a661-b772d516a2a0")
-		(property "Reference" "TP29"
+		(property "Reference" "TP208"
 			(at 147.32 25.146 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11273,7 +11273,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP29")
+					(reference "TP208")
 					(unit 1)
 				)
 			)
@@ -11290,7 +11290,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "18ed7c50-11ac-4c90-bb87-c02d914d30d3")
-		(property "Reference" "C35"
+		(property "Reference" "C216"
 			(at 300.482 172.974 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11363,7 +11363,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C35")
+					(reference "C216")
 					(unit 1)
 				)
 			)
@@ -11380,7 +11380,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1c9ecbf5-c2e8-45ec-b4dc-067a9726ec88")
-		(property "Reference" "D5"
+		(property "Reference" "D206"
 			(at 226.06 184.15 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11476,7 +11476,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D5")
+					(reference "D206")
 					(unit 1)
 				)
 			)
@@ -11493,7 +11493,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1d7dd0dd-beec-4200-9d26-183b0ae32eb1")
-		(property "Reference" "#PWR099"
+		(property "Reference" "#PWR0254"
 			(at 294.64 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -11553,7 +11553,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR099")
+					(reference "#PWR0254")
 					(unit 1)
 				)
 			)
@@ -11570,7 +11570,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1daab7cc-3946-41b7-acdb-cd240545fe7d")
-		(property "Reference" "C47"
+		(property "Reference" "C225"
 			(at 382.778 125.984 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11643,7 +11643,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C47")
+					(reference "C225")
 					(unit 1)
 				)
 			)
@@ -11660,7 +11660,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1ed797a5-2690-4f25-a84e-45c2dbb21e8e")
-		(property "Reference" "#PWR056"
+		(property "Reference" "#PWR0209"
 			(at 90.17 90.17 0)
 			(hide yes)
 			(show_name no)
@@ -11720,7 +11720,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR056")
+					(reference "#PWR0209")
 					(unit 1)
 				)
 			)
@@ -11737,7 +11737,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "21e4e89f-d5b1-4a22-b449-3174e842c5b9")
-		(property "Reference" "#PWR095"
+		(property "Reference" "#PWR0252"
 			(at 266.7 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -11797,7 +11797,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR095")
+					(reference "#PWR0252")
 					(unit 1)
 				)
 			)
@@ -11814,7 +11814,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "22066d4c-4eb8-4dcb-9818-fafd393e3215")
-		(property "Reference" "D15"
+		(property "Reference" "D215"
 			(at 307.34 137.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11910,7 +11910,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D15")
+					(reference "D215")
 					(unit 1)
 				)
 			)
@@ -11927,7 +11927,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "261d0b9b-260c-4002-a2a9-387f8ce95676")
-		(property "Reference" "#PWR0139"
+		(property "Reference" "#PWR0289"
 			(at 379.73 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -11987,7 +11987,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0139")
+					(reference "#PWR0289")
 					(unit 1)
 				)
 			)
@@ -12005,7 +12005,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2b3d706c-93be-4c07-b77a-cbf1670e2576")
-		(property "Reference" "#FLG029"
+		(property "Reference" "#FLG0227"
 			(at 379.73 219.075 0)
 			(hide yes)
 			(show_name no)
@@ -12066,7 +12066,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG029")
+					(reference "#FLG0227")
 					(unit 1)
 				)
 			)
@@ -12083,7 +12083,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "2b786c3b-2102-45b0-b92d-acaf809d5556")
-		(property "Reference" "D22"
+		(property "Reference" "D222"
 			(at 349.25 231.14 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12179,7 +12179,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D22")
+					(reference "D222")
 					(unit 1)
 				)
 			)
@@ -12196,7 +12196,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "2e9a9c6e-55b5-4cdc-9868-c447b0a8378c")
-		(property "Reference" "#PWR074"
+		(property "Reference" "#PWR0233"
 			(at 215.9 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -12256,7 +12256,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR074")
+					(reference "#PWR0233")
 					(unit 1)
 				)
 			)
@@ -12273,7 +12273,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "31a57c96-2123-404e-bafa-c6411b438482")
-		(property "Reference" "#PWR079"
+		(property "Reference" "#PWR0236"
 			(at 226.06 132.08 0)
 			(hide yes)
 			(show_name no)
@@ -12333,7 +12333,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR079")
+					(reference "#PWR0236")
 					(unit 1)
 				)
 			)
@@ -12350,7 +12350,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "327c9b52-d5cd-4312-94e5-6b0b44b6d02e")
-		(property "Reference" "#PWR055"
+		(property "Reference" "#PWR0207"
 			(at 77.47 130.81 0)
 			(hide yes)
 			(show_name no)
@@ -12410,7 +12410,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR055")
+					(reference "#PWR0207")
 					(unit 1)
 				)
 			)
@@ -12428,7 +12428,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "335c8c57-8206-4bd1-8a2e-7b2e3b451dbd")
-		(property "Reference" "#FLG026"
+		(property "Reference" "#FLG0212"
 			(at 256.54 219.075 0)
 			(hide yes)
 			(show_name no)
@@ -12489,7 +12489,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG026")
+					(reference "#FLG0212")
 					(unit 1)
 				)
 			)
@@ -12507,7 +12507,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "33b3bba4-64ce-4e0d-acfb-eac01a718d4b")
-		(property "Reference" "#FLG020"
+		(property "Reference" "#FLG0206"
 			(at 215.9 172.085 0)
 			(hide yes)
 			(show_name no)
@@ -12568,7 +12568,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG020")
+					(reference "#FLG0206")
 					(unit 1)
 				)
 			)
@@ -12585,7 +12585,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "34b04880-676a-475c-9c5c-72cc4360cbc6")
-		(property "Reference" "C42"
+		(property "Reference" "C221"
 			(at 342.138 172.974 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12658,7 +12658,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C42")
+					(reference "C221")
 					(unit 1)
 				)
 			)
@@ -12675,7 +12675,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3508e45d-9085-4a5f-b322-62126b2869ef")
-		(property "Reference" "#PWR0137"
+		(property "Reference" "#PWR0287"
 			(at 377.19 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -12735,7 +12735,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0137")
+					(reference "#PWR0287")
 					(unit 1)
 				)
 			)
@@ -12752,7 +12752,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3511d5de-caf7-47f3-893d-2b8c84192d85")
-		(property "Reference" "#PWR011"
+		(property "Reference" "#PWR0203"
 			(at 45.72 41.91 0)
 			(hide yes)
 			(show_name no)
@@ -12812,7 +12812,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR011")
+					(reference "#PWR0203")
 					(unit 1)
 				)
 			)
@@ -12829,7 +12829,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "351d277b-1d5a-468d-900e-66bc799c0400")
-		(property "Reference" "D8"
+		(property "Reference" "D209"
 			(at 266.7 90.17 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12925,7 +12925,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D8")
+					(reference "D209")
 					(unit 1)
 				)
 			)
@@ -12942,7 +12942,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "352d67b2-8115-43a5-9d64-c024005b689a")
-		(property "Reference" "#PWR093"
+		(property "Reference" "#PWR0250"
 			(at 266.7 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -13002,7 +13002,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR093")
+					(reference "#PWR0250")
 					(unit 1)
 				)
 			)
@@ -13019,7 +13019,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "38fe6193-a887-4492-b3b8-9ae23cb3ef25")
-		(property "Reference" "#PWR0134"
+		(property "Reference" "#PWR0284"
 			(at 377.19 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -13079,7 +13079,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0134")
+					(reference "#PWR0284")
 					(unit 1)
 				)
 			)
@@ -13097,7 +13097,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "38ffdc92-6fa2-42eb-afdb-2a68987b2c4f")
-		(property "Reference" "#FLG022"
+		(property "Reference" "#FLG0216"
 			(at 297.18 172.085 0)
 			(hide yes)
 			(show_name no)
@@ -13158,7 +13158,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG022")
+					(reference "#FLG0216")
 					(unit 1)
 				)
 			)
@@ -13175,7 +13175,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3d3c95f8-505f-4436-aa6d-a0324294829f")
-		(property "Reference" "#PWR0102"
+		(property "Reference" "#PWR0257"
 			(at 294.64 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -13235,7 +13235,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0102")
+					(reference "#PWR0257")
 					(unit 1)
 				)
 			)
@@ -13253,7 +13253,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3d61c6ba-d3bd-4b48-b2f0-d7ae426075a1")
-		(property "Reference" "J15"
+		(property "Reference" "J213"
 			(at 157.988 78.232 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13333,7 +13333,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J15")
+					(reference "J213")
 					(unit 1)
 				)
 			)
@@ -13351,7 +13351,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3f7cde73-a233-4ada-9cb9-44305d5590c3")
-		(property "Reference" "#FLG015"
+		(property "Reference" "#FLG0205"
 			(at 215.9 125.095 0)
 			(hide yes)
 			(show_name no)
@@ -13412,7 +13412,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG015")
+					(reference "#FLG0205")
 					(unit 1)
 				)
 			)
@@ -13429,7 +13429,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3fb67e2e-c967-4727-b4ae-3c634811d9f1")
-		(property "Reference" "C27"
+		(property "Reference" "C208"
 			(at 259.842 32.004 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13502,7 +13502,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C27")
+					(reference "C208")
 					(unit 1)
 				)
 			)
@@ -13519,7 +13519,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "405c22dd-6292-432d-b294-9299165c4018")
-		(property "Reference" "C51"
+		(property "Reference" "C201"
 			(at 92.456 97.79 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13603,7 +13603,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C51")
+					(reference "C201")
 					(unit 1)
 				)
 			)
@@ -13620,7 +13620,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "40e5d6e6-0282-48a7-93cf-db5132dd2c5e")
-		(property "Reference" "#PWR094"
+		(property "Reference" "#PWR0251"
 			(at 266.7 132.08 0)
 			(hide yes)
 			(show_name no)
@@ -13680,7 +13680,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR094")
+					(reference "#PWR0251")
 					(unit 1)
 				)
 			)
@@ -13697,7 +13697,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "41a6a8b7-4996-48f1-907b-e10f6a65abdb")
-		(property "Reference" "#PWR0122"
+		(property "Reference" "#PWR0274"
 			(at 339.09 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -13757,7 +13757,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0122")
+					(reference "#PWR0274")
 					(unit 1)
 				)
 			)
@@ -13774,7 +13774,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "4360bce5-f872-40d3-ab25-b68f71f5dc2b")
-		(property "Reference" "#PWR078"
+		(property "Reference" "#PWR0235"
 			(at 226.06 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -13834,7 +13834,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR078")
+					(reference "#PWR0235")
 					(unit 1)
 				)
 			)
@@ -13851,7 +13851,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "43ebe287-fa30-4f84-8121-64aea4619e33")
-		(property "Reference" "#PWR083"
+		(property "Reference" "#PWR0240"
 			(at 254 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -13911,7 +13911,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR083")
+					(reference "#PWR0240")
 					(unit 1)
 				)
 			)
@@ -13928,7 +13928,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "454bbaf0-3cf9-4068-a794-b9fdae765df0")
-		(property "Reference" "#PWR0118"
+		(property "Reference" "#PWR0270"
 			(at 336.55 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -13988,7 +13988,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0118")
+					(reference "#PWR0270")
 					(unit 1)
 				)
 			)
@@ -14005,7 +14005,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "45a16ae8-7ea6-4416-85c5-35d617b18594")
-		(property "Reference" "C23"
+		(property "Reference" "C204"
 			(at 219.202 78.994 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14078,7 +14078,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C23")
+					(reference "C204")
 					(unit 1)
 				)
 			)
@@ -14095,7 +14095,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "45f7902d-7e75-4257-bb1b-c9d79bd8b04f")
-		(property "Reference" "D16"
+		(property "Reference" "D216"
 			(at 307.34 184.15 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14191,7 +14191,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D16")
+					(reference "D216")
 					(unit 1)
 				)
 			)
@@ -14209,7 +14209,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "462f4f49-a177-4de4-89ed-a4107b54f226")
-		(property "Reference" "#FLG021"
+		(property "Reference" "#FLG0211"
 			(at 256.54 172.085 0)
 			(hide yes)
 			(show_name no)
@@ -14270,7 +14270,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG021")
+					(reference "#FLG0211")
 					(unit 1)
 				)
 			)
@@ -14287,7 +14287,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "4a375606-6e49-4235-b81a-c882be3c2022")
-		(property "Reference" "#PWR086"
+		(property "Reference" "#PWR0243"
 			(at 254 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -14347,7 +14347,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR086")
+					(reference "#PWR0243")
 					(unit 1)
 				)
 			)
@@ -14364,7 +14364,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "4a881a66-a320-4252-b733-a53bfe3be5bb")
-		(property "Reference" "R17"
+		(property "Reference" "R203"
 			(at 153.67 160.02 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14437,7 +14437,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "R17")
+					(reference "R203")
 					(unit 1)
 				)
 			)
@@ -14454,7 +14454,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "4a9acf90-3da9-4eb7-a084-da593d288f94")
-		(property "Reference" "#PWR070"
+		(property "Reference" "#PWR0229"
 			(at 215.9 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -14514,7 +14514,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR070")
+					(reference "#PWR0229")
 					(unit 1)
 				)
 			)
@@ -14532,7 +14532,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "4b4e70d2-58ed-46dc-bb8e-55fc8a1c99b4")
-		(property "Reference" "#FLG012"
+		(property "Reference" "#FLG0214"
 			(at 297.18 78.105 0)
 			(hide yes)
 			(show_name no)
@@ -14593,7 +14593,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG012")
+					(reference "#FLG0214")
 					(unit 1)
 				)
 			)
@@ -14610,7 +14610,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "4bacfe6a-4407-4d4d-bb20-18e1fc8cc60c")
-		(property "Reference" "#PWR067"
+		(property "Reference" "#PWR0226"
 			(at 213.36 124.46 0)
 			(hide yes)
 			(show_name no)
@@ -14670,7 +14670,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR067")
+					(reference "#PWR0226")
 					(unit 1)
 				)
 			)
@@ -14687,7 +14687,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "4cb5dc76-04c3-46ed-a2ef-71b7d14a6e7f")
-		(property "Reference" "J4"
+		(property "Reference" "J203"
 			(at 67.31 128.778 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14771,7 +14771,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J4")
+					(reference "J203")
 					(unit 1)
 				)
 			)
@@ -14789,7 +14789,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "50227f77-8a04-43f9-aaf2-96144f21e975")
-		(property "Reference" "#FLG023"
+		(property "Reference" "#FLG0221"
 			(at 339.09 172.085 0)
 			(hide yes)
 			(show_name no)
@@ -14850,7 +14850,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG023")
+					(reference "#FLG0221")
 					(unit 1)
 				)
 			)
@@ -14867,7 +14867,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "54c0420e-5923-42bd-af43-62233e8cbe98")
-		(property "Reference" "D20"
+		(property "Reference" "D220"
 			(at 349.25 137.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14963,7 +14963,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D20")
+					(reference "D220")
 					(unit 1)
 				)
 			)
@@ -14980,7 +14980,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "553ed22d-99e7-4ebc-b762-1019c1348bc5")
-		(property "Reference" "C41"
+		(property "Reference" "C220"
 			(at 342.392 125.984 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15053,7 +15053,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C41")
+					(reference "C220")
 					(unit 1)
 				)
 			)
@@ -15071,7 +15071,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "56614ef2-9b07-4ccf-bf0b-0314590b2185")
-		(property "Reference" "#FLG08"
+		(property "Reference" "#FLG0218"
 			(at 339.09 31.115 0)
 			(hide yes)
 			(show_name no)
@@ -15132,7 +15132,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG08")
+					(reference "#FLG0218")
 					(unit 1)
 				)
 			)
@@ -15149,7 +15149,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "566e9320-a2b6-484f-a8ff-86be46cccc91")
-		(property "Reference" "#PWR0101"
+		(property "Reference" "#PWR0256"
 			(at 294.64 124.46 0)
 			(hide yes)
 			(show_name no)
@@ -15209,7 +15209,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0101")
+					(reference "#PWR0256")
 					(unit 1)
 				)
 			)
@@ -15226,7 +15226,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "578f9865-1faf-4d43-a3af-ab59d0396f2e")
-		(property "Reference" "#PWR087"
+		(property "Reference" "#PWR0244"
 			(at 256.54 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -15286,7 +15286,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR087")
+					(reference "#PWR0244")
 					(unit 1)
 				)
 			)
@@ -15303,7 +15303,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "586e543a-79c7-4042-8505-66c6537b801b")
-		(property "Reference" "#PWR082"
+		(property "Reference" "#PWR0239"
 			(at 254 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -15363,7 +15363,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR082")
+					(reference "#PWR0239")
 					(unit 1)
 				)
 			)
@@ -15381,7 +15381,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5986f3a5-2c5e-466e-81f3-8058bf57f87b")
-		(property "Reference" "#FLG027"
+		(property "Reference" "#FLG0217"
 			(at 297.18 219.075 0)
 			(hide yes)
 			(show_name no)
@@ -15442,7 +15442,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG027")
+					(reference "#FLG0217")
 					(unit 1)
 				)
 			)
@@ -15459,7 +15459,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "5a30ff6d-e3a4-4e71-8918-5d134bcb9b4d")
-		(property "Reference" "#PWR064"
+		(property "Reference" "#PWR0219"
 			(at 167.64 214.63 0)
 			(hide yes)
 			(show_name no)
@@ -15519,7 +15519,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR064")
+					(reference "#PWR0219")
 					(unit 1)
 				)
 			)
@@ -15536,7 +15536,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "5a31376a-a733-4180-9708-d6f8e6d43f96")
-		(property "Reference" "#PWR0113"
+		(property "Reference" "#PWR0267"
 			(at 307.34 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -15596,7 +15596,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0113")
+					(reference "#PWR0267")
 					(unit 1)
 				)
 			)
@@ -15614,7 +15614,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5b70d138-5ffa-4bb6-a944-39fd8debbbd2")
-		(property "Reference" "#FLG011"
+		(property "Reference" "#FLG0209"
 			(at 256.54 78.105 0)
 			(hide yes)
 			(show_name no)
@@ -15675,7 +15675,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG011")
+					(reference "#FLG0209")
 					(unit 1)
 				)
 			)
@@ -15692,7 +15692,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "5bb29e38-225f-4860-aa35-308f0dbe34ab")
-		(property "Reference" "#PWR073"
+		(property "Reference" "#PWR0232"
 			(at 215.9 194.31 0)
 			(hide yes)
 			(show_name no)
@@ -15752,7 +15752,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR073")
+					(reference "#PWR0232")
 					(unit 1)
 				)
 			)
@@ -15769,7 +15769,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "5c436dd7-1936-44bb-acb0-f7d36504c986")
-		(property "Reference" "#PWR092"
+		(property "Reference" "#PWR0249"
 			(at 266.7 38.1 0)
 			(hide yes)
 			(show_name no)
@@ -15829,7 +15829,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR092")
+					(reference "#PWR0249")
 					(unit 1)
 				)
 			)
@@ -15846,7 +15846,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "5f7e135e-e2c8-4240-8006-feccc008dda8")
-		(property "Reference" "#PWR0135"
+		(property "Reference" "#PWR0285"
 			(at 377.19 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -15906,7 +15906,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0135")
+					(reference "#PWR0285")
 					(unit 1)
 				)
 			)
@@ -15923,7 +15923,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6315f0c7-19a6-47cc-bebb-6fdb9606c4e2")
-		(property "Reference" "C26"
+		(property "Reference" "C207"
 			(at 219.202 219.964 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15996,7 +15996,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C26")
+					(reference "C207")
 					(unit 1)
 				)
 			)
@@ -16013,7 +16013,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "644d6101-d0bd-47a2-8337-db9bfb748210")
-		(property "Reference" "#PWR0110"
+		(property "Reference" "#PWR0264"
 			(at 307.34 38.1 0)
 			(hide yes)
 			(show_name no)
@@ -16073,7 +16073,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0110")
+					(reference "#PWR0264")
 					(unit 1)
 				)
 			)
@@ -16090,7 +16090,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "64cea204-8b2f-44b9-9193-12b56f6240f6")
-		(property "Reference" "J10"
+		(property "Reference" "J207"
 			(at 106.68 37.846 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16177,7 +16177,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J10")
+					(reference "J207")
 					(unit 1)
 				)
 			)
@@ -16194,7 +16194,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "65bc67d4-031f-4728-bbca-0f00acdeb2e8")
-		(property "Reference" "#PWR0136"
+		(property "Reference" "#PWR0286"
 			(at 377.19 124.46 0)
 			(hide yes)
 			(show_name no)
@@ -16254,7 +16254,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0136")
+					(reference "#PWR0286")
 					(unit 1)
 				)
 			)
@@ -16271,7 +16271,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "666a4ce8-91b8-475b-b550-65448a113a76")
-		(property "Reference" "#PWR0130"
+		(property "Reference" "#PWR0282"
 			(at 349.25 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -16331,7 +16331,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0130")
+					(reference "#PWR0282")
 					(unit 1)
 				)
 			)
@@ -16348,7 +16348,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6788f2c3-5c6b-4f82-be57-48e8165d6a29")
-		(property "Reference" "C36"
+		(property "Reference" "C217"
 			(at 300.482 219.964 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16421,7 +16421,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C36")
+					(reference "C217")
 					(unit 1)
 				)
 			)
@@ -16438,7 +16438,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "68c9eede-6bb7-4c79-889d-799c8bf94042")
-		(property "Reference" "#PWR0128"
+		(property "Reference" "#PWR0280"
 			(at 349.25 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -16498,7 +16498,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0128")
+					(reference "#PWR0280")
 					(unit 1)
 				)
 			)
@@ -16515,7 +16515,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6a6ee1ba-00c8-4d1c-af18-3760e0658c4f")
-		(property "Reference" "#PWR069"
+		(property "Reference" "#PWR0228"
 			(at 213.36 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -16575,7 +16575,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR069")
+					(reference "#PWR0228")
 					(unit 1)
 				)
 			)
@@ -16592,7 +16592,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6a8161f9-f5c5-464c-9d4a-d137df84799f")
-		(property "Reference" "#PWR0125"
+		(property "Reference" "#PWR0277"
 			(at 339.09 194.31 0)
 			(hide yes)
 			(show_name no)
@@ -16652,7 +16652,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0125")
+					(reference "#PWR0277")
 					(unit 1)
 				)
 			)
@@ -16669,7 +16669,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6b8b7931-c270-4a90-88a7-2fe4f4cee3f2")
-		(property "Reference" "C32"
+		(property "Reference" "C213"
 			(at 300.482 32.004 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16742,7 +16742,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C32")
+					(reference "C213")
 					(unit 1)
 				)
 			)
@@ -16759,7 +16759,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6c2f0d11-3eeb-4aee-a119-47ff5f865ed6")
-		(property "Reference" "C25"
+		(property "Reference" "C206"
 			(at 219.202 172.974 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16832,7 +16832,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C25")
+					(reference "C206")
 					(unit 1)
 				)
 			)
@@ -16850,7 +16850,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6d3f358e-2ce3-4a91-86ea-d16fcd3d6f15")
-		(property "Reference" "#FLG06"
+		(property "Reference" "#FLG0208"
 			(at 256.54 31.115 0)
 			(hide yes)
 			(show_name no)
@@ -16911,7 +16911,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG06")
+					(reference "#FLG0208")
 					(unit 1)
 				)
 			)
@@ -16928,7 +16928,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6f0ff429-eadb-4839-9b49-4523470259e5")
-		(property "Reference" "#PWR0170"
+		(property "Reference" "#PWR0211"
 			(at 95.25 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -16988,7 +16988,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0170")
+					(reference "#PWR0211")
 					(unit 1)
 				)
 			)
@@ -17005,7 +17005,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6ffd89eb-6b6e-4362-b403-a4ee10b24456")
-		(property "Reference" "J3"
+		(property "Reference" "J206"
 			(at 95.25 129.286 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17089,7 +17089,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J3")
+					(reference "J206")
 					(unit 1)
 				)
 			)
@@ -17107,7 +17107,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "720232db-c34d-4e14-87b5-f77295f921db")
-		(property "Reference" "#FLG09"
+		(property "Reference" "#FLG0223"
 			(at 379.73 31.115 0)
 			(hide yes)
 			(show_name no)
@@ -17168,7 +17168,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG09")
+					(reference "#FLG0223")
 					(unit 1)
 				)
 			)
@@ -17185,7 +17185,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "736789d1-c5c3-4188-9ebe-f78187b18f91")
-		(property "Reference" "#PWR0131"
+		(property "Reference" "#PWR0283"
 			(at 349.25 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -17245,7 +17245,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0131")
+					(reference "#PWR0283")
 					(unit 1)
 				)
 			)
@@ -17262,7 +17262,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "73c3891d-8ce3-4b9f-9223-a0f9752b6121")
-		(property "Reference" "D24"
+		(property "Reference" "D223"
 			(at 389.89 43.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17358,7 +17358,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D24")
+					(reference "D223")
 					(unit 1)
 				)
 			)
@@ -17375,7 +17375,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "7458eb93-ac89-4ab1-905e-09df0a1590b9")
-		(property "Reference" "#PWR0164"
+		(property "Reference" "#PWR0215"
 			(at 147.32 182.88 0)
 			(hide yes)
 			(show_name no)
@@ -17435,7 +17435,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0164")
+					(reference "#PWR0215")
 					(unit 1)
 				)
 			)
@@ -17452,7 +17452,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "74761c98-583f-46b8-8579-e879d17a82c9")
-		(property "Reference" "#PWR0152"
+		(property "Reference" "#PWR0210"
 			(at 90.17 109.22 0)
 			(hide yes)
 			(show_name no)
@@ -17512,7 +17512,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0152")
+					(reference "#PWR0210")
 					(unit 1)
 				)
 			)
@@ -17529,7 +17529,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "74afac67-6ab7-43f5-b389-d3ca6e3a6362")
-		(property "Reference" "#PWR0182"
+		(property "Reference" "#PWR0214"
 			(at 124.46 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -17589,7 +17589,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0182")
+					(reference "#PWR0214")
 					(unit 1)
 				)
 			)
@@ -17607,7 +17607,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "759314d8-f801-408e-a991-8bfd052f30d3")
-		(property "Reference" "#FLG05"
+		(property "Reference" "#FLG0203"
 			(at 215.9 31.115 0)
 			(hide yes)
 			(show_name no)
@@ -17668,7 +17668,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG05")
+					(reference "#FLG0203")
 					(unit 1)
 				)
 			)
@@ -17685,7 +17685,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "7687195b-5864-4219-b3f8-66729ac158c5")
-		(property "Reference" "#PWR089"
+		(property "Reference" "#PWR0246"
 			(at 256.54 147.32 0)
 			(hide yes)
 			(show_name no)
@@ -17745,7 +17745,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR089")
+					(reference "#PWR0246")
 					(unit 1)
 				)
 			)
@@ -17762,7 +17762,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "77d54e88-f380-46c6-87da-653283517cc3")
-		(property "Reference" "#PWR076"
+		(property "Reference" "#PWR0201"
 			(at 27.94 130.81 0)
 			(hide yes)
 			(show_name no)
@@ -17822,7 +17822,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR076")
+					(reference "#PWR0201")
 					(unit 1)
 				)
 			)
@@ -17839,7 +17839,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "782908b7-666f-4174-b8d4-cd431215c57b")
-		(property "Reference" "D14"
+		(property "Reference" "D214"
 			(at 307.34 90.17 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17935,7 +17935,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D14")
+					(reference "D214")
 					(unit 1)
 				)
 			)
@@ -17952,7 +17952,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "7865e55e-c034-4614-a415-58d64d56bbeb")
-		(property "Reference" "J11"
+		(property "Reference" "J208"
 			(at 106.68 91.44 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18036,7 +18036,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J11")
+					(reference "J208")
 					(unit 1)
 				)
 			)
@@ -18053,7 +18053,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "7a8639d0-f908-4ec1-9d18-cbb8c1a6fcbb")
-		(property "Reference" "#PWR0106"
+		(property "Reference" "#PWR0260"
 			(at 297.18 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -18113,7 +18113,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0106")
+					(reference "#PWR0260")
 					(unit 1)
 				)
 			)
@@ -18130,7 +18130,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "7c278c3f-5a68-484f-b152-36dc93188b04")
-		(property "Reference" "#PWR0167"
+		(property "Reference" "#PWR0205"
 			(at 45.72 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -18190,7 +18190,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0167")
+					(reference "#PWR0205")
 					(unit 1)
 				)
 			)
@@ -18207,7 +18207,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "81a16e4a-884e-4ede-9609-1729afe9c9e0")
-		(property "Reference" "#PWR071"
+		(property "Reference" "#PWR0230"
 			(at 215.9 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -18267,7 +18267,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR071")
+					(reference "#PWR0230")
 					(unit 1)
 				)
 			)
@@ -18284,7 +18284,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8229581d-c791-41aa-b930-da3862b1961e")
-		(property "Reference" "#PWR0112"
+		(property "Reference" "#PWR0266"
 			(at 307.34 132.08 0)
 			(hide yes)
 			(show_name no)
@@ -18344,7 +18344,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0112")
+					(reference "#PWR0266")
 					(unit 1)
 				)
 			)
@@ -18361,7 +18361,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8291aa83-e2cb-4797-a6f0-acecdf19c68a")
-		(property "Reference" "#PWR096"
+		(property "Reference" "#PWR0253"
 			(at 266.7 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -18421,7 +18421,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR096")
+					(reference "#PWR0253")
 					(unit 1)
 				)
 			)
@@ -18438,7 +18438,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "838d6a43-639f-46f9-bf51-4355c7329d7d")
-		(property "Reference" "C57"
+		(property "Reference" "C202"
 			(at 97.536 47.498 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18511,7 +18511,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C57")
+					(reference "C202")
 					(unit 1)
 				)
 			)
@@ -18528,7 +18528,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "85b3bcdb-7037-499c-a284-c49e992531f3")
-		(property "Reference" "C43"
+		(property "Reference" "C222"
 			(at 342.138 219.964 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18601,7 +18601,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C43")
+					(reference "C222")
 					(unit 1)
 				)
 			)
@@ -18618,7 +18618,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "88c99e6e-3ec0-46b5-9bf2-f2e238ea59ac")
-		(property "Reference" "TP9"
+		(property "Reference" "TP214"
 			(at 210.058 20.828 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18678,7 +18678,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP9")
+					(reference "TP214")
 					(unit 1)
 				)
 			)
@@ -18695,7 +18695,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8a1ab14a-bd2b-4695-85ff-a88eed1f4ff7")
-		(property "Reference" "#PWR091"
+		(property "Reference" "#PWR0248"
 			(at 256.54 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -18755,7 +18755,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR091")
+					(reference "#PWR0248")
 					(unit 1)
 				)
 			)
@@ -18772,7 +18772,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8b25054e-162d-4ac7-acf9-7319d55d9b55")
-		(property "Reference" "D28"
+		(property "Reference" "D227"
 			(at 389.89 231.14 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18868,7 +18868,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D28")
+					(reference "D227")
 					(unit 1)
 				)
 			)
@@ -18885,7 +18885,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8cab19c8-d102-4366-b466-a592cad25e6b")
-		(property "Reference" "#PWR077"
+		(property "Reference" "#PWR0234"
 			(at 226.06 38.1 0)
 			(hide yes)
 			(show_name no)
@@ -18945,7 +18945,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR077")
+					(reference "#PWR0234")
 					(unit 1)
 				)
 			)
@@ -18962,7 +18962,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8cefae3a-2a70-4100-9b51-4cce2e75f13d")
-		(property "Reference" "J16"
+		(property "Reference" "J209"
 			(at 146.05 129.286 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19049,7 +19049,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J16")
+					(reference "J209")
 					(unit 1)
 				)
 			)
@@ -19066,7 +19066,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8cf30b81-7637-4793-80a8-72de16ce0bb5")
-		(property "Reference" "#PWR0107"
+		(property "Reference" "#PWR0261"
 			(at 297.18 147.32 0)
 			(hide yes)
 			(show_name no)
@@ -19126,7 +19126,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0107")
+					(reference "#PWR0261")
 					(unit 1)
 				)
 			)
@@ -19144,7 +19144,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8d79deb9-52ba-4fde-85e2-409f3552a13e")
-		(property "Reference" "TP16"
+		(property "Reference" "TP212"
 			(at 162.56 25.146 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19204,7 +19204,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP16")
+					(reference "TP212")
 					(unit 1)
 				)
 			)
@@ -19221,7 +19221,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8f5ff4d7-b119-4f6e-a0c2-2e49ac5a1a4b")
-		(property "Reference" "R15"
+		(property "Reference" "R204"
 			(at 153.67 202.692 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19294,7 +19294,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "R15")
+					(reference "R204")
 					(unit 1)
 				)
 			)
@@ -19312,7 +19312,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "907bcd86-d4c7-4fab-8df9-be68753966a3")
-		(property "Reference" "J8"
+		(property "Reference" "J204"
 			(at 73.66 37.592 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19399,7 +19399,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J8")
+					(reference "J204")
 					(unit 1)
 				)
 			)
@@ -19417,7 +19417,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "90ee9f5a-7f6c-40b3-8ed5-1c3b81eb1ab2")
-		(property "Reference" "#FLG07"
+		(property "Reference" "#FLG0213"
 			(at 297.18 31.115 0)
 			(hide yes)
 			(show_name no)
@@ -19478,7 +19478,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG07")
+					(reference "#FLG0213")
 					(unit 1)
 				)
 			)
@@ -19495,7 +19495,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "917c7198-8d09-4ccb-8dd3-277891cd8e5a")
-		(property "Reference" "#PWR0123"
+		(property "Reference" "#PWR0275"
 			(at 339.09 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -19555,7 +19555,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0123")
+					(reference "#PWR0275")
 					(unit 1)
 				)
 			)
@@ -19572,7 +19572,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9187d1e2-423d-4d3d-8cb1-a727a57d388c")
-		(property "Reference" "D13"
+		(property "Reference" "D213"
 			(at 307.34 43.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19668,7 +19668,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D13")
+					(reference "D213")
 					(unit 1)
 				)
 			)
@@ -19685,7 +19685,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "92debed5-8bfd-427a-ad4a-627dc3d2fddc")
-		(property "Reference" "#PWR0142"
+		(property "Reference" "#PWR0292"
 			(at 379.73 194.31 0)
 			(hide yes)
 			(show_name no)
@@ -19745,7 +19745,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0142")
+					(reference "#PWR0292")
 					(unit 1)
 				)
 			)
@@ -19762,7 +19762,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "930cb5da-f05b-43d8-b71d-99dc4b076d4b")
-		(property "Reference" "#PWR0117"
+		(property "Reference" "#PWR0269"
 			(at 336.55 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -19822,7 +19822,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0117")
+					(reference "#PWR0269")
 					(unit 1)
 				)
 			)
@@ -19840,7 +19840,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "937ce23d-b41e-44e2-8f16-64aa990b3673")
-		(property "Reference" "TP17"
+		(property "Reference" "TP213"
 			(at 167.64 25.146 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19900,7 +19900,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP17")
+					(reference "TP213")
 					(unit 1)
 				)
 			)
@@ -19918,7 +19918,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "93fee054-2f48-47f0-8caf-e64ba39eace1")
-		(property "Reference" "#FLG018"
+		(property "Reference" "#FLG0220"
 			(at 339.09 125.095 0)
 			(hide yes)
 			(show_name no)
@@ -19979,7 +19979,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG018")
+					(reference "#FLG0220")
 					(unit 1)
 				)
 			)
@@ -19997,7 +19997,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "94e08f04-7db8-41a1-a506-aa27875c997b")
-		(property "Reference" "#FLG024"
+		(property "Reference" "#FLG0226"
 			(at 379.73 172.085 0)
 			(hide yes)
 			(show_name no)
@@ -20058,7 +20058,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG024")
+					(reference "#FLG0226")
 					(unit 1)
 				)
 			)
@@ -20075,7 +20075,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "961463cc-a8b5-4d0e-82d5-9c55fb8bf55c")
-		(property "Reference" "#PWR075"
+		(property "Reference" "#PWR0206"
 			(at 52.07 130.81 0)
 			(hide yes)
 			(show_name no)
@@ -20135,7 +20135,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR075")
+					(reference "#PWR0206")
 					(unit 1)
 				)
 			)
@@ -20152,7 +20152,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "96342b5d-33d4-46c2-988f-b743931f050c")
-		(property "Reference" "J14"
+		(property "Reference" "J212"
 			(at 157.734 55.88 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20232,7 +20232,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J14")
+					(reference "J212")
 					(unit 1)
 				)
 			)
@@ -20250,7 +20250,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "96fa009f-ad4d-4e0c-ac17-89048e539d42")
-		(property "Reference" "#FLG014"
+		(property "Reference" "#FLG0224"
 			(at 379.73 78.105 0)
 			(hide yes)
 			(show_name no)
@@ -20311,7 +20311,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG014")
+					(reference "#FLG0224")
 					(unit 1)
 				)
 			)
@@ -20329,7 +20329,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9a220740-8983-4187-a669-f9996ff69b01")
-		(property "Reference" "#PWR0178"
+		(property "Reference" "#PWR0220"
 			(at 182.88 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -20389,7 +20389,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0178")
+					(reference "#PWR0220")
 					(unit 1)
 				)
 			)
@@ -20406,7 +20406,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9b38bdae-ef0d-4696-bb9d-01db2ee3dd08")
-		(property "Reference" "#PWR088"
+		(property "Reference" "#PWR0245"
 			(at 256.54 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -20466,7 +20466,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR088")
+					(reference "#PWR0245")
 					(unit 1)
 				)
 			)
@@ -20483,7 +20483,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9c8ad087-cbfb-4368-9404-a833c4f44591")
-		(property "Reference" "D9"
+		(property "Reference" "D210"
 			(at 266.7 137.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20579,7 +20579,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D9")
+					(reference "D210")
 					(unit 1)
 				)
 			)
@@ -20596,7 +20596,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9cbab828-7e32-46c6-acd5-13f2c410891b")
-		(property "Reference" "C46"
+		(property "Reference" "C224"
 			(at 383.032 78.994 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20669,7 +20669,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C46")
+					(reference "C224")
 					(unit 1)
 				)
 			)
@@ -20686,7 +20686,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9d914092-18bf-4f11-9b2f-9ee0d030fbad")
-		(property "Reference" "D6"
+		(property "Reference" "D207"
 			(at 226.06 231.14 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20782,7 +20782,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D6")
+					(reference "D207")
 					(unit 1)
 				)
 			)
@@ -20800,7 +20800,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9fcdea36-bb19-4865-bfb2-819ca5abc5eb")
-		(property "Reference" "J5"
+		(property "Reference" "J205"
 			(at 73.66 91.44 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20884,7 +20884,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J5")
+					(reference "J205")
 					(unit 1)
 				)
 			)
@@ -20901,7 +20901,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a1287a1c-826d-428d-9434-e2af6a335763")
-		(property "Reference" "#PWR0141"
+		(property "Reference" "#PWR0291"
 			(at 379.73 147.32 0)
 			(hide yes)
 			(show_name no)
@@ -20961,7 +20961,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0141")
+					(reference "#PWR0291")
 					(unit 1)
 				)
 			)
@@ -20978,7 +20978,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a1ada7a6-9aa8-481e-91ec-9025411171b5")
-		(property "Reference" "#PWR084"
+		(property "Reference" "#PWR0241"
 			(at 254 124.46 0)
 			(hide yes)
 			(show_name no)
@@ -21038,7 +21038,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR084")
+					(reference "#PWR0241")
 					(unit 1)
 				)
 			)
@@ -21055,7 +21055,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a21218cf-aef4-4554-acef-0375214e460c")
-		(property "Reference" "D27"
+		(property "Reference" "D226"
 			(at 389.89 184.15 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21151,7 +21151,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D27")
+					(reference "D226")
 					(unit 1)
 				)
 			)
@@ -21168,7 +21168,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a3e4fd96-f03e-42c2-b4a0-d56c98f9bf0c")
-		(property "Reference" "SW3"
+		(property "Reference" "SW202"
 			(at 38.1 64.77 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21270,7 +21270,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "SW3")
+					(reference "SW202")
 					(unit 1)
 				)
 			)
@@ -21287,7 +21287,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a3e4fe50-12ed-4be9-9915-a0c1331176a5")
-		(property "Reference" "TP18"
+		(property "Reference" "TP202"
 			(at 81.28 32.766 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21347,7 +21347,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP18")
+					(reference "TP202")
 					(unit 1)
 				)
 			)
@@ -21364,7 +21364,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a41b6bfa-00fc-48ae-937a-76a6f89e4581")
-		(property "Reference" "#PWR0140"
+		(property "Reference" "#PWR0290"
 			(at 379.73 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -21424,7 +21424,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0140")
+					(reference "#PWR0290")
 					(unit 1)
 				)
 			)
@@ -21441,7 +21441,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a4f5adf8-126f-4feb-a199-0a20a2cf5512")
-		(property "Reference" "C49"
+		(property "Reference" "C227"
 			(at 383.032 219.964 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21514,7 +21514,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C49")
+					(reference "C227")
 					(unit 1)
 				)
 			)
@@ -21531,7 +21531,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a6605fe8-fcf6-4a26-891b-7ca14293b79d")
-		(property "Reference" "D25"
+		(property "Reference" "D224"
 			(at 389.89 90.17 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21627,7 +21627,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D25")
+					(reference "D224")
 					(unit 1)
 				)
 			)
@@ -21645,7 +21645,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a75f04f4-de44-4c24-8911-6392fa0a1bee")
-		(property "Reference" "D30"
+		(property "Reference" "D201"
 			(at 153.67 167.894 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21729,7 +21729,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D30")
+					(reference "D201")
 					(unit 1)
 				)
 			)
@@ -21746,7 +21746,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a81caaa9-3b02-40ee-9877-0384deff0c86")
-		(property "Reference" "D21"
+		(property "Reference" "D221"
 			(at 349.25 184.15 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21842,7 +21842,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D21")
+					(reference "D221")
 					(unit 1)
 				)
 			)
@@ -21859,7 +21859,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a8779468-a29e-400c-87dd-64e654c9aad7")
-		(property "Reference" "J13"
+		(property "Reference" "J211"
 			(at 150.622 80.01 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21941,7 +21941,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J13")
+					(reference "J211")
 					(unit 1)
 				)
 			)
@@ -21958,7 +21958,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a8a35e0f-84b6-46a8-a4c6-328dc96750bc")
-		(property "Reference" "#PWR0119"
+		(property "Reference" "#PWR0271"
 			(at 336.55 124.46 0)
 			(hide yes)
 			(show_name no)
@@ -22018,7 +22018,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0119")
+					(reference "#PWR0271")
 					(unit 1)
 				)
 			)
@@ -22036,7 +22036,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a91667aa-460b-48f4-9674-07d6ef6f3e0c")
-		(property "Reference" "#FLG028"
+		(property "Reference" "#FLG0222"
 			(at 339.09 219.075 0)
 			(hide yes)
 			(show_name no)
@@ -22097,7 +22097,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG028")
+					(reference "#FLG0222")
 					(unit 1)
 				)
 			)
@@ -22115,7 +22115,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a93fc37f-b9a2-479b-aa87-1ef4a7016ce4")
-		(property "Reference" "TP22"
+		(property "Reference" "TP215"
 			(at 277.114 67.818 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22175,7 +22175,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP22")
+					(reference "TP215")
 					(unit 1)
 				)
 			)
@@ -22193,7 +22193,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "af48188f-9844-48ac-8ee9-4e5aec9b604a")
-		(property "Reference" "TP23"
+		(property "Reference" "TP216"
 			(at 319.024 114.808 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22253,7 +22253,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP23")
+					(reference "TP216")
 					(unit 1)
 				)
 			)
@@ -22270,7 +22270,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "afedcb89-c453-4599-8c08-ec35e0e6fdbe")
-		(property "Reference" "#PWR0121"
+		(property "Reference" "#PWR0273"
 			(at 336.55 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -22330,7 +22330,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0121")
+					(reference "#PWR0273")
 					(unit 1)
 				)
 			)
@@ -22347,7 +22347,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "b2f01d00-a0e4-4fef-9503-89d4d9bdc2e5")
-		(property "Reference" "D4"
+		(property "Reference" "D205"
 			(at 226.06 137.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22443,7 +22443,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D4")
+					(reference "D205")
 					(unit 1)
 				)
 			)
@@ -22460,7 +22460,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "b8a0f757-bc70-42dc-92a0-ac4891e1d3a3")
-		(property "Reference" "D17"
+		(property "Reference" "D217"
 			(at 307.34 231.14 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22556,7 +22556,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D17")
+					(reference "D217")
 					(unit 1)
 				)
 			)
@@ -22573,7 +22573,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "b8bfb156-82b1-4673-b41c-027354b4c3d1")
-		(property "Reference" "#PWR0143"
+		(property "Reference" "#PWR0293"
 			(at 379.73 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -22633,7 +22633,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0143")
+					(reference "#PWR0293")
 					(unit 1)
 				)
 			)
@@ -22651,7 +22651,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b997cdde-0d14-4a47-913c-774d503fb6d2")
-		(property "Reference" "H2"
+		(property "Reference" "H202"
 			(at 165.1 245.1099 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22712,7 +22712,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "H2")
+					(reference "H202")
 					(unit 1)
 				)
 			)
@@ -22729,7 +22729,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "b9c01ea7-22d0-4080-8136-8e220a5aeb61")
-		(property "Reference" "#PWR0108"
+		(property "Reference" "#PWR0262"
 			(at 297.18 194.31 0)
 			(hide yes)
 			(show_name no)
@@ -22789,7 +22789,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0108")
+					(reference "#PWR0262")
 					(unit 1)
 				)
 			)
@@ -22806,7 +22806,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ba47e489-b5ce-421b-b22a-f00911a589f5")
-		(property "Reference" "#PWR090"
+		(property "Reference" "#PWR0247"
 			(at 256.54 194.31 0)
 			(hide yes)
 			(show_name no)
@@ -22866,7 +22866,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR090")
+					(reference "#PWR0247")
 					(unit 1)
 				)
 			)
@@ -22883,7 +22883,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "bc83bc3b-7f96-4873-8d99-a2181563b2d8")
-		(property "Reference" "#PWR0100"
+		(property "Reference" "#PWR0255"
 			(at 294.64 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -22943,7 +22943,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0100")
+					(reference "#PWR0255")
 					(unit 1)
 				)
 			)
@@ -22960,7 +22960,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "bcb7196a-9fdc-4511-a846-dbb540dd9e91")
-		(property "Reference" "C39"
+		(property "Reference" "C218"
 			(at 342.138 32.004 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23033,7 +23033,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C39")
+					(reference "C218")
 					(unit 1)
 				)
 			)
@@ -23050,7 +23050,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "bd7a729b-aaea-4cbc-ad27-6abd8fd8aceb")
-		(property "Reference" "#PWR0157"
+		(property "Reference" "#PWR0223"
 			(at 208.28 48.26 0)
 			(hide yes)
 			(show_name no)
@@ -23110,7 +23110,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0157")
+					(reference "#PWR0223")
 					(unit 1)
 				)
 			)
@@ -23127,7 +23127,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c1351983-fb4d-40d4-9a63-85a2f1afadcb")
-		(property "Reference" "#PWR072"
+		(property "Reference" "#PWR0231"
 			(at 215.9 147.32 0)
 			(hide yes)
 			(show_name no)
@@ -23187,7 +23187,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR072")
+					(reference "#PWR0231")
 					(unit 1)
 				)
 			)
@@ -23204,7 +23204,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c1f9e505-3341-4cfb-abc6-3bdfaadf2af6")
-		(property "Reference" "#PWR0148"
+		(property "Reference" "#PWR0297"
 			(at 389.89 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -23264,7 +23264,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0148")
+					(reference "#PWR0297")
 					(unit 1)
 				)
 			)
@@ -23281,7 +23281,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c54d12c4-ed49-480c-a9d1-0c526687d992")
-		(property "Reference" "C28"
+		(property "Reference" "C209"
 			(at 259.842 78.994 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23354,7 +23354,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C28")
+					(reference "C209")
 					(unit 1)
 				)
 			)
@@ -23371,7 +23371,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c576de81-f222-4e3c-8bef-ba4e8e9d269b")
-		(property "Reference" "#PWR0111"
+		(property "Reference" "#PWR0265"
 			(at 307.34 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -23431,7 +23431,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0111")
+					(reference "#PWR0265")
 					(unit 1)
 				)
 			)
@@ -23448,7 +23448,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c9dc3ae7-820f-498a-ac53-86a783760792")
-		(property "Reference" "D3"
+		(property "Reference" "D204"
 			(at 226.06 90.17 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23544,7 +23544,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D3")
+					(reference "D204")
 					(unit 1)
 				)
 			)
@@ -23561,7 +23561,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ca044e54-570a-4afc-ac00-e1790d502ba6")
-		(property "Reference" "#PWR066"
+		(property "Reference" "#PWR0225"
 			(at 213.36 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -23621,7 +23621,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR066")
+					(reference "#PWR0225")
 					(unit 1)
 				)
 			)
@@ -23638,7 +23638,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "cb986239-79e9-4a19-ba6f-e3a427dc76f1")
-		(property "Reference" "D10"
+		(property "Reference" "D211"
 			(at 266.7 184.15 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23734,7 +23734,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D10")
+					(reference "D211")
 					(unit 1)
 				)
 			)
@@ -23752,7 +23752,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "cb9a0f33-ffd3-4ebe-8b41-360d34996958")
-		(property "Reference" "TP26"
+		(property "Reference" "TP203"
 			(at 85.09 88.138 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23812,7 +23812,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP26")
+					(reference "TP203")
 					(unit 1)
 				)
 			)
@@ -23829,7 +23829,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "cd98da84-13c4-4765-9132-f66077af99aa")
-		(property "Reference" "#PWR081"
+		(property "Reference" "#PWR0238"
 			(at 226.06 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -23889,7 +23889,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR081")
+					(reference "#PWR0238")
 					(unit 1)
 				)
 			)
@@ -23906,7 +23906,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "cddd07df-17ba-445d-a9c3-66c2f0887b92")
-		(property "Reference" "D11"
+		(property "Reference" "D212"
 			(at 266.7 231.14 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24002,7 +24002,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D11")
+					(reference "D212")
 					(unit 1)
 				)
 			)
@@ -24019,7 +24019,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d1820471-392a-49c3-8621-fbf87e28323a")
-		(property "Reference" "TP28"
+		(property "Reference" "TP207"
 			(at 142.24 25.146 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24079,7 +24079,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP28")
+					(reference "TP207")
 					(unit 1)
 				)
 			)
@@ -24096,7 +24096,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d1ded98a-3df3-42b1-9982-84ce424c0f14")
-		(property "Reference" "C31"
+		(property "Reference" "C212"
 			(at 259.842 219.964 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24169,7 +24169,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C31")
+					(reference "C212")
 					(unit 1)
 				)
 			)
@@ -24187,7 +24187,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d334c99c-82d3-47c5-8fc6-c6fa664c9e56")
-		(property "Reference" "#FLG013"
+		(property "Reference" "#FLG0219"
 			(at 339.09 78.105 0)
 			(hide yes)
 			(show_name no)
@@ -24248,7 +24248,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG013")
+					(reference "#FLG0219")
 					(unit 1)
 				)
 			)
@@ -24266,7 +24266,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d3adff4d-fc98-4fa0-be5e-35ba9c63edaf")
-		(property "Reference" "#FLG017"
+		(property "Reference" "#FLG0215"
 			(at 297.18 125.095 0)
 			(hide yes)
 			(show_name no)
@@ -24327,7 +24327,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG017")
+					(reference "#FLG0215")
 					(unit 1)
 				)
 			)
@@ -24345,7 +24345,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d3cda2a4-e4ef-43a6-8149-01b3c2136269")
-		(property "Reference" "#FLG03"
+		(property "Reference" "#FLG0201"
 			(at 78.74 92.075 0)
 			(hide yes)
 			(show_name no)
@@ -24406,7 +24406,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG03")
+					(reference "#FLG0201")
 					(unit 1)
 				)
 			)
@@ -24423,7 +24423,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d3cda590-e9ca-4589-8746-f2292e5cec75")
-		(property "Reference" "#PWR0179"
+		(property "Reference" "#PWR0221"
 			(at 187.96 39.37 0)
 			(hide yes)
 			(show_name no)
@@ -24483,7 +24483,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0179")
+					(reference "#PWR0221")
 					(unit 1)
 				)
 			)
@@ -24500,7 +24500,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d3f54dde-9854-45fb-a7a1-e4f24ea3c5ca")
-		(property "Reference" "D1"
+		(property "Reference" "D202"
 			(at 161.036 204.216 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24595,7 +24595,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D1")
+					(reference "D202")
 					(unit 1)
 				)
 			)
@@ -24613,7 +24613,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d427fa67-ee72-4ad6-83b3-ccea865b9424")
-		(property "Reference" "#FLG010"
+		(property "Reference" "#FLG0204"
 			(at 215.9 78.105 0)
 			(hide yes)
 			(show_name no)
@@ -24674,7 +24674,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG010")
+					(reference "#FLG0204")
 					(unit 1)
 				)
 			)
@@ -24691,7 +24691,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d4409eff-f466-42d2-bba6-b2a41ff3fb27")
-		(property "Reference" "#PWR065"
+		(property "Reference" "#PWR0224"
 			(at 213.36 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -24751,7 +24751,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR065")
+					(reference "#PWR0224")
 					(unit 1)
 				)
 			)
@@ -24768,7 +24768,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d5c4b3a2-1f0e-4d9c-8b7a-6f5e4d3c2b1a")
-		(property "Reference" "#PWR010"
+		(property "Reference" "#PWR0204"
 			(at 45.72 92.71 0)
 			(hide yes)
 			(show_name no)
@@ -24828,7 +24828,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR010")
+					(reference "#PWR0204")
 					(unit 1)
 				)
 			)
@@ -24846,7 +24846,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d64adcfd-630d-49e8-a167-5a9e613a6430")
-		(property "Reference" "J12"
+		(property "Reference" "J210"
 			(at 150.622 54.356 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24928,7 +24928,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J12")
+					(reference "J210")
 					(unit 1)
 				)
 			)
@@ -24945,7 +24945,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d77ced55-4318-4dd9-bd86-557c56d9de97")
-		(property "Reference" "#PWR0138"
+		(property "Reference" "#PWR0288"
 			(at 377.19 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -25005,7 +25005,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0138")
+					(reference "#PWR0288")
 					(unit 1)
 				)
 			)
@@ -25022,7 +25022,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d8b78c43-6ddb-4ce1-b892-0f4f61656c84")
-		(property "Reference" "#PWR0146"
+		(property "Reference" "#PWR0295"
 			(at 389.89 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -25082,7 +25082,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0146")
+					(reference "#PWR0295")
 					(unit 1)
 				)
 			)
@@ -25099,7 +25099,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "da7baab7-d9b8-401d-9914-5ce8d91bcb90")
-		(property "Reference" "J9"
+		(property "Reference" "J214"
 			(at 167.64 170.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25183,7 +25183,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J9")
+					(reference "J214")
 					(unit 1)
 				)
 			)
@@ -25200,7 +25200,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "dd1cb7ea-d7dd-499e-b921-a0e573b0804e")
-		(property "Reference" "C22"
+		(property "Reference" "C203"
 			(at 219.202 32.004 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25273,7 +25273,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C22")
+					(reference "C203")
 					(unit 1)
 				)
 			)
@@ -25290,7 +25290,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ddac6439-3d36-48fd-aebb-8d664062d26b")
-		(property "Reference" "#PWR0104"
+		(property "Reference" "#PWR0218"
 			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
@@ -25350,7 +25350,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0104")
+					(reference "#PWR0218")
 					(unit 1)
 				)
 			)
@@ -25368,7 +25368,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "dedb99b8-f6b8-4587-8430-8b93464cdc01")
-		(property "Reference" "TP30"
+		(property "Reference" "TP209"
 			(at 152.4 25.146 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25428,7 +25428,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP30")
+					(reference "TP209")
 					(unit 1)
 				)
 			)
@@ -25445,7 +25445,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "def637dc-be60-4051-b0fb-3ed5eb87dee5")
-		(property "Reference" "J6"
+		(property "Reference" "J202"
 			(at 41.91 128.524 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25529,7 +25529,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "J6")
+					(reference "J202")
 					(unit 1)
 				)
 			)
@@ -25546,7 +25546,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e052c94e-b6d8-4de1-a597-879086864361")
-		(property "Reference" "C34"
+		(property "Reference" "C215"
 			(at 300.482 125.984 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -25619,7 +25619,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C34")
+					(reference "C215")
 					(unit 1)
 				)
 			)
@@ -25636,7 +25636,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e1276bcc-7225-4979-87c7-22f21e17b961")
-		(property "Reference" "#PWR0185"
+		(property "Reference" "#PWR0222"
 			(at 187.96 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -25696,7 +25696,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0185")
+					(reference "#PWR0222")
 					(unit 1)
 				)
 			)
@@ -25714,7 +25714,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e14185a8-718a-489b-b93b-339ff4559848")
-		(property "Reference" "#PWR0176"
+		(property "Reference" "#PWR0213"
 			(at 124.46 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -25774,7 +25774,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0176")
+					(reference "#PWR0213")
 					(unit 1)
 				)
 			)
@@ -25791,7 +25791,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e1b79766-7856-4b48-8295-d7ffaba6f3e8")
-		(property "Reference" "#PWR0149"
+		(property "Reference" "#PWR0298"
 			(at 389.89 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -25851,7 +25851,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0149")
+					(reference "#PWR0298")
 					(unit 1)
 				)
 			)
@@ -25868,7 +25868,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e2b1801e-bf04-40f1-9919-d81bd2b3ee42")
-		(property "Reference" "#PWR0114"
+		(property "Reference" "#PWR0268"
 			(at 307.34 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -25928,7 +25928,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0114")
+					(reference "#PWR0268")
 					(unit 1)
 				)
 			)
@@ -25946,7 +25946,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e2c2ba36-7752-4afb-9479-84c1be4eb3f1")
-		(property "Reference" "TP19"
+		(property "Reference" "TP204"
 			(at 97.79 32.766 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26006,7 +26006,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP19")
+					(reference "TP204")
 					(unit 1)
 				)
 			)
@@ -26023,7 +26023,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e34bf2f2-e702-4208-a27f-168bc024aeac")
-		(property "Reference" "D19"
+		(property "Reference" "D219"
 			(at 349.25 90.17 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26119,7 +26119,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D19")
+					(reference "D219")
 					(unit 1)
 				)
 			)
@@ -26136,7 +26136,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e3d1cfef-4981-4c78-a97b-026f4301b9bb")
-		(property "Reference" "#PWR0120"
+		(property "Reference" "#PWR0272"
 			(at 336.55 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -26196,7 +26196,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0120")
+					(reference "#PWR0272")
 					(unit 1)
 				)
 			)
@@ -26213,7 +26213,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e4dc557b-676c-4dcb-a7fa-c879154ce5ab")
-		(property "Reference" "D7"
+		(property "Reference" "D208"
 			(at 266.7 43.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26309,7 +26309,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "D7")
+					(reference "D208")
 					(unit 1)
 				)
 			)
@@ -26326,7 +26326,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e5eeac8a-fd12-494d-864f-fd71f9d2222e")
-		(property "Reference" "#PWR0169"
+		(property "Reference" "#PWR0208"
 			(at 90.17 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -26386,7 +26386,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0169")
+					(reference "#PWR0208")
 					(unit 1)
 				)
 			)
@@ -26404,7 +26404,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e6a5905f-0fef-487b-a474-2f9c352be825")
-		(property "Reference" "#FLG016"
+		(property "Reference" "#FLG0210"
 			(at 256.54 125.095 0)
 			(hide yes)
 			(show_name no)
@@ -26465,7 +26465,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG016")
+					(reference "#FLG0210")
 					(unit 1)
 				)
 			)
@@ -26482,7 +26482,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e809e71a-f144-4e90-acc2-6f735e7d120d")
-		(property "Reference" "C45"
+		(property "Reference" "C223"
 			(at 383.032 32.004 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26555,7 +26555,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C45")
+					(reference "C223")
 					(unit 1)
 				)
 			)
@@ -26572,7 +26572,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e8eb7eab-b2e0-4eb9-b9ca-7d6335cb3758")
-		(property "Reference" "R20"
+		(property "Reference" "R202"
 			(at 85.598 49.53 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26645,7 +26645,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "R20")
+					(reference "R202")
 					(unit 1)
 				)
 			)
@@ -26663,7 +26663,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ea76cb76-a9a1-403c-8b8e-33be0d770973")
-		(property "Reference" "TP8"
+		(property "Reference" "TP205"
 			(at 101.6 88.138 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26723,7 +26723,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP8")
+					(reference "TP205")
 					(unit 1)
 				)
 			)
@@ -26740,7 +26740,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "eb122601-079c-4632-9814-cf500907d622")
-		(property "Reference" "#PWR0168"
+		(property "Reference" "#PWR0202"
 			(at 30.48 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -26800,7 +26800,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0168")
+					(reference "#PWR0202")
 					(unit 1)
 				)
 			)
@@ -26818,7 +26818,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "edf190d1-af6c-49e6-b66a-1d04292aa626")
-		(property "Reference" "TP27"
+		(property "Reference" "TP201"
 			(at 50.292 76.708 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -26878,7 +26878,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "TP27")
+					(reference "TP201")
 					(unit 1)
 				)
 			)
@@ -26896,7 +26896,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f0eebb03-cbc6-4d9d-8277-421332a7416d")
-		(property "Reference" "#FLG030"
+		(property "Reference" "#FLG0202"
 			(at 167.64 32.385 0)
 			(hide yes)
 			(show_name no)
@@ -26957,7 +26957,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG030")
+					(reference "#FLG0202")
 					(unit 1)
 				)
 			)
@@ -26974,7 +26974,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "f357270a-3b44-4df9-9834-877104b9a1d6")
-		(property "Reference" "#PWR097"
+		(property "Reference" "#PWR0216"
 			(at 149.86 257.81 0)
 			(hide yes)
 			(show_name no)
@@ -27034,7 +27034,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR097")
+					(reference "#PWR0216")
 					(unit 1)
 				)
 			)
@@ -27052,7 +27052,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f6ab1390-2191-4df4-9e55-88e0478a2966")
-		(property "Reference" "#FLG025"
+		(property "Reference" "#FLG0207"
 			(at 215.9 219.075 0)
 			(hide yes)
 			(show_name no)
@@ -27113,7 +27113,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG025")
+					(reference "#FLG0207")
 					(unit 1)
 				)
 			)
@@ -27130,7 +27130,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "f799ffa8-31c8-4bda-bfb2-ffed24b744fd")
-		(property "Reference" "SW1"
+		(property "Reference" "SW201"
 			(at 38.1 22.86 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -27232,7 +27232,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "SW1")
+					(reference "SW201")
 					(unit 1)
 				)
 			)
@@ -27249,7 +27249,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "f9697eae-550f-41bc-904a-d53bcbd0bb0e")
-		(property "Reference" "C40"
+		(property "Reference" "C219"
 			(at 342.392 78.994 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -27322,7 +27322,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "C40")
+					(reference "C219")
 					(unit 1)
 				)
 			)
@@ -27339,7 +27339,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "fa33a2a1-2475-4b39-bc84-c952097db8e8")
-		(property "Reference" "R2"
+		(property "Reference" "R201"
 			(at 26.67 91.948 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -27412,7 +27412,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "R2")
+					(reference "R201")
 					(unit 1)
 				)
 			)
@@ -27430,7 +27430,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fabb8a9b-a0f0-4a10-a369-545802f655b3")
-		(property "Reference" "FSR2"
+		(property "Reference" "FSR201"
 			(at 64.77 160.02 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -27492,7 +27492,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "FSR2")
+					(reference "FSR201")
 					(unit 1)
 				)
 			)
@@ -27509,7 +27509,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "fc3f79a9-f48f-482f-9882-33a010f12ed9")
-		(property "Reference" "#PWR085"
+		(property "Reference" "#PWR0242"
 			(at 254 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -27569,7 +27569,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR085")
+					(reference "#PWR0242")
 					(unit 1)
 				)
 			)
@@ -27586,7 +27586,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "fca4d310-4105-40a5-a1c1-dd5c390f74f1")
-		(property "Reference" "#PWR0105"
+		(property "Reference" "#PWR0259"
 			(at 297.18 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -27646,7 +27646,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#PWR0105")
+					(reference "#PWR0259")
 					(unit 1)
 				)
 			)
@@ -27664,7 +27664,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fd988726-6006-4c9e-bc8b-f5937b82c8f6")
-		(property "Reference" "#FLG019"
+		(property "Reference" "#FLG0225"
 			(at 379.73 125.095 0)
 			(hide yes)
 			(show_name no)
@@ -27725,7 +27725,7 @@
 		(instances
 			(project "dual-panel"
 				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000dc01"
-					(reference "#FLG019")
+					(reference "#FLG0225")
 					(unit 1)
 				)
 			)
