@@ -121,6 +121,31 @@ def main():
         head = ref.rstrip("0123456789")
         return (head, int(ref[len(head):] or 0))
 
+    # An LCSC code identifies one physical part, so a code appearing under two
+    # different value/footprint combinations means at least one is wrong. Caught
+    # C4216 on both R19 (33k) and R20 (1M), where R20 had inherited R19's code --
+    # it would have fitted 33k into the RS-485 shield bleed, quietly weakening the
+    # hybrid grounding by ~30x with nothing to show for it electrically.
+    #
+    # Checking within the BOM set is what makes this clean: the through-hole
+    # connectors legitimately share a code across different Value strings, because
+    # there the Value is a label ("FSR East", "12V_IN") rather than a part value.
+    # They are hand-soldered and never reach the BOM, so they cannot false-positive.
+    by_code = collections.defaultdict(set)
+    for (val, fpname, lcsc), refs in groups.items():
+        if lcsc:
+            by_code[lcsc].add((val, fpname))
+    clashes = {c: v for c, v in by_code.items() if len(v) > 1}
+    if clashes:
+        print("\nerror: one LCSC code used for more than one part:")
+        for code, combos in sorted(clashes.items()):
+            print(f"  {code}")
+            for val, fpname in sorted(combos):
+                who = [r for (v, f, l), rs in groups.items()
+                       if l == code and v == val for r in rs]
+                print(f"      {val:16s} {fpname:24s} {','.join(sorted(who))}")
+        sys.exit("Fix the LCSC fields before ordering -- the wrong part would be fitted.")
+
     bom = os.path.join(OUTDIR, "panel-BOM.csv")
     missing = []
     with open(bom, "w", newline="") as out:
