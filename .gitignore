@@ -18,6 +18,7 @@ hardware/**/*.bak
 # (kicad-cli commands are in git history / docs/PRE_ORDER_CHECKLIST.md).
 # Commit an as-ordered snapshot only if a real order gets placed.
 hardware/**/production/
+hardware/**/production-*/
 
 # tmp folder
 /tmp
