@@ -55,7 +55,7 @@ has already shipped, it's too late.
 | **C192562** | Molex Micro-Fit 3.0 2-pin RA header (436500200) | J5, J11 | 40 | 50 | 19.93 |
 | **C131337** | JST B2B-PH-K-S 2-pin 2mm vertical (genuine JST) | J3, J4, J6, J7 | 80 | 100 | 3.53 |
 | **C53184807** | LCKELEC LCK-TCF829D USB-C, vertical all-THT | J1 | 20 | 30 | 7.70 |
-| **C8465** | KANGNEX WJ500V-5.08-2P screw terminal | J9 (+ master J4) | 22 | 30 | 4.01 |
+| **C8465** | KANGNEX WJ500V-5.08-2P screw terminal | J9 (+ master J2) | 22 | 30 | 4.01 |
 | **C52177925** | Zhongdi DS-04 DIP slide, 4-pos | SW1 | 20 | 30 | 6.03 |
 | **C609835** | XKB SS22E01L5 DPDT slide | SW3 | 20 | 25 | 4.37 |
 | **C2937625** | XFCN PZ254V-11-03P pin header 1×03 | J2 | 20 | 50 | 0.94 |
@@ -66,22 +66,22 @@ TP1–TP14 are bare probe holes and SW2 (BOOTSEL) is SMD — neither is ordered.
 
 | LCSC | Part | Refs | Need | Cart | Ext $ |
 |------|------|------|------|------|-------|
-| **C1850236** | TI THVD1429DR RS-485 transceiver, SOIC-8 | U2 | 2 | 4 | 16.28 |
+| **C1850236** | TI THVD1429DR RS-485 transceiver, SOIC-8 | U1 | 2 | 4 | 16.28 |
 | **C354152** | TI SN74AHCT125N quad buffer, DIP-14 | U3 | 2 | 5 | 3.04 |
 | **C840655** | Bourns 4610X-101-103LF 10k ×9 bussed, SIP-10 | RN1 | 2 | 5 | 1.66 |
 | **C46595747** | DORABO DS-3P-BU DIP slide, 3-pos | SW1 | 2 | 5 | 1.23 |
-| **C2905420** | KH-2.54FH-1X14P-H8.5 female 1×14 socket | U1 socket (2/board) | 4 | 10 | 1.52 |
-| **C113952** | SMAJ5.0A TVS, DO-214AC (MDD) | D2–D10 | 18 | 40 | 1.64 |
-| **C844839** | 330R 1% 0805 (Vishay) | R3, R6–R14 | 20 | 50 | 0.75 |
+| **C2905420** | KH-2.54FH-1X14P-H8.5 female 1×14 socket | U2 socket (2/board) | 4 | 10 | 1.52 |
+| **C113952** | SMAJ5.0A TVS, DO-214AC (MDD) | D1–D9 | 18 | 40 | 1.64 |
+| **C844839** | 330R 1% 0805 (Vishay) | R5, R6–R14 | 20 | 50 | 0.75 |
 | **C1791** | 1nF C0G 0805 (Samsung) | C3–C11 | 18 | 30 | 0.35 |
 | **C83055** | 100nF X7R 0805 (Walsin) | C1, C2 | 4 | 10 | 0.24 |
-| **C844816** | 120R 1% 0805 (Vishay) | R1 | 2 | 100 | 0.86 |
-| **C192906** | 10k 1% 0805 (Yageo) | R15 | 2 | 50 | 0.90 |
-| **C158012** | JST B2B-XH-A 2-pin 2.5mm vertical THT | J2, J3, J5–J11 (INT) | 18 | 40 | — |
+| **C844816** | 120R 1% 0805 (Vishay) | R3 | 2 | 100 | 0.86 |
+| **C192906** | 10k 1% 0805 (Yageo) | R4 | 2 | 50 | 0.90 |
+| **C158012** | JST B2B-XH-A 2-pin 2.5mm vertical THT | J3–J11 (INT) | 18 | 40 | — |
 
-Master J1 and J4 share the panel's Micro-Fit and terminal lines above.
+Master J1 and J2 share the panel's Micro-Fit and terminal lines above.
 
-**J2/J3/J5–J11 replaced the 9-pos Euroblock 2026-07-26** (INT went to twisted
+**J3–J11 replaced the 9-pos Euroblock 2026-07-26** (INT went to twisted
 pair, signal + dedicated GND). That moved the INT connector off the AliExpress
 order and onto this one. Nine per board, 18 for two pads.
 
@@ -150,7 +150,7 @@ needs its match-check to pass before ordering.
 Checks 2 and 3 are already satisfied by the type code: **RVSP** = R 软 flexible
 (stranded) + V PVC + S 双绞 (twisted) + P shielded. Only the OD is open.
 
-The Euroblock line (master J2 header + plug) was **removed 2026-07-26** — INT
+The Euroblock line (the master's old 9-pos header + plug) was **removed 2026-07-26** — INT
 moved to JST XH, which is sourced on the LCSC order.
 
 Buy mating housings and crimps from the **same** ecosystem — mixing clone
@@ -163,7 +163,7 @@ from LCSC anyway. Watch vertical-vs-**right-angle** on any PCB header.
 | Item | Why |
 |------|-----|
 | **Panel D12/D23** (PMEG3015EH, C552867) | **DNP** — the LM66200 ideal-diode mux (U8) replaced the Schottky power-OR. Footprints stay so populating both + removing U8 is a hand-solderable rescue |
-| **Master R4/R5** (390R 1%) | **DNP** — THVD1429's integrated failsafe makes RS-485 bias unnecessary; footprints exist if the bench disagrees |
+| **Master R1/R2** (390R 1%) | **DNP** — THVD1429's integrated failsafe makes RS-485 bias unnecessary; footprints exist if the bench disagrees |
 | FSR sensors | reuse stock SMX (Interlink FSR 408; iefsr.com if replacements are needed) |
 | 18 AWG stranded (underglow / GND tie) | on hand |
 | Spade/fork lugs (PSU ends + master GND tie) | on hand — size vs the PSU stud is a teardown item |

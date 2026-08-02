@@ -50,8 +50,8 @@ verified with all three ignored rule severities lifted and zones refilled**
 (only 3 `footprint_filters_mismatch` naming notes remain). RS-485 pair
 re-checked against the real stackup: W=0.15/S=0.2, ~119Ω, 0.000mm skew.
 As-built reference: `docs/MASTER_PCB.md`. Notable as-builts: RS-485 on **Serial2** (GPIO 7/8),
-INT on GPIO 15–23 with **J2 position 1 = panel 8 (DR) … position 9 = panel 0
-(UL)**, 9× discrete SMAJ5.0A TVS, hand-assembly only (no PCBA).
+INT on GPIO 15–23 across **nine JST XH headers, J3–J11, one per panel**
+(left to right on the board = panel 0 → 8), 9× discrete SMAJ5.0A TVS, hand-assembly only (no PCBA).
 
 ## Reviews
 

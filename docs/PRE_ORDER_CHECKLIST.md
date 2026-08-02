@@ -93,8 +93,8 @@ re-export delta were all re-derived from the KiCad files, not carried forward).
 Two harness changes landed after the 2026-07-24 audit. Both touch board files,
 so everything below invalidates part of the audit above.
 
-- ✅ **Master INT rework DONE** — the 9-pos Euroblock (old J2) was deleted and
-  nine JST XH 2-pin headers (J2, J3, J5–J11) placed in its footprint. Nets
+- ✅ **Master INT rework DONE** — the 9-pos Euroblock was deleted and
+  nine JST XH 2-pin headers (J3–J11) placed in its footprint. Nets
   verified (pin 1 = `INT_xx` via TVS + 330R, pin 2 = GND, all nine), **routed —
   0 unconnected, 17.8–38.4mm per line, zero vias (each stays on one layer) —
   and DRC + ERC clean.**
@@ -120,12 +120,12 @@ so everything below invalidates part of the audit above.
 
 ## 1. Physical part verification (needs parts in hand)
 
-- ✅ **J9 / master J4 (screw terminals) CLOSED 2026-07-26 — nothing to verify on
+- ✅ **J9 / master J2 (screw terminals) CLOSED 2026-07-26 — nothing to verify on
   arrival.** **2P** (swapped 2026-07-20 — true 1P KF301 barely exists), part
   KANGNEX WJ500V-5.08-2P / LCSC **C8465** on the vendor's own land pattern
   `TerminalBlock_WJ500V-5.08-2P` (1.30mm holes, 2.00mm pads). Nets: panel J9
   **pin 1 = INT signal (`Net-(D30-K)`, via R17), pin 2 = dedicated GND**
-  (2026-07-24, supersedes both-pins-bridged); master J4 pin 1 = underglow DATA,
+  (2026-07-24, supersedes both-pins-bridged); master J2 pin 1 = underglow DATA,
   pin 2 = the mandatory GND tie to the PSU stud. D30 (SMAJ5.0A) clamps
   signal→pin-2 GND at the connector.
   An earlier "verify pin-1 orientation on arrival" line was **wrong-headed and

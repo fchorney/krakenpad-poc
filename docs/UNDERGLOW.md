@@ -38,9 +38,9 @@ the design center.
   master is not in the underglow power path at all. No regulator, no
   magnetics on the master.
 - **Data**: Teensy GPIO11 → spare SN74AHCT125 gate (VCC = Teensy USB 5V rail)
-  → 330R series → J4 pin 1 (DATA position of the merged GND-tie/underglow
+  → 330R series → J2 pin 1 (DATA position of the merged GND-tie/underglow
   screw terminal). Ground reference comes via the master's mandatory PSU GND
-  tie (J4 pin 2).
+  tie (J2 pin 2).
 - **Host-side**: a strip-set command in our USB protocol
   (`docs/USB_PROTOCOL.md`, `'L'` platform strip — write-on-command).
 - Gating is UI/software config only ("underglow: on/off") — no sense pin; a

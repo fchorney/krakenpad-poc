@@ -15,7 +15,7 @@ The master is deliberately simple: **no 12V anywhere on the board, no
 regulators, no magnetics.** Everything runs from the Teensy's USB power
 (+5VDC_USB rail from VIN + the Teensy's onboard 3.3V regulator). 12V runs
 PSU → panel columns directly and never touches this PCB. **The master's GND
-must be tied to the PSU ground stud** (J4 pin 2) — INT and RS-485 need the
+must be tied to the PSU ground stud** (J2 pin 2) — INT and RS-485 need the
 common reference; separate grounds was a real bench failure mode.
 
 **Assembly: bare PCB fab only, hand-soldered** (PCBA's ~$148 fixed overhead
@@ -43,17 +43,17 @@ XenGi/teensy_library (MIT), locally trimmed; 3D model + attribution in
 | 5 | 3 | `DIP_ID2` | SW1 |
 | 6 | 4 | `DIP_ID1` | SW1 |
 | 7 | 5 | `DIP_ID0` | SW1 |
-| 8 | 6 | `RS485_DE` | U2 DE + /RE |
-| 9 | 7 | `RS485_RX` | U2 RO — **Serial2 (RX2)** |
-| 10 | 8 | `RS485_TX` | U2 DI — **Serial2 (TX2)** |
-| 13 | 11 | `UNDERGLOW_DATA` | U3 gate A input + **R15 10k pull-down → GND** (holds U3 input LOW at boot, before firmware drives the pin) |
+| 8 | 6 | `RS485_DE` | U1 DE + /RE |
+| 9 | 7 | `RS485_RX` | U1 RO — **Serial2 (RX2)** |
+| 10 | 8 | `RS485_TX` | U1 DI — **Serial2 (TX2)** |
+| 13 | 11 | `UNDERGLOW_DATA` | U3 gate A input + **R4 10k pull-down → GND** (holds U3 input LOW at boot, before firmware drives the pin) |
 | 22–30 | 15–23 | `INT_DR` … `INT_UL` | see INT table below |
-| 31 | — | `+3.3VDC` | Teensy 3V3 out → U2 VCC, RN1 common, TP4 |
+| 31 | — | `+3.3VDC` | Teensy 3V3 out → U1 VCC, RN1 common, TP6 |
 | 33 | — | `+5VDC_USB` | Teensy VIN (USB 5V via intact VUSB↔VIN link) → U3 VCC. **The board taps VIN, not the raw VUSB pad — the on-Teensy VUSB↔VIN bridge must stay intact (do not cut it), or U3 loses its 5V supply.** |
 | spare | 0, 1, 2, 9, 10, 12, 13, 14 | — | **GPIO 0/1 (Serial1) kept free on purpose** — the last spare hardware UART (see below). GPIO13 = Teensy onboard LED, now the status LED |
 
-**No board status LED (removed 2026-07-24):** the discrete D1/R2 were dropped as
-redundant — the Teensy's onboard LED (GPIO13) serves as the status indicator, so
+**No board status LED (removed 2026-07-24):** the discrete status LED and its series resistor were
+dropped as redundant — the Teensy's onboard LED (GPIO13) serves as the status indicator, so
 firmware just drives pin 13. GPIO1 (freed) went to the DIP.
 
 The one hard constraint is that RS-485 TX/RX sit on a matched hardware UART
@@ -66,31 +66,33 @@ All digital pins are interrupt-capable, so the INT lines are unconstrained.
 
 ### INT block mapping (connector ↔ panel ↔ GPIO)
 
-**Superseded 2026-07-26: the 9-position Euroblock (old J2) was replaced by nine
+**Superseded 2026-07-26: the 9-position Euroblock was replaced by nine
 discrete JST XH 2-pin connectors**, one per panel, each carrying INT signal +
-a dedicated GND return (see "INT cabling" below). The old "J2 position 1 = panel
+a dedicated GND return (see "INT cabling" below). The old Euroblock's "position 1 = panel
 8" reversal note no longer applies — **connectors now run left-to-right across
 the board in panel order 0→8**, silkscreened with the panel's position name
 (`UL`, `U`, `UR`, `L`, `C`, `R`, `DL`, `D`, `DR`) rather than a refdes, so the
-non-contiguous refdes numbering below never has to be read during assembly.
+refdes numbering below never has to be read during assembly.
 
 Every connector: **pin 1 = INT signal, pin 2 = GND** (matches panel J9).
 
 | Silk | Conn | Net | Panel | Color | TVS | Series R | Filter C | RN1 | Teensy pad / GPIO |
 |------|------|-----|-------|-------|-----|----------|----------|-----|-------------------|
-| `UL` | J11 | `INT_UL` | 0 (UL) | Red | D10 | R14 | C11 | .2 | 30 / GPIO23 |
-| `U` | J10 | `INT_U` | 1 (U) | Orange | D9 | R13 | C10 | .3 | 29 / GPIO22 |
-| `UR` | J9 | `INT_UR` | 2 (UR) | Yellow | D8 | R12 | C9 | .4 | 28 / GPIO21 |
-| `L` | J8 | `INT_L` | 3 (L) | Green | D7 | R11 | C8 | .5 | 27 / GPIO20 |
-| `C` | J7 | `INT_C` | 4 (C) | Blue | D6 | R10 | C7 | .6 | 26 / GPIO19 |
-| `R` | J6 | `INT_R` | 5 (R) | Brown | D5 | R9 | C6 | .7 | 25 / GPIO18 |
-| `DL` | J5 | `INT_DL` | 6 (DL) | Grey | D4 | R8 | C5 | .8 | 24 / GPIO17 |
-| `D` | J3 | `INT_D` | 7 (D) | White | D3 | R7 | C4 | .9 | 23 / GPIO16 |
-| `DR` | J2 | `INT_DR` | 8 (DR) | Black | D2 | R6 | C3 | .10 | 22 / GPIO15 |
+| `UL` | J11 | `INT_UL` | 0 (UL) | Red | D1 | R6 | C3 | .2 | 30 / GPIO23 |
+| `U` | J10 | `INT_U` | 1 (U) | Orange | D2 | R7 | C4 | .3 | 29 / GPIO22 |
+| `UR` | J9 | `INT_UR` | 2 (UR) | Yellow | D3 | R8 | C5 | .4 | 28 / GPIO21 |
+| `L` | J8 | `INT_L` | 3 (L) | Green | D4 | R9 | C6 | .5 | 27 / GPIO20 |
+| `C` | J7 | `INT_C` | 4 (C) | Blue | D5 | R10 | C7 | .6 | 26 / GPIO19 |
+| `R` | J6 | `INT_R` | 5 (R) | Brown | D6 | R11 | C8 | .7 | 25 / GPIO18 |
+| `DL` | J5 | `INT_DL` | 6 (DL) | Grey | D7 | R12 | C9 | .8 | 24 / GPIO17 |
+| `D` | J4 | `INT_D` | 7 (D) | White | D8 | R13 | C10 | .9 | 23 / GPIO16 |
+| `DR` | J3 | `INT_DR` | 8 (DR) | Black | D9 | R14 | C11 | .10 | 22 / GPIO15 |
 
-Refdes are non-contiguous because J1 (RS-485) and J4 (underglow/GND) were left
-in place rather than renumbered. Physical order on the board is J11 → J2 at 7mm
-pitch, left to right.
+Refdes were made contiguous by the 2026-07-31 reannotation: J1 = RS-485,
+J2 = underglow/GND, and the nine INT connectors are J3–J11. Physical order on
+the board is J11 → J3 at 7mm pitch, left to right, so the *connector* numbers
+descend across the board while the per-line D/R/C numbers ascend with panel
+order (UL = D1/R6/C3 … DR = D9/R14/C11).
 
 **Color column:** the stock SMX per-panel map. The chosen INT cable (RVSP
 twisted pair) is only available in a single color, so these are **end markers —
@@ -115,8 +117,8 @@ non-5V-tolerant pin) and forms a ~330ns RC low-pass with the cap, killing
 ESD/EMI without meaningful press latency (the INT edge is the **sole** game
 input — no FSR veto — so integrity matters; see `docs/USB_PROTOCOL.md`). Pull-up
 sits on the Teensy-side node so the pin is defined HIGH locally and stays safe
-if the series R ever opens. **Per-line refs:** DR=R6/C3, D=R7/C4, DL=R8/C5,
-R=R9/C6, C=R10/C7, L=R11/C8, UR=R12/C9, U=R13/C10, UL=R14/C11. TVS orientation
+if the series R ever opens. **Per-line refs:** DR=R14/C11, D=R13/C10, DL=R12/C9,
+R=R11/C8, C=R10/C7, L=R9/C6, UR=R8/C5, U=R7/C4, UL=R6/C3. TVS orientation
 matters at assembly. (The discrete TVS-per-line approach replaced 3× SRV05-4
 arrays 2026-07-22.)
 
@@ -151,21 +153,21 @@ needed a connector change.
 
 | Ref(s) | Part | Notes |
 |--------|------|-------|
-| U1 | Teensy 4.0 (PJRC 15583), socketed | 2× PPPC141LFBN-RC 14-pos female headers |
-| U2 | THVD1429DR (SOIC-8) | same part as panels; VCC +3.3VDC, C1 100nF |
-| U3 | SN74AHCT125N (DIP-14) | underglow shifter, VCC +5VDC_USB, C2 100nF; gate A: in ← GPIO11, out → R3 330R → J4.1; unused inputs/OEs → GND, outputs NC |
-| D2–D10 | SMAJ5.0A TVS (DO-214AC) | one per INT line, entry-node ESD clamp — see table above |
+| U1 | THVD1429DR (SOIC-8) | same part as panels; VCC +3.3VDC, C1 100nF |
+| U2 | Teensy 4.0 (PJRC 15583), socketed | 2× PPPC141LFBN-RC 14-pos female headers |
+| U3 | SN74AHCT125N (DIP-14) | underglow shifter, VCC +5VDC_USB, C2 100nF; gate A: in ← GPIO11, out → R5 330R → J2.1; unused inputs/OEs → GND, outputs NC |
+| D1–D9 | SMAJ5.0A TVS (DO-214AC) | one per INT line, entry-node ESD clamp — see table above |
 | R6–R14 | 330R 0805 | INT series R per line (ESD limit + RC filter into Teensy) |
 | C3–C11 | 1nF C0G 0805 | INT filter cap per line, Teensy-side node → GND |
-| R15 | 10k 0805 | `UNDERGLOW_DATA` pull-down (defines U3 gate-A input LOW at boot) |
-| R1 | 120R | RS-485 termination, always fitted (master is always a bus end — no switch) |
-| R4/R5 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1429's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
+| R4 | 10k 0805 | `UNDERGLOW_DATA` pull-down (defines U3 gate-A input LOW at boot) |
+| R3 | 120R | RS-485 termination, always fitted (master is always a bus end — no switch) |
+| R1/R2 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1429's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
 | RN1 | Bourns 4610**X**-101-103LF (SIP-10, 10k ×9 bussed, LCSC C840655) | pin 1 common → +3.3VDC |
 | SW1 | DORABO DS-3P-BU (DIP-3, LCSC C46595747) | player ID 0–7 to GND, internal pull-ups |
 | J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, **pin 3 = cable shield, tied directly to GND here** (see "RS-485 shield" below) — **matches panel J8/J10 exactly** so the cable is straight-through |
-| J2, J3, J5–J11 | JST B2B-XH-A 2-pos 2.5mm vertical THT (LCSC C158012) | one per INT line; pin 1 = INT signal, pin 2 = dedicated GND return. Mating half is XHP-2 housing (C144401) + SXH-001T-P0.6N contacts (C385122), 22–26 AWG. Symbol is generic `Connector_Generic:Conn_01x02`; there is no JST-specific symbol in KiCad. Replaced the 9-pos Euroblock 2026-07-26 |
-| J4 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R3), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
-| TP1–TP8 | THT probe holes | RS485+ / RS485− / DE / +3.3VDC / +5VDC_USB / GND / underglow 3.3V side / underglow 5V side |
+| J3–J11 | JST B2B-XH-A 2-pos 2.5mm vertical THT (LCSC C158012) | one per INT line; pin 1 = INT signal, pin 2 = dedicated GND return. Mating half is XHP-2 housing (C144401) + SXH-001T-P0.6N contacts (C385122), 22–26 AWG. Symbol is generic `Connector_Generic:Conn_01x02`; there is no JST-specific symbol in KiCad. Replaced the 9-pos Euroblock 2026-07-26 |
+| J2 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R3), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
+| TP1–TP10 | THT probe holes | TP1 RS-485 RX / TP2 DE / TP3 RS-485 TX / TP4 +5VDC_USB / TP5 GND / TP6 +3.3VDC / TP7 RS485+ / TP8 RS485− / TP9 underglow 3.3V side / TP10 underglow 5V side |
 | H1–H4 | M3 mounting holes | |
 
 ## Layout (as built)
@@ -173,8 +175,8 @@ needed a connector change.
 - **4 layers: Sig+Pwr / GND / GND / Sig+Pwr** (JLC04161H-7628 stackup). Each
   outer layer references its adjacent GND plane; no power plane needed —
   logic-only currents (single-digit mA on 3.3V). The +3.3V net is routed on
-  the outer layers. In1/In2 stitched liberally (same net), concentrated at J2,
-  U2, and the Teensy.
+  the outer layers. In1/In2 stitched liberally (same net), concentrated at J3,
+  U1, and the Teensy.
 - **RS-485 pair `/RS485+` `/RS485-` (as measured 2026-07-24):** W=**0.15mm**,
   gap **0.2mm**, F.Cu only, **zero vias**, both legs **45.39mm — 0.000mm
   skew**. That geometry gives ~119Ω against a 120Ω target on this stackup
@@ -184,14 +186,14 @@ needed a connector change.
   history of the earlier default-stackup miscalculation.
   - ~69% of the run is coupled at 0.2mm; the remaining ~14mm fans out
     progressively to reach pads that are simply farther apart than the pair
-    pitch (U2 pins 6/7, J1 Micro-Fit, R1 termination, TP1/TP2 — five pad
+    pitch (U1 pins 6/7, J1 Micro-Fit, R3 termination, TP7/TP8 — five pad
     landings on the + net). That fan-out is unavoidable and inconsequential at
     1 Mbps. **Do not "fix" it.**
   - Master inner layers are **both GND** (`In1.Cu "GND_1"`, `In2.Cu "GND_2"`),
     unlike the panel's GND/power split — so there is no reference-plane-type
     change anywhere on this board, and any future via transition is fully
     solved by a nearby GND stitching via.
-- No SMD parts under the Teensy socket; hot-air approach room around D2–D10
+- No SMD parts under the Teensy socket; hot-air approach room around D1–D9
   and the 0805s (electrically they belong at the INT connectors, but clear of
   the socket — this constraint predates the Euroblock→JST XH swap and the
   low-profile XH bodies only relax it).
@@ -208,7 +210,7 @@ needed a connector change.
 - ~~GND position on the INT Euroblock~~ — **reversed 2026-07-26.** The Euroblock
   is gone and every INT connector now has a dedicated GND pin; the return no
   longer rides the power ground network. See "INT cabling" above.
-- RS-485 termination switch — master end is always terminated (R1 fixed).
+- RS-485 termination switch — master end is always terminated (R3 fixed).
 
 ## RS-485 shield (adopted 2026-07-26)
 
@@ -249,7 +251,7 @@ a shield across it re-creates the loop area the twisting exists to remove.
 
 ## Open items
 
-- Underglow connector final form — the J4 screw terminal is the interim
+- Underglow connector final form — the J2 screw terminal is the interim
   decision; the harness splice point (stock leads crimp into a 12-pin Dupont
   at the old MCU) is decided at teardown and may change it. A GND position
   adjacent to DATA preserves the option of a paired/twisted return wire.
