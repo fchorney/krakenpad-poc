@@ -350,7 +350,7 @@ Plus board outline, mounting holes, logo, and the probe-side test points:
 
 U1 RP2040 + decoupling (**C1–C11, C13, C15, C20**, **R1** RUN pull-up, **R5**
 ADC_AVDD filter) · **U3** flash + **R12** + **R7** · **X1** + **C12/C14** + **R6** ·
-**U2** THVD1429 · **U4** SN74AHCT125 + **R16** · **U5** AMS1117-5.0 · **U6**
+**U2** THVD1429 · **U4** SN74AHCT1G125 (single gate, was quad SN74AHCT125 until 2026-08-03) + **R16** · **U5** AMS1117-5.0 · **U6**
 AP7361C-3.3 · **U8** LM66200 + **D12/D23** (DNP rescue) + **C21, C37, C38, C44,
 C50, C52, C55, C56** · **R3/R4** 27Ω USB series · 12V sense **R18/R19/C53** +
 **D29** clamp · **FSR dividers R8–R11 + caps C16–C19**.

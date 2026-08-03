@@ -178,7 +178,9 @@ so everything below invalidates part of the audit above.
   WS2815B-V1 V2.0 datasheet (VIH abs 2.7V min / input abs-max 5.7V — closed
   the reviewer's "must shift to 12V" finding; 12V would violate abs-max).
   Optional extra insurance only: bench-drive a WS2815 strip from the
-  prototype's SN74AHCT125N at 5V (we've only personally tested WS2812B).
+  prototype's SN74AHCT125N at 5V (we've only personally tested WS2812B;
+  production boards now use the single-gate SN74AHCT1G125 — same AHCT
+  family and thresholds, so the test still transfers).
   **WAIVED 2026-07-26** — not worth buying WS2815s just to test. The datasheet
   confirm above is the substantive check; the 5V-shifter question rests on
   VIH 2.7V min, which is a spec guarantee, not a marginal reading. Residual

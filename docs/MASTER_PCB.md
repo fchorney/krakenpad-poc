@@ -46,7 +46,7 @@ XenGi/teensy_library (MIT), locally trimmed; 3D model + attribution in
 | 8 | 6 | `RS485_DE` | U1 DE + /RE |
 | 9 | 7 | `RS485_RX` | U1 RO — **Serial2 (RX2)** |
 | 10 | 8 | `RS485_TX` | U1 DI — **Serial2 (TX2)** |
-| 13 | 11 | `UNDERGLOW_DATA` | U3 gate A input + **R4 10k pull-down → GND** (holds U3 input LOW at boot, before firmware drives the pin) |
+| 13 | 11 | `UNDERGLOW_DATA` | U3 A input + **R4 10k pull-down → GND** (holds U3 input LOW at boot, before firmware drives the pin) |
 | 22–30 | 15–23 | `INT_DR` … `INT_UL` | see INT table below |
 | 31 | — | `+3.3VDC` | Teensy 3V3 out → U1 VCC, RN1 common, TP6 |
 | 33 | — | `+5VDC_USB` | Teensy VIN (USB 5V via intact VUSB↔VIN link) → U3 VCC. **The board taps VIN, not the raw VUSB pad — the on-Teensy VUSB↔VIN bridge must stay intact (do not cut it), or U3 loses its 5V supply.** |
@@ -155,11 +155,11 @@ needed a connector change.
 |--------|------|-------|
 | U1 | THVD1429DR (SOIC-8) | same part as panels; VCC +3.3VDC, C1 100nF |
 | U2 | Teensy 4.0 (PJRC 15583), socketed | 2× PPPC141LFBN-RC 14-pos female headers |
-| U3 | SN74AHCT125N (DIP-14) | underglow shifter, VCC +5VDC_USB, C2 100nF; gate A: in ← GPIO11, out → R5 330R → J2.1; unused inputs/OEs → GND, outputs NC |
+| U3 | SN74AHCT1G125DBVR (SOT-23-5) | underglow shifter (single gate, swapped from quad SN74AHCT125N DIP 2026-08-03), VCC +5VDC_USB, C2 100nF; A ← GPIO11, Y → R5 330R → J2.1; OE̅ → GND |
 | D1–D9 | SMAJ5.0A TVS (DO-214AC) | one per INT line, entry-node ESD clamp — see table above |
 | R6–R14 | 330R 0805 | INT series R per line (ESD limit + RC filter into Teensy) |
 | C3–C11 | 1nF C0G 0805 | INT filter cap per line, Teensy-side node → GND |
-| R4 | 10k 0805 | `UNDERGLOW_DATA` pull-down (defines U3 gate-A input LOW at boot) |
+| R4 | 10k 0805 | `UNDERGLOW_DATA` pull-down (defines U3 A input LOW at boot) |
 | R3 | 120R | RS-485 termination, always fitted (master is always a bus end — no switch) |
 | R1/R2 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1429's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
 | RN1 | Bourns 4610**X**-101-103LF (SIP-10, 10k ×9 bussed, LCSC C840655) | pin 1 common → +3.3VDC |

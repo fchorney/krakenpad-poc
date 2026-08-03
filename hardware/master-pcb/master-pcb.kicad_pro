@@ -81,7 +81,12 @@
           "width": 0.15
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "courtyards_overlap|129350000|117842500|285c2281-1181-4f91-9977-5d75fcb56338|8268a81c-f4a0-49d8-974c-76f1c7a7ba15",
+          "Teensy is on headers, so there is ample room underneath for a few components"
+        ]
+      ],
       "meta": {
         "version": 2
       },

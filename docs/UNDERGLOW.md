@@ -37,7 +37,7 @@ the design center.
 - **Power**: strips keep taking 12V/GND from the PSU lugs as stock does — the
   master is not in the underglow power path at all. No regulator, no
   magnetics on the master.
-- **Data**: Teensy GPIO11 → spare SN74AHCT125 gate (VCC = Teensy USB 5V rail)
+- **Data**: Teensy GPIO11 → SN74AHCT1G125 single-gate buffer (VCC = Teensy USB 5V rail)
   → 330R series → J2 pin 1 (DATA position of the merged GND-tie/underglow
   screw terminal). Ground reference comes via the master's mandatory PSU GND
   tie (J2 pin 2).

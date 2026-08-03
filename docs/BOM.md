@@ -67,7 +67,7 @@ TP1–TP14 are bare probe holes and SW2 (BOOTSEL) is SMD — neither is ordered.
 | LCSC | Part | Refs | Need | Cart | Ext $ |
 |------|------|------|------|------|-------|
 | **C1850236** | TI THVD1429DR RS-485 transceiver, SOIC-8 | U1 | 2 | 4 | 16.28 |
-| **C354152** | TI SN74AHCT125N quad buffer, DIP-14 | U3 | 2 | 5 | 3.04 |
+| **C7484** | TI SN74AHCT1G125DBVR single buffer, SOT-23-5 (was C354152 quad DIP, swapped 2026-08-03) | U3 | 2 | 5 | 0.23 |
 | **C840655** | Bourns 4610X-101-103LF 10k ×9 bussed, SIP-10 | RN1 | 2 | 5 | 1.66 |
 | **C46595747** | DORABO DS-3P-BU DIP slide, 3-pos | SW1 | 2 | 5 | 1.23 |
 | **C2905420** | KH-2.54FH-1X14P-H8.5 female 1×14 socket | U2 socket (2/board) | 4 | 10 | 1.52 |

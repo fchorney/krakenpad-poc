@@ -44,7 +44,7 @@ official Pico schematic); TESTEN → GND.
 | U1 | RP2040 (QFN-56) | bare chip per the official "Hardware design with RP2040" reference |
 | U2 | THVD1429 (SOIC-8) | RS-485; 20Mbps grade — the THVD1419 was the 250kbps grade, swapped 2026-07-19 |
 | U3 | W25Q32JV (4MB QSPI, SOIC-8) | boot flash + animation/config slots (`docs/ANIMATIONS.md`) |
-| U4 | SN74AHCT125DR (SOIC-14) | 5V level shifter, one gate → R16 330R → LED chain |
+| U4 | SN74AHCT1G125DBVR (SOT-23-5) | 5V level shifter (single gate, swapped from quad SN74AHCT125DR 2026-08-03), Y → R16 330R → LED chain; OE̅ tied to GND |
 | U5 | AMS1117-5.0 (SOT-223) | 12V→5V stage; C38 22µF tantalum output (ESR required), C37+C52 2× 10µF 0805 input |
 | U6 | AP7361C-33ER-13 (SOT-223R) | 5V→3.3V; **`-33ER-` suffix only** — plain `-33E-` is pin-reversed |
 | U7 | USBLC6-2SC6 (SOT-23-6) | USB ESD array, connector side of R3/R4 27R |
@@ -177,5 +177,7 @@ U5 thermal at real load (~50mA), +5V rail margin, INT-into-dead-panel (the
 master-side 10k pull-up is deliberately not stiff for this reason),
 hot-plug/USB-attach behavior, SI asymmetries, ADC B.Cu runs. Plus the one open
 hardware verification: **bench-drive a WS2815 strip from the SN74AHCT125N at
-5V** (we've only hands-on tested WS2812B; the datasheet closes the question on
-paper — VIH abs 2.7V min, 12V would violate the 5.7V abs-max).
+5V** (the breadboard's quad DIP — same AHCT family/output as the production
+SN74AHCT1G125, so the result transfers; we've only hands-on tested WS2812B;
+the datasheet closes the question on paper — VIH abs 2.7V min, 12V would
+violate the 5.7V abs-max).
