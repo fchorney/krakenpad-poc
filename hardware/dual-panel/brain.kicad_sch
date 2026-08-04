@@ -7209,12 +7209,6 @@
 		(uuid "594c76d1-75fc-4ae3-968a-6511e5252b33")
 	)
 	(junction
-		(at 48.26 142.24)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "5e935bac-0125-42c0-9702-8596f16c9254")
-	)
-	(junction
 		(at 127 54.61)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7453,6 +7447,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "db0b4e16-7146-4773-8d9b-a50bf11382cb")
+	)
+	(junction
+		(at 60.96 142.24)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "dcc96ebd-265c-4e43-8f16-e760b6fc4891")
 	)
 	(junction
 		(at 142.24 198.12)
@@ -8420,6 +8420,26 @@
 	)
 	(wire
 		(pts
+			(xy 86.36 139.7) (xy 86.36 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5c9117cc-46f0-4b8c-b623-de055ffa73d7")
+	)
+	(wire
+		(pts
+			(xy 86.36 142.24) (xy 60.96 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5d089f22-5a80-40d1-95d0-11d97aede354")
+	)
+	(wire
+		(pts
 			(xy 158.75 259.08) (xy 158.75 273.05)
 		)
 		(stroke
@@ -9022,7 +9042,7 @@
 	)
 	(wire
 		(pts
-			(xy 48.26 142.24) (xy 35.56 142.24)
+			(xy 35.56 142.24) (xy 60.96 142.24)
 		)
 		(stroke
 			(width 0)
@@ -9900,16 +9920,6 @@
 			(type default)
 		)
 		(uuid "ed96c17b-9acf-472a-8e78-fc302194caf2")
-	)
-	(wire
-		(pts
-			(xy 48.26 142.24) (xy 60.96 142.24)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ef530190-8c97-4bb6-ad16-8333fae8a278")
 	)
 	(wire
 		(pts
@@ -19075,6 +19085,85 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 86.36 137.16 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7a5434d5-7025-42ee-b1eb-07f3846dd9bb")
+		(property "Reference" "H303"
+			(at 88.9 134.6199 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 88.9 137.1599 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 86.36 137.16 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 86.36 137.16 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 86.36 137.16 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "56b0dd0d-3af5-4314-9cfc-3fa38e40a331")
+		)
+		(instances
+			(project "dual-panel"
+				(path "/a1b2c3d4-0000-4000-8000-000000000001/a1b2c3d4-0000-4000-8000-00000000db01"
+					(reference "H303")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 378.46 40.64 0)
 		(mirror y)
@@ -23853,7 +23942,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 48.26 142.24 0)
+		(at 60.96 142.24 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -23863,7 +23952,7 @@
 		(dnp no)
 		(uuid "e53be119-4819-4ec4-b0e3-63a6ede2bf8e")
 		(property "Reference" "#PWR0305"
-			(at 48.26 147.32 0)
+			(at 60.96 147.32 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23874,7 +23963,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 48.26 146.558 0)
+			(at 60.96 146.558 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -23884,7 +23973,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 48.26 142.24 0)
+			(at 60.96 142.24 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23895,7 +23984,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 48.26 142.24 0)
+			(at 60.96 142.24 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23906,7 +23995,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 48.26 142.24 0)
+			(at 60.96 142.24 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
