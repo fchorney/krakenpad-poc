@@ -9,9 +9,9 @@ brain shape, drop it on the frame standoffs and look down through the hole:
   - see only cavity on all sides  -> the brain clears the opening
   - see frame ledge inside the cut -> that side clashes; measure the intrusion
 
-The dashed rectangle is the ASSUMED cavity opening (see WINDOW below). It is
-reference only. The gap between it and the real frame edge is the measurement
-that removes the assumption.
+The dashed rectangle is the cavity opening (see WINDOW below), MEASURED and
+confirmed against the real frame on 2026-07-30. Reprint and re-check it if the
+frame or the opening is ever re-measured.
 
 All geometry except WINDOW is read from the .kicad_pcb, so re-run this after any
 outline or placement change:
@@ -37,8 +37,12 @@ OUT = os.path.join(HERE, "cavity-fit-template.svg")
 # real frame edge on all four sides, so this is measured, not assumed.
 WINDOW = (41.80, 129.80, 28.90, 128.90)  # x0, x1, y0, y1
 
-CARRIER_ANCHOR = "H5"  # carrier-side M3 for the brain
-BRAIN_ANCHOR = "H1"    # its mate on the brain
+# Registration pair: one carrier-side M3 and its mate on the brain. Their drawn
+# offset is what maps brain geometry into carrier coordinates, so these MUST be a
+# real mating pair (all three pairs share the same offset: H201/H301, H202/H302,
+# H203/H303). Refdes follow the project convention 2xx = carrier, 3xx = brain.
+CARRIER_ANCHOR = "H201"  # carrier-side M3 for the brain
+BRAIN_ANCHOR = "H301"    # its mate on the brain
 ARC_STEPS = 24
 TOL = 0.05
 
@@ -285,7 +289,7 @@ def main():
              f'width="{WINDOW[1]-WINDOW[0]:.3f}" height="{WINDOW[3]-WINDOW[2]:.3f}" '
              f'fill="none" stroke="#c00" stroke-width="0.3" stroke-dasharray="3,2"/>')
     o.append(text(WINDOW[0], WINDOW[2] - 1.8,
-                  f"ASSUMED opening {WINDOW[1]-WINDOW[0]:.0f} x {WINDOW[3]-WINDOW[2]:.0f}"
+                  f"measured opening {WINDOW[1]-WINDOW[0]:.0f} x {WINDOW[3]-WINDOW[2]:.0f}"
                   " &#8212; reference only, do NOT cut", 2.6, "start", "#c00"))
 
     o.append(f'<path d="{P(carrier)}" fill="none" stroke="#000" stroke-width="0.4"/>')
@@ -306,7 +310,7 @@ def main():
         for name, val, lim in (("west", x0 - WINDOW[0], None), ("east", WINDOW[1] - x1, None),
                                ("north", y0 - WINDOW[2], None), ("south", WINDOW[3] - y1, None)):
             if val < 10:
-                print(f"      {name} clearance to assumed opening: {val:.2f} mm")
+                print(f"      {name} clearance to opening: {val:.2f} mm")
     o.append(text((bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2 - 1, "CUT OUT THIS SHAPE", 4.0))
     o.append(text((bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2 + 4,
                   "brain silhouette, viewed from above", 2.8))
@@ -359,8 +363,18 @@ def main():
     print(f"  carrier outline : x {cbox[0]:.2f}..{cbox[1]:.2f}  y {cbox[2]:.2f}..{cbox[3]:.2f}")
     print(f"  brain (assembled): x {bb[0]:.2f}..{bb[1]:.2f}  y {bb[2]:.2f}..{bb[3]:.2f}")
     print(f"  registration offset carrier->brain: ({ox:.6f}, {oy:.6f})")
-    print(f"  margins vs assumed window  west {bb[0]-WINDOW[0]:6.2f}   east {WINDOW[1]-bb[1]:6.2f}")
-    print(f"                             north {bb[2]-WINDOW[2]:6.2f}   south {WINDOW[3]-bb[3]:6.2f}")
+    marg = (("west", bb[0] - WINDOW[0]), ("east", WINDOW[1] - bb[1]),
+            ("north", bb[2] - WINDOW[2]), ("south", WINDOW[3] - bb[3]))
+    print(f"  margins vs measured window  west {marg[0][1]:6.2f}   east {marg[1][1]:6.2f}")
+    print(f"                              north {marg[2][1]:6.2f}   south {marg[3][1]:6.2f}")
+    bad = [(n, v) for n, v in marg if v < 0]
+    if bad:
+        print()
+        for n, v in bad:
+            print(f"  *** CLASH: brain overhangs the cavity opening on the {n} "
+                  f"side by {abs(v):.2f} mm ***")
+        print("  the brain must sit inside the opening - outside it there is only")
+        print("  6mm to the frame floor, and the assembly needs 15.35mm.")
 
 
 if __name__ == "__main__":
