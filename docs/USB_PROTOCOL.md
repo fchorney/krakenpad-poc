@@ -66,7 +66,7 @@ The per-panel interrupt wires *are* the gameplay input. The RS-485 FSR poll is
 "Future idea" note). There is **no software veto** of an INT edge against FSR
 data — a spurious INT edge would be reported as a real press. That is why the
 INT line gets hardware conditioning (per-end TVS + series R + 1 nF RC, see
-MASTER_PCB.md / PANEL_PCB.md) **and** a firmware glitch-qualify (below). Do not
+MASTER_PCB.md / DUAL_PANEL.md) **and** a firmware glitch-qualify (below). Do not
 design any part of the press path to depend on the FSR telemetry.
 
 #### Latency budget — keep the press path in µs, never ms

@@ -83,7 +83,7 @@ Good enough for v0; re-sync loss just costs one frame.)
 ## Slot ↔ panel-ID self-test
 
 Two independent things claim to say which panel is which: the **physical slot**
-(master INT input *N* is whatever panel is plugged into Euroblock position *N*)
+(master INT input *N* is whatever panel is plugged into JST XH header *N*, J3–J11)
 and the panel's **self-reported ID** (read from its DIP at boot, used as the
 `addr` byte). Nothing guarantees they agree, and because **INT is the sole
 gameplay press path**, a disagreement means presses register as the wrong arrow
@@ -104,7 +104,7 @@ true mapping empirically instead of assuming it.
 
 | Symptom | Meaning |
 |---------|---------|
-| `'i'` ack, edge on an unexpected slot | INT wire in the wrong Euroblock position — the per-panel wire colour (`docs/BOM.md`) names which one to move |
+| `'i'` ack, edge on an unexpected slot | INT cable in the wrong header — the per-panel heat-shrink marker (`docs/BOM.md`) names which one to move |
 | `'i'` ack, no edge on any slot | INT wire not landed, open, or the panel's open-drain GPIO is dead |
 | `'i'` ack, **two** slots fire | two panels share a DIP ID — both answered the address and both pulsed |
 | Edge fires but no `'i'` ack | panel lives on INT but not on RS-485: transceiver, termination, or A/B swapped |
@@ -179,6 +179,11 @@ then reply`) rather than waiting to be individually asked.
   if bus bandwidth headroom becomes an actual constraint.
 
 ## Prototype pin map
+
+⚠ **Breadboard only — this is NOT either board's as-built pinout.** On the real
+hardware RS-485 runs on the master's **Serial2** (GPIO7 RX / GPIO8 TX, DE on
+GPIO3) and on the panel's **GPIO0/GPIO1 with DE on GPIO4**. See
+`docs/MASTER_PCB.md` and `docs/DUAL_PANEL.md` for the netlist-verified maps.
 
 | Role | Teensy 4.0 | Pico |
 |------|-----------|------|

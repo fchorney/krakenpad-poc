@@ -4,11 +4,10 @@
 the master has no USB HID path to the PC yet either. This document exists so the
 design is captured while it's fresh; it commits no hardware.
 
-**Independent of the carrier/brain split.** Everything here works on the current
-single-board `panel-pcb` exactly as well as on the two-board version. It came up
-*during* the split discussion (2026-07-27) because a brain buried in the frame
-cavity is awkward to reach — but the value stands on its own, and the biggest
-beneficiary is animation delivery, not firmware.
+**Independent of board topology.** It came up *during* the carrier/brain split
+discussion (2026-07-27) because a brain buried in the frame cavity is awkward to
+reach — but the value stands on its own, and the biggest beneficiary is animation
+delivery, not firmware.
 
 ## The problem
 
@@ -29,7 +28,7 @@ processor, no programmer, no hardware change. This is ordinary field-update
 engineering, not research.
 
 **To be unambiguous: the RP2040 has no internal flash.** It has 264 KB of SRAM
-and a 16 KB mask ROM (the bootrom), and executes XIP over QSPI out of **U3, the
+and a 16 KB mask ROM (the bootrom), and executes XIP over QSPI out of **U307, the
 W25Q32JV** — so every byte of the map below lives on that external chip. There
 is no "internal vs external" decision to make here; there is one flash, and this
 is it. That is also *why* the XIP constraint below exists: the code and the

@@ -42,9 +42,14 @@ readily available for this kind of upgrade.
 
 ## Status
 
-Active development — architecture and core electrical decisions are settled,
-prototype hardware has been bench-validated end-to-end, and PCB layout is in
-progress. See `CLAUDE.md` and `docs/` for detailed design notes and specs.
+Active development, pre-fabrication. Architecture and core electrical decisions
+are settled, prototype hardware has been bench-validated end to end, and **both
+boards — the master controller and the two-board panel — are laid out, routed and
+DRC/ERC clean.** Nothing has been ordered yet. Firmware is at prototype stage:
+the sensor path, the RS-485 bus and USB High Speed are all proven on the bench,
+while the host-facing USB HID layer and flash-backed animation playback are not
+written. See `docs/STATUS.md` for current state, `CLAUDE.md` and `docs/` for
+design notes and specs.
 
 ## AI Disclosure
 

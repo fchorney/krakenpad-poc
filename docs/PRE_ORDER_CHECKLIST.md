@@ -1,371 +1,284 @@
-# Panel PCB — pre-order checklist (rev 1.0, created 2026-07-18)
+# Pre-order checklist — dual-panel + master (rev 2.0, rescoped 2026-08-04)
 
-Run this list top to bottom before paying JLCPCB. Items marked ⬜ are open;
-check them off in this doc (or delete the line) as they close.
+Run this top to bottom before paying JLCPCB. ⬜ is open, ✅ is closed.
 
-**Build scope: 2 fully assembled pads** = 2 master PCBs + **20 panel PCBs**
-(2 × 9 + 2 spares). Every quantity in this doc and in `docs/BOM.md` is sized
-to that; if the scope ever changes, both docs move together.
+**Rescoped 2026-08-04.** Rev 1.0 of this doc was written around the single-board
+`hardware/panel-pcb`, which was retired when the two-board split won. Where a
+closed item below names a part rather than a board, it still holds — the parts are
+the same physical parts, only the reference designators moved (carrier 2xx, brain
+3xx). Anything panel-pcb-specific has been dropped; it is in git at `1b41d1c`.
 
-## Footprint reconciliation for the LCSC parts (opened 2026-07-25)
+**Build scope: 2 fully assembled pads** = 2 master PCBs + **20 panel assemblies**
+(2 × 9 + 2 spares). One fab panel = one carrier + one brain, so that is **20
+panels**. Every quantity here and in `docs/BOM.md` is sized to that; if the scope
+changes, both docs move together.
 
-Adopting the LCSC cart (`docs/BOM.md` order 2) swapped several parts for ones
-with different land patterns. **All closed as of 2026-07-26** — two needed new
-footprints (SW3, J1), one adopted the vendor pattern (J9/J4), three confirmed
-as drop-in (RN1, both DIP switches).
+---
 
-**Method (2026-07-25):** footprints pulled with `easyeda2kicad` (free pip CLI,
-no EasyEDA subscription) straight from LCSC by C-number:
-`easyeda2kicad --footprint --lcsc_id=Cxxxxxx --output <dir>/lcsc`. Pulled parts
-staged in `panel-pcb.pretty/`.
+## 0. The blocker
 
-**Confirmed via easyeda2kicad — existing footprint fits, NO change needed:**
-- ✅ **RN1** C840655 (4610X): pulled = SIP-10 2.54mm, pin-1 marker — identical
-  to `R_Array_SIP10`. Only confirm the schematic wires RN1 pin 1 = the common
-  bus (it does).
-- ✅ **panel SW1 DIP-4** C52177925 (DS-04): pulled = 8 pads, 2.54mm, 7.62mm
-  rows — matches `SW_DIP_SPSTx04…W7.62`.
-- ✅ **master SW1 DIP-3** C46595747 (DS-3P-BU): pulled = 6 pads, 2.54mm, 7.62mm
-  rows — matches `SW_DIP_SPSTx03…W7.62`.
-- ✅ **J9 + J4** C8465 (WJ500V): **CLOSED 2026-07-26 by adopting the vendor land
-  pattern** `TerminalBlock_WJ500V-5.08-2P` (1.30mm holes, 2.00mm pads, vendor 3D
-  model) on BOTH boards, re-placed and re-routed; the hand-built
-  `MRR52-5.08-2P` (1.5mm holes, Adam Tech drawing) is retired. Pitch 5.08mm and
-  body 10.16×10.16mm matched our numbers. Left for arrival: eyeball pin-1
-  orientation and body-silk clearance vs neighbours.
+⬜ **Pad + harness teardown.** It settles the master's **J2 underglow connector**
+form — the stock underglow leads crimp straight into a 12-pin Dupont-style housing
+at the old MCU, so a splice is required and J2's screw terminal is interim. Also
+yields PSU stud size and real harness run lengths. See `docs/UNDERGLOW.md`.
 
-**New footprints — DONE 2026-07-26, both swapped, re-placed, re-routed, re-DRC'd:**
-- ✅ **SW3 DPDT** → `panel-pcb:SW_SS22E01L5` (built from C609835 EasyEDA data;
-  6 pads 2.5/2.5mm). Pin numbering 1‑2‑3 / 4‑5‑6 matched, so nets were unchanged;
-  the **symbol was renamed EG2201A → `SS22E01L5`** (lib + schematic cache +
-  lib_id) and the vendor's two **mounting lugs are now pads 7/8, tied to GND**
-  (user-confirmed against the datasheet: 2/5 are the pole commons, 1/4 left,
-  3/6 right). `SW_SS-22F04` deleted (was moot). Vendor 3D model attached.
-- ✅ **J1 USB-C** → `panel-pcb:USB_C_Receptacle_LCK_TCF829D_TEMPLATE`
-  (C53184807 has **no** EasyEDA data — hand-built from the datasheet, then
-  **refined by the user in KiCad 2026-07-25**: 8 signal pins staggered at
-  y=±0.825, VBUS/GND as **shared A/B posts** (A1+B12 in one hole, A12+B1 in
-  another), 4 mounting posts; pad names A1..B12+SH still match the J1 symbol so
-  the net mapping is correct. Swapped, re-placed, re-routed (U7 ESD + R3/R4 27Ω
-  front end), DRC 0. All 8 GND pads were set to **solid zone connection** —
-  at 1mm pitch with a 0.5mm thermal gap a second spoke cannot fit, and the SH
-  post copper already merges with A12/B1. The name keeps the `_TEMPLATE` suffix
-  for continuity; it is no longer a template. **3D model is a placeholder from a
-  different part (CMUCF661016C) — visual bulk only, NOT valid for fit checks.**
-  Unused fallback, if the part ever disappoints: right-angle C49302689
-  (GT-USB-7107B), clean verified all-THT footprint already pulled
-  (`USB-C-TH_GT-USB-7107B`), +~$5 total, orientation "free".
+⬜ **Source the 8 board-to-board interface connectors.** Carrier headers
+**J210–J213** and brain sockets **J301–J304** carry **no LCSC number** — 160 pieces
+at a 20-panel build. They are hand-soldered, so they are a cart item, not a PCBA
+line. Constraint most listings don't state: **6.0 mm mating pin with a ≥3.0 mm
+solder tail** (the standard 11.6 mm total pin). Separation is set by the two
+plastics meeting, not by pins bottoming out, and some "short" headers trim the tail
+instead of the mating end — which leaves nothing to solder through the carrier.
 
-After each new footprint: re-place + re-route the ref, re-run ERC/DRC, keep 0/0.
+⬜ **INT cable OD check on arrival** — conductor insulation must be 1.3–1.9 mm for
+the JST XH contact (`docs/BOM.md` → Order 4). Do this **before** crimping 36
+contacts.
 
-## Layout rework closed 2026-07-24
+⬜ **INT cable length** — gated on the teardown; 9 home runs, not a chain.
 
-Verified against the board after the fact, not just claimed:
+---
 
-- ✅ **Diff pairs re-routed for the real stackup** — USB now W=0.25/S=0.15
-  (~90Ω), RS-485 W=0.15/S=0.2 (~119Ω). Details and the why in
-  `docs/PANEL_PCB.md`.
-- ✅ **Both pairs length-matched** — USB skew 0.023mm, RS-485 skew 0.019mm
-  (via barrels included).
-- ✅ **Review F6 closed** — QSPI_SD3 tuning profile `min_spacing` 0.07 → 0.15,
-  so the meander's same-net gap is no longer 0.09mm.
-- ✅ **TP13 (`RS485+`) / TP14 (`RS485-`) added** — 14 probe holes now.
-- 🚫 **Review F7 / F8 are WONTFIX** — the one-sided B.Cu hops on USB D+ and
-  RS485+ are deliberate crossovers (pairs arrive in the wrong order for their
-  destination pins). See `docs/PANEL_PCB.md`; expect every future automated
-  review to re-flag them.
-- ✅ **Review F9 closed** — the `.dru` pad-to-pad hole rule corrected to JLC's
-  actual 0.45mm floor (not suppressed); `hole_to_hole` enforcement restored.
-  J1 remains zero-margin → DFM confirmation at order time.
-- ✅ **Master PCB RS-485 done too** — W=0.15/S=0.2, F.Cu only, no vias,
-  45.39mm both legs (**0.000mm skew**). Master DRC is **0 violations even with
-  its three ignored rules lifted**, 0 unconnected, ERC 0; only 3
-  `footprint_filters_mismatch` naming notes (Euroblock, WJ500V terminal, DIP-3). The
-  master's ignore list does **not** include `hole_to_hole` — that suppression
-  is panel-only. Details in `docs/MASTER_PCB.md`.
+## 1. Fab package
 
-**Last audited against the design files: 2026-07-24** (post-rework staleness
-sweep — J9 pinout, ERC/DRC status, placement counts, DNP handling, and the
-re-export delta were all re-derived from the KiCad files, not carried forward).
+The panel is a **generated artifact, like gerbers** — gitignored, never
+hand-edited. Regenerate both steps; the second overwrites the first's output.
 
-## 0. Opened 2026-07-26 — INT twisted pair + RS-485 shield
+```sh
+cd hardware/dual-panel/panel
+python3 gen_panel.py     # joins carrier + brain to a rail frame with mouse bites
+python3 gen_fab.py       # gerbers zip + JLC-format BOM + CPL into production/
+```
 
-Two harness changes landed after the 2026-07-24 audit. Both touch board files,
-so everything below invalidates part of the audit above.
+⬜ **Read `gen_panel.py`'s tab breakdown**, don't trust the total — it is the "will
+a board actually come off the panel?" check. Expected shape: carrier 16 tabs
+(N3/S3/E7/W3), brain 6 (E3/W3). The brain gets no N/S tabs; that is a KiKit
+partition-line limitation, not a setting, and it is documented in
+`hardware/dual-panel/panel/README.md`.
 
-- ✅ **Master INT rework DONE** — the 9-pos Euroblock was deleted and
-  nine JST XH 2-pin headers (J3–J11) placed in its footprint. Nets
-  verified (pin 1 = `INT_xx` via TVS + 330R, pin 2 = GND, all nine), **routed —
-  0 unconnected, 17.8–38.4mm per line, zero vias (each stays on one layer) —
-  and DRC + ERC clean.**
-- ⬜ **The `footprint_filters_mismatch` note for "Euroblock" above is stale** —
-  that footprint no longer exists on the board. Re-derive the master's note list.
-- ✅ **Panel shield** — `RS485_Shield` J8 pad 3 → J10 pad 3, 0.25mm B.Cu, no
-  local GND tie; C57 100nF ‖ R20 1M to GND near J8, GND vias 0.88/0.92mm from
-  the pads. DRC + ERC clean.
-- ✅ **Master shield tie** — J1 pin 3 → GND.
-- 🟡 **Isolated B.Cu island below the shield trace** — likely already resolved.
-  The panel's `filled_polygon` count went 62 → 61 across this change, consistent
-  with KiCad's remove-islands dropping the ~11mm B.Cu strip below the shield
-  trace (Y 143 → 153.7) on refill. Harmless either way; confirm visually in the
-  B.Cu zone view rather than treating the count as proof.
-- ⬜ **Re-run `tools/bom_census.py` and reconcile `docs/BOM.md`.** Part counts
-  changed: +18 B2B-XH-A (C158012), +18 XHP-2, +36 SXH-001T contacts, +4 C57/R20
-  per-panel parts, Micro-Fit crimps 132 → 168 (RS-485 housings now populate all
-  three circuits), Euroblock removed from the AliExpress order.
-- ⬜ **INT cable OD check on arrival** — conductor insulation must be 1.3–1.9mm
-  for the XH contact. See `docs/BOM.md` → Order 4. Do this **before** crimping 36
-  contacts.
-- ⬜ **INT cable length** — gated on the pad teardown; 9 home runs, not a chain.
+⬜ **Upload as a customer panel** ("panel by customer"), **not** as a single board
+— JLC's own panelization only arrays one design, and two different boards must be
+supplied this way. Doing that is what makes it *one* order: one engineering fee,
+one PCBA setup, one stencil, one shipment.
 
-## 1. Physical part verification (needs parts in hand)
+⬜ **Assembly scope is SMD only.** Through-hole — every connector, both switches,
+and the eight interface headers/sockets — is hand-soldered. `gen_fab.py` filters
+THT, the 30 test points (bare plated holes whose "value" is a net name, so they'd
+become 30 unmatched BOM lines), and KiKit's mouse bites / tooling holes / fiducials.
 
-- ✅ **J9 / master J2 (screw terminals) CLOSED 2026-07-26 — nothing to verify on
-  arrival.** **2P** (swapped 2026-07-20 — true 1P KF301 barely exists), part
-  KANGNEX WJ500V-5.08-2P / LCSC **C8465** on the vendor's own land pattern
-  `TerminalBlock_WJ500V-5.08-2P` (1.30mm holes, 2.00mm pads). Nets: panel J9
-  **pin 1 = INT signal (`Net-(D30-K)`, via R17), pin 2 = dedicated GND**
-  (2026-07-24, supersedes both-pins-bridged); master J2 pin 1 = underglow DATA,
-  pin 2 = the mandatory GND tie to the PSU stud. D30 (SMAJ5.0A) clamps
-  signal→pin-2 GND at the connector.
-  An earlier "verify pin-1 orientation on arrival" line was **wrong-headed and
-  has been removed**: a 2-position screw terminal is two identical clamps with no
-  polarity or keying, so the part cannot be fitted the wrong way round and "pin
-  1" is only whichever hole the footprint names. The thing that actually matters
-  is that the **silkscreen says which clamp is which** — labels added by the user
-  2026-07-26 on both boards (panel: `Signal` / `GND`; master: `UG` / `GND`).
-  Body rotation still decides which way the wire enters, but that is visible in
-  the 3D view, not a parts-in-hand check.
-- ⬜ **FSR leads vs J3/J4/J6/J7**: mate a real FSR lead's JST PHR-2 plug
-  against a B2B-PH-K top-entry header (or at minimum compare datasheet drawings
-  pin-for-pin). Flagged 2026-07-10, never physically verified.
-- ✅ **U8 (LM66200) package CONFIRMED 2026-07-26 — no parts needed.** Pulled
-  C3235556 via easyeda2kicad: LCSC's own footprint is
-  `SOT-583-8_L2.1-W1.2-P0.50-LS1.6-BL` — **8 pads, 0.50mm pitch, 2.1×1.2mm body,
-  1.6mm lead span**, i.e. the 8-pin DRL, not the 6-pin variant. Land pattern vs
-  the KiCad `SOT-583-8` the board uses: identical pitch and pad size
-  (0.28×0.68 vs 0.30×0.67), rotated 90° by library convention, row separation
-  1.28 vs 1.48mm — ~0.1mm of toe-vs-heel fillet allocation, normal between
-  library sources, leads land inside both. No footprint change.
-  U8 is SMD and not DNP so **JLC places it** — it is not a hand-solder cart item.
-- ⬜ **D12/D23 DNP handling** (order-time BOM/CPL check, not a parts check):
-  confirm the regenerated BOM/CPL **exclude** them while their footprints stay on
-  the board — the hand-solder Schottky-OR rescue depends on the pads existing.
-- ⬜ **D30 (SMAJ5.0A, new 2026-07-24)**: LCSC **C113952** written into the
-  schematic — an *extended* part, so it adds a feeder/handling line to the
-  quote. Confirm live stock in the JLC BOM dialog and re-pick if short
-  (C87074 Diodes, C98802 ST are the same part in the same DO-214AC body).
-- ✅ **SW1 (DIP-4) and SW3 (DPDT) CLOSED 2026-07-25/26 — nothing left to verify
-  on arrival.** Both were settled from the vendors' own EasyEDA data, not
-  guessed: panel SW1 (Zhongdi DS-04, **C52177925**) pulled as 8 pads / 2.54mm
-  pitch / **7.62mm rows**, matching `SW_DIP_SPSTx04…W7.62`; master SW1 (DORABO
-  DS-3P-BU, **C46595747**) as 6 pads / 2.54 / 7.62 matching the x03 variant; and
-  SW3's footprint (`panel-pcb:SW_SS22E01L5`) was *built* from C609835's vendor
-  data with the pole grouping user-confirmed against the datasheet (2/5 = pole
-  commons, 1/4 left, 3/6 right, lugs = pads 7/8 → GND). The earlier "verify row
-  spacing on arrival" line predated that work.
-  **SW1 source RE-SETTLED 2026-07-25: Zhongdi `DS-04`, LCSC C52177925** (30/$6.03),
-  riding the LCSC order the pivot created. The note below is the superseded
-  2026-07-24 reasoning, kept for context:
-  **~~SW1 source SETTLED 2026-07-24: CUI `DS01C-254-S-04BE` from DigiKey~~**
-  ($0.70 ea, 7,376 in stock at decision time; 20 pcs = ~$14). It rides on the
-  panel-THT DigiKey order that's happening anyway. The earlier LCSC pick
-  (YE DSWB04LHGET, C99418, ~$0.12) is **dropped** — there is no LCSC order to
-  attach it to, so it would mean a separate shipment to save ~$12. The
-  AliExpress 10-packs are likewise dropped.
-- ✅ **WS2815 datasheet-variant confirm** (human review finding 1.a, closed
-  2026-07-19): LCSC C5446699 confirmed = WS2815B-V1, the exact part of the
-  WS2815B-V1 V2.0 datasheet (VIH abs 2.7V min / input abs-max 5.7V — closed
-  the reviewer's "must shift to 12V" finding; 12V would violate abs-max).
-  Optional extra insurance only: bench-drive a WS2815 strip from the
-  prototype's SN74AHCT125N at 5V (we've only personally tested WS2812B;
-  production boards now use the single-gate SN74AHCT1G125 — same AHCT
-  family and thresholds, so the test still transfers).
-  **WAIVED 2026-07-26** — not worth buying WS2815s just to test. The datasheet
-  confirm above is the substantive check; the 5V-shifter question rests on
-  VIH 2.7V min, which is a spec guarantee, not a marginal reading. Residual
-  risk is accepted: if a bring-up board shows flaky LED data, the shifter rail
-  is the first suspect.
-- ✅ **Per-LED pin-1 caps (C22–C49) are vendor-sanctioned — CLOSED 2026-07-26.**
-  **Two** Worldsemi documents that bracket our revision in time — the original
-  2018-era **WS2815** doc (`led-stuebchen.de/download/WS2815.pdf`, the same doc
-  NORMAND hosts) and **WS2815B-V3** (`ledlightinghut.com/files/WS2815B.pdf`) —
-  both give pin 1 verbatim as *"VCC … IC POWER SUPPLY, Suspended or connected
-  with a filter capacitor to GROUND"*. Our **V1 V2.0 doc is the outlier**, the
-  only one calling it "NC / Suspended PIN"; it is also the only one labelling
-  pins 4/6 "DIN1/DIN2" instead of "DIN/BIN", so that column looks edited from a
-  different source. Caveat kept deliberately: paper does **not** prove V1
-  silicon brings the rail out to pin 1 — but a 100nF is no DC load, so if V1 is
-  truly NC the cap is merely inert. Safe either way; only probing a powered
-  part (≈5V vs floating) would settle it outright. **No per-LED VDD decoupling is wanted**: V3 states the part
-  needs "NO extra components", neither revision contains an application
-  circuit, and the channels are constant-current (~10–12mA fixed) so there is
-  no per-pixel switching transient to decouple. Leave C22–C49 as drawn.
-  Watch-out: V3 silicon uses VIH = 0.7·VDD (~3.5V) vs V1's 2.7V absolute — the
-  5V shifter clears both, but don't accept a V3 substitution silently.
+⬜ **Master board**: bare fab only, no PCBA — hand-assembled from LCSC parts. Its
+shopping BOM regenerates with `python3 tools/gen_bom.py --board
+hardware/master-pcb/master-pcb.kicad_pcb`.
 
-## 2. Design-file state (all scriptable/checkable from the repo)
+⬜ Working tree committed and pushed.
 
-- ✅ **ERC genuinely 0** — re-verified 2026-07-24 on a scratch copy with
-  `kicad-cli sch erc --severity-all`: 0 violations, and `erc_exclusions` in
-  the project file is **empty**. The old "…with the cached-symbol
-  `lib_symbol_mismatch` warnings excluded" caveat is dead — those were fixed
-  for real on 2026-07-21, not suppressed. Re-run after any schematic edit.
-- ✅ **Schematic changes pushed into the PCB** (verified 2026-07-20): U8 present
-  as `Package_TO_SOT_SMD:SOT-583-8`, all 12 test points converted to
-  `TestPoint_THTPad_D2.0mm_Drill1.0mm`, and every copper zone re-pointed at the
-  renamed rails (`+3.3VDC`, `+5VDC`, `+12VDC`, `GND`). Zones refill clean.
-- ✅ **Zone display names fixed 2026-07-24** (renamed in the GUI) — all eight
-  now read as their actual net/function: `+3.3VDC Regulator Thermals` (F.Cu),
-  `+5VDC Regulator Thermals` (F.Cu), `GND`, `+3.3VDC FSR` (In2, the analog
-  pour), `+3.3VDC Main` (In2, board-wide), `+5VDC VBUS`, `+5VDC`, `+12VDC`.
-- ✅ **AMS1117 output node labelled `/+5VDC_AMS`** (2026-07-24) — it used to
-  ride auto-net `Net-(D23-A)`, named after a **DNP** diode, which is why it
-  read as confusing. The auto-net is gone from the board entirely. Any older
-  doc or review text citing `Net-(D23-A)` is stale.
-- ✅ **DRC genuinely 0 / 0 unconnected / 0 schematic-parity** — re-verified
-  2026-07-24 with `kicad-cli pcb drc --severity-all --schematic-parity`, and
-  `drc_exclusions` is **empty**, and as of 2026-07-24 the rule-severity
-  `ignore` list is down to **two purely cosmetic entries**:
-  `footprint_filters_mismatch` and `footprint_type_mismatch` (library naming
-  patterns — the custom WS2815 footprint vs the stock symbol's `LED*WS2812*`
-  filter ×25, the MRR52 terminal, the DIP-4). `hole_to_hole`,
-  `tuning_profile_track_geometries` and `missing_courtyard` are all **enforced
-  again**.
+---
 
-  **Review F9 (J1 hole spacing) is CLOSED by rule correction, not by
-  suppression.** J1's USB-C contact holes sit at 0.45mm edge-to-edge — exactly
-  JLC's published multilayer floor — while the imported JLC `.dru` demanded
-  0.5mm. The fix was surgical: **only** the `pad to pad clearance (with hole,
-  different nets)` rule was relaxed to 0.45mm; the generic `hole to hole
-  clearance (different nets)` rule stays at 0.5mm and still guards via↔pad and
-  every other non-pad-pair hole.
-  - ⚠ **The two rules are not interchangeable.** Both carry a `hole_to_hole`
-    constraint, but the pad-to-pad rule is more specific and appears later, so
-    *it* is what governs J1. Verified empirically: relaxing only the generic
-    rule brings all 14 violations straight back. Don't "simplify" these two
-    rules into one.
-  - J1 still has **zero margin** against the fab limit — keep it on the
-    DFM-confirmation list at order time.
+## 2. Design-file state
 
-  **Full audit 2026-07-24**, `--severity-all --schematic-parity
-  --refill-zones` with the remaining ignores lifted: **0 violations, 0
-  unconnected, ERC 0.** Only cosmetic `footprint_filters_mismatch` parity
-  notes remain. That is the real state of the board with nothing suppressed.
+✅ **Verified 2026-08-04 from clean project copies**, `kicad-cli pcb drc
+--severity-all --schematic-parity`:
 
-  The old "known benign warnings, do not chase"
-  list (48 silk self-clips, 25 `lib_footprint_mismatch`, 2 J1 silk-vs-edge)
-  no longer applies — all 77 were fixed and the 35 stale exclusions removed on
-  2026-07-21. If any of those reappear, treat them as new, not as known noise.
-  The logo clearance issue is **CLOSED**: the F.Cu logo polygons were deleted
-  and only the F.Mask polys kept, so the mask opening exposes the existing F.Cu
-  GND pour instead of a separate copper island (coverage confirmed by
-  point-in-polygon against the filled zone).
-  **Surface-finish note now matters more:** the logo is exposed *ground* copper,
-  so HASL gives silver and ENIG gives gold — see section on finish.
-- ⬜ **Re-export gerbers/BOM/CPL is now MANDATORY, not conditional** — the
-  files in `hardware/panel-pcb/production/` are **STALE**. Changes since the
-  2026-07-18 export: U2 THVD1419→THVD1429, 52 MPN + 22 Datasheet properties,
-  J9 1P→2P (new footprint + placement), rail/net renames (4.e/4.k), U8
-  LM66200 added with D12/D23 → DNP, and 12 test points converted from SMD pads
-  to THT probe holes (**a drill-count change — the drill file must be
-  regenerated, not just the gerbers**). Plus the 2026-07-24 post-review rework:
-  **D30 SMAJ5.0A added** (new SMA footprint, bottom side, LCSC C113952), **J9
-  pin 2 re-netted signal → GND**, **R17 100R** as the INT series element, and
-  **U8 bypass caps C54/C56 (1µF) + C55 (100nF)**. Commands are in git history;
-  re-zip after.
-- ⬜ Working tree committed and pushed.
+| board | DRC | unconnected | parity | ERC | exclusions |
+|---|---|---|---|---|---|
+| master-pcb | 1 ✱ | 0 | 0 | 0 | 0 DRC / 0 ERC |
+| dual-panel | 0 | 19 ✱✱ | 90 ✱✱✱ | 0 | 0 DRC / 0 ERC |
+
+Both `drc_exclusions` and `erc_exclusions` are genuinely **empty** — nothing is
+suppressed by exclusion. Two rule severities are set to `ignore` on both boards,
+and both are cosmetic library-naming checks: `footprint_filters_mismatch` and
+`footprint_type_mismatch`.
+
+✱ One `courtyards_overlap`, R4 against U2 — R4 sits deliberately under the socketed
+Teensy. Accepted, not a defect.
+
+✱✱ The permanent board-to-board mating-gap floor. KiCad cannot model "these mate
+mechanically"; each was confirmed to be a genuine crossing net.
+
+✱✱✱ **A `kicad-cli`-only artifact — the GUI reports none.** Net *naming*, not
+topology; the exported netlist agrees with the PCB pad-for-pad across all 577 pads
+and gerbers carry no net names.
+
+⬜ **Re-run all three checks after any edit.** Geometric DRC, `--schematic-parity`,
+and ERC are three separate checks and parity is the easy one to forget.
+
+⚠ **`kicad-cli` mutates `.kicad_pro` / `.kicad_sym` as a side effect.** Run checks
+on a scratch copy — and copy the **whole project set** (`.kicad_pro`, `.kicad_dru`,
+`.kicad_prl`, `fp-lib-table`, `.pretty`), or `${KIPRJMOD}` won't resolve and the
+counts differ.
+
+### The two DRU subtleties, both still live
+
+⬜ **J305's USB-C holes sit at exactly 0.45 mm edge-to-edge — zero margin against
+JLC's published multilayer floor.** Verified 2026-08-04 by raising the rule to
+0.5 mm on a copy: **14 violations come straight back**, all on J305. The
+`pad to pad clearance (with hole, different nets)` rule is deliberately relaxed to
+0.45 mm; the generic `hole to hole clearance (different nets)` rule stays at 0.5 mm
+and still guards via↔pad and every other non-pad-pair hole.
+- **The two rules are not interchangeable** — both carry a `hole_to_hole`
+  constraint, but the pad-to-pad rule is more specific and appears later, so *it*
+  governs J305. Don't "simplify" them into one.
+- **Keep J305 on the DFM-confirmation list at order time.**
+
+⬜ **`.kicad_dru`'s "Minimum Trace Width and Spacing" rule carries
+`(constraint clearance (min 0.09mm))`, and in KiCad a custom rule *replaces* the
+netclass value rather than acting as a floor** — so it silently overrides the
+Default netclass's 0.2 mm board-wide. Proven by deleting just that constraint: 77
+violations appear, actual range 0.0900–0.1993 mm. The routing was separately raised
+to a 0.1266 mm minimum, so this is not currently biting, but the rule reads like a
+fab-capability template and does not say what it appears to say. If 0.2 mm should
+ever be enforced, drop the `clearance` constraint (keep `track_width`) and let the
+netclass govern.
+
+---
 
 ## 3. JLC upload & BOM matching
 
-- Files: `production/panel-pcb-gerbers.zip`, `panel-pcb-BOM.csv`,
-  `panel-pcb-CPL.csv`. BOM carries LCSC numbers (from the 2026-07-18 quote
-  session, `tmp/bom.xls`) — every line should auto-match exactly.
-- ⬜ All BOM rows **confirmed** (checkbox ticked). Rows left "to be confirmed"
-  are silently NOT assembled. Target: every line checked (D1 debug LED
-  included unless deliberately dropped — decide before ordering).
+- Files: `hardware/dual-panel/panel/production/panel-gerbers.zip`,
+  `panel-BOM.csv`, `panel-CPL.csv`.
+- ⬜ All BOM rows **confirmed** (checkbox ticked). Rows left "to be confirmed" are
+  silently **not assembled**. Target: every line checked — including the debug LED
+  D202, unless deliberately dropped. Decide before ordering.
 - ⬜ Any substitution rows (yellow ⚠) reviewed before ticking.
-- ⬜ Stock check: if a matched part shows insufficient stock, re-pick and
-  note the new C-number back into the schematic's LCSC field afterward.
+- ⬜ Stock check: if a matched part shows insufficient stock, re-pick and write the
+  new C-number back into the schematic's LCSC field afterward.
   ("Qty" = pieces your order needs; "My Inventory" 0 is normal.)
+- ⬜ **D301/D302 (PMEG3015EH) are DNP** — confirm the generated BOM/CPL **exclude**
+  them while their footprints stay on the board. The hand-solder Schottky-OR rescue
+  depends on those pads existing.
+- ⬜ **D201 (SMAJ5.0A, LCSC C113952)** is an *extended* part, so it adds a
+  feeder/handling line. Confirm live stock and re-pick if short — C87074 (Diodes)
+  and C98802 (ST) are the same part in the same DO-214AC body.
+- ⬜ **THVD1429 (U308, C1850236)** — verify live stock at order time.
+
+---
 
 ## 4. Placement preview (JLC order page)
 
-- ⬜ Rotation/polarity sweep — JLC's renderer uses their library's tape-zero
-  orientation, not KiCad's; 90°/180° preview errors are real placement errors.
-  Check pin-1/polarity on: U1 (QFN corner), U2–U7, X1, D29, D1,
-  C38 (tantalum stripe), C51 (electrolytic), D30 (SMA TVS cathode band — new
-  2026-07-24), and one WS2815 of each rotation group (a library error repeats
-  ×25). **D12/D23 are DNP** (`attr smd dnp`, verified in the PCB) so JLC never
-  places them — nothing to check there, but do confirm they're absent from the
-  placement preview.
-- ⬜ WS2815s use our custom PLCC6 footprint — JLC may render a generic body;
-  orient by pads against the part-detail photo, not the render.
-- ✅ **C51 can-vs-pads CLOSED 2026-07-26 from vendor data.** Pulled the part's own
-  land pattern (C82014 → `CAP-SMD_BD10.0-L10.3-W10.3-LS11.3-FD`): **BD10.0 = a
-  10.0mm can**, matching our footprint's 5.0mm body radius exactly. Terminal
-  lands: vendor pads at x=±4.50, 4.50×1.65mm; ours at ±4.00, 4.40×**4.00**mm —
-  ours are far taller and sit 0.5mm inboard, covering **~88% of the vendor land
-  area** (overlap 3.95 × 1.65mm), leaving a 0.55mm strip of terminal past the
-  outer pad edge. Electrically and mechanically fine, and the part self-centres
-  because both pads are offset equally. **Deliberately not "improved"**: C22's
-  bounding box is 0.1mm away, so growing the pads outward risks a clearance
-  fight for a cosmetic fillet gain.
-- ⬜ Fix any rotation issues in their preview UI (select + rotate), not by
-  re-uploading the CPL.
+- ⬜ **Rotation/polarity sweep.** JLC's renderer uses their library's tape-zero
+  orientation, not KiCad's; a 90°/180° preview error is a real placement error.
+  Check pin-1/polarity on: **U306** (RP2040, QFN corner), **U301–U305/U307/U308**,
+  **X301**, **D303**, **D202**, **C308** (tantalum stripe), **C201**
+  (electrolytic), **D201** (SMA TVS cathode band), and **one WS2815 of each
+  rotation group** — a library error there repeats ×25.
+- ⬜ The WS2815s use our custom PLCC6 footprint; JLC may render a generic body.
+  Orient by pads against the part-detail photo, not the render. **The row of 3 is
+  intentionally 180° from the row of 4** — that is the serpentine layout, not a
+  placement mistake.
+- ⬜ Confirm D301/D302 are **absent** from the placement preview.
+- ⬜ Fix rotation issues in their preview UI (select + rotate), not by re-uploading
+  the CPL.
+
+---
 
 ## 5. Order options
 
-- ⬜ 4-layer, 127×127mm, standard via class (0.3/0.45 — already rule-checked;
-  no premium process options needed).
-- ⬜ **Surface finish**: HASL = silver exposed-copper logo, ENIG (+$) = gold.
-  Aesthetic choice, decide deliberately.
-- ⬜ Assembly: **both sides**. Current count (2026-07-24, from the PCB, DNP
-  excluded): **113 placements — 93 top / 20 bottom** (the bottom side is
-  RP2040 decoupling, the CC pull-downs R13/R14, and now C54/C56/D30). The old
-  "110 placements, 97/13" figures predate the rework. The ~$25 double-sided
-  delta is worth it — decided 2026-07-18.
-- ⬜ **Quantity: order all needed boards in ONE run.** Fixed overhead measured
-  2026-07-18 (qty-5 quote): ~$148 of ~$241 is qty-independent (eng fee $25,
-  setup $51, stencil ~$21, feeder fees $49). Marginal assembled board ≈$17.50.
-  Two runs = paying ~$148 twice.
-- ⬜ **Quantity: 20 assembled panel PCBs, one run.** Build scope is **2 fully
-  assembled pads** = 2 × 9 panels + 2 spares (matches `docs/BOM.md` and
-  `docs/STATUS.md`; the older "need 9 → order 10" line was single-pad and is
-  retired). Extrapolating the qty-5 quote: ~$148 fixed + 20 × ~$17.50 ≈
-  **$500 USD + ~$40 shipping**. Treat that as a sanity band, not a quote —
-  component price breaks and the larger PCB-area line will both move it.
+- ⬜ 4-layer, both boards on one customer panel (~228 × 143 mm, ≈326 cm²).
+- ⬜ **Surface finish**: HASL = silver exposed-copper logo, ENIG (+$) = gold. The
+  logo is exposed *ground* copper, so the finish is visible. Aesthetic choice —
+  decide deliberately.
+- ⬜ **Assembly: both sides**, SMD only. The ~$25 double-sided delta is worth it.
+- ⬜ **Epoxy filled & capped (POFV)** on the brain — decided 2026-08-04. **Ask JLC
+  two things at quote time** rather than eating an engineering query:
+  1. the POFV surcharge at 4 layers (never verified against a live quote);
+  2. how POFV handles a board mixing fillable and non-fillable vias — **44 vias sit
+     at 0.60 mm drill, above the 0.5 mm fill limit.** All power-distribution, none
+     in a pad, so unfilled is electrically fine, but POFV is normally board-wide.
+- ⬜ **0.075 mm via annular ring** — partially answered: the master quoted fine at
+  0.075 mm on a standard 4-layer build. Confirm it holds for this panel.
+- ⬜ **Quantity: 20 panels, ONE run.** Fixed overhead is ~$97/order ($25 eng fee +
+  $51.12 PCBA setup + $16.42 stencil + $4.93 storage) plus ~$40 shipping,
+  regardless of quantity. Two runs = paying all of it twice. Reference: the qty-5
+  dual-panel quote came to **$297.38** ($89.01 PCB + $199.67 PCBA + $8.70
+  advanced) — full breakdown in `hardware/dual-panel/panel/QUOTE-2026-07-31.md`.
+- ⬜ **Master boards: ≈$8 for 5.** Board cost is negligible; **shipping dominates.**
+  Batch master + panel into one shipment if the teardown allows.
 - ⬜ Slow build time (3–4 day assembly); expedite was +$49 for one day.
-- ⬜ "Confirm Production file" / "Confirm Parts Placement" options: cheap
-  ($1.50 total on the quote) — keep them, and actually respond to the DFM
-  emails.
+- ⬜ Keep "Confirm Production file" / "Confirm Parts Placement" (~$1.50 total) —
+  and actually respond to the DFM emails.
+
+---
 
 ## 6. Final human pass
 
-- ⬜ Page through JLC's gerber viewer (it renders the same artwork the fab
-  uses): board outline, layer order (F/In1=GND/In2=power/B), silk name +
-  "Rev. 1.0" + JLCJLCJLCJLC placeholder present, logo copper/mask pair intact.
-- ⬜ Sanity-check the total against the qty-20 band above (~$500 + ~$40
-  shipping). The recorded qty-5 baseline was $240.78 — if the qty-20 quote
-  comes in near *that*, something is wrong with the quantity field.
+- ⬜ Page through JLC's gerber viewer (it renders the same artwork the fab uses):
+  board outline and rail frame, mouse-bite tabs, layer order (F / In1=GND /
+  In2=power / B), silk name + rev + year, logo copper/mask pair intact.
+- ⬜ Sanity-check the total against the qty-20 band. The recorded qty-5 baseline is
+  $297.38 — if a qty-20 quote comes in near *that*, the quantity field is wrong.
+
+---
+
+## Closed — do not redo
+
+**Parts settled from vendor data, nothing to verify on arrival:**
+
+- ✅ **Screw terminals** (carrier **J214**, master **J2**) — KANGNEX
+  WJ500V-5.08-2P, LCSC **C8465**, on the vendor's own land pattern
+  `TerminalBlock_WJ500V-5.08-2P` (1.30 mm holes, 2.00 mm pads). A 2-position screw
+  terminal is two identical clamps with no polarity or keying, so it cannot be
+  fitted the wrong way round; what matters is that the **silkscreen says which
+  clamp is which**, and those labels were added 2026-07-26 on both boards.
+- ✅ **DIP switches** — carrier **SW201** Zhongdi DS-04 (**C52177925**), 8 pads /
+  2.54 mm / 7.62 mm rows; master **SW1** DORABO DS-3P-BU (**C46595747**), 6 pads,
+  same geometry. Both matched stock KiCad footprints exactly.
+- ✅ **Termination switch SW202** — footprint `dual-panel:SW_SS22E01L5` built from
+  C609835's own EasyEDA data; pole grouping user-confirmed against the datasheet
+  (2/5 = pole commons, 1/4 left, 3/6 right, mounting lugs = pads 7/8 → GND).
+- ✅ **RN1** (master) C840655 4610X — pulled SIP-10 2.54 mm, identical to
+  `R_Array_SIP10`.
+- ✅ **U304 (LM66200)** — LCSC's own footprint is the 8-pin SOT-583 DRL, matching
+  the KiCad `SOT-583-8` the board uses to ~0.1 mm of fillet allocation. No change.
+- ✅ **C201 can-vs-pads** — vendor land pattern (C82014) confirms a 10.0 mm can
+  against our 5.0 mm body radius. Our pads are taller and sit 0.5 mm inboard,
+  covering ~88% of the vendor land area, and the part self-centres because both
+  pads are offset equally. **Deliberately not "improved"** — the neighbouring cap's
+  bounding box is 0.1 mm away.
+- ✅ **FSR PHR-2 mate** — confirmed by the user against a real FSR lead.
+
+**WS2815, closed:**
+
+- ✅ LCSC **C5446699** confirmed = WS2815B-V1, the exact part of the WS2815B-V1
+  V2.0 datasheet (VIH abs 2.7 V min / input abs-max 5.7 V). This closed the
+  reviewer's "must level-shift to 12 V" finding — 12 V would violate abs-max.
+- ✅ **Per-LED pin-1 caps (C202–C226) are vendor-sanctioned.** Two Worldsemi
+  documents that bracket our revision in time — the 2018-era WS2815 doc and
+  WS2815B-V3 — both give pin 1 verbatim as *"VCC … IC POWER SUPPLY, Suspended or
+  connected with a filter capacitor to GROUND."* Our V1 V2.0 doc is the outlier.
+  A 100 nF is no DC load, so if V1 is truly NC the cap is merely inert. **No
+  per-LED VDD decoupling is wanted** — the channels are constant-current, so there
+  is no per-pixel switching transient to decouple. Leave them as drawn.
+  ⚠ V3 silicon uses VIH = 0.7·VDD (~3.5 V) vs V1's 2.7 V absolute. The 5 V shifter
+  clears both, but **don't accept a V3 substitution silently.**
+- ✅ **5 V bench test WAIVED 2026-07-26** — not worth buying WS2815s to test. The
+  datasheet confirm is the substantive check and VIH 2.7 V min is a spec guarantee.
+  Residual risk accepted: if a bring-up board shows flaky LED data, the shifter rail
+  is the first suspect.
+
+**Deliberately dropped (user's call — do not re-raise as findings):** the remaining
+`review/RULES-CHECKLIST.md` ⚠ items — no colour called out on the debug LED, SW202
+not marked DPDT, the panel-ID DIP not marked 4P, connector family/pitch missing next
+to the FSR connector symbols.
 
 ## Deliberately NOT blocking the order
 
 - Project logo (waiting on artwork; add via the verified exposed-copper flow +
   sliver check when it exists).
-- THVD1429 cost (swapped from THVD1419 2026-07-19: the 1419 is the 250kbps
-  grade — can't do the 1Mbps bus; 1429 = 20Mbps, drop-in, LCSC C1850236,
-  and cheaper: $3.45@10+ vs $4.53. Verify JLC live stock at order time.
-  SIT3485-class sub only if robustness trade is ever accepted).
-- Accepted-for-rev-A review items (U5 thermal, +5V post-diode margin,
-  INT-into-dead-panel, hot-plug/SI/ADC-B.Cu) — these are BRING-UP
-  measurements, not order blockers.
+- Accepted-for-rev-A review items — U303 thermal, +5 V rail margin,
+  INT-into-dead-panel, hot-plug/SI/ADC-on-B.Cu. These are **bring-up measurements**,
+  not order blockers.
+- Cosmetic: 7 sub-2 µm track stubs and ~109 board-wide sub-0.15 mm slivers. **Do
+  not chase.** Of 109 short tracks, 102 are mid-route jogs with copper on both
+  endpoints — deleting them breaks real routes.
 
 ## Post-order
 
 - ⬜ Respond to JLC DFM/engineering emails same-day (they hold the order).
-- ⬜ On arrival, before mounting in a pad: visual QA against the rotation
-  list above, then bench bring-up per the accepted-items list (USB-only
-  first: 3.3V rail, BOOTSEL/flash enumeration; then 12V: U5 temperature at
-  real load, 5V rail margin, 12V-sense threshold, FSR ADC noise floor,
-  WS2815 chain, RS-485 loopback, INT line).
+- ⬜ On arrival, before mounting in a pad: visual QA against the rotation list, then
+  bench bring-up — USB-only first (3.3 V rail, BOOTSEL/flash enumeration), then 12 V
+  (U303 temperature at real load, 5 V rail margin, 12 V-sense threshold, FSR ADC
+  noise floor, WS2815 chain, RS-485 loopback, INT line).
+- ⬜ Mate-and-solder order for the interface: assemble both headers into their
+  sockets, mate the boards, **then** solder the second connector's pins with the
+  stack held together. Four connectors must align in X, Y *and* rotation at once.
+- ⬜ **Never omit the 11 mm M3 spacer.** Without it, tightening pulls the brain into
+  the carrier and the connectors absorb the entire clamping force.

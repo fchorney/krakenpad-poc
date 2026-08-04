@@ -54,4 +54,4 @@ a 12-pin Dupont-style housing that plugs into the stock MCU — there is no
 intermediate connector a replacement master could reuse, so a user wanting
 underglow must splice. Picking the cleanest splice point needs the full
 pad/harness teardown; it gates only the final choice of connector/pigtail at
-J4, not any electrical parameter.
+J2, not any electrical parameter.

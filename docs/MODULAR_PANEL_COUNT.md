@@ -1,5 +1,10 @@
 # Modular Panel Count (Passthrough PCBs)
 
+> **Status: forward-looking design, nothing built.** No passthrough PCB exists and
+> none is on the order. This captures the decision so a future kit build doesn't
+> re-derive it. The connector and INT details below were re-checked against the
+> as-built boards on 2026-08-04.
+
 This document captures the design decision for supporting kits with fewer than 9 populated
 panels (e.g. a 4-panel/single-play customer), without requiring custom wiring harnesses per
 panel count.
@@ -34,13 +39,13 @@ copper. This means:
 - (Corrected 2026-07-10: no position-specific IN-only builds — all boards, real and
   passthrough, carry the full IN+OUT set so any board works in any slot; an OUT at the end
   of a chain simply sits empty.)
-- **INT**: still has the same single-conductor termination as a real panel (screw
-  terminal, per the 2026-07-10 INT rework — no Micro-Fit, no GND conductor; the master
-  end is a 9–10 position pluggable terminal block), for mechanical/cable uniformity —
-  but the terminal is **not connected to anything** on the passthrough board (no local
-  pull-down, no active drive). This relies on the existing master-side pull-up and the
-  already-documented safe failure mode ("disconnected/floating wire reads HIGH = not
-  pressed").
+- **INT**: same termination as a real panel — a 2-position 5.08mm screw terminal
+  (KANGNEX WJ500V-5.08-2P) carrying **signal on pin 1 and a dedicated GND return on
+  pin 2**, cabled as a twisted pair, home-run to one of the master's nine JST XH
+  headers (J3–J11). Kept for mechanical/cable uniformity, but the terminal is **not
+  connected to anything** on the passthrough board (no local pull-down, no active
+  drive). This relies on the existing master-side pull-up and the already-documented
+  safe failure mode ("disconnected/floating wire reads HIGH = not pressed").
 - **RS-485 termination**: 120Ω termination resistor footprint, **populated only if this board
   ends up in the last physical position of the RS-485 chain**. Because either a real panel or
   a passthrough board could end up in that last slot depending on kit configuration, this

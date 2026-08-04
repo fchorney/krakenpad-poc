@@ -1,113 +1,130 @@
 # Project Status / Next Steps
 
-Living doc — updated at the end of each work session so it's easy to pick
-back up. See `CLAUDE.md` for architecture; topic docs in `docs/` for detail.
-Last updated **2026-07-23** (doc reorganization pass — see note at bottom).
+Living doc — updated at the end of each work session so it's easy to pick back
+up. See `CLAUDE.md` for architecture; topic docs in `docs/` for detail.
+Last updated **2026-08-04**.
 
-## What's proven and working on the bench
+## The decision that reshapes everything else
 
-- **Full sensor path**: FSR → ADC (hysteresis + persistence filter, no
-  chatter) → open-drain INT wire → Teensy interrupt, sub-millisecond,
-  validated end to end.
-- **Multi-panel RS-485 bus**: 2 Picos + 1 Teensy, 1 Mbps, 100% poll replies,
-  0 CRC errors sustained; per-panel LED frames + FSR telemetry + live
-  threshold tuning (`docs/RS485_PROTOCOL.md`).
-- **USB High Speed confirmed** on Teensy 4.0 — 8000Hz HID polling achievable
-  off-the-shelf (`bInterval=1`).
-- **ADC mux crosstalk fixed in hardware** — 10nF caps per FSR channel,
-  bench-verified, on the panel PCB.
-- **Power cascade bench-verified** from 12V under realistic load.
+**The panel is the two-board design.** `hardware/dual-panel` — a 127×127 mm
+LED/IO carrier with a 70.9×62.8 mm MCU brain socketed underneath in the frame
+cavity — is what gets built. The single-board `hardware/panel-pcb` was removed
+from the tree on 2026-08-04; it is in git history at `1b41d1c` if it is ever
+wanted back, and the measurements that decided it are archived at
+`docs/archive/DESIGN_COMPARISON.md`.
+
+Two live boards remain: **`master-pcb`** and **`dual-panel`**.
+As-built references: `docs/MASTER_PCB.md`, `docs/DUAL_PANEL.md`.
+
+## Board state — verified 2026-08-04
+
+Re-run from clean project copies with
+`kicad-cli pcb drc --severity-all --schematic-parity`:
+
+| board | DRC | unconnected | parity | ERC |
+|---|---|---|---|---|
+| master-pcb | 1 ✱ | 0 | 0 | 0 |
+| dual-panel | 0 | 19 ✱✱ | 90 ✱✱✱ | 0 |
+
+✱ One `courtyards_overlap`, R4 against U2. R4 sits deliberately under the
+socketed Teensy; the violation is an accepted exclusion, not an open defect.
+
+✱✱ The permanent board-to-board mating-gap floor — KiCad cannot model "these
+mate mechanically." Each was confirmed to be a genuine crossing net.
+
+✱✱✱ A **`kicad-cli`-only artifact; the GUI reports none.** Net *naming*, not
+topology — the exported netlist agrees with the PCB pad-for-pad across all 577
+pads, and gerbers carry no net names.
+
+## What's proven on the bench
+
+- **Full sensor path**: FSR → ADC (hysteresis + persistence filter, no chatter) →
+  open-drain INT wire → Teensy interrupt, sub-millisecond, validated end to end.
+- **Multi-panel RS-485 bus**: 2 Picos + 1 Teensy, 1 Mbps, 100% poll replies, 0 CRC
+  errors sustained; per-panel LED frames + FSR telemetry + live threshold tuning
+  (`docs/RS485_PROTOCOL.md`).
+- **USB High Speed confirmed** on Teensy 4.0 — 8000 Hz HID polling achievable
+  off the shelf (`bInterval=1`).
+- **ADC mux crosstalk fixed in hardware** — 10 nF caps per FSR channel,
+  bench-verified, carried onto the brain.
+- **Power cascade bench-verified** from 12 V under realistic load.
 - **Tooling**: CLI flashing for both MCUs, `tools/fsr_monitor.py`,
   `tools/usb_speed_test.py`, KiCad scripting via bundled python + `kicad-cli`.
 
-## Panel PCB — complete, not ordered
+Note the bench firmware in `firmware/panel/` uses **breadboard pin numbers** and
+matches neither board. The as-built RP2040 GPIO map is in `docs/DUAL_PANEL.md`.
 
-Schematic + layout done; **ERC 0 / DRC 0 with no exclusions** (all former
-exclusions eliminated at the cause, 2026-07-21). As-built reference:
-`docs/PANEL_PCB.md`. Incorporates the full 2026-07-19 human-review rework
-(THVD1429, LM66200 power-OR, net/rail renames, J9 → MRR522 2-pos, 12V-sense
-divider + D29 clamp).
+## The only thing blocking an order
 
-Before ordering (`docs/PRE_ORDER_CHECKLIST.md` is the authority):
+**The physical pad teardown.** It settles the **J2 underglow connector** form on
+the master — the stock underglow leads crimp directly into a 12-pin Dupont-style
+housing at the old MCU, so there is no intermediate connector to reuse and a
+splice is required. J2's screw terminal is explicitly interim
+(`docs/UNDERGLOW.md`). Stated goal: **order by ~2026-08-08.**
 
-1. **Regenerate the production package** — `hardware/panel-pcb/production/`
-   is **STALE** (changes since the 2026-07-18 export include a drill-count
-   change from the THT test points, so the drill file must be regenerated
-   too).
-2. Physical part verification (FSR PHR-2 mate, J9/SW1/SW3 vs sourced parts,
-   U8 package).
-3. Optional insurance: **bench-drive a WS2815 strip at 5V** (only WS2812B has
-   been hands-on tested; datasheet closes the question on paper).
+Everything else is a question to *ask JLC*, not layout work:
 
-Reference quote (2026-07-18, qty 5): $240.78, ~$148 of it qty-independent →
-marginal assembled board ≈ $17.50. Order all boards in one run (need 18+2 →
-order 20).
+- Epoxy-fill (POFV) surcharge at 4 layers — never verified against a live quote.
+- How POFV treats the **44 vias at 0.60 mm drill**, which exceed the 0.5 mm fill
+  limit. All power-distribution, none in a pad, so unfilled is electrically fine —
+  but POFV is normally applied board-wide.
+- 0.075 mm via annular ring — **partially answered**: the master quoted fine at
+  0.075 mm on a standard 4-layer build.
 
-## Master PCB — complete, not ordered
+**Master quoted ≈$8 for 5 boards.** Board cost is negligible; **shipping
+dominates**, so optimise the number of shipments. A master re-spin is cheap in
+boards and expensive in freight — which is the real argument for letting the
+teardown land first, or batching master + dual-panel into one order.
 
-Schematic + layout done. **DRC 0 / unconnected 0 / ERC 0 as of 2026-07-24 —
-verified with all three ignored rule severities lifted and zones refilled**
-(only 3 `footprint_filters_mismatch` naming notes remain). RS-485 pair
-re-checked against the real stackup: W=0.15/S=0.2, ~119Ω, 0.000mm skew.
-As-built reference: `docs/MASTER_PCB.md`. Notable as-builts: RS-485 on **Serial2** (GPIO 7/8),
-INT on GPIO 15–23 across **nine JST XH headers, J3–J11, one per panel**
-(left to right on the board = panel 0 → 8), 9× discrete SMAJ5.0A TVS, hand-assembly only (no PCBA).
+## Open sourcing gap
 
-## Reviews
+**The 8 board-to-board interface connectors carry no LCSC part number** —
+carrier headers J210–J213 and brain sockets J301–J304, 160 pieces across a
+20-panel build. They also have a constraint most "2.54 mm header" listings don't
+state: **6.0 mm mating pin with a ≥3.0 mm solder tail**, because the separation is
+set by the two plastics meeting, not by pins bottoming out, and some "short"
+headers trim the tail instead of the mating end. See `docs/DUAL_PANEL.md` →
+*Mechanical stack*.
 
-- 2026-07-19 human schematic review: fully triaged and folded in
-  (`docs/archive/REVIEW_RESPONSES_2026-07-19.md`).
-- **2026-07-23: fresh external AI review packets sent for BOTH boards**
-  (bundles in `tmp/review-2026-07-23/`) — triage findings when they return.
+## Other open design questions (not blocking)
 
-## Sourcing / BOM
-
-`docs/BOM.md` (rewritten 2026-07-26) is the single sourcing doc, organised as
-the four orders — JLCPCB, LCSC (~$110), DigiKey (Teensy only), AliExpress — and
-**derived from the boards** via `tools/bom_census.py`, so it cannot drift from
-the design. Superseded material (DigiKey price snapshot, AliExpress
-comparisons, THT-vs-PCBA analysis) moved to
-`docs/archive/BOM_SOURCING_HISTORY.md`. FSR JST headers are now sourced (LCSC
-C131337, genuine JST); wire lengths remain placeholders
-until the pad harness is measured.
-
-## Open design questions (not blocking)
-
-- **Underglow harness splice point** — needs the full pad/harness teardown
-  (`docs/UNDERGLOW.md`); also PSU stud size + real harness run lengths.
-- **Master INT filter caps** (~1nF per line, under the socket) — leaning yes,
-  not on the board yet.
+- **Underglow harness splice point** — needs the teardown (`docs/UNDERGLOW.md`);
+  also PSU stud size and real harness run lengths.
+- **INT cable OD check on arrival** — conductor insulation must be 1.3–1.9 mm for
+  the JST XH contact. Do this **before** crimping 36 contacts (`docs/BOM.md`).
+- **INT cable length** — gated on the teardown; 9 home runs, not a chain.
 - **Slotted broadcast polling** — future protocol optimization
   (`docs/RS485_PROTOCOL.md`).
 
+## Reviews
+
+- 2026-07-19 human schematic review — fully triaged and folded in
+  (`docs/archive/REVIEW_RESPONSES_2026-07-19.md`).
+- 2026-07-23 external AI reviews, both boards — triaged. The master "fab blocker"
+  was a false positive from a rotation-sign bug.
+- 2026-07/08 external reviews — drove the **THVD1429** speed-grade fix, the
+  **LM66200** power-OR, and the **SN74AHCT1G125** single-gate shifter swap. The
+  MLCC-microphonics concern was closed with no board change: the FSR signal-path
+  caps are **C0G**, which is Class I and not piezoelectric.
+- `review/` holds the r/PrintedCircuitBoard image package, regenerated 2026-08-04
+  from the current boards via `tools/gen_review_images.py`.
+
 ## Naming / branding
 
-Working name **"KrakenPad"** (not final). Repo: `github.com/fchorney/krakenpad-poc`.
-pid.codes VID/PID registration still gated on a LICENSE file + public repo.
-Project logo pending artwork (personal logo already on the panel silk as
-exposed copper).
+Working name **"KrakenPad"** (not final). Repo:
+`github.com/fchorney/krakenpad-poc`. pid.codes VID/PID registration still gated on
+a LICENSE file + public repo. Project logo pending artwork.
 
 ## Concrete next steps (pick from here)
 
-1. Triage the 2026-07-23 AI review findings for both boards.
-2. Run `docs/PRE_ORDER_CHECKLIST.md` → regenerate production files → order
-   panels (JLC PCBA) + master bare boards.
-3. Place the parts orders (`docs/BOM.md`) — AliExpress match-checks first,
-   DigiKey fallback.
-4. WS2815 strip bench test at 5V.
-5. Full pad + harness teardown: underglow splice, PSU stud size, cable runs.
-6. Master firmware: USB HID reports to the PC (the one major master piece not
-   started).
-7. Panel firmware: flash-backed animation playback + config storage
-   (`docs/PANEL_CONFIG.md`, `docs/ANIMATIONS.md`).
-8. Extend `stepmaniax-gif-maker` to export `.smxa`.
-
----
-
-**Doc reorganization 2026-07-23:** merged `ANIMATION_FORMAT` +
-`ANIMATION_BINARY_FORMAT` + `PROTOTYPE_LED_LAYOUT` → `ANIMATIONS.md`;
-`STOCK_PANEL_CHIPS` + `STOCK_PANEL_PCB_MEASUREMENTS` →
-`STOCK_PANEL_REFERENCE.md`; `BOM` + `DIGIKEY_SHOPPING_LIST` + `BOM_PRICED` →
-`BOM.md`; `PANEL_SCHEMATIC_PLAN` + `PANEL_PCB_LAYOUT_NOTES` → `PANEL_PCB.md`
-(as-built); `MASTER_SCHEMATIC_PLAN` → `MASTER_PCB.md` (as-built). Historical
-docs moved to `docs/archive/`. Old content is all in git history.
+1. **Pad + harness teardown** — underglow splice point, PSU stud size, cable runs.
+   This is the blocker.
+2. Source the interface headers/sockets (above).
+3. Run `docs/PRE_ORDER_CHECKLIST.md` → regenerate the fab package with
+   `hardware/dual-panel/panel/gen_fab.py` → order.
+4. Place the parts orders (`docs/BOM.md`).
+5. Master firmware: USB HID reports to the PC — the one major master piece not
+   started.
+6. Panel firmware: port to the as-built GPIO map, then flash-backed animation
+   playback + config storage (`docs/PANEL_CONFIG.md`, `docs/ANIMATIONS.md`).
+7. Extend `stepmaniax-gif-maker` to export `.smxa`.

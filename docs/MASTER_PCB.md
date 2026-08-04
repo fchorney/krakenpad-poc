@@ -74,7 +74,7 @@ the board in panel order 0→8**, silkscreened with the panel's position name
 (`UL`, `U`, `UR`, `L`, `C`, `R`, `DL`, `D`, `DR`) rather than a refdes, so the
 refdes numbering below never has to be read during assembly.
 
-Every connector: **pin 1 = INT signal, pin 2 = GND** (matches panel J9).
+Every connector: **pin 1 = INT signal, pin 2 = GND** (matches the panel's J214).
 
 | Silk | Conn | Net | Panel | Color | TVS | Series R | Filter C | RN1 | Teensy pad / GPIO |
 |------|------|-----|-------|-------|-----|----------|----------|-----|-------------------|
@@ -128,7 +128,7 @@ Each INT line is a **twisted pair: signal + its own GND return**, rather than a
 single conductor returning through the shared power ground network. This was
 previously listed as a reserved mitigation to hold in case the bench showed
 spurious triggers; it was adopted up front instead, since the panel side already
-had the GND position provisioned (J9 pin 2, 2026-07-24) and the master side only
+had the GND position provisioned (the panel's J214 pin 2, 2026-07-24) and the master side only
 needed a connector change.
 
 - **Master side:** the 9-position pluggable Euroblock was replaced by **nine
@@ -164,9 +164,9 @@ needed a connector change.
 | R1/R2 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1429's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
 | RN1 | Bourns 4610**X**-101-103LF (SIP-10, 10k ×9 bussed, LCSC C840655) | pin 1 common → +3.3VDC |
 | SW1 | DORABO DS-3P-BU (DIP-3, LCSC C46595747) | player ID 0–7 to GND, internal pull-ups |
-| J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, **pin 3 = cable shield, tied directly to GND here** (see "RS-485 shield" below) — **matches panel J8/J10 exactly** so the cable is straight-through |
+| J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, **pin 3 = cable shield, tied directly to GND here** (see "RS-485 shield" below) — **matches the panel's J204/J207 exactly** so the cable is straight-through |
 | J3–J11 | JST B2B-XH-A 2-pos 2.5mm vertical THT (LCSC C158012) | one per INT line; pin 1 = INT signal, pin 2 = dedicated GND return. Mating half is XHP-2 housing (C144401) + SXH-001T-P0.6N contacts (C385122), 22–26 AWG. Symbol is generic `Connector_Generic:Conn_01x02`; there is no JST-specific symbol in KiCad. Replaced the 9-pos Euroblock 2026-07-26 |
-| J2 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R3), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
+| J2 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R5, the 330R series element — R3 is the RS-485 termination), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
 | TP1–TP10 | THT probe holes | TP1 RS-485 RX / TP2 DE / TP3 RS-485 TX / TP4 +5VDC_USB / TP5 GND / TP6 +3.3VDC / TP7 RS485+ / TP8 RS485− / TP9 underglow 3.3V side / TP10 underglow 5V side |
 | H1–H4 | M3 mounting holes | |
 
@@ -182,7 +182,7 @@ needed a connector change.
   skew**. That geometry gives ~119Ω against a 120Ω target on this stackup
   (Hammerstad-Jensen, cross-checked vs IPC-2141, ±10% for an
   uncontrolled-impedance order). Same stackup and therefore the same target
-  geometry as the panel — see `docs/PANEL_PCB.md` for the derivation and the
+  geometry as the panel — see `docs/DUAL_PANEL.md` for the derivation and the
   history of the earlier default-stackup miscalculation.
   - ~69% of the run is coupled at 0.2mm; the remaining ~14mm fans out
     progressively to reach pads that are simply farther apart than the pair
@@ -225,8 +225,8 @@ Topology is **hybrid grounding**, one continuous shield from master to panel 8:
 - **Master (here):** J1 pin 3 → `GND`, plain trace, no parts. This is the
   **single DC reference for the entire shield network.** Without it the shield
   floats and the scheme is worse than not having one.
-- **Each panel:** `RS485_Shield` runs J8 pad 3 → J10 pad 3 as a pass-through
-  with **no local GND tie**, plus 100nF (C57) ‖ 1MΩ (R20) to GND near J8.
+- **Each panel:** `RS485_Shield` runs J204 pad 3 → J207 pad 3 as a pass-through
+  with **no local GND tie**, plus 100nF (C202) ‖ 1MΩ (R202) to GND near J204.
 - **Panel 8:** far end, shield simply terminates.
 
 The per-panel caps are not optional decoration: ~6–8m of foil grounded at one

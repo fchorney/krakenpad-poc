@@ -40,7 +40,7 @@ Adopting 3 of stock's ideas plus 2 new ones our extra headroom allows for:
 
 These are all **panel-local**. The one diagnostic that is inherently
 master-driven — the **slot ↔ panel-ID self-test**, which proves each panel's INT
-wire lands in the Euroblock position the master thinks it does — lives in the bus
+cable lands in the JST XH header the master thinks it does — lives in the bus
 protocol instead, as the `'I'` identify command (`docs/RS485_PROTOCOL.md`). It
 needs no DIP code: the master addresses a panel normally and the panel pulses its
 INT line so the master can see which input it arrives on.
@@ -51,7 +51,7 @@ main-loop operation (mirrors stock's documented behavior: "panels will not funct
 normally when in diagnostic modes"). No hardware changes needed — same DIP switch,
 same GPIO read, just more branches in the boot-time dispatch.
 
-**Debug press LED (GPIO3, R15/D1 on the panel PCB) is diagnostic-mode-gated
+**Debug press LED (GPIO16, R204/D202 on the carrier) is diagnostic-mode-gated
 (decided 2026-07-11):** in normal operation (DIP 0–8) the LED stays dark; in
 diagnostic modes (9–13) it's active — lit on press for the sensor-facing modes
 (10/11/12), and free for mode-specific signaling elsewhere (e.g. a heartbeat blink
