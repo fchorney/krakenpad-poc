@@ -149,6 +149,138 @@ board resistors), and `DEBUG_LED` (GPIO16 — PWM0A is available on that pin if
 brightness control is ever wanted). `LED_DATA` on GPIO11 is driven by PIO, which
 can drive any GPIO.
 
+> **`SENSE_12V` on a non-ADC pin is CLOSED — do not raise it again.** The
+> 2026-07-23 external AI review raised it as its finding F1; the user confirmed
+> then that 12 V sense is a **digital present/absent check only** — it gates
+> whether it is safe to drive the WS2815s — and was **never** meant to measure bus
+> voltage. So a non-ADC pin is correct, not a defect. This was recorded in
+> `docs/PANEL_PCB.md`; that file was deleted with the single-board design on
+> 2026-08-04 and the note was nearly lost, which is why it is restated here.
+
+## Signal conventions (netlist-verified)
+
+Small facts that are easy to get wrong at firmware or assembly time.
+
+- **Panel-ID DIP bit order is reversed.** `SW201` pins 1–4 drive `DIP_ID0`–`DIP_ID3`,
+  but on the MCU **GPIO18 = bit 3 … GPIO21 = bit 0**. Switch closes to GND, internal
+  pull-ups, so **closed = 0**.
+- **`TERM_SENSE`: LOW = terminated.** `SW202` is DPDT — pole A puts `R201` (120 Ω)
+  across the pair, pole B reports the state so firmware can never disagree with the
+  copper. Wiring as built: pin 2 = `RS485+` (pole-A common), pin 1 → `R201` →
+  `RS485−`, pin 5 = `TERM_SENSE` (pole-B common), pin 4 = GND, pins 3 and 6 NC,
+  **pins 7/8 are mounting lugs tied to GND**.
+- **FSR connectors are `pin 2 = +3.3VDC`, `pin 1 = ADC node`.** The FSR itself is
+  non-polarised, so a reversed lead is harmless.
+- **WS2815 chain has three endpoints per net, not two** — the backup ring. Verified:
+  `LD1 = D203.DOUT + D208.DIN + D213.BIN`. Rule is `BIN(n) ← DIN-signal(n−1)`, the
+  **first LED's BIN ties to GND** (D203 pins 5 and 6 are both on GND), and the last
+  DOUT is left unconnected. That is ~1.5× the routing of a plain daisy chain and it
+  is deliberate: it lets the chain survive one dead LED.
+- **The 25-LED field is wired serpentine** — rows alternate direction, same physical
+  topology as the stock SMX panel. Animation tooling has to account for the mapping;
+  see `docs/ANIMATIONS.md`. The row of 3 is intentionally rotated 180° from the row
+  of 4, which is a consequence of that layout and not a placement error.
+- **Support pins:** `RUN` = R307 10 k pull-up; `QSPI_SS` = R310 10 k pull-up —
+  **fitted deliberately, it closes an early-power-ramp race** — plus R309 1 k to
+  `SW301` BOOTSEL; `ADC_AVDD` = R308 200 Ω from +3.3VDC into C318 2.2 µF.
+
+## Layout and routing
+
+- **4 layers, JLC 4-layer standard** (0.3/0.45 via class): L1 components + signals,
+  **In1 solid GND, never split**, In2 power pours (12 V under the LED field,
+  3.3 V/5 V islands under the logic), B.Cu spillover + GND pour. Chosen for analog
+  noise — high-impedance FSR lines sharing a board with 25 switching LEDs — not for
+  routing density.
+- **Assembly is double-sided**: 115 SMD placements, **101 top / 14 bottom**. THT
+  (connectors, switches, the interface headers) is hand-soldered, not JLC.
+- **High-current path:** the 12 V IN→OUT daisy-chain carries up to ~2.7 A
+  pass-through plus ~0.9 A of local LED load at the IN side — fat copper on L1/In2.
+- **10 nF ADC caps sit physically at the RP2040 pins.** The crosstalk fix is
+  placement-sensitive; do not relocate them for routing convenience.
+- **QSPI is length-matched to a 20 nm spread across the five data/clock nets**
+  (19.82 mm each, 0.15 mm wide). Do not disturb it. Width changes are safe — they do
+  not affect length.
+
+### Trace / via width conventions (the user's routing rules)
+
+| Class | Trace | Via |
+|---|---|---|
+| 12 V trunk (IN/OUT + ground return, ≤2.7 A) | 2 mm | 0.6 mm |
+| LED power feeds off the 12 V plane + grounds | 1 mm | 0.3 mm |
+| 5 V / 3V3 top-layer power | 1.5–2 mm | 0.6 mm |
+| Data | 0.2 mm (0.15 mm where needed, e.g. the QFN escape) | 0.3 mm |
+| Ground (non-trunk) | 2 mm | 0.3 mm |
+| Decoupling | ~2 mm, short beats wide | 0.3 mm |
+| QSPI | **0.15 mm**, length-matched | — |
+| USB / RS-485 | per impedance below | — |
+
+As-built deviation worth knowing: **`XIN`/`XOUT` are routed at 0.2 mm, not the
+0.15 mm the table implies.** That is fine — the 0.15 mm figure exists for the QSPI
+pinch at the QFN escape, not for crystal nets.
+
+### Differential pairs
+
+Measured from the board, not calculated forward:
+
+| pair | width / spacing | length | layers |
+|---|---|---|---|
+| `USB+` / `USB−` | 0.25 mm / 0.1375 mm | 3.02 / 3.04 mm | F.Cu only |
+| `RS485+` / `RS485−` | 0.15 mm / 0.2 mm (~119 Ω) | 209.06 / 208.05 mm | F.Cu + ~34 mm B.Cu each |
+
+USB is now **3 mm long**, because the receptacle moved onto the brain right beside
+the RP2040 — impedance control is close to irrelevant at that length, and the
+0.1375 mm pair spacing is deliberate coupling, not a clearance violation. RS-485
+mismatches by 1.01 mm over ~208 mm; at 1 Mbps that is ~7 ps, i.e. nothing.
+
+Impedance figures come from Hammerstad-Jensen cross-checked against IPC-2141 (they
+agree within 5%); ±10% is the honest band for a non-impedance-controlled order.
+
+**Retired finding — do not port it forward.** `panel-pcb` had deliberate one-sided
+B.Cu hops on `USB_D+` and `RS485+`, where one conductor dove to B.Cu to cross under
+its partner because the pair arrived in the wrong order for its destination pins.
+Every automated review flagged them (2026-07-23 findings F7/F8) and they were
+closed WONTFIX. **They do not exist on `dual-panel`** — verified: both USB legs are
+F.Cu-only across 3 segments each, and both RS-485 legs carry a comparable amount of
+B.Cu (~34 mm) because the pair crosses the board-to-board interface, which is not a
+crossover. If a future review reports a one-sided hop, it is a new finding.
+
+> **The stackup lesson, so it is never re-derived.** On `panel-pcb` the pairs were
+> first drawn at USB 0.528 mm / RS-485 0.2787 mm — correct for KiCad's **default**
+> stackup (3 × 0.48 mm FR4), which is what they had been calculated against. Applying
+> the real JLC 4-layer stackup put the reference plane at **0.2104 mm** instead of
+> 0.48 mm. Impedance follows w/h, so a 2.28× thinner dielectric needs a ~2.1×
+> narrower trace; the original geometry was landing near 55 Ω / 92 Ω.
+> **Rule of thumb: 90 Ω USB on a normal 4-layer stackup is 0.2–0.3 mm. If you have
+> drawn 0.5 mm, the stackup is wrong.**
+
+## Physical
+
+127 × 127 mm carrier core (real edges 128/127/128/127), mounting holes 4.5 mm on
+114 mm centres except the top pair at 113 mm, LED lattice at 33.5 mm column /
+17 mm row pitch — all measured off the stock board and confirmed with a 1:1
+printout (`docs/STOCK_PANEL_REFERENCE.md`). **X is locked at ~127 mm by the edge
+connectors; Y has ~20 mm of slack per end** if a future revision needs it. Height
+budget above the PCB is ~35 mm.
+
+Silkscreen: "Kraken Pad by SenPi / Rev. 1.0", JLC order-number placeholder on
+B.Silkscreen, personal logo as exposed GND copper via the mask-opening technique.
+Project logo pending artwork.
+
+## Passthrough variant
+
+A carrier populated with only connectors + the termination switch + R201 is
+electrically a valid passthrough: power and RS-485 are bused connector-to-connector,
+and INT floats safe-HIGH at the master. Mechanism is KiCad per-symbol DNP → a second
+BOM/CPL export, so it is **one bare-PCB SKU with two assembly variants**. Nothing is
+built yet — see `docs/MODULAR_PANEL_COUNT.md`.
+
+## Accepted-for-rev-A risks
+
+Bring-up measurements, **not order blockers** — these were accepted deliberately:
+U303 thermal at real load (~50 mA), +5 V rail margin, INT-into-a-dead-panel (the
+master-side 10 k pull-up is deliberately *not* stiff for exactly this case),
+hot-plug/USB-attach behaviour, SI asymmetries, and the FSR runs on B.Cu.
+
 ## Carrier (2xx) — 76 parts
 
 | block | designators |
