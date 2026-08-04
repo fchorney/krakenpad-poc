@@ -1,16 +1,16 @@
-Qty_per_board,Refs,Value,MPN,DigiKey_PN,DNP
-2,C1 C2,100nF X7R 50V,C0805F104K1RACAUTO,399-C0805F104K1RACAUTOCT-ND,
-1,D1,STATUS,150080BS75000,732-4982-1-ND,
-9,D2 D3 D4 D5 D6 D7 D8 D9 D10,TVS 5V,SMAJ5.0A,SMAJ5.0ALFCT-ND,
-1,J1,RS-485 OUT,0436500300,WM1861-ND,
-1,J2,INT IN 0-8,0395316009,WM25993-ND,
-1,J4,UNDERGLOW OUT,MRR522-5.08-V,5245-MRR522-5.08-V-ND,
-1,R1,120R,RC0805FR-07120RL,311-120CRCT-ND,
-1,R2,1k,CRCW08051K00FKEA,541-1.00KCCT-ND,
-1,R3,330R,RC0805FR-07330RL,311-330CRCT-ND,
-2,R4 R5,390R 1%,,,DNP
-1,RN1,10k x9,4610M-101-103LF,4610M-101-103LF-ND,
-1,SW1,PLAYER_ID,DS01C-254-S-03BE,2223-DS01C-254-S-03BE-ND,
-1,U1,Teensy 4.0,15583,1568-15583-ND,
-1,U2,THVD1429,THVD1429DR,296-THVD1429DRCT-ND,
-1,U3,SN74AHCT1G125,SN74AHCT1G125DBVR,296-4708-1-ND,
+Qty,Refs,Value,LCSC,MPN,Source,DNP,Description
+2,C1 C2,100nF X7R 50V,C83055,,LCSC,,2 per-instance descriptions
+9,C3 C4 C5 C6 C7 C8 C9 C10 C11,1nF C0G,C1791,,LCSC,,9 per-instance descriptions
+9,D1 D2 D3 D4 D5 D6 D7 D8 D9,TVS 5V,C113952,SMAJ5.0A,LCSC,,9 per-instance descriptions
+1,J1,RS-485 OUT,C503478,0436500300,LCSC,,"Micro-Fit 3.0 THT right-angle 43650-0300; pin 3 unpopulated keying; pinout must match panel J8/J10 (A=1,B=2)"
+1,J2,UNDERGLOW OUT,C8465,WJ500V-5.08-2P,LCSC,,"KANGNEX WJ500V-5.08-2P (LCSC C8465), 2P 5.08mm top-entry screw terminal: GND + LED-DATA-OUT (5V logic). UI-gated; no sense pin"
+9,J3 J4 J5 J6 J7 J8 J9 J10 J11,B2B-XH-A,C158012,,LCSC,,JST XH B2B-XH-A
+2,R1 R2,390R 1%,,,not stocked,DNP,2 per-instance descriptions
+1,R3,120R,C844816,,LCSC,,"RS-485 termination at master end, always fitted"
+1,R4,10k,C192906,,LCSC,,Underglow Data Out Pulldown: To avoid sending stray high logic to Underglow LEDs before initialized.
+10,R5 R6 R7 R8 R9 R10 R11 R12 R13 R14,330R,C844839,,LCSC,,10 per-instance descriptions
+1,RN1,10k x9,C840655,4610X-101-103LF,LCSC,,"INT pull-ups to 3.3V, deliberately 10k not stiff (INT-into-dead-panel case); common pin to +3V3"
+1,SW1,PLAYER_ID,C46595747,DS-3P-BU,LCSC,,"3-bit player/pad ID to GND, Teensy internal pull-ups; 0-3=P1-P4, 4-7 reserved"
+1,U1,THVD1429,C1850236,THVD1429DR,LCSC,,"RS-485 transceiver, 3.3V; DE+/RE tied to GPIO2 net; same MPN as panel U2"
+1,U2,Teensy 4.0,,15583,DigiKey,,"Teensy 4.0 development board (600MHz Cortex-M7, socketed). Symbol vendored from XenGi/teensy_library (MIT), pin numbering per PJRC pinout cards rev2; pins renamed/relaid for this project. Pins 35-54 (bottom-side SMT pads) and 15-19 (the 5-pad short-end row: VBAT, VDD, GND, PROGRAM, ON_OFF) removed to match the Teensy40_Socketed footprint and keep schematic-parity clean. 15-19 dropped 2026-07-22 to free routing area: 16/17 were stacked duplicates of the VDD/GND on pins 31/1/32, and VBAT/PROGRAM/ON_OFF are unused on this design."
+1,U3,SN74AHCT1G125,C7484,SN74AHCT1G125DBVR,LCSC,,Single Bus Buffer Gate With 3-State Output
