@@ -83,9 +83,9 @@ def write_theme() -> None:
 
 
 def stage(work: Path) -> None:
-    """Copy the three KiCad projects into the scratch work dir."""
+    """Copy the KiCad projects into the scratch work dir."""
     work.mkdir(parents=True, exist_ok=True)
-    for proj in ("master-pcb", "panel-pcb", "dual-panel"):
+    for proj in ("master-pcb", "dual-panel"):
         dst = work / proj
         if dst.exists():
             shutil.rmtree(dst)
@@ -309,9 +309,6 @@ def main() -> None:
         Board("01-master", "KrakenPad Master (Teensy 4.0) — MCU board",
               Path("master-pcb/master-pcb.kicad_sch"), Path("master-pcb/master-pcb.kicad_pcb"),
               ["master"]),
-        Board("02-panel-single", "KrakenPad Panel — single-board design",
-              Path("panel-pcb/panel-pcb.kicad_sch"), Path("panel-pcb/panel-pcb.kicad_pcb"),
-              ["panel"]),
         Board("03-dual-carrier", "KrakenPad Panel — two-board design, LED/IO carrier",
               Path("dual-panel/carrier.kicad_sch"), Path("dual-panel/carrier-only.kicad_pcb"),
               ["carrier"]),

@@ -19,6 +19,12 @@ Refs are classified by the footprint's own attributes:
   * DNP           -> never ordered, footprint exists for a rescue option
 TP*/H*/FSR* refs are skipped: probe holes, mounting holes, and the
 reference-only FSR symbol are not purchasable lines.
+
+The panel is `hardware/dual-panel`, whose single .kicad_pcb carries BOTH board
+outlines (carrier + brain) — they ship on one fab panel as one PCBA order, so
+one census over the whole file is the correct unit.  Refdes blocks name the
+side: 2xx = carrier, 3xx = brain (see docs/DUAL_PANEL.md).  That split is shown
+because it decides which board a hand-soldered THT part lands on.
 """
 
 import collections
@@ -28,9 +34,17 @@ import sys
 
 import pcbnew
 
-BOARDS = [("panel", "hardware/panel-pcb/panel-pcb.kicad_pcb", 20),
+BOARDS = [("panel", "hardware/dual-panel/dual-panel.kicad_pcb", 20),
           ("master", "hardware/master-pcb/master-pcb.kicad_pcb", 2)]
 SKIP_REF = re.compile(r"^(TP|H|FSR)\d|^#")
+
+
+def side(ref):
+    """carrier/brain for dual-panel's 2xx/3xx blocks; '' for single-block boards."""
+    m = re.match(r"[A-Za-z]+(\d+)$", ref)
+    if not m:
+        return ""
+    return {2: "carrier", 3: "brain"}.get(int(m.group(1)) // 100, "")
 
 
 def field(fp, name):
@@ -78,9 +92,11 @@ def report(name, rows, boards):
               % (label, sum(counts.values()), len(counts)))
         for key, per_board in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0][1])):
             lcsc, value, mpn = key
-            print("   %-11s %-26s %-19s /bd=%2d  total=%3d  %s"
+            sides = sorted({s for s in (side(r) for r in refs[key]) if s})
+            print("   %-11s %-26s %-19s /bd=%2d  total=%3d  %-14s %s"
                   % (lcsc, value[:26], (mpn or "-")[:19], per_board,
-                     per_board * boards, ",".join(sorted(refs[key]))))
+                     per_board * boards, "+".join(sides),
+                     ",".join(sorted(refs[key]))))
 
 
 def main():
