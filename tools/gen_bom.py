@@ -97,8 +97,11 @@ def main():
                                   if descs else "")),
         })
 
+    # lineterminator="\n": csv defaults to CRLF, which git normalises on commit
+    # and would otherwise show every line as changed on each regeneration
     with open(out, "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
+        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()),
+                           lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
 
