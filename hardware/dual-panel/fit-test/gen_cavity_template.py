@@ -9,12 +9,13 @@ brain shape, drop it on the frame standoffs and look down through the hole:
   - see only cavity on all sides  -> the brain clears the opening
   - see frame ledge inside the cut -> that side clashes; measure the intrusion
 
-The dashed rectangle is the cavity opening (see WINDOW below), MEASURED and
-confirmed against the real frame on 2026-07-30. Reprint and re-check it if the
-frame or the opening is ever re-measured.
+The dashed rectangle is the cavity opening (see OPENING below), MEASURED and
+confirmed against the real frame on 2026-07-30. Its size is a constant; its
+position is derived from the frame-standoff pattern, so moving the boards around
+the KiCad canvas cannot invalidate it.
 
-All geometry except WINDOW is read from the .kicad_pcb, so re-run this after any
-outline or placement change:
+All geometry is read from the .kicad_pcb, so re-run this after any outline or
+placement change:
 
     python3 gen_cavity_template.py
 
@@ -31,11 +32,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PCB = os.path.join(HERE, "..", "dual-panel.kicad_pcb")
 OUT = os.path.join(HERE, "cavity-fit-template.svg")
 
-# Frame cavity opening, in CARRIER coordinates: the measured 88 x 100 mm opening,
-# centred on the mounting-hole pattern centre (85.80, 78.90).
-# VERIFIED 2026-07-30 by the printed fit test - the dashed rectangle matched the
-# real frame edge on all four sides, so this is measured, not assumed.
-WINDOW = (41.80, 129.80, 28.90, 128.90)  # x0, x1, y0, y1
+# Frame cavity opening: 88 x 100 mm. MEASURED and VERIFIED 2026-07-30 by the
+# printed fit test - the dashed rectangle matched the real frame edge on all four
+# sides. Only the SIZE is a constant; the POSITION is derived at runtime from the
+# frame-standoff pattern, because those standoffs are the physical registration
+# between carrier and frame, so the opening is fixed relative to them.
+#
+# DO NOT hard-code this in board coordinates. It used to be
+# WINDOW = (41.80, 129.80, 28.90, 128.90), correct when the standoff pattern was
+# centred on (85.80, 78.90). The carrier was later translated (+28.83, +10.69) in
+# the canvas; the constant did not follow, and the stale window produced a phantom
+# "brain overhangs the cavity by 22mm east" clash that cost real debugging time.
+# Deriving it from the standoffs makes a canvas move a non-event.
+OPENING = (88.0, 100.0)  # width, height
 
 # Registration pair: one carrier-side M3 and its mate on the brain. Their drawn
 # offset is what maps brain geometry into carrier coordinates, so these MUST be a
@@ -257,6 +266,16 @@ def main():
     standoffs = [(c, d) for c, d in circles if contains(cbox, c)]
     m3 = [p for r, p in holes.items()
           if contains(cbox, p) and r != BRAIN_ANCHOR]
+
+    # Cavity opening, positioned from the frame-standoff pattern (see OPENING).
+    if not standoffs:
+        sys.exit("error: no frame-standoff circles found on Edge.Cuts inside the "
+                 "carrier outline - cannot locate the cavity opening")
+    sx = [c[0] for c, _ in standoffs]
+    sy = [c[1] for c, _ in standoffs]
+    scx, scy = (min(sx) + max(sx)) / 2, (min(sy) + max(sy)) / 2
+    WINDOW = (scx - OPENING[0] / 2, scx + OPENING[0] / 2,
+              scy - OPENING[1] / 2, scy + OPENING[1] / 2)
 
     # page: A4 portrait unless the board has outgrown it
     margin, foot = 12.0, 40.0
