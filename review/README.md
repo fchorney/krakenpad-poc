@@ -1,4 +1,4 @@
-# Review package — r/PrintedCircuitBoard, 2026-07-31
+# Review package — r/PrintedCircuitBoard, regenerated 2026-08-04
 
 Export-only image set for every board in this project, formatted to the
 subreddit's posting rules ([rule #8 / "please read before
@@ -21,15 +21,16 @@ never written to.
 | Directory | Board | Size | Layers |
 |---|---|---|---|
 | `01-master/` | Master MCU board (Teensy 4.0 carrier) | 77.6 × 65.6 mm | 4 |
-| `02-panel-single/` | Panel PCB — **single-board** design | 127 × 127 mm core (139.8 mm across the connector tabs) | 4 |
-| `03-dual-carrier/` | Panel PCB — **two-board** design, LED/IO carrier | 127 × 127 mm core (139.3 mm across tabs) | 4 |
-| `04-dual-brain/` | Panel PCB — **two-board** design, MCU brain | 70.9 × 62.6 mm | 4 |
+| `03-dual-carrier/` | Panel PCB — two-board design, LED/IO carrier | 127 × 127 mm core (139.3 mm across tabs) | 4 |
+| `04-dual-brain/` | Panel PCB — two-board design, MCU brain | 70.9 × 62.8 mm | 4 |
 
-At the top level: `POST-01-master.md`, `POST-02-panel-single.md` and
-`POST-03-dual-panel.md` are draft post titles/bodies with the per-image captions
-each request needs, `RULES-CHECKLIST.md` is the pre-post audit, and
-`00-context-single-vs-dual.png` is a to-scale side-by-side of the three boards —
-context for you, **not** a review image; don't attach it to a review request.
+The directory numbering has a gap because `02-panel-single/` — the retired
+single-board panel — was removed on 2026-08-04 when the two-board split was
+chosen. It is in git history at `1b41d1c` if it is ever wanted back.
+
+At the top level: `POST-01-master.md` and `POST-03-dual-panel.md` are draft post
+titles/bodies with the per-image captions each request needs, and
+`RULES-CHECKLIST.md` is the pre-post audit.
 
 Per board:
 
@@ -89,48 +90,49 @@ each gets its own images — see `DUAL_SPLIT_X` in the script.
   `JLCJLCJLCJLC` string on B.Silkscreen (all three boards) is the order-number
   placeholder and is visible in `05-2d-bottom-mirrored.png`; don't name the
   vendor in the post text if a reviewer asks about it.
-* **Rule 7A: no design questions in a review request.** "Should I build the
-  one-board or two-board version?" is a design question and belongs somewhere
-  else. Post each board as its own review request instead — the drafts in
-  `POST-*.md` are written that way.
+* **Rule 7A: no design questions in a review request.** Post each board as its
+  own review request — the drafts in `POST-*.md` are written that way. (The
+  single-vs-dual question that used to sit here is settled; don't reintroduce it
+  into a post.)
 * **Rule 7A: one review per board per day**, and don't edit images mid-review.
 
-## State as of the 2026-07-31 regeneration
+## State as of the 2026-08-04 regeneration
 
-Fixed and reflected in these images:
+These images are current with the boards as of that date. They include the
+2026-08-03 shifter swap (quad SN74AHCT125 → single-gate **SN74AHCT1G125**), the
+brain's via-in-pad pass, the clearance floor raised 0.09 → **0.127 mm**, and the
+carrier's **third mounting hole**. Earlier image sets predate all of that.
 
-- `panel-pcb` silkscreen — J4 now reads **FSR East**; the bus test points now
-  read **RS-485 A/B**; the fab order-number placeholder is gone.
-- All four boards carry the **year** in the name/rev block.
-- `master-pcb` refdes are contiguous from 1 (the D1/R2 gaps are closed).
-- `dual-panel` is re-annotated into per-sheet blocks: **carrier 2xx, brain 3xx**,
-  every type contiguous, no duplicates across the sheets — which is exactly the
-  multi-sheet exception the rules allow.
-- Stitching vias added to `panel-pcb` (474 → 999) and `dual-panel` (464 → 1071),
-  so the single-board and two-board layouts are now a like-for-like comparison.
+Also reflected: silkscreen fixes (FSR East, RS-485 A/B on the bus test points, fab
+placeholder removed), the **year** in every name/rev block, `master-pcb` refdes
+contiguous from 1, and `dual-panel` re-annotated into per-sheet blocks — **carrier
+2xx, brain 3xx**, every type contiguous, no duplicates across sheets, which is
+exactly the multi-sheet exception the rules allow.
 
-Verified after those changes, with zones refilled first:
+Verified the same day, from clean project copies with zones current:
 
 | Board | DRC | Unconnected | Schematic parity | ERC |
 |---|---|---|---|---|
-| master-pcb | 0 | 0 | 0 | 0 |
-| panel-pcb | 0 | 0 | 0 | 0 |
-| dual-panel | 0 | 19 | 93 | 0 |
+| master-pcb | 1 ✱ | 0 | 0 | 0 |
+| dual-panel | 0 | 19 | 90 ✱✱ | 0 |
 
-dual-panel's 19 unconnected and 93 `net_conflict` are unchanged from before the
-re-annotation — the 19 are the board-to-board mating gap KiCad can't model, and
-the 93 are pre-existing net-name disagreements on the WS2815 VCC/PWR_FLAG nets.
-Neither is a regression, and both are worth being ready to explain if a reviewer
-asks.
+✱ One `courtyards_overlap` between R4 and U2 — R4 sits deliberately under the
+socketed Teensy, and the violation is an accepted exclusion, not an open defect.
+
+✱✱ Both dual-panel numbers are expected and neither is a defect. The **19
+unconnected** are the board-to-board mating gap KiCad cannot model. The **90
+parity items are a `kicad-cli`-only artifact — the GUI reports none**; they are
+net *naming*, not topology, and the exported netlist agrees with the PCB
+pad-for-pad across all 577 pads. Be ready to explain both if a reviewer asks.
 
 Still open:
 
-1. The carrier's board-to-board headers J12–J15 are **bottom-mounted** (the brain
-   hangs underneath), so the top view shows only their plated holes. The header
-   bodies are in `03-dual-carrier/12-3d-bottom.png` — post both sides.
+1. The carrier's board-to-board headers **J210–J213** are bottom-mounted (the
+   brain hangs underneath), so the top view shows only their plated holes. The
+   header bodies are in `03-dual-carrier/12-3d-bottom.png` — post both sides.
 2. `dual-panel.kicad_pro` registers the root sheet as
-   `a1b2c3d4-…-000000000001`, which is `panel-pcb`'s root UUID, while
-   `dual-panel.kicad_sch` says `…00000000d001`. Harmless day to day, but it is
-   why "Update PCB from Schematic" refused to match after re-annotation and had
-   to be recovered with a re-link-by-refdes round trip. Expect it again on the
-   next renumber.
+   `a1b2c3d4-…-000000000001` — inherited from the retired `panel-pcb`, which the
+   sheets were seeded from — while `dual-panel.kicad_sch` says `…00000000d001`.
+   Harmless day to day, but it is why "Update PCB from Schematic" refused to match
+   after re-annotation and had to be recovered with a re-link-by-refdes round trip.
+   Expect it again on the next renumber.

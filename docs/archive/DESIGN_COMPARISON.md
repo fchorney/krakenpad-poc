@@ -1,3 +1,9 @@
+> **ARCHIVED 2026-08-04 — the question is settled: `dual-panel` won.** This is the
+> evidence that decided it, kept as the record. `hardware/panel-pcb` has been
+> removed from the tree (git history, last present at `1b41d1c`), so the
+> "Open questions for a reviewer" section at the bottom is closed. The as-built
+> design is `docs/DUAL_PANEL.md`.
+
 # Single board vs two boards — measured comparison
 
 Deciding between `hardware/panel-pcb` (one 127×127 board) and `hardware/dual-panel`
@@ -21,7 +27,7 @@ Both quoted at qty 5, ENIG, epoxy filled & capped, SMD-only assembly:
 
 **$2.13 per panel**, all of it bare board area, and 70% of that extra area is rails
 and dead space rather than the brain itself. Assembly is free. Full detail in
-[`hardware/dual-panel/panel/QUOTE-2026-07-31.md`](../hardware/dual-panel/panel/QUOTE-2026-07-31.md).
+[`hardware/dual-panel/panel/QUOTE-2026-07-31.md`](../../hardware/dual-panel/panel/QUOTE-2026-07-31.md).
 
 Cost is therefore **not** the deciding factor. Layout quality is.
 

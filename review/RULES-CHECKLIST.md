@@ -42,20 +42,19 @@ renumbering and stitching-via work.
 | Pull-ups drawn above the signal, pull-downs below | ✅ spot-checked (QSPI_SS pull-up, FSR dividers) |
 | Decoupling caps below the rail, next to their IC | ✅ |
 | Standard symbols, not featureless boxes | ✅ buffers as triangles, transceiver/diodes/transistors correct; MCU as a rectangle is conventional |
-| RefDes start at 1 with no numeric gaps | ✅ master and panel-single contiguous from 1; ✅ dual-panel uses the multi-sheet exception — carrier 2xx, brain 3xx, each contiguous |
+| RefDes start at 1 with no numeric gaps | ✅ master contiguous from 1; ✅ dual-panel uses the multi-sheet exception — carrier 2xx, brain 3xx, each contiguous |
 | Capacitance / resistance / inductance next to every part | ✅ |
 | Frequency next to the crystal | ✅ "12MHz ABM8-272-T3" |
 | Voltage next to TVS/zener parts | ✅ SMAJ5.0A, USBLC6-2SC6 named |
-| Colour next to every LED | ⚠️ D1 (debug LED) has no colour called out |
-| Pole/throw next to every switch | ⚠️ SW3 termination switch isn't marked DPDT; the panel-ID DIP isn't marked 4P |
+| Colour next to every LED | ⚠️ the debug LED (D202) has no colour called out |
+| Pole/throw next to every switch | ⚠️ the termination switch (SW202) isn't marked DPDT; the panel-ID DIP (SW201) isn't marked 4P |
 | Purpose text next to LEDs/buttons/switches | ✅ "BOOTSEL", "RS-485 Termination", "PANEL_ID" |
-| Part number next to every IC/regulator/transistor | ✅ RP2040, THVD1429, SN74AHCT125, AMS1117-5.0, AP7361C-33ER, LM66200, W25Q32JV |
-| Connector family + pitch next to connector symbols | ⚠️ master says "B2B-XH-A"; the panel's J3/J4/J6/J7 say only "FSR North/East/South/West" — add "JST PH 2.0 mm" etc. |
+| Part number next to every IC/regulator/transistor | ✅ RP2040, THVD1429, SN74AHCT1G125, AMS1117-5.0, AP7361C-33ER, LM66200, W25Q32JV |
+| Connector family + pitch next to connector symbols | ⚠️ master says "B2B-XH-A"; the carrier's J201/J202/J203/J206 say only "FSR West/South/East/North" — add "JST PH 2.0 mm" etc. |
 | Linear regulator subcircuits drawn in→out, left to right | ✅ power-management block reads left to right |
 | RS-485 drawn in the conventional form | ✅ |
 
-**RefDes gaps: closed 2026-07-31.** master and panel-single renumber contiguously
-from 1; dual-panel was re-annotated into per-sheet blocks (carrier 2xx, brain 3xx)
+**RefDes gaps: closed 2026-07-31.** master renumbers contiguously from 1; dual-panel was re-annotated into per-sheet blocks (carrier 2xx, brain 3xx)
 with no duplicates across the two sheets.
 
 ## PCB conventions

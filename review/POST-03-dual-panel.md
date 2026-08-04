@@ -37,8 +37,7 @@ reviewer wants them.)
 
 **Body**
 
-Same job as a single-board panel I am also having reviewed, split across two
-boards: a large carrier that holds the LEDs, sensors, connectors and switches,
+The panel is split across two boards: a large carrier that holds the LEDs, sensors, connectors and switches,
 and a small brain that holds the MCU, flash, USB, regulators and the RS-485
 transceiver. Nine of these go in a dance pad; all nine are identical.
 
