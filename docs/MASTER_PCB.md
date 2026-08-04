@@ -56,6 +56,32 @@ XenGi/teensy_library (MIT), locally trimmed; 3D model + attribution in
 dropped as redundant — the Teensy's onboard LED (GPIO13) serves as the status indicator, so
 firmware just drives pin 13. GPIO1 (freed) went to the DIP.
 
+### Pin-capability audit (2026-08-04)
+
+Every assignment re-derived from the schematic netlist and checked against what
+the pin can actually do. **No blockers.**
+
+- ✅ **RS-485 is on a real hardware UART pair.** Teensy 4.0's **Serial2 is RX = 7,
+  TX = 8**, which is exactly how it is wired. Not bit-banged, not a re-mapped pair.
+- ✅ **`RS485_DE` on GPIO6** — Teensyduino's `Serial2.transmitterEnable(6)` accepts
+  any digital pin and handles assert/release around the transmission, so unlike the
+  panel side this does not need hand-timed DE. (The panel has no equivalent; see
+  `docs/DUAL_PANEL.md`.)
+- ✅ **All nine INT inputs are interrupt-capable** — every Teensy 4.0 digital pin
+  supports `attachInterrupt`, so GPIO15–23 are unconstrained.
+- ✅ **`UNDERGLOW_DATA` on GPIO11.** Bit-banging WS281x timing works on any pin, but
+  note GPIO11 is also **MOSI** — driving the strip from hardware SPI is available if
+  bit-banging ever proves jittery. R4's 10 k pull-down holds U3's input LOW at boot,
+  before firmware drives the pin.
+- ✅ **DIP on GPIO3/4/5** — plain inputs, `INPUT_PULLUP`, no board resistors.
+
+**Worth confirming at bring-up, not verified here:** GPIO15–23 are all `AD_B1_xx`
+pads, which sit on a single i.MX RT GPIO port. If that holds, **all nine INT lines
+can be sampled in one register read** — useful both for the glitch-qualify re-read
+and for the `'I'` identify self-test, which has to watch all nine at once. This is a
+processor-reference claim, not something derived from the board files, so check it
+with a one-liner rather than assuming it.
+
 The one hard constraint is that RS-485 TX/RX sit on a matched hardware UART
 pair — **as built that's Serial2 (GPIO 7/8)**. The INT lines occupy GPIO 15–23,
 which blocks Serial3 (14/15), Serial4 (16/17), and Serial5 (20/21); with Serial2

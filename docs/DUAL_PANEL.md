@@ -101,6 +101,54 @@ breadboard pin numbers; it is not a reference for either.
 | 51–56 | QSPI | `QSPI_SD3/SCLK/SD0/SD2/SD1/SS` → U307 flash |
 | 20 | XIN | X301 12 MHz |
 
+**16 of 30 GPIO used.** Spare: 2, 3, 5–9, 12–15, 23–25.
+
+### Pin-capability audit (2026-08-04)
+
+Checked every assignment against the RP2040 datasheet's GPIO function table.
+**No blockers — the board is wired correctly. Four things firmware must know:**
+
+- ✅ **`RS485_TX`/`RS485_RX` are on GPIO0/GPIO1, which really are UART0 TX/RX.**
+  Hardware UART, not PIO. (GPIO16/17 would have been the other UART0 pair, and
+  they're used for other things — no conflict.)
+- ⚠ **`RS485_DE` on GPIO4 is not a UART0 RTS pin** — those are GPIO3, 15 and 19.
+  DE must be driven in software (or by a PIO UART), timed off the TX FIFO
+  draining. This is not a layout mistake: the RP2040's PL011 has no RS-485
+  auto-direction mode on *any* pin, so no pin choice would have bought it. But
+  it is the classic RS-485 bug — **release DE too early and the last byte is
+  truncated, too late and you collide with the next talker.** The breadboard
+  prototype already ran 1 Mbps with manual DE and 0 CRC errors, so the approach
+  is proven; it just has to be re-derived on the real pin.
+- ⚠ **`SENSE_12V` on GPIO17 is a digital threshold, not a measurement.** Only
+  GPIO26–29 have ADC, and all four are taken by FSRs — **there is no spare ADC
+  channel.** The divider is sized for a clean presence detect, verified from the
+  netlist:
+
+  | | |
+  |---|---|
+  | divider | R313 100k / R314 33k → ratio 0.2481 |
+  | at 12.0 V | 2.977 V at the pin |
+  | reads HIGH above | 8.65 V input (VIH = 0.65·3V3 = 2.145 V) |
+  | reads LOW below | 4.65 V input (VIL = 0.35·3V3 = 1.155 V) |
+  | over-voltage | divider alone survives to 14.5 V; **D303 clamps to +3.3VDC** past that |
+  | quiescent | 90 µA |
+
+  So it answers "is the 12 V bus up?" with a wide, safe hysteresis band. It
+  cannot report *what* the rail voltage is, and adding that later would mean
+  giving up an FSR channel.
+- ⚠ **`INT_OUT` on GPIO22 must be emulated open-drain.** The RP2040 has no true
+  open-drain output mode. Assert = drive output LOW; release = switch the pin to
+  **input (hi-Z)**, never drive it HIGH. Driving push-pull would fight the
+  master's 10 k pull-up and break the documented safe-failure behaviour
+  (disconnected wire reads HIGH = not pressed). The pin itself is fine; this is
+  purely a firmware contract.
+
+Everything else is a plain SIO input or output with no special requirement:
+`TERM_SENSE` (GPIO10), the four `DIP_ID` lines (GPIO18–21, internal pull-ups, no
+board resistors), and `DEBUG_LED` (GPIO16 — PWM0A is available on that pin if
+brightness control is ever wanted). `LED_DATA` on GPIO11 is driven by PIO, which
+can drive any GPIO.
+
 ## Carrier (2xx) — 76 parts
 
 | block | designators |
