@@ -187,9 +187,13 @@ Small facts that are easy to get wrong at firmware or assembly time.
 ## Layout and routing
 
 - **4 layers, JLC 4-layer standard** (0.3/0.45 via class): L1 components + signals,
-  **In1 solid GND, never split**, In2 power pours (12 V under the LED field,
-  3.3 V/5 V islands under the logic), B.Cu spillover + GND pour. Chosen for analog
-  noise — high-impedance FSR lines sharing a board with 25 switching LEDs — not for
+  **In1 and In2 are BOTH solid GND, never split** (layer names `GND1.Cu`/`GND2.Cu`);
+  B.Cu spillover + GND pour. There is **no 12 V plane** — 12 V is a routed trace
+  tree (2 mm trunk, ≥0.5 mm LED branches, verified by widest-path analysis
+  2026-08-06), and the 3.3 V/5 V islands are small F.Cu pours at the regulators,
+  not inner-layer pours. An earlier draft of this file described In2 as power
+  pours; that was never the as-built board. Chosen for analog noise —
+  high-impedance FSR lines sharing a board with 25 switching LEDs — not for
   routing density.
 - **Assembly is double-sided**: 115 SMD placements, **101 top / 14 bottom**. THT
   (connectors, switches, the interface headers) is hand-soldered, not JLC.
@@ -285,11 +289,11 @@ hot-plug/USB-attach behaviour, SI asymmetries, and the FSR runs on B.Cu.
 
 | block | designators |
 |---|---|
-| LED field | 25× WS2815 **D203–D227**, pin-1 100nF **C202–C226** |
+| LED field | 25× WS2815 **D203–D227**, pin-1 100nF **C203–C227** (Cn pairs with Dn) |
 | bulk | **C201** 470µF 25V elec |
 | FSR connectors | **J201** W, **J202** S, **J203** E, **J206** N — JST B2B-PH-K (C131337). Dividers are on the brain |
 | power | **J205** 12V_IN, **J208** 12V_OUT — Micro-Fit 43650-0200 (C192562) |
-| RS-485 | **J204** IN, **J207** OUT — Micro-Fit 43650-0300 (C503478); **SW202** termination (SS22E01L5, C609835) + **R201** 120Ω; shield network **R202** 1M ‖ **C227** 100nF |
+| RS-485 | **J204** IN, **J207** OUT — Micro-Fit 43650-0300 (C503478); **SW202** termination (SS22E01L5, C609835) + **R201** 120Ω; shield network **R202** 1M ‖ **C202** 100nF |
 | INT | **J214** WJ500V-5.08-2P (C8465), **D201** SMAJ5.0A, **R203** 100Ω |
 | panel ID | **SW201** 4-pos DIP (DS-04, C52177925) |
 | SWD | **J209** 3-pin PZ254V-11-03P (C2937625) |
