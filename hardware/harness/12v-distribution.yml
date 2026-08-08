@@ -1,0 +1,210 @@
+metadata:
+  title: 12V distribution / underglow feed harness
+  description: >
+    Picks up where psu-12v.yml ends. The PSU tail's YL 2-way lands on a pair of
+    fork terminals that act as the 12V and GND star point. From there 12V and
+    GND fan out to a second YL 2-way (onward distribution) and to the JST SM 3P
+    receptacle that the UNDERGLOW STRIPS PLUG INTO. The SM's data pin is fed
+    separately by a single white conductor on a JST YLR-01V, which is what the
+    stock MCU drove.
+    CONNECTOR GENDER CORRECTED 2026-08-08 -- see PARTS.md, "Connector gender
+    conventions". In JST's naming a RECEPTACLE housing holds PIN (male) contacts
+    and a PLUG housing holds SOCKET (female) contacts, which is the reverse of
+    the intuitive reading. Several parts here were labelled backwards.
+    Every cable in this harness is about 10 cm long -- it is a junction block,
+    not a long run.
+    STOCK. Recorded at the 2026-08-08 teardown. This file describes what the pad
+    has; it makes no claims about what the project keeps or replaces.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-DIST-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  PSU_TAIL:
+    pn: JST YLR-02V
+    type: 12V from PSU tail
+    subtype: YLR-02V, receptacle (pin contacts)
+    pincount: 2
+    pinlabels: [GND, V12]
+    notes: >
+      Shown for context only -- this is the far end of psu-12v.yml, repeated
+      here so the handoff between the two drawings is visible. The arrow is a
+      mating, not a cable. Pin 1 = GND (black), pin 2 = 12 V (red) there --
+      re-read off the part 2026-08-08, reversing the earlier derived reading.
+      GENDER CONFIRMED 2026-08-08: the PSU-side half is the RECEPTACLE, so it
+      carries MALE PIN contacts (SYM). It was previously recorded as a YLP-02V.
+
+  YLP_A:
+    pn: JST YLP-02V
+    type: YL 2-way plug, A
+    subtype: YLP-02V, plug (socket contacts)
+    pincount: 2
+    pinlabels: [GND, V12]
+    notes: >
+      Inlet of this harness. PIN 1 = GND (BLACK), PIN 2 = 12 V (YELLOW),
+      both 16 AWG. Re-read off the part 2026-08-08; this REVERSES the earlier
+      reading, which was derived under the wrong gender call.
+      NOTE THE COLOR CHANGE ACROSS THIS MATING: 12 V is RED on the PSU side and
+      YELLOW from here on. Black stays GND throughout.
+      GENDER CONFIRMED 2026-08-08: this is the PLUG, so it carries FEMALE SOCKET
+      contacts (SYF). It was previously recorded as a YLR-02V -- backwards.
+      There are TWO YLP-02V on this harness, called A and B here purely so the
+      drawing can tell them apart. They are identical parts, identically wired,
+      and both land on the same pair of fork terminals -- so they are
+      interchangeable and nothing depends on which is which. The only fact worth
+      carrying is that there are two of them.
+
+  FORK_V12:
+    type: Fork terminal, 12V star point
+    subtype: 4.0 mm ID / 6.5 mm OD
+    pincount: 3
+    pinlabels: [from_A, to_B, to_SM]
+    notes: >
+      ONE physical fork terminal. The three "pins" are the three conductors
+      that meet on it, drawn separately so the fan-out is visible.
+      IT IS NOT FREE-FLOATING: it bolts onto the 12 V input screw terminal of
+      the Daygreen B15-1224-05 DC-DC converter (see dcdc-5v.yml). That terminal
+      is the physical star point.
+      Same 4.0 mm ID / 6.5 mm OD as the chassis ring terminal in ac-input.yml
+      -- similar size, different part (fork, not ring). Do not mix them up.
+
+  FORK_GND:
+    type: Fork terminal, GND star point
+    subtype: 4.0 mm ID / 6.5 mm OD
+    pincount: 3
+    pinlabels: [from_A, to_B, to_SM]
+    notes: >
+      ONE physical fork terminal, the GND counterpart of FORK_V12. It bolts onto
+      the GND input screw terminal of the same DC-DC converter.
+      Together these two forks are the pad's 12 V and GND star point, and that
+      star point physically IS the converter's input terminal block.
+
+  YLP_B:
+    pn: JST YLP-02V
+    type: YL 2-way plug, B
+    subtype: YLP-02V, plug (socket contacts)
+    pincount: 2
+    pinlabels: [GND, V12]
+    notes: >
+      The second of the two YLP-02V. Same part, same pinout as YLP_A: pin 1 =
+      GND (black), pin 2 = 12 V (yellow), 16 AWG, same pair of fork terminals.
+      Interchangeable with A.
+      GENDER CONFIRMED 2026-08-08: PLUG, female socket contacts (SYF). Was
+      previously recorded as a YLR-02V -- backwards. That both star-point halves
+      came back as plugs is a consistency check that PASSES: the file already
+      said A and B are identical parts, and they still are.
+      Goes to the EXTERNAL 12 V INPUT barrel connector -- see
+      external-12v-input.yml. So the star point has two possible 12 V sources
+      landing on it: the internal PSU via YLP_A, and an external cabinet supply
+      via YLP_B.
+
+  SM3:
+    pn: JST SMR-03V-B
+    type: Underglow connection point
+    subtype: SM 3-way receptacle (pin contacts)
+    pincount: 3
+    pinlabels: [GND, DATA, V12]
+    notes: >
+      This is where the underglow strips connect.
+      PINOUT CONFIRMED AT TEARDOWN: pin 1 = GND (black), pin 2 = DATA (white),
+      pin 3 = 12 V (yellow).
+      PIN ORDER RE-CONFIRMED 2026-08-08 -- unchanged, it was read correctly the
+      first time.
+      ALL THREE CONDUCTORS ARE 18 AWG (corrected 2026-08-08; power was recorded
+      as 16 AWG). 12 V and GND arrive from the fork terminals, DATA on its own
+      white conductor from YLR01 -- so gauge does NOT distinguish data from
+      power on this branch. Use the color.
+      GENDER RE-CONFIRMED 2026-08-08 and it was already RIGHT: this is the
+      RECEPTACLE, and it visibly carries MALE PINS -- which is exactly what
+      JST's naming means. The strip pigtail that mates it is therefore the PLUG
+      (SMP-03V-BC, female socket contacts).
+
+  YLR01:
+    pn: JST YLR-01V
+    type: Underglow DATA feed, 1-way
+    subtype: YLR-01V, receptacle (pin contact)
+    pincount: 1
+    pinlabels: [DATA]
+    notes: >
+      Single-conductor connector carrying the underglow data signal into this
+      harness. On the stock pad this is the side that faces the MCU -- it is a
+      discrete connector, not a splice.
+      White, 18 AWG.
+      GENDER CONFIRMED 2026-08-08: RECEPTACLE, male pin contact. Was previously
+      recorded as a YLP-01V -- backwards. Being 1-circuit, nothing about pin
+      numbering is affected; only the part to order changes.
+      ITS MATE IS NOT YET DOCUMENTED -- the MCU-side half is on the data side of
+      the pad, still to be recorded. It must be a YLP-01V (plug, socket contact).
+
+cables:
+  W_A:
+    category: bundle
+    gauge: 16 AWG
+    length: 0.100
+    colors: [BK, YE]
+    notes: >
+      YLP_A to the fork terminals. Yellow = 12 V, black = GND. Wire order
+      follows the connector's pin order, which is GND first as of 2026-08-08.
+
+  W_B:
+    category: bundle
+    gauge: 16 AWG
+    length: 0.100
+    colors: [BK, YE]
+    notes: >
+      Fork terminals to YLP_B. Yellow = 12 V, black = GND. Wire order follows
+      the connector's pin order, which is GND first as of 2026-08-08.
+
+  W_SM:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.100
+    colors: [YE, BK]
+    notes: >
+      Fork terminals to the SM 3P. Yellow = 12 V, black = GND.
+      Note these land on SM pins 3 and 1 respectively, NOT 1 and 3.
+
+  W_DATA:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.100
+    colors: [WH]
+    notes: >
+      SM 3P pin 2 to YLR01. WHITE, 18 AWG.
+      A PREVIOUS NOTE HERE CLAIMED gauge distinguishes data from power on this
+      branch -- it does not. The SM 3P's power conductors were re-measured as
+      18 AWG on 2026-08-08, the same as this one. COLOR is the only tell:
+      white = data.
+
+connections:
+  - - PSU_TAIL: [1-2]
+    - ==>
+    - YLP_A: [1-2]
+
+  - - YLP_A: [1]
+    - W_A: [1]
+    - FORK_GND: [1]
+  - - YLP_A: [2]
+    - W_A: [2]
+    - FORK_V12: [1]
+
+  - - FORK_GND: [2]
+    - W_B: [1]
+    - YLP_B: [1]
+  - - FORK_V12: [2]
+    - W_B: [2]
+    - YLP_B: [2]
+
+  - - FORK_V12: [3]
+    - W_SM: [1]
+    - SM3: [3]
+  - - FORK_GND: [3]
+    - W_SM: [2]
+    - SM3: [1]
+
+  - - SM3: [2]
+    - W_DATA: [1]
+    - YLR01: [1]

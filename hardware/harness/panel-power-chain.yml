@@ -1,0 +1,187 @@
+metadata:
+  title: Panel power chain, one column (5V daisy chain)
+  description: >
+    How 5 V reaches the three panels of one column. The fan-out Molex from
+    5v-columns.yml plugs into the first panel's INPUT header; the panel passes
+    power straight through its PCB to an OUTPUT header on the other side; a
+    jumper cable carries it to the next panel's input, and so on.
+    THIS FILE DRAWS ONE COLUMN. All three are identical -- see the topology note
+    on PANEL_A. Six jumper cables per pad: two per column.
+    The stock pad's column topology matches what CLAUDE.md always assumed
+    (0-3-6, 1-4-7, 2-5-8). What differs is the VOLTAGE -- 5 V, not 12 V -- and
+    the source, a DC-DC converter rather than PSU lugs.
+    STOCK. Recorded at the 2026-08-08 teardown. Descriptive only.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-PCHAIN-01
+  qty_per_pad: 3
+
+options:
+  color_mode: full
+
+connectors:
+  COL_FEED:
+    pn: Molex 39014041
+    type: Column feed from fan-out
+    subtype: Mini-Fit Jr. receptacle, natural/clear housing
+    pincount: 4
+    pinlabels: [V5_rd, GND_bk, GND_gn, V5_wh]
+    notes: >
+      Shown for context only -- this is MOLEX_1/2/3 in 5v-columns.yml, repeated
+      here so the handoff between the two drawings is visible. The arrow is a
+      mating, not a cable.
+      NATURAL/CLEAR HOUSING. In this pad the housing color is a CONVENTION:
+      clear marks a connector that plugs into a panel INPUT, red marks one that
+      plugs into a panel OUTPUT. Every clear housing in the chain has the same
+      pinout as this one.
+
+  PANEL_A:
+    type: First panel of a column (0, 1 or 2)
+    subtype: PCB headers, IN and OUT
+    pincount: 8
+    pinlabels: [IN_V5_rd, IN_GND_bk, IN_GND_gn, IN_V5_wh, OUT_V5_wh, OUT_GND_gn, OUT_GND_bk, OUT_V5_rd]
+    notes: >
+      ONE PHYSICAL PANEL PCB, drawn as a single 8-pin connector because WireViz
+      models a connector as one pin set. Pins 1-4 are its INPUT header, pins 5-8
+      its OUTPUT header. Power passes STRAIGHT THROUGH the board between them --
+      there is no cable inside the panel and nothing switches or regulates.
+      THE TWO HEADERS ARE THE SAME PART FACING OPPOSITE WAYS, so they are
+      mirrored: the output header's pin 1 sits where the input header's pin 4
+      would.
+      THAT MIRRORING IS INVISIBLE AT THE NET LEVEL, and this is the subtle bit.
+      The pinout 5V, GND, GND, 5V is a PALINDROME, so mirroring it gives back
+      5V, GND, GND, 5V. Both headers therefore read the same by NET. What
+      actually swaps is which COLOURED CONDUCTOR sits in which position: red and
+      white trade places, and black and green trade places, while every one of
+      them keeps its net.
+      COLUMN TOPOLOGY, confirmed at teardown. In the REPO's 0-8 numbering the
+      three columns are 0-3-6 (left), 1-4-7 (centre) and 2-5-8 (right). Three
+      columns of three, two jumpers each, SIX jumpers per pad.
+      MIND THE TWO NUMBERING SCHEMES. The teardown was described in 1-9
+      numbering; this repo uses 0-8 everywhere -- CLAUDE.md, and the docs/BOM.md
+      colour map that decodes the panel signal wires. SUBTRACT ONE to convert a
+      spoken panel number into a repo one. The chain described at teardown as
+      "1 then 4 then 7" is the repo's 0-3-6, and the unconnected outputs
+      reported on "7, 8, 9" are the repo's 6, 7 and 8.
+      ALL PANEL NUMBERS IN THIS FILE AND EVERY OTHER HARNESS FILE ARE REPO
+      NUMBERING, 0-8.
+      NONE OF THIS CHANGES THE WIRING. All three columns are identical and all
+      nine panels are interchangeable, so which column is which is a labelling
+      question only.
+
+  J1_RED:
+    pn: Molex 39014041
+    type: Jumper A-to-B, output end
+    subtype: Mini-Fit Jr. receptacle, RED housing
+    pincount: 4
+    pinlabels: [V5_wh, GND_gn, GND_bk, V5_rd]
+    notes: >
+      RED HOUSING MARKS AN OUTPUT connection -- it plugs into a panel's OUTPUT
+      header. Same Molex 39014041 receptacle as everything else in the chain;
+      only the housing colour differs, and it is a build convention rather than
+      a different part.
+      PIN 1 = WHITE (5 V), PIN 2 = GREEN (GND), PIN 3 = BLACK (GND),
+      PIN 4 = RED (5 V) -- the reverse conductor order of the clear housings.
+
+  J1_WHITE:
+    pn: Molex 39014041
+    type: Jumper A-to-B, input end
+    subtype: Mini-Fit Jr. receptacle, natural/clear housing
+    pincount: 4
+    pinlabels: [V5_rd, GND_bk, GND_gn, V5_wh]
+    notes: >
+      CLEAR HOUSING MARKS AN INPUT -- it plugs into the next panel's INPUT
+      header. Pin 1 = RED (5 V), pin 2 = BLACK (GND), pin 3 = GREEN (GND),
+      pin 4 = WHITE (5 V).
+      IDENTICAL PINOUT TO COL_FEED, which is the useful invariant: EVERY panel
+      input in the pad sees red on pin 1, black on 2, green on 3, white on 4,
+      and every panel output sees white, green, black, red. Wherever you are in
+      a column, the colours tell you which end you are looking at.
+
+  PANEL_B:
+    type: Second panel of a column (3, 4 or 5)
+    subtype: PCB headers, IN and OUT
+    pincount: 8
+    pinlabels: [IN_V5_rd, IN_GND_bk, IN_GND_gn, IN_V5_wh, OUT_V5_wh, OUT_GND_gn, OUT_GND_bk, OUT_V5_rd]
+    notes: >
+      Identical to PANEL_A in every respect. Straight pass-through, mirrored
+      headers.
+
+  J2_RED:
+    pn: Molex 39014041
+    type: Jumper B-to-C, output end
+    subtype: Mini-Fit Jr. receptacle, RED housing
+    pincount: 4
+    pinlabels: [V5_wh, GND_gn, GND_bk, V5_rd]
+    notes: Identical to J1_RED.
+
+  J2_WHITE:
+    pn: Molex 39014041
+    type: Jumper B-to-C, input end
+    subtype: Mini-Fit Jr. receptacle, natural/clear housing
+    pincount: 4
+    pinlabels: [V5_rd, GND_bk, GND_gn, V5_wh]
+    notes: Identical to J1_WHITE.
+
+  PANEL_C:
+    type: Last panel of a column (6, 7 or 8)
+    subtype: PCB headers, IN and OUT
+    pincount: 8
+    pinlabels: [IN_V5_rd, IN_GND_bk, IN_GND_gn, IN_V5_wh, OUT_V5_wh, OUT_GND_gn, OUT_GND_bk, OUT_V5_rd]
+    notes: >
+      LAST PANEL IN THE COLUMN, so its OUTPUT header is LEFT UNMATED -- nothing
+      downstream to feed. Confirmed at teardown for all three columns: the
+      bottom row of panels (repo 6, 7 and 8) all have an unconnected power
+      output.
+      The board is identical to the other two. Panels are interchangeable and
+      being last is purely positional -- a panel becomes "last" by having
+      nothing plugged into its output, not by being a different part.
+
+cables:
+  W_JUMP1:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.600
+    colors: [WH, GN, BK, RD]
+    notes: >
+      60 cm, four 18 AWG conductors. Red and white are both 5 V; black and green
+      are both GND -- the same doubling that runs all the way back to the VL
+      4-way at the converter.
+      WIRE ORDER HERE FOLLOWS THE RED (OUTPUT) END. At the clear end the same
+      four conductors land in the reverse order, which is what makes every panel
+      input look identical.
+
+  W_JUMP2:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.600
+    colors: [WH, GN, BK, RD]
+    notes: Identical to W_JUMP1. Six of these per pad, two per column.
+
+connections:
+  - - COL_FEED: [1-4]
+    - ==>
+    - PANEL_A: [1-4]
+
+  - - PANEL_A: [5-8]
+    - ==>
+    - J1_RED: [1-4]
+
+  - - J1_RED: [1-4]
+    - W_JUMP1: [1-4]
+    - J1_WHITE: [4,3,2,1]
+
+  - - J1_WHITE: [1-4]
+    - ==>
+    - PANEL_B: [1-4]
+
+  - - PANEL_B: [5-8]
+    - ==>
+    - J2_RED: [1-4]
+
+  - - J2_RED: [1-4]
+    - W_JUMP2: [1-4]
+    - J2_WHITE: [4,3,2,1]
+
+  - - J2_WHITE: [1-4]
+    - ==>
+    - PANEL_C: [1-4]

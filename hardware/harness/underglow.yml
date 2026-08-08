@@ -1,0 +1,128 @@
+metadata:
+  title: Underglow adapter harness
+  description: >
+    Mates the stock underglow strip pigtail (JST SMP-03V-BC -- the PLUG, with
+    female socket contacts, confirmed at the 2026-08-08 teardown). 12V and GND
+    are tapped straight off the PSU lugs as
+    stock does; only DATA goes to the master. Supersedes the old
+    docs/UNDERGLOW.md claim that the strips terminate in a 12-pin Dupont housing
+    with no reusable connector -- they do not, there is a real connector here.
+    SUPERSESSION LIKELY -- READ FIRST. This file was drawn before the pad's 12V
+    distribution was documented. 12v-distribution.yml now shows that the pad
+    ALREADY has an SM 3P receptacle wired with 12V and GND from the fork
+    terminals, and that its DATA pin is fed by a single white 18 AWG conductor
+    on a JST YLR-01V -- which is exactly what the stock MCU drove.
+    If that holds, the replacement master does NOT need to build an SM 3P
+    pigtail tapping the PSU at all. It needs to drive ONE WIRE into the mate of
+    that 1-way connector, and the existing harness supplies the strips' power.
+    Keeping this file until the whole teardown is documented, as agreed, rather
+    than rewriting the design on a partial picture.
+    That 1-way is a JST YLR-01V (receptacle, male pin), so the master-side mate
+    to build is a YLP-01V (plug, female socket) -- corrected 2026-08-08 along
+    with the rest of the gender audit; it was recorded as a YLP-01V.
+  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+  pn: HARNESS-UG-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  X1:
+    pn: JST SMR-03V-B
+    type: JST SM 3P
+    subtype: receptacle -- male pin contacts (SM pin contact)
+    pincount: 3
+    pinlabels: [GND, DATA, V12]
+    notes: >
+      GENDER NAMING FIXED 2026-08-08. This was written as "SM 3P male housing",
+      which is not orderable: JST sells it as a RECEPTACLE housing (SMR-03V-B)
+      that takes pin contacts. The male-contact intent was correct -- only the
+      word was wrong. The strips' own pigtail is the plug, SMP-03V-BC, with
+      female socket contacts (SHF-001T-0.8BS).
+      PIN ORDER RESOLVED 2026-08-08 from the mating half in 12v-distribution.yml:
+      pin 1 = GND, pin 2 = DATA, pin 3 = 12 V.
+      THIS REVERSES THE EARLIER ASSUMPTION of 12V/DATA/GND. Pins 1 and 3 were
+      the wrong way round, which would have swapped 12 V and ground into the
+      strips. The conductor SET was right; the ORDER was not.
+      On the pad side the colors are yellow = 12 V, white = DATA, black = GND
+      (16 AWG power, 18 AWG data).
+      See this file's description -- this harness may not be needed at all.
+
+  PSU_12V:
+    type: PSU +12V terminal
+    subtype: fork lug
+    pincount: 1
+    pinlabels: [V12]
+    notes: >
+      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
+      captive output ending in a JST YL 2-way -- it has no terminal block and
+      no ground stud. Whatever fans 12V out to the three columns is not yet
+      documented, so these lug connections are UNCONFIRMED. See
+      MEASUREMENTS.md, Open questions.
+
+
+  PSU_GND:
+    type: PSU GND stud
+    subtype: fork lug
+    pincount: 2
+    pinlabels: [GND_ug, GND_tie]
+    notes: >
+      Shared landing point for the underglow GND and the master's mandatory
+      GND tie (W2).
+      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
+      captive output ending in a JST YL 2-way -- it has no terminal block and
+      no ground stud. Whatever fans 12V out to the three columns is not yet
+      documented, so these lug connections are UNCONFIRMED. See
+      MEASUREMENTS.md, Open questions.
+
+
+  J2:
+    pn: KF301-style 2-pos screw terminal
+    type: Master PCB J2
+    subtype: 2-pos screw terminal, 5.08mm
+    pincount: 2
+    pinlabels: [DATA, GND_TIE]
+    notes: >
+      On the master PCB. Pin 1 = underglow DATA, fed from Teensy GPIO11 via the
+      SN74AHCT1G125 buffer and a 330R series resistor. Pin 2 = the mandatory GND
+      tie to the pad ground network, required for RS-485/INT reference whether
+      or not underglow is fitted.
+
+cables:
+  W1:
+    category: bundle
+    gauge: 22 AWG
+    length: 0.5
+    colors: [YE, PK, BK]
+    notes: >
+      TODO LENGTH. Depends on the chosen splice point / master mounting
+      position -- measure once the master enclosure location is fixed.
+      Split bundle: two conductors go to the PSU lugs, one to the master.
+
+  W2:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.5
+    colors: [BK]
+    notes: >
+      Master GND tie. MANDATORY even if underglow is never fitted -- INT and
+      RS-485 need a solid common reference with the pad ground network.
+      TODO LENGTH.
+
+connections:
+  - - X1: [1]
+    - W1: [1]
+    - PSU_12V: [1]
+
+  - - X1: [3]
+    - W1: [3]
+    - PSU_GND: [1]
+
+  - - X1: [2]
+    - W1: [2]
+    - J2: [1]
+
+  - - J2: [2]
+    - W2: [1]
+    - PSU_GND: [2]

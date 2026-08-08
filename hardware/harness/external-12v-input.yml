@@ -1,0 +1,100 @@
+metadata:
+  title: External 12V input harness
+  description: >
+    The second YL 2-way off the fork-terminal star point (YLP_B in
+    12v-distribution.yml) runs a short 16 AWG pair to a barrel connector that
+    serves as an EXTERNAL 12V INPUT. It is used when the pad is installed in a
+    proper dedicated cabinet, which supplies 12V itself. In a home setup it is
+    simply unused.
+    Because it lands on the same fork terminals the internal PSU feeds, this is
+    a second source wired in PARALLEL with the built-in supply, not a switched
+    alternative -- see the note on the barrel connector.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-EXT12-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  STAR_B:
+    pn: JST YLP-02V
+    type: Star point, YL 2-way B
+    subtype: YLP-02V, plug (socket contacts)
+    pincount: 2
+    pinlabels: [GND, V12]
+    notes: >
+      Shown for context only -- this is YLP_B in 12v-distribution.yml, repeated
+      here so the handoff between the two drawings is visible. The arrow is a
+      mating, not a cable.
+      GENDER CONFIRMED 2026-08-08: the star-point half is the PLUG (female
+      socket contacts). It was recorded as a YLR-02V -- backwards.
+
+  YLR_BARREL:
+    pn: JST YLR-02V
+    type: YL 2-way receptacle
+    subtype: YLR-02V, receptacle (pin contacts)
+    pincount: 2
+    pinlabels: [GND, V12]
+    notes: >
+      Inlet of this harness. Same pinout as everything else on the 12 V side:
+      PIN 1 = GND (BLACK), PIN 2 = 12 V (YELLOW), both 16 AWG. Re-read off the
+      part 2026-08-08; this REVERSES the earlier derived reading.
+      GENDER CONFIRMED 2026-08-08: the barrel-cable half is the RECEPTACLE,
+      carrying MALE PIN contacts (SYM). It was recorded as a YLP-02V --
+      backwards. Note this makes it the same part as the PSU output connector
+      (YL2 in psu-12v.yml), which is consistent: both are 12 V SOURCES feeding
+      the star point, and both present the same gender to it.
+      Pin order is now READ off the part rather than derived (2026-08-08), and
+      it did swap. Yellow/black was unambiguous throughout, so no physical
+      wiring was ever at risk -- wire by color.
+
+  BARREL:
+    type: External 12V input, barrel SOCKET
+    subtype: ~5 mm bore / 10 mm body
+    pincount: 2
+    pinlabels: [V12_inner, GND_outer]
+    notes: >
+      EXTERNAL 12 V INPUT. Only used when the pad is installed in a proper
+      dedicated cabinet that supplies its own 12 V. Unused in a home setup, and
+      unused for this project.
+      It is a SOCKET, accepting an external plug.
+      Polarity: OUTER = GND, INNER = 12 V. Same convention as the internal
+      supply's nameplate marking (outer negative, inner positive), so the two
+      sources agree on polarity.
+      DIMENSIONS ARE APPROXIMATE. The socket is hot-glued in an awkward spot and
+      calipers do not fit properly, so 5 mm (bore that accepts the plug) and
+      10 mm (body) are best-effort, not precise. The 5 mm figure is the SOCKET
+      BORE, not a pin diameter.
+      A ~5 mm bore is consistent with the very common 5.5 mm barrel family. If
+      this ever needs sourcing, the bore is not the discriminating measurement
+      anyway -- the CENTRE PIN diameter is, and 2.1 mm versus 2.5 mm is the
+      usual fork in the road. That was not measured and cannot be, with the
+      socket glued in place. Nothing in this project depends on it.
+      TOPOLOGY NOTE: this lands on the same fork terminals as the internal PSU,
+      so it is PARALLELED with that supply rather than switched against it.
+      Energising both at once would connect two 12 V sources together. Recorded
+      as an observation about how the stock pad is wired, not as a judgement.
+
+cables:
+  W1:
+    category: bundle
+    gauge: 16 AWG
+    length: 0.200
+    colors: [BK, YE]
+    notes: >
+      About 20 cm. Yellow = 12 V, black = GND -- the same color convention used
+      throughout the pad's 12 V side, from the fork terminals onward.
+      Wire order follows the connector's pin order, GND first as of 2026-08-08.
+
+connections:
+  - - STAR_B: [1-2]
+    - ==>
+    - YLR_BARREL: [1-2]
+
+  - - YLR_BARREL: [1]
+    - W1: [1]
+    - BARREL: [2]
+  - - YLR_BARREL: [2]
+    - W1: [2]
+    - BARREL: [1]

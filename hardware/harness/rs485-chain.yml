@@ -1,0 +1,263 @@
+metadata:
+  title: RS-485 bus chain
+  description: >
+    Single daisy-chained differential bus, master plus all nine panels, at
+    1 Mbps. Physical order matches the stock SMX serpentine routing exactly:
+    master, 0(UL), 3(L), 6(DL), 7(D), 4(C), 1(U), 2(UR), 5(R), 8(DR).
+    Carries the LED broadcast and the FSR telemetry round-robin poll -- NOT the
+    press path, which is the separate INT home-run harness.
+    Termination: 120R at the master end and at the last panel in the chain
+    (selected by that panel's DPDT switch -- all nine panels are identical).
+  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+  pn: HARNESS-485-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  MASTER:
+    pn: Micro-Fit 3.0 3-pin
+    type: Master PCB J1
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+    notes: >
+      Pin 3 is the ONLY DC ground reference for the cable shield in the whole
+      pad (J1 pin 3 ties to master GND). Every panel passes the shield through
+      without a local GND tie, each with a 100nF parallel 1M to GND.
+      This hybrid grounding scheme was adopted 2026-07-26, reversing both the
+      earlier "unpopulated 3rd pin" and "drain floating at both ends" calls.
+
+  P0_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 0 (UL) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P0_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 0 (UL) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P3_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 3 (L) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P3_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 3 (L) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P6_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 6 (DL) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P6_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 6 (DL) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P7_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 7 (D) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P7_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 7 (D) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P4_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 4 (C) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P4_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 4 (C) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P1_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 1 (U) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P1_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 1 (U) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P2_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 2 (UR) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P2_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 2 (UR) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P5_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 5 (R) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P5_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 5 (R) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P8_IN:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 8 (DR) RS485 IN
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+  P8_OUT:
+    pn: Micro-Fit 3.0 3-pin
+    type: Panel 8 (DR) RS485 OUT
+    subtype: Micro-Fit 3.0, 3-pin
+    pincount: 3
+    pinlabels: [A, B, SHLD]
+    notes: >
+      END OF CHAIN -- left empty. Panel 8 is the termination point; its
+      DPDT switch enables the 120R across A/B.
+
+cables:
+  W_M:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Master to panel 0 (UL). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_0_3:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 0 (UL) to panel 3 (L). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_3_6:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 3 (L) to panel 6 (DL). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_6_7:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 6 (DL) to panel 7 (D). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_7_4:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 7 (D) to panel 4 (C). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_4_1:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 4 (C) to panel 1 (U). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_1_2:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 1 (U) to panel 2 (UR). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_2_5:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 2 (UR) to panel 5 (R). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+  W_5_8:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.4
+    colors: [BU, WH]
+    shield: true
+    notes: >
+      Panel 5 (R) to panel 8 (DR). TODO LENGTH -- measure this exact segment from the stock harness.
+      Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
+      NOT tied to GND at any panel.
+
+connections:
+  - - MASTER: [1-3]
+    - W_M: [1-2,s]
+    - P0_IN: [1-3]
+  - - P0_OUT: [1-3]
+    - W_0_3: [1-2,s]
+    - P3_IN: [1-3]
+  - - P3_OUT: [1-3]
+    - W_3_6: [1-2,s]
+    - P6_IN: [1-3]
+  - - P6_OUT: [1-3]
+    - W_6_7: [1-2,s]
+    - P7_IN: [1-3]
+  - - P7_OUT: [1-3]
+    - W_7_4: [1-2,s]
+    - P4_IN: [1-3]
+  - - P4_OUT: [1-3]
+    - W_4_1: [1-2,s]
+    - P1_IN: [1-3]
+  - - P1_OUT: [1-3]
+    - W_1_2: [1-2,s]
+    - P2_IN: [1-3]
+  - - P2_OUT: [1-3]
+    - W_2_5: [1-2,s]
+    - P5_IN: [1-3]
+  - - P5_OUT: [1-3]
+    - W_5_8: [1-2,s]
+    - P8_IN: [1-3]

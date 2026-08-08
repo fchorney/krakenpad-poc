@@ -17,10 +17,26 @@ changes, both docs move together.
 
 ## 0. The blocker
 
-⬜ **Pad + harness teardown.** It settles the master's **J2 underglow connector**
-form — the stock underglow leads crimp straight into a 12-pin Dupont-style housing
-at the old MCU, so a splice is required and J2's screw terminal is interim. Also
-yields PSU stud size and real harness run lengths. See `docs/UNDERGLOW.md`.
+✅ **Pad + harness teardown — done 2026-08-08.** Every component and wire is out.
+**J2's 2-pos screw terminal is confirmed final, not interim**: the underglow
+strips terminate in a **JST SM 3P female** carrying 12V/DATA/GND, so our side is
+an SM 3P male pigtail that sends 12V/GND to the PSU lugs and DATA alone to J2
+pin 1 — no splice, and no change to the master PCB. See `docs/UNDERGLOW.md`.
+
+Remaining teardown follow-ups, none of which block the board order:
+
+- ✅ **SM 3P pin order resolved 2026-08-08: pin 1 = GND, pin 2 = DATA,
+  pin 3 = 12V** — the *reverse* of the earlier assumption. Building to the old
+  order would have put 12V into the DATA pin.
+- ⬜ Source a **JST SMR-03V-B** housing + SM pin contacts — *if this harness is
+  needed at all*. The pad already has an SM 3P fed from the 12V star point, with
+  DATA arriving on a **YLR-01V**, so the master may only need to drive one wire.
+  Decide during our own harness design.
+- ✅ **"PSU stud size" is moot** — the stock PSU is a brick with one JST YL 2-way
+  output and no terminal block or ground stud. The 12V star point is physically
+  the DC-DC converter's input screw terminals.
+- ✅ **Stock harness fully documented 2026-08-08** — 17 WireViz drawings in
+  `hardware/harness/`, wall socket through to the FSRs, with per-run lengths.
 
 ⬜ **Source the 8 board-to-board interface connectors.** Carrier headers
 **J210–J213** and brain sockets **J301–J304** carry **no LCSC number** — 160 pieces
@@ -34,7 +50,11 @@ instead of the mating end — which leaves nothing to solder through the carrier
 the JST XH contact (`docs/BOM.md` → Order 4). Do this **before** crimping 36
 contacts.
 
-⬜ **INT cable length** — gated on the teardown; 9 home runs, not a chain.
+⬜ **INT cable length** — 9 home runs, not a chain. The *stock* equivalent is now
+measured: nine per-panel signal lines, 60–150 cm each, **9.3 m total** of 18 AWG
+(`hardware/harness/panel-signal-lines.yml`). Our own runs differ — the master
+mounts elsewhere and we use a twisted pair rather than a single conductor — but
+the stock figures bound the problem.
 
 ---
 

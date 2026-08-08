@@ -1,0 +1,170 @@
+metadata:
+  title: 5V column feed harness (3-way fan-out)
+  description: >
+    THIS IS HOW POWER REACHES THE THREE PANEL COLUMNS, and it does so at 5 V,
+    not 12 V. A VLP-04V mates the VLR-04V of 5v-distribution.yml; each of its
+    four contacts is spliced to THREE identical 18 AWG conductors, giving three
+    branches of four. Each branch runs about 60 cm to a 4-circuit Molex
+    connector, and each Molex feeds one column of panels.
+    Twelve conductors total: 3 branches x 4 conductors.
+    Because 5 V and GND are each doubled on the VL connector, every branch also
+    carries two 5 V conductors and two grounds -- the doubling propagates all
+    the way to the Molex.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-5VCOL-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  VLR:
+    pn: JST VLR-04V
+    type: 5V distribution, 4-way
+    subtype: VL series receptacle (pin contacts)
+    pincount: 4
+    pinlabels: [GND_gn, V5_wh, V5_rd, GND_bk]
+    notes: >
+      Shown for context only -- this is FOURWAY in 5v-distribution.yml, repeated
+      here so the handoff between the two drawings is visible. The arrow is a
+      mating, not a cable.
+      RECEPTACLE, so MALE PIN contacts (SVM). Confirmed 2026-08-08.
+
+  VLP:
+    pn: JST VLP-04V
+    type: 5V fan-out, 4-way
+    subtype: VL series plug (socket contacts)
+    pincount: 4
+    pinlabels: [GND_gn, V5_wh, V5_rd, GND_bk]
+    notes: >
+      Mates the VLR-04V. Pinout follows straight through the mating: pin 1 =
+      green GND, pin 2 = white 5 V, pin 3 = red 5 V, pin 4 = black GND.
+      PLUG, so FEMALE SOCKET contacts (SVF). Confirmed 2026-08-08 -- this pair
+      was recorded correctly first time.
+      PIN ORDER NOW INDEPENDENTLY READ 2026-08-08 and it matches the inference:
+      1 = green GND, 2 = white 5 V, 3 = red 5 V, 4 = black GND, same as its
+      mate. The earlier "inferred, never read" caveat is retired.
+      Pin-1-mates-pin-1 is also VERIFIED rather than assumed: JST draws
+      receptacle and plug housings as mirror images precisely so the numbering
+      corresponds across a mate (eYL.pdf p.2, "Contact position location
+      numbers").
+      Each of the four contacts is spliced to THREE conductors, one per branch.
+
+  MOLEX_1:
+    pn: Molex 39014041
+    type: Column feed, branch 1
+    subtype: Mini-Fit Jr., 4-circuit, single row
+    pincount: 4
+    pinlabels: [V5_rd, GND_bk, GND_gn, V5_wh]
+    notes: >
+      PIN 1 = RED (5 V), PIN 2 = BLACK (GND), PIN 3 = GREEN (GND),
+      PIN 4 = WHITE (5 V). RE-CONFIRMED 2026-08-08 -- UNCHANGED, and this is the
+      strongest pin record in the pad: THIS HOUSING CARRIES MOULDED PIN
+      IDENTIFICATION, so its numbering is OBSERVED, not derived. The JST
+      housings elsewhere in the pad have no such marking. A brief re-read that
+      reversed this order was a misread of the moulding and was withdrawn.
+      NOTE THE ORDER FLIPS ACROSS THIS HARNESS. The VL connector runs
+      GND, 5V, 5V, GND; the Molex runs 5V, GND, GND, 5V. Both are symmetric,
+      but they are opposite, so pin numbers cannot be carried across. Wire by
+      color.
+      Molex 39014041 -- Mini-Fit Jr., 4 circuits, SINGLE ROW. Confirmed.
+      Mini-Fit Jr. also comes in dual row, and a 4-circuit dual-row housing is a
+      different part with the same circuit count -- so "4-pin Mini-Fit Jr." on
+      its own is ambiguous when ordering. This one is single row.
+      GENDER RESOLVED 2026-08-08: the wire-side housing has HOLES, i.e. FEMALE
+      SOCKET terminals (Molex 5556 family). So it is a Molex RECEPTACLE HOUSING
+      and the part number 39014041 is correct as recorded. It mates a male-pin
+      HEADER on the panel PCB.
+      It was briefly read as a "plug" on the reasoning that it plugs onto the
+      PCB -- but that reasoning cannot discriminate, because a Molex receptacle
+      is precisely the half that plugs onto a board header.
+      MOLEX IS THE OPPOSITE OF JST HERE: Molex receptacle = female sockets, JST
+      receptacle = male pins. Same word, inverted meaning, both present in this
+      pad. See PARTS.md, "Connector gender conventions".
+      WHICH PHYSICAL COLUMN this branch feeds was not recorded. The three
+      branches are identical, so branch-to-column assignment is a labelling
+      question, not an electrical one.
+
+  MOLEX_2:
+    pn: Molex 39014041
+    type: Column feed, branch 2
+    subtype: Mini-Fit Jr., 4-circuit, single row
+    pincount: 4
+    pinlabels: [V5_rd, GND_bk, GND_gn, V5_wh]
+    notes: Identical to branch 1 in every respect.
+
+  MOLEX_3:
+    pn: Molex 39014041
+    type: Column feed, branch 3
+    subtype: Mini-Fit Jr., 4-circuit, single row
+    pincount: 4
+    pinlabels: [V5_rd, GND_bk, GND_gn, V5_wh]
+    notes: Identical to branch 1 in every respect.
+
+cables:
+  W_1:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.600
+    colors: [RD, BK, GN, WH]
+    notes: >
+      About 60 cm. Wire order follows the MOLEX pin order, not the VL pin order.
+      Red and white are both 5 V; black and green are both GND.
+
+  W_2:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.600
+    colors: [RD, BK, GN, WH]
+    notes: Identical to branch 1.
+
+  W_3:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.600
+    colors: [RD, BK, GN, WH]
+    notes: Identical to branch 1.
+
+connections:
+  - - VLR: [1-4]
+    - ==>
+    - VLP: [1-4]
+
+  - - VLP: [3]
+    - W_1: [1]
+    - MOLEX_1: [1]
+  - - VLP: [4]
+    - W_1: [2]
+    - MOLEX_1: [2]
+  - - VLP: [1]
+    - W_1: [3]
+    - MOLEX_1: [3]
+  - - VLP: [2]
+    - W_1: [4]
+    - MOLEX_1: [4]
+
+  - - VLP: [3]
+    - W_2: [1]
+    - MOLEX_2: [1]
+  - - VLP: [4]
+    - W_2: [2]
+    - MOLEX_2: [2]
+  - - VLP: [1]
+    - W_2: [3]
+    - MOLEX_2: [3]
+  - - VLP: [2]
+    - W_2: [4]
+    - MOLEX_2: [4]
+
+  - - VLP: [3]
+    - W_3: [1]
+    - MOLEX_3: [1]
+  - - VLP: [4]
+    - W_3: [2]
+    - MOLEX_3: [2]
+  - - VLP: [1]
+    - W_3: [3]
+    - MOLEX_3: [3]
+  - - VLP: [2]
+    - W_3: [4]
+    - MOLEX_3: [4]

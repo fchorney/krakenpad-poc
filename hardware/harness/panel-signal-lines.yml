@@ -1,0 +1,241 @@
+metadata:
+  title: Panel signal lines (YLP-09V to nine panel terminal blocks)
+  description: >
+    The panel side of the nine per-panel signal lines. A JST YLP-09V mates the
+    YLR-09V in mcu-panel-io.yml, and its nine conductors fan out to the nine
+    panels, each ending in a crimp pin that lands in a terminal block on the
+    panel.
+    Every conductor is a different length, because each reaches a different
+    panel. Those lengths are the point of this file -- they are what sizes a
+    wire order.
+    Colors are the stock SMX panel map, so each conductor names its own panel.
+    STOCK. Recorded at the 2026-08-08 teardown. Descriptive only.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-PSIG-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  YLR09_MATE:
+    pn: JST YLR-09V
+    type: MCU side, 9-way
+    subtype: YL 9-circuit receptacle (pin contacts)
+    pincount: 9
+    pinlabels: [p2_YE, p1_OG, p0_RD, p5_BN, p4_BU, p3_GN, p8_BK, p7_WH, p6_GY]
+    notes: >
+      Shown for context only -- this is YLR09 in mcu-panel-io.yml, repeated here
+      so the handoff between the two drawings is visible. The arrow is a mating,
+      not a cable.
+
+  YLP09:
+    pn: JST YLP-09V
+    type: Panel side, 9-way
+    subtype: YL 9-circuit plug (socket contacts)
+    pincount: 9
+    pinlabels: [p2_YE, p1_OG, p0_RD, p5_BN, p4_BU, p3_GN, p8_BK, p7_WH, p6_GY]
+    notes: >
+      GENDER PREDICTION CONFIRMED: the audit forecast that the mate of a
+      YLR-09V receptacle must be a YLP-09V plug with female socket contacts.
+      That is the third such prediction to come back correct.
+      Pin numbering carries straight across the mating (pin 1 mates pin 1), so
+      the pinout is identical to the YLR-09V: pin 1 yellow, 2 orange, 3 red,
+      4 brown, 5 blue, 6 green, 7 black, 8 white, 9 grey.
+      COLORS NAME THE PANELS via the stock SMX map in docs/BOM.md -- 0=Red
+      1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black.
+      ALL NINE CONDUCTORS ARE 18 AWG, noticeably thick with a heavy jacket --
+      much heavier than the 22 AWG the same signals run on between this
+      connector and the MCU. The gauge steps UP on the long run.
+
+  PANEL_0:
+    type: Panel 0 (UL) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: >
+      Red conductor. Each of the nine lines ends in a CRIMP PIN, not a
+      connector housing -- the pin is what lands in the panel's terminal block.
+      The same is true of PANEL_1 through PANEL_8.
+      THE BLOCK IS 2-POSITION: one signal, one GND. ONLY THE SIGNAL POSITION IS
+      USED -- the GND position is empty in the stock build, so each panel's
+      signal line returns through the power ground rather than a dedicated
+      conductor.
+      WHICH POSITION IS WHICH IS MARKED ON THE BLOCK, so it needs no record
+      here; read the silkscreen. The pin order above is nominal.
+      NOTE THE CONTRAST WITH THIS PROJECT'S OWN DESIGN, which adopted a
+      dedicated twisted-pair return on both positions of its INT terminal (see
+      CLAUDE.md, carrier J214). The stock pad does not do that.
+
+  PANEL_1:
+    type: Panel 1 (U) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "Orange conductor. SHORTEST RUN of the nine. Block as PANEL_0: GND position unused."
+
+
+  PANEL_2:
+    type: Panel 2 (UR) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "Yellow conductor. Block as PANEL_0: GND position unused."
+
+
+  PANEL_3:
+    type: Panel 3 (L) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "Green conductor. Block as PANEL_0: GND position unused."
+
+
+  PANEL_4:
+    type: Panel 4 (C) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "Blue conductor. Block as PANEL_0: GND position unused."
+
+
+  PANEL_5:
+    type: Panel 5 (R) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "Brown conductor. Block as PANEL_0: GND position unused."
+
+
+  PANEL_6:
+    type: Panel 6 (DL) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "Grey conductor. LONGEST RUN of the nine. Block as PANEL_0: GND position unused."
+
+
+  PANEL_7:
+    type: Panel 7 (D) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "White conductor. Block as PANEL_0: GND position unused."
+
+
+  PANEL_8:
+    type: Panel 8 (DR) terminal block
+    subtype: 2-position terminal block, signal + unused GND
+    pincount: 2
+    pinlabels: [SIG, GND_unused]
+    notes: "Black conductor. Block as PANEL_0: GND position unused."
+
+
+cables:
+  W_P2:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.700
+    colors: [YE]
+    notes: >
+      YLP-09V pin 1 to panel 2 (UR). Yellow. 70 cm.
+
+  W_P1:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.600
+    colors: [OG]
+    notes: YLP-09V pin 2 to panel 1 (U). Orange. 60 cm -- shortest of the nine.
+
+  W_P0:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.900
+    colors: [RD]
+    notes: YLP-09V pin 3 to panel 0 (UL). Red. 90 cm.
+
+  W_P5:
+    category: bundle
+    gauge: 18 AWG
+    length: 1.000
+    colors: [BN]
+    notes: YLP-09V pin 4 to panel 5 (R). Brown. 100 cm.
+
+  W_P4:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.900
+    colors: [BU]
+    notes: YLP-09V pin 5 to panel 4 (C). Blue. 90 cm.
+
+  W_P3:
+    category: bundle
+    gauge: 18 AWG
+    length: 1.200
+    colors: [GN]
+    notes: YLP-09V pin 6 to panel 3 (L). Green. 120 cm.
+
+  W_P8:
+    category: bundle
+    gauge: 18 AWG
+    length: 1.300
+    colors: [BK]
+    notes: YLP-09V pin 7 to panel 8 (DR). Black. 130 cm.
+
+  W_P7:
+    category: bundle
+    gauge: 18 AWG
+    length: 1.200
+    colors: [WH]
+    notes: YLP-09V pin 8 to panel 7 (D). White. 120 cm.
+
+  W_P6:
+    category: bundle
+    gauge: 18 AWG
+    length: 1.500
+    colors: [GY]
+    notes: >
+      YLP-09V pin 9 to panel 6 (DL). Grey. 150 cm -- longest of the nine.
+      UNITS ARE CENTIMETRES, CONFIRMED 2026-08-08. The nine were first reported
+      as millimetres and were caught by two checks: the row-to-row step is 30
+      units against an SMX panel pitch of ~300 mm, and the nine sum to 930,
+      which is an impossible 0.93 m of wire for nine home runs but a sensible
+      9.3 m as centimetres. Confirmed with the user, and the same slip applied
+      to every stock length recorded that day -- see MEASUREMENTS.md.
+      THE SET FITS A FORMULA EXACTLY: 60 + 30 per row down + a column offset of
+      0 centre / 10 right / 30 left, in cm. All nine, no exceptions -- so the
+      MCU sits nearest panel 1 and slightly right of centre.
+      TOTAL 9.3 m of 18 AWG for the nine home runs, before any slack.
+
+connections:
+  - - YLR09_MATE: [1-9]
+    - ==>
+    - YLP09: [1-9]
+
+  - - YLP09: [1]
+    - W_P2: [1]
+    - PANEL_2: [1]
+  - - YLP09: [2]
+    - W_P1: [1]
+    - PANEL_1: [1]
+  - - YLP09: [3]
+    - W_P0: [1]
+    - PANEL_0: [1]
+  - - YLP09: [4]
+    - W_P5: [1]
+    - PANEL_5: [1]
+  - - YLP09: [5]
+    - W_P4: [1]
+    - PANEL_4: [1]
+  - - YLP09: [6]
+    - W_P3: [1]
+    - PANEL_3: [1]
+  - - YLP09: [7]
+    - W_P8: [1]
+    - PANEL_8: [1]
+  - - YLP09: [8]
+    - W_P7: [1]
+    - PANEL_7: [1]
+  - - YLP09: [9]
+    - W_P6: [1]
+    - PANEL_6: [1]

@@ -1,0 +1,195 @@
+metadata:
+  title: AC mains input harness
+  description: >
+    MAINS VOLTAGE -- 125/250 VAC. An ordinary PC power cord into the YD06 EMI
+    filter's C14 inlet, then a jacketed 16 AWG 3-conductor cable to a locking
+    IEC C13 (XUANHUA XC13-X). Both ends of the pad's mains path are therefore
+    standard IEC 60320 -- nothing proprietary.
+    Each of the three conductors is double-terminated at the filter end: a
+    locking female spade onto the 6.3 mm filter tab, plus a splice feeding an
+    18 AWG branch pigtail to a JST YLP-03V (which appears to mate with nothing).
+    Ground carries a third branch to an M4 chassis ring terminal.
+    Everything from the filter onward lives INSIDE the pad; only the detachable
+    cord is external. The 45 cm cable runs from the filter to the PSU's C14
+    inlet.
+    Recorded at the 2026-08-08 teardown. This is STOCK wiring being documented,
+    not a replacement design -- the project does not modify the AC side.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-AC-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  WALL:
+    type: Mains plug
+    subtype: 3-prong, wall end
+    pincount: 3
+    pinlabels: [L, N, GND]
+    notes: >
+      Ordinary PC power cord, C13 to mains plug. Purchased, user-replaceable,
+      nothing special about it -- not worth measuring or specifying further.
+
+  FILTER_IN:
+    pn: YD06
+    type: EMI filter, inlet side
+    subtype: IEC 60320 C14 inlet, 125/250 VAC, 6 A
+    pincount: 3
+    pinlabels: [L, N, GND]
+    notes: >
+      FILTER_IN and FILTER_OUT are the two sides of ONE physical part, drawn
+      separately because WireViz models a connector as a single pin set.
+      Inlet is a C14, confirmed by the fact that a standard PC power cord mates
+      with it. So the pad takes a completely ordinary detachable mains lead.
+
+  FILTER_OUT:
+    pn: YD06
+    type: EMI filter, filtered output side
+    subtype: quick-connect tabs
+    pincount: 3
+    pinlabels: [L, N, GND]
+    notes: >
+      Three tabs, each taking a locking female spade terminal crimped onto the
+      16 AWG cable. Tab width CONFIRMED 6.3 mm at teardown -- 4.8 mm terminals
+      are a different part and will not fit.
+
+  AC_OUT:
+    pn: XUANHUA XC13-X
+    type: IEC 60320 C13 connector, female
+    subtype: locking, cable mount, 13 A 250 V
+    pincount: 3
+    pinlabels: [L, N, GND]
+    notes: >
+      Far end of the 16 AWG cable. Markings recorded at teardown: XUANHUA,
+      E257089 (UL file number), XC13-X, C13, 13A 250V.
+      Standard C13, CONFIRMED: EARTH is the CENTRE contact, L and N are the two
+      outer ones, and the D-shaped shell means it only mates one way round, so
+      L/N cannot be reversed by plugging it in backwards.
+      As built, the black conductor is L, white is N, green is the centre earth.
+      LOCKING VARIANT -- it needs its release pressed to come off, it is not a
+      straight pull. Do not lever it.
+      Mates the C14 inlet of the YU1208 PSU inside the pad, 45 cm away.
+
+  YLP:
+    pn: JST YLP-03V
+    type: JST YL 3-pin plug
+    subtype: YLP-03V, plug (socket contacts)
+    pincount: 3
+    pinlabels: [L, GND, N]
+    notes: >
+      THE COLORS ARE THE RELIABLE RECORD, NOT THE PIN NUMBERS. As built:
+      BROWN on one end contact, GREEN in the MIDDLE, BLUE on the other end
+      contact. Ground is in the centre. That statement is true however you
+      choose to number the housing, so wire by color and this cannot go wrong.
+      GENDER SETTLED 2026-08-08, AND THE ORIGINAL READING WAS RIGHT: it is a
+      PLUG, YLP-03V, carrying FEMALE SOCKET contacts (SYF). It was briefly
+      "corrected" to a YLR-03V on the mistaken belief that the male-looking half
+      is the plug; JST's naming is the reverse -- receptacle housings take pin
+      contacts. See PARTS.md, "Connector gender conventions".
+      That reversion takes the pin numbering with it, because receptacle and
+      plug housings number as mirror images: BROWN/L IS BACK ON PIN 1, blue/N on
+      pin 3. This is the second time these two numbers have moved, which is
+      exactly why the color statement above is the primary record.
+      APPEARS TO BE A DEAD END: nothing was found mated to it at teardown, so it
+      is most likely a leftover from an earlier revision or another product in
+      the same family. Recorded because it is physically present and carries
+      LIVE MAINS whenever the pad is plugged in -- an unmated live 3-way
+      connector loose in the chassis is worth knowing about, and is a candidate
+      for removal or insulation during reassembly.
+
+  RING:
+    type: Chassis ground ring terminal
+    subtype: ring lug, 4.0 mm ID / 6.5 mm OD
+    pincount: 1
+    pinlabels: [GND]
+    notes: >
+      Bonds the incoming mains earth to the pad chassis. Safety-critical --
+      this connection must be remade on reassembly.
+      Dimensions CONFIRMED at teardown: 4.0 mm inner diameter, 6.5 mm outer.
+      Suits an M4 stud or screw.
+      Bonding point is on the frame near where mains enters the pad. Exact
+      location not photographed -- low priority, since it is obvious once the
+      filter is in front of you, but a photo would remove all doubt at
+      reassembly time.
+
+cables:
+  W_CORD:
+    category: bundle
+    gauge: 18 AWG
+    length: 1.8
+    colors: [BK, WH, GN]
+    notes: >
+      Standard PC power cord. PURCHASED, user-replaceable, not built here --
+      length, gauge and colors shown are nominal and deliberately not measured.
+      Nothing downstream depends on them.
+
+  W_MAIN:
+    category: bundle
+    gauge: 16 AWG
+    length: 0.450
+    colors: [BK, WH, GN]
+    notes: >
+      Jacketed 3-conductor. Colors CONFIRMED at teardown: black = L,
+      white = N, green = GND.
+      Terminated at the filter end with three locking female spade terminals,
+      6.3 mm.
+      LENGTH IS 45 cm. Build to 45 cm; 43 cm was the raw measurement and the
+      extra 2 cm is deliberate slack.
+      AN EARLIER NOTE HERE INSISTED THIS WAS "GENUINELY 45 mm, not a units
+      slip", and built a rationale on it about the C13 mating with something
+      immediately adjacent. That was wrong on both counts -- the whole set of
+      stock lengths recorded on 2026-08-08 was reported in mm and meant in cm,
+      corrected the same day. 2 cm of slack also makes sense where 2 mm did
+      not.
+
+  W_YLP:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.150
+    colors: [BN, GN, BU]
+    notes: >
+      Three SEPARATE ~15 cm pigtails, each spliced into the corresponding
+      conductor of W_MAIN near the filter end. They are 18 AWG and are NOT part
+      of the 16 AWG jacket -- drawn as a bundle only for legibility.
+      Colors CONFIRMED at teardown, and they do NOT match W_MAIN:
+      L = BROWN, GND = GREEN, N = BLUE. The wire order shown follows the YLP
+      pinout (L, GND, N), so the middle wire is the ground.
+
+  W_RING:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.200
+    colors: [GNYE]
+    notes: >
+      One separate ~20 cm 18 AWG pigtail spliced into the GROUND conductor of
+      W_MAIN, running to the chassis ring terminal. GREEN WITH YELLOW STRIPE --
+      distinct from the plain green of the GND pigtail going to the YLP, which
+      is how you tell the two ground branches apart.
+      So the ground conductor carries THREE terminations at the filter end:
+      spade, plain-green YLP branch, green/yellow ring-terminal branch.
+
+connections:
+  - - WALL: [1-3]
+    - W_CORD: [1-3]
+    - FILTER_IN: [1-3]
+
+  - - FILTER_OUT: [1-3]
+    - W_MAIN: [1-3]
+    - AC_OUT: [1-3]
+
+  - - FILTER_OUT: [1]
+    - W_YLP: [1]
+    - YLP: [1]
+
+  - - FILTER_OUT: [3]
+    - W_YLP: [2]
+    - YLP: [2]
+
+  - - FILTER_OUT: [2]
+    - W_YLP: [3]
+    - YLP: [3]
+
+  - - FILTER_OUT: [3]
+    - W_RING: [1]
+    - RING: [1]

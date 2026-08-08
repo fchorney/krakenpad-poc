@@ -1,0 +1,225 @@
+metadata:
+  title: Panel data bus chain (RJ-12 serpentine, all 9 panels)
+  description: >
+    The TX-only data bus from the MCU, daisy-chained through all nine panels on
+    RJ-12 cable. Each panel has TWO RJ-12 jacks -- one in, one out -- and passes
+    the bus along to the next.
+    CHAIN ORDER IS A SERPENTINE, confirmed at teardown:
+    MCU then 0(UL) then 3(L) then 6(DL) then 7(D) then 4(C) then 1(U) then
+    2(UR) then 5(R) then 8(DR).
+    THIS MATCHES THE ORDER ALREADY IN CLAUDE.md, which came from a logic capture
+    of the stock protocol rather than from the physical pad -- so the two
+    independent sources agree exactly.
+    NINE CABLES: one long run from the MCU to panel 0, then eight identical
+    shorter ones down the chain. Panel 8 is last and its output jack is empty.
+    STOCK. Recorded at the 2026-08-08 teardown. Descriptive only.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-DCHAIN-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  MCU:
+    pn: RJ-12 receptacle, marked 623K
+    type: MCU data bus out
+    subtype: 6-position modular jack
+    pincount: 6
+    pinlabels: [unused, unused, DATA, GND, unused, unused]
+    notes: >
+      Shown for context only -- this is RJ12 in mcu-panel-io.yml, repeated here
+      so the handoff between the two drawings is visible.
+      DATA on pin 3 (from the Arduino's D1/TX), GND on pin 4. The centre pair.
+
+  P0:
+    type: Panel 0 (UL)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: >
+      ONE PHYSICAL PANEL PCB with TWO RJ-12 jacks, drawn as a single 4-pin
+      connector because WireViz models a connector as one pin set. Pins 1-2 are
+      the IN jack's used positions (3 and 4 of six), pins 3-4 the OUT jack's.
+      The other four positions of each jack are unused.
+      THE PANEL BOTH TAPS AND PASSES ON. The bus continues to the next panel,
+      and the panel also has to read it, since this is how it receives its LED
+      data. Only the pass-through was directly observed; the tap is inferred
+      from the panel doing anything at all with the data.
+      THE TWO JACKS ARE WIRED PIN-FOR-PIN, not mirrored -- CONFIRMED at
+      teardown, upgrading what was previously a deduction. This is what lets a
+      straight-through modular lead work end to end: the two used conductors are
+      the centre pair, so a mirror inside any panel would swap DATA and GND for
+      everything downstream, and with nine in series one mirrored panel would
+      break the chain from that point on.
+      All nine panels are identical in this respect.
+
+  P3:
+    type: Panel 3 (L)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: Identical to P0.
+
+  P6:
+    type: Panel 6 (DL)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: Identical to P0. End of the left column, and the chain turns here.
+
+  P7:
+    type: Panel 7 (D)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: Identical to P0.
+
+  P4:
+    type: Panel 4 (C)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: Identical to P0. The centre panel sits fifth in the chain, not first.
+
+  P1:
+    type: Panel 1 (U)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: Identical to P0. The chain turns again here.
+
+  P2:
+    type: Panel 2 (UR)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: Identical to P0.
+
+  P5:
+    type: Panel 5 (R)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: Identical to P0.
+
+  P8:
+    type: Panel 8 (DR)
+    subtype: two RJ-12 jacks, in and out
+    pincount: 4
+    pinlabels: [IN_DATA, IN_GND, OUT_DATA, OUT_GND]
+    notes: >
+      LAST PANEL IN THE CHAIN. Its OUT jack is EMPTY -- nothing downstream.
+      Same board as the other eight; being last is positional. Note this mirrors
+      the power chain, where panels 6, 7 and 8 each have an unmated output.
+      NO TERMINATION of any kind was found on the empty jack.
+
+cables:
+  W_MCU_P0:
+    category: bundle
+    wirecount: 2
+    length: 0.600
+    notes: >
+      60 cm, MCU to panel 0. THE ONE LONG CABLE in the chain -- every other run
+      is 45 cm, because this one has to reach out of the MCU box.
+      A STANDARD MODULAR PATCH LEAD with a plug moulded or crimped on each end.
+      MUST BE STRAIGHT-THROUGH, not the usual reversed telephone type: only the
+      centre pair is used, and a reversed lead would swap DATA and GND. See the
+      note on RJ12 in mcu-panel-io.yml -- confirmed functionally, by replacement
+      leads working.
+      FOUR CONDUCTORS -- 6P4C. A 6P4C lead populates positions 2, 3, 4 and 5, so
+      the centre pair this bus uses is covered and positions 2 and 5 carry
+      conductors that go nowhere. Drawn here as the two used conductors only.
+      GAUGE NOT RECORDED and it does not matter -- this is a signal pair on a
+      short run, and any modular patch lead is adequate.
+      WHAT DOES MATTER when buying replacements: 6P4C or better, and
+      STRAIGHT-THROUGH.
+
+  W_0_3:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: >
+      45 cm, panel 0 to panel 3. EIGHT IDENTICAL CABLES of this length make up
+      the rest of the chain -- see the connections list for the order. Same
+      straight-through requirement and same unrecorded conductor count as
+      W_MCU_P0.
+
+  W_3_6:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: 45 cm, panel 3 to panel 6.
+
+  W_6_7:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: 45 cm, panel 6 to panel 7. The chain turns across the bottom row here.
+
+  W_7_4:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: 45 cm, panel 7 to panel 4.
+
+  W_4_1:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: 45 cm, panel 4 to panel 1.
+
+  W_1_2:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: 45 cm, panel 1 to panel 2. The chain turns across the top row here.
+
+  W_2_5:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: 45 cm, panel 2 to panel 5.
+
+  W_5_8:
+    category: bundle
+    wirecount: 2
+    length: 0.450
+    notes: 45 cm, panel 5 to panel 8. Last cable in the chain.
+
+connections:
+  - - MCU: [3,4]
+    - W_MCU_P0: [1,2]
+    - P0: [1,2]
+
+  - - P0: [3,4]
+    - W_0_3: [1,2]
+    - P3: [1,2]
+
+  - - P3: [3,4]
+    - W_3_6: [1,2]
+    - P6: [1,2]
+
+  - - P6: [3,4]
+    - W_6_7: [1,2]
+    - P7: [1,2]
+
+  - - P7: [3,4]
+    - W_7_4: [1,2]
+    - P4: [1,2]
+
+  - - P4: [3,4]
+    - W_4_1: [1,2]
+    - P1: [1,2]
+
+  - - P1: [3,4]
+    - W_1_2: [1,2]
+    - P2: [1,2]
+
+  - - P2: [3,4]
+    - W_2_5: [1,2]
+    - P5: [1,2]
+
+  - - P5: [3,4]
+    - W_5_8: [1,2]
+    - P8: [1,2]

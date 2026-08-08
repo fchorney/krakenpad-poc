@@ -1,0 +1,157 @@
+metadata:
+  title: 5V distribution harness
+  description: >
+    The 5 V side of the Daygreen converter. Two fork terminals, one 5 V and one
+    GND, each carrying THREE spliced 18 AWG conductors: a short pair to a JST
+    SM 2P receptacle, and a longer doubled pair to a 4-way connector.
+    ALL CONDUCTORS ARE 18 AWG -- re-measured 2026-08-08. They were recorded as
+    12 AWG, which also contradicted 5v-columns.yml downstream of the same 4-way;
+    that disagreement is now resolved in favour of 18 AWG.
+    The 4-way carries 5 V and GND on TWO contacts each rather than one. That is
+    a current-capacity measure, but do NOT repeat the old justification that it
+    follows from 12 AWG conductors -- see the note on FOURWAY.
+    Everything here is 5 V. See dcdc-5v.yml -- the stock pad runs 5 V for
+    everything downstream of the converter.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-5V-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  DCDC_OUT:
+    pn: Daygreen B15-1224-05
+    type: DC-DC converter, 5V output
+    subtype: screw terminals, 5 V 15 A max
+    pincount: 2
+    pinlabels: [V5, GND]
+    notes: >
+      Shown for context only -- this is DCDC_OUT in dcdc-5v.yml, repeated here
+      so the handoff between the two drawings is visible. The arrow is a bolted
+      joint, not a cable.
+
+  FORK_V5:
+    type: Fork terminal, 5V
+    subtype: 4.0 mm ID / 6.5 mm OD
+    pincount: 4
+    pinlabels: [bolt, to_SM, to_4way_wh, to_4way_rd]
+    notes: >
+      ONE physical fork terminal, bolted to the converter's 5 V output screw
+      terminal. Pin "bolt" is the lug itself; the other three are the three
+      18 AWG conductors spliced to it, drawn separately so the fan-out is
+      visible.
+      Same 4.0 mm ID / 6.5 mm OD as the 12 V input forks and the chassis ring
+      terminal -- all the fork and ring lugs in this pad are that size.
+
+  FORK_GND:
+    type: Fork terminal, GND
+    subtype: 4.0 mm ID / 6.5 mm OD
+    pincount: 4
+    pinlabels: [bolt, to_SM, to_4way_gn, to_4way_bk]
+    notes: >
+      ONE physical fork terminal, the GND counterpart of FORK_V5, bolted to the
+      converter's GND output screw terminal. Three spliced 18 AWG conductors.
+
+  SM2:
+    pn: JST SMR-02V-B
+    type: 5V branch, 2-way
+    subtype: SM 2-way receptacle (pin contacts)
+    pincount: 2
+    pinlabels: [V5, GND]
+    notes: >
+      Pin 1 = 5 V (red), pin 2 = GND (black) -- RE-CONFIRMED 2026-08-08,
+      unchanged. 18 AWG (recorded as 12 AWG before the re-measure), on short
+      ~7 cm tails.
+      Note this is an SM 2P, whereas the underglow connector in
+      12v-distribution.yml is an SM 3P -- different circuit counts, so they
+      cannot be cross-plugged.
+      GENDER RE-CONFIRMED 2026-08-08 and it was already RIGHT: RECEPTACLE, and
+      it visibly carries MALE PINS -- which is what JST's naming means. Its mate
+      must be an SMP-02V-BC (plug, female socket contacts).
+      Where this goes is documented separately, and that mate is not yet
+      recorded.
+
+  FOURWAY:
+    pn: JST VLR-04V
+    type: 5V branch, 4-way
+    subtype: VL series, 4-circuit receptacle (pin contacts)
+    pincount: 4
+    pinlabels: [GND_gn, V5_wh, V5_rd, GND_bk]
+    notes: >
+      GENDER RE-CONFIRMED 2026-08-08 and it was already RIGHT: RECEPTACLE, so it
+      carries MALE PIN contacts (SVM). Its mate, VLP-04V in 5v-columns.yml, is
+      the plug with female socket contacts (SVF). This VL pair and the two SM
+      connectors were the only JST parts in the pad recorded correctly first
+      time -- the whole YL side was backwards.
+      PIN 1 = GREEN (GND), PIN 2 = WHITE (5 V), PIN 3 = RED (5 V),
+      PIN 4 = BLACK (GND) -- RE-CONFIRMED 2026-08-08, unchanged. Grounds outboard, 5 V inboard -- a symmetric
+      arrangement, and easy to get wrong from memory, so wire by color.
+      5 V AND GND ARE EACH DOUBLED across two contacts. That is a
+      current-capacity measure. Both 5 V contacts are the same net; so are both
+      grounds.
+      THE CONDUCTORS ARE 18 AWG, not the 12 AWG recorded before 2026-08-08, so
+      the old reasoning that the doubling 'follows from 12 AWG and the 15 A
+      rating' does not hold and has been dropped. What is observed: the pad's
+      ENTIRE panel load (~8.1 A at full white) crosses this connector on two
+      18 AWG conductors, roughly 4 A each, over a ~20 cm run. Recorded as an
+      observation; whether it is adequate is a keep-or-replace question for
+      after the stock record is finished.
+      VL SERIES, NOT YL. This was first read as a YLR-04V; VLR-04V is correct.
+      VL is JST's heavier power series, which is why it looks bigger than the
+      YL parts on the 12 V side. VL accepts 22-12 AWG, so 18 AWG sits
+      comfortably inside its range. The two
+      series are easy to confuse by eye and their part numbers differ by one
+      letter -- worth care when ordering.
+      Where this goes is documented separately.
+
+cables:
+  W_SM:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.070
+    colors: [RD, BK]
+    notes: >
+      About 7 cm. Red = 5 V, black = GND.
+
+  W_4WAY:
+    category: bundle
+    gauge: 18 AWG
+    length: 0.200
+    colors: [GN, WH, RD, BK]
+    notes: >
+      About 20 cm. Four separate 18 AWG conductors, drawn as a bundle for
+      legibility. Wire order here follows the 4-way's pin order.
+      NOTE THE UNUSUAL COLORS: on the 5 V pair, red and WHITE are both 5 V; on
+      the ground pair, black and GREEN are both GND. Green is a ground here, not
+      an earth in the mains sense, and white is a supply rail, not a neutral or
+      a data line. This is the one harness where the mains-side color instincts
+      built up in ac-input.yml will actively mislead.
+
+connections:
+  - - DCDC_OUT: [1]
+    - ==>
+    - FORK_V5: [1]
+  - - DCDC_OUT: [2]
+    - ==>
+    - FORK_GND: [1]
+
+  - - FORK_V5: [2]
+    - W_SM: [1]
+    - SM2: [1]
+  - - FORK_GND: [2]
+    - W_SM: [2]
+    - SM2: [2]
+
+  - - FORK_GND: [3]
+    - W_4WAY: [1]
+    - FOURWAY: [1]
+  - - FORK_V5: [3]
+    - W_4WAY: [2]
+    - FOURWAY: [2]
+  - - FORK_V5: [4]
+    - W_4WAY: [3]
+    - FOURWAY: [3]
+  - - FORK_GND: [4]
+    - W_4WAY: [4]
+    - FOURWAY: [4]

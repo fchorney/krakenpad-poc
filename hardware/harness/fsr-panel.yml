@@ -1,0 +1,64 @@
+metadata:
+  title: FSR sensor lead (internal to a panel)
+  description: >
+    One of four per panel, one per cardinal edge, entirely inside the panel --
+    never leaves it. Interlink FSR 408 long-strip sensor into the carrier board.
+    The 10k pull-down to GND lives on the PCB, not in this harness, so an
+    unplugged connector reads near 0, indistinguishable from an unloaded FSR.
+    No unplugged-sensor detection is needed or wanted.
+    STOCK FINDING 2026-08-08, and it is the constraint that fixes connector
+    placement: the FSR's own pigtail is RED AND BLACK 30 AWG, extremely fine,
+    and only ABOUT 10 cm long. There is no extension and no inline joint -- the
+    sensor reaches its connector directly or not at all.
+    THAT 10 cm IS WHY THE FSR CONNECTORS SIT ON THE CARDINAL EDGES of the panel
+    PCB. It is not a styling choice; a centre-mounted connector would simply be
+    out of reach of the sensors. Carrier J201 (W), J202 (S), J203 (E), J206 (N)
+    exist where they do because of this measurement.
+  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+  pn: HARNESS-FSR-01
+  qty_per_pad: 36
+
+options:
+  color_mode: full
+
+connectors:
+  FSR:
+    pn: Interlink FSR 408
+    type: FSR 408 sensor tail
+    subtype: JST PHR-2 (stock lead)
+    pincount: 2
+    pinlabels: [S1, S2]
+    notes: >
+      The FSR is not polarised -- either lead may go to 3.3V. On the board, one
+      side ties to 3.3V and the other to both the ADC pin and the top of the
+      10k pull-down. Never wire an FSR lead directly to GND.
+      PHR-2 is CONFIRMED against a real lead (the earlier JST-XH assumption was
+      corrected 2026-07-10). Closed -- do not re-flag.
+
+  CARRIER:
+    pn: JST B2B-PH-K-S, LCSC C131337
+    type: Panel carrier FSR header
+    subtype: JST PH 2-pin, top entry
+    pincount: 2
+    pinlabels: [S1, S2]
+    notes: >
+      Four per carrier: J201 west, J202 south, J203 east, J206 north. The
+      voltage-divider resistors are on the brain, not here. PH at this end vs
+      XH on the master INT connectors is deliberate -- the two cannot be
+      cross-plugged.
+
+cables:
+  W1:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.15
+    colors: [RD, BK]
+    notes: >
+      TODO LENGTH -- measure the stock FSR tail plus any extension. Also record
+      whether all four edges use the same length or whether the sensors sit at
+      different distances from the carrier.
+
+connections:
+  - - FSR: [1-2]
+    - W1: [1-2]
+    - CARRIER: [1-2]

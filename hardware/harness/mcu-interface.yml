@@ -1,0 +1,135 @@
+metadata:
+  title: MCU interface harness (14-pin KF2510, analog-side header)
+  description: >
+    THIS CLOSES "WHERE DOES THE 5 V SM 2P GO": it goes to the MCU. The 5 V branch
+    off the converter and the underglow DATA line both land on a 14-pin KF2510
+    crimp housing that pushes straight onto the Arduino Micro's own header pins.
+    So the Arduino is powered from the pad's 5 V rail, and the underglow data
+    signal ORIGINATES AT THE ARDUINO on A1, travelling back out through this same
+    housing and cable.
+    ONLY THREE OF THE FOURTEEN POSITIONS CARRY A WIRE -- pins 5, 12 and 14.
+    EVERY position has a CONTACT fitted; the other eleven are crimps with no
+    wire attached, there so the housing grips the header evenly. They are
+    neither empty cavities nor undocumented conductors.
+    The Micro has TWO header rows and a KF2510 on each. This file is the ANALOG
+    side; the opposite row is recorded separately.
+    STOCK. Recorded at the 2026-08-08 teardown. Descriptive only.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-MCU-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  SM2_MATE:
+    pn: JST SMP-02V-BC
+    type: 5V branch from converter
+    subtype: SM 2-way plug (socket contacts)
+    pincount: 2
+    pinlabels: [V5, GND]
+    notes: >
+      Pin 1 = 5 V (red), pin 2 = GND (black), 22 AWG.
+      This is the mate of SM2 in 5v-distribution.yml, and it is the answer to
+      the open question of where that branch went.
+      GENDER PREDICTION CONFIRMED: the audit forecast that the mate of an
+      SMR-02V-B receptacle must be an SMP-02V-BC plug with female socket
+      contacts, and it is.
+      NOTE THE GAUGE STEP: the converter side of this mating is 18 AWG, this
+      side is 22 AWG. The MCU draws very little, so the step down happens at the
+      connector rather than at a splice.
+
+  YLP01:
+    pn: JST YLP-01V
+    type: Underglow DATA out
+    subtype: YL 1-way plug (socket contact)
+    pincount: 1
+    pinlabels: [DATA]
+    notes: >
+      White, 22 AWG. Mates YLR01 in 12v-distribution.yml, which feeds SM3 pin 2
+      and from there the underglow strips.
+      GENDER PREDICTION CONFIRMED: the audit forecast the MCU-side half must be
+      a YLP-01V plug (female socket) to mate the YLR-01V receptacle, and it is.
+      THIS COMPLETES THE UNDERGLOW DATA CHAIN end to end:
+      Arduino A1, then this housing's pin 5, then this YLP-01V, then YLR-01V,
+      then SM3 pin 2, then the strips.
+
+  P14:
+    pn: KF2510 or clone, 14-circuit crimp housing
+    type: MCU interface connector
+    subtype: 2.54 mm pitch crimp housing, female contacts, 14 positions
+    pincount: 14
+    pinlabels: [D13, 3V3, AREF, A0, A1_DATA, A2, A3, A4, A5, NC, NC, V5, RESET, GND]
+    notes: >
+      The only marking on the housing is "2510" -- a series marking, not a part
+      number. Identified at teardown as a KF2510 or clone, the CRIMP HOUSING
+      variant, i.e. the wire-side female half.
+      NO PLUG/RECEPTACLE GENDER QUESTION APPLIES. This is wire-to-board: a crimp
+      housing (female) onto a pin header (male), same vocabulary as JST XH and
+      PH. Do not drag it into the plug/receptacle confusion in PARTS.md.
+      IT PUSHES DIRECTLY ONTO THE ARDUINO MICRO'S OWN HEADER PINS -- there is no
+      carrier or adapter board. The pin labels above ARE the Micro's pin names
+      for the 14 positions the housing covers.
+      ONLY PINS 5, 12 AND 14 CARRY A WIRE: 5 = underglow DATA (white),
+      12 = 5 V (red), 14 = GND (black).
+      EVERY POSITION HAS A CONTACT FITTED, wired or not -- the unused ones are
+      crimps with no wire, purely so the housing grips the header evenly. Do not
+      read an unwired position as an empty cavity.
+      POSITION MAP VERIFIED against the official Arduino Micro pinout
+      (Pinout-Micro_latest.pdf). Counting from D13 along that header row, the
+      teardown reading lands exactly: position 5 = A1, position 12 = +5V,
+      position 14 = GND. Four independent points agree, so the alignment is
+      confirmed rather than assumed.
+      THE HOUSING COVERS 14 OF THE ROW'S 17 PINS. VIN, CIPO/D14 and SCK/D15 sit
+      past its end and are not covered.
+      SO THE STOCK DESIGN USES NONE OF THE MICRO'S ANALOG INPUTS -- A0 and A2-A5
+      are all unconnected. A1 is used, but as a digital OUTPUT driving the LED
+      data line. AREF, 3V3 and RESET are unconnected too.
+
+  MICRO:
+    pn: Arduino Micro
+    type: Stock MCU, analog-side header row
+    subtype: 0.1 in male header pins, 17 per row
+    pincount: 14
+    pinlabels: [D13, 3V3, AREF, A0, A1, A2, A3, A4, A5, NC, NC, V5, RESET, GND]
+    notes: >
+      The stock pad's MCU. Only the 14 header positions this housing covers are
+      drawn; the row physically continues with VIN, CIPO/D14 and SCK/D15, and
+      the board has a second 17-pin row on the opposite side with its own
+      KF2510 -- recorded separately.
+      A1 DRIVES THE UNDERGLOW DATA LINE -- an analog-capable pin used as a
+      digital output. 5 V and GND power the board from the pad's 5 V rail.
+      The board carries plain male header pins on both sides and the KF2510
+      housings push straight onto them. NO CARRIER OR ADAPTER PCB is involved.
+
+cables:
+  W_MCU:
+    category: bundle
+    gauge: 22 AWG
+    length: 0.250
+    colors: [RD, BK, WH]
+    notes: >
+      About 25 cm. Three conductors running together from the 14-pin housing,
+      then splitting: red and black to the SM 2P, white to the YLP-01V.
+      Red = 5 V, black = GND, white = underglow DATA.
+      These are the ONLY three conductors in this housing, though every position
+      in it carries a contact.
+      POWER AND DATA SHARE THIS BUNDLE. Worth knowing, though at 25 cm and with
+      the underglow refresh rate this is not a signal-integrity concern in the
+      stock design.
+
+connections:
+  - - SM2_MATE: [1]
+    - W_MCU: [1]
+    - P14: [12]
+  - - SM2_MATE: [2]
+    - W_MCU: [2]
+    - P14: [14]
+
+  - - YLP01: [1]
+    - W_MCU: [3]
+    - P14: [5]
+
+  - - P14: [1-14]
+    - ==>
+    - MICRO: [1-14]

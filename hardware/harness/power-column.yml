@@ -1,0 +1,119 @@
+metadata:
+  title: 12V power column harness
+  description: >
+    One of three identical parallel column chains. Left = panels 0,3,6;
+    Center = 1,4,7; Right = 2,5,8. 12V runs from the PSU terminals DIRECTLY to
+    each column's first panel -- the master PCB is NOT in the 12V distribution
+    path. Fork lugs at the PSU end, Micro-Fit 3.0 2-pin at the panel end.
+    Max chain load = 3 panels x 25 LEDs x ~36mA = ~2.7A, inside the 5A/pin rating.
+  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+  pn: HARNESS-PWR-01
+  qty_per_pad: 3
+
+options:
+  color_mode: full
+
+connectors:
+  PSU_12V:
+    type: 12V distribution point, +12V
+    subtype: fork lug -- UNCONFIRMED
+    pincount: 1
+    pinlabels: [V12]
+    notes: >
+      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
+      captive output ending in a JST YL 2-way -- it has no terminal block and
+      no ground stud. Whatever fans 12V out to the three columns is not yet
+      documented, so these lug connections are UNCONFIRMED. See
+      MEASUREMENTS.md, Open questions.
+  PSU_GND:
+    type: 12V distribution point, GND
+    subtype: fork lug -- UNCONFIRMED
+    pincount: 1
+    pinlabels: [GND]
+    notes: >
+      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
+      captive output ending in a JST YL 2-way -- it has no terminal block and
+      no ground stud. Whatever fans 12V out to the three columns is not yet
+      documented, so these lug connections are UNCONFIRMED. See
+      MEASUREMENTS.md, Open questions.
+
+  P0_IN:
+    pn: Micro-Fit 3.0 2-pin
+    type: Panel A PWR IN
+    subtype: Micro-Fit 3.0, 2-pin
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: First panel in the column (0 / 1 / 2 depending on column).
+  P0_OUT:
+    pn: Micro-Fit 3.0 2-pin
+    type: Panel A PWR OUT
+    subtype: Micro-Fit 3.0, 2-pin
+    pincount: 2
+    pinlabels: [V12, GND]
+
+  P1_IN:
+    pn: Micro-Fit 3.0 2-pin
+    type: Panel B PWR IN
+    subtype: Micro-Fit 3.0, 2-pin
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: Middle panel (3 / 4 / 5).
+  P1_OUT:
+    pn: Micro-Fit 3.0 2-pin
+    type: Panel B PWR OUT
+    subtype: Micro-Fit 3.0, 2-pin
+    pincount: 2
+    pinlabels: [V12, GND]
+
+  P2_IN:
+    pn: Micro-Fit 3.0 2-pin
+    type: Panel C PWR IN
+    subtype: Micro-Fit 3.0, 2-pin
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      Last panel in the column (6 / 7 / 8). Its PWR OUT is left empty --
+      all panels are identical, so end-of-chain just means an unused connector.
+
+cables:
+  W_PSU:
+    category: bundle
+    gauge: 20 AWG
+    length: 1.0
+    colors: [RD, BK]
+    notes: >
+      TODO LENGTH per column -- the three columns are different lengths.
+      Stock jacketed 2x20 AWG. Measure PSU-to-first-panel for each of the
+      three columns and record separately in MEASUREMENTS.md.
+
+  W_JUMP_A:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.35
+    colors: [RD, BK]
+    notes: TODO LENGTH. Panel-to-panel jumper, first to middle.
+
+  W_JUMP_B:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.35
+    colors: [RD, BK]
+    notes: >
+      TODO LENGTH. Middle to last. Likely identical to W_JUMP_A -- confirm
+      from the stock harness before assuming one jumper part number covers both.
+
+connections:
+  - - PSU_12V: [1]
+    - W_PSU: [1]
+    - P0_IN: [1]
+  - - PSU_GND: [1]
+    - W_PSU: [2]
+    - P0_IN: [2]
+
+  - - P0_OUT: [1-2]
+    - W_JUMP_A: [1-2]
+    - P1_IN: [1-2]
+
+  - - P1_OUT: [1-2]
+    - W_JUMP_B: [1-2]
+    - P2_IN: [1-2]

@@ -1,0 +1,151 @@
+metadata:
+  title: 12V PSU and its output harness
+  description: >
+    Picks up where ac-input.yml ends. The locking C13 plugs into the C14 inlet
+    of a 102 W 12 V switching supply (model YU1208), whose output cable runs
+    through an unidentified joint under heatshrink to a JST YL 2-way connector
+    carrying 12 V and GND into the rest of the pad.
+    Recorded at the 2026-08-08 teardown. STOCK wiring, documented not redesigned.
+    SEE THE CAPACITY NOTE ON THE PSU BELOW -- 8.5 A is close to the calculated
+    all-panels-white draw, and that is worth a decision, not just a record.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-PWR12-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  AC_OUT:
+    pn: XUANHUA XC13-X
+    type: IEC 60320 C13 connector, female
+    subtype: locking, 13 A 250 V
+    pincount: 3
+    pinlabels: [L, N, GND]
+    notes: >
+      Shown for context only -- this is the far end of ac-input.yml, repeated
+      here so the handoff between the two drawings is visible. The arrow is a
+      mating, not a cable.
+
+  PSU_IN:
+    pn: YU1208
+    type: 12V switching PSU, AC inlet side
+    subtype: IEC 60320 C14 inlet
+    pincount: 3
+    pinlabels: [L, N, GND]
+    notes: >
+      Mates the locking C13 at the end of ac-input.yml. Mounted immediately
+      45 cm from the EMI filter along the mains cable.
+      Nameplate, read directly off the back of the supply at teardown:
+      102 W, model YU1208.
+      INPUT  AC 100-240 V, 1.8 A, 50-60 Hz.
+      OUTPUT DC 12 V, 8.5 A.
+      Polarity marking: OUTER = NEGATIVE, INNER = POSITIVE.
+
+  PSU_OUT:
+    pn: YU1208
+    type: 12V switching PSU, DC output side
+    subtype: DC 12 V, 8.5 A
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      PSU_IN and PSU_OUT are the two sides of ONE physical supply, drawn
+      separately because WireViz models a connector as a single pin set.
+      CAPACITY IS TIGHT, AND ACKNOWLEDGED. 8.5 A against this project's own
+      panel budget of 9 panels x 25 LEDs x 36 mA = 8.1 A at full white, before
+      any underglow. Roughly 95 percent loaded on the panels alone.
+      DECISION 2026-08-08: a larger replacement supply is likely to be bought.
+      Not yet specified -- see README.md under "PSU capacity".
+      The pad is believed to be a Gen 5, but CLAUDE.md records Gen 5 as
+      12 V 15 A, which this is not. Either the manual figure is wrong or these
+      pads shipped with a different supply. Unresolved, and not worth chasing:
+      the supply is being replaced regardless.
+
+  JOINT:
+    type: Inline joint, concealed under heatshrink
+    subtype: UNIDENTIFIED
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      An inline connector or splice, wrapped in heatshrink, joining the PSU's
+      own 18 AWG output cable to the 20 AWG tail. NOT OPENED at teardown and
+      deliberately not guessed at.
+      Most likely a barrel plug and socket pair, since the supply is labelled
+      with barrel polarity (outer negative, inner positive) and brick supplies
+      of this type normally terminate in one -- but that is inference, not
+      observation. It does not matter electrically: 12 V and GND pass straight
+      through with the polarity shown.
+
+  YL2:
+    pn: JST YLR-02V
+    type: JST YL 2-way receptacle
+    subtype: YLR-02V, receptacle (pin contacts)
+    pincount: 2
+    pinlabels: [GND, V12]
+    notes: >
+      THE COLORS ARE THE RELIABLE RECORD: RED = 12 V, BLACK = GND.
+      PIN 1 = GND (BLACK), PIN 2 = 12 V (RED) -- re-read off the part
+      2026-08-08. This REVERSES the earlier reading, which had 12 V on pin 1;
+      that one was derived under the wrong gender call, not observed.
+      GENDER RESOLVED 2026-08-08: this is the RECEPTACLE, carrying MALE PIN
+      contacts (SYM). It was recorded as a YLP-02V, which was backwards -- see
+      PARTS.md, "Connector gender conventions", for why JST's receptacle is the
+      male half. Its mate at the star point is the plug (YLP_A in
+      12v-distribution.yml).
+      The pin numbering here was DERIVED under the old, wrong gender reading,
+      and receptacle and plug housings number as mirror images -- so pins 1 and
+      2 may need to swap. With only two contacts and unambiguous red/black wire
+      colors, nothing electrical depends on it. WIRE BY COLOR.
+      These housings carry NO moulded position numbers -- checked 2026-08-08 --
+      so an absolute pin number cannot be observed on the part at all, only
+      derived. See MEASUREMENTS.md, "Pinout re-verification pass": position is
+      recorded against the LATCH instead, which needs no vendor convention.
+
+cables:
+  W_PSU_OUT:
+    category: bundle
+    gauge: 18 AWG
+    length: 1.0
+    colors: [BK, BK]
+    notes: >
+      The supply's own captive output cable, 2-conductor 18 AWG. LONG, and
+      stored bunched up and twist-tied inside the pad -- the length is not
+      load-bearing and was deliberately not measured. 1.0 m here is a
+      placeholder for drawing purposes only.
+      BOTH CONDUCTORS ARE BLACK. One of them carries a moulded RIDGE down the
+      jacket; that ridge is the only way to tell them apart, and WireViz cannot
+      draw it, so both wires render identically here. Read the note, not the
+      picture.
+      WHICH ONE IS +12V IS NOT RECORDED. Do NOT assume the ridge marks positive
+      -- the convention is not consistent across supplies, and getting it
+      backwards reverses polarity into every panel. Resolve it with a meter:
+      the tail on the far side of the joint is unambiguous (red = 12 V,
+      black = GND), so a continuity check through the joint settles it, or just
+      measure the supply's output directly with it powered.
+
+  W_TAIL:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.300
+    colors: [BK, RD]
+    notes: >
+      Jacketed 2-conductor, 30 cm, from the concealed joint to the YL 2-way.
+      Colors CONFIRMED at teardown: RED = 12 V, BLACK = GND.
+      Wire order follows the YL 2-way's pin order, which is GND first as of the
+      2026-08-08 re-read -- hence black listed before red.
+
+connections:
+  - - AC_OUT: [1-3]
+    - ==>
+    - PSU_IN: [1-3]
+
+  - - PSU_OUT: [1-2]
+    - W_PSU_OUT: [1-2]
+    - JOINT: [1-2]
+
+  - - JOINT: [2]
+    - W_TAIL: [1]
+    - YL2: [1]
+  - - JOINT: [1]
+    - W_TAIL: [2]
+    - YL2: [2]

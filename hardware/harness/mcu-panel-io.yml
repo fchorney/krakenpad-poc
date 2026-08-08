@@ -1,0 +1,167 @@
+metadata:
+  title: MCU panel I/O harness (17-pin KF2510, digital-side header)
+  description: >
+    The Arduino Micro's OTHER header row, and the one that carries everything
+    going to the panels. A 17-pin KF2510 crimp housing covers the full digital
+    row, and two things come off it:
+    1. NINE PER-PANEL SIGNAL LINES on D2 through D10, one per panel, all
+       terminating together on a JST YLR-09V.
+    2. THE PANEL DATA BUS -- a single TX line off D1/TX plus a ground, going to
+       an RJ-12 receptacle.
+    So the stock pad's entire panel interface is: one TX-only data line, one
+    ground, and nine individual per-panel signal wires. There is no return data
+    line -- D0/RX is covered by this housing and left unconnected.
+    STOCK. Recorded at the 2026-08-08 teardown. Descriptive only.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-MCUIO-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  P17:
+    pn: KF2510 or clone, 17-circuit crimp housing
+    type: MCU panel I/O connector
+    subtype: 2.54 mm pitch crimp housing, female contacts, 17 positions
+    pincount: 17
+    pinlabels: [D12, D11, D10, D9, D8, D7, D6, D5, D4, D3, D2, GND, RESET, D0_RX, D1_TX, D17_SS, D16_COPI]
+    notes: >
+      Same family as the 14-pin housing in mcu-interface.yml, and like it pushes
+      straight onto the Micro's own header pins -- no adapter board.
+      IT COVERS THE ENTIRE 17-PIN ROW. Position 1 sits on D12 and it fills the
+      row from there, so housing position N equals row position N throughout.
+      EVERY POSITION HAS A CONTACT FITTED, wired or not -- the unused ones carry
+      a crimp with no wire, purely so the housing grips the header evenly. Do
+      not read an unwired position as an empty cavity.
+      WIRED POSITIONS: 3-11 are the nine panel signal lines (D10 down to D2),
+      12 is the data ground, 15 is the data TX line.
+      UNWIRED: 1 (D12), 2 (D11), 13 (RESET), 14 (D0/RX), 16 (D17/SS),
+      17 (D16/COPI).
+      POSITION MAP VERIFIED against the official Arduino Micro pinout
+      (Pinout-Micro_latest.pdf). Every landmark the teardown reported lands
+      exactly: position 1 = D12, positions 3-11 = D10 down to D2, position 12 =
+      GND, and after a two-position gap (RESET, D0/RX) position 15 = D1/TX.
+      D0/RX IS COVERED BUT UNCONNECTED, and so are SS and COPI. Whatever the
+      stock panel bus is, it is not SPI and it is not bidirectional UART.
+
+  MICRO_D:
+    pn: Arduino Micro
+    type: Stock MCU, digital-side header row
+    subtype: 0.1 in male header pins, 17 per row
+    pincount: 17
+    pinlabels: [D12, D11, D10, D9, D8, D7, D6, D5, D4, D3, D2, GND, RESET, D0_RX, D1_TX, D17_SS, D16_COPI]
+    notes: >
+      The opposite row to the one in mcu-interface.yml. Between the two files
+      every pin of the stock MCU is now accounted for.
+      D2 THROUGH D10 ARE THE NINE PANEL SIGNAL LINES, in panel order -- see
+      YLR09. D1/TX is the outbound data bus. D0/RX is unused.
+
+  YLR09:
+    pn: JST YLR-09V
+    type: Panel signal lines, 9-way
+    subtype: YL 9-circuit receptacle (pin contacts), 3x3
+    pincount: 9
+    pinlabels: [p2_YE, p1_OG, p0_RD, p5_BN, p4_BU, p3_GN, p8_BK, p7_WH, p6_GY]
+    notes: >
+      All nine per-panel signal lines land here. Colors as read at teardown:
+      pin 1 yellow, 2 orange, 3 red, 4 brown, 5 blue, 6 green, 7 black,
+      8 white, 9 grey.
+      THESE COLORS DECODE. They are exactly the stock SMX panel color map
+      already recorded in docs/BOM.md and re-confirmed in
+      docs/STOCK_PANEL_REFERENCE.md: 0=Red 1=Orange 2=Yellow 3=Green 4=Blue
+      5=Brown 6=Grey 7=White 8=Black. So every wire names its own panel, and
+      this is an independent confirmation of that map from the MCU end.
+      THE ARDUINO SIDE IS PERFECTLY SEQUENTIAL: D2 = panel 0, D3 = panel 1, and
+      so on to D10 = panel 8. In other words Dn drives panel n-2.
+      THE CONNECTOR SIDE IS GROUPED IN THREES, each group descending:
+      pins 1-3 = panels 2,1,0; pins 4-6 = panels 5,4,3; pins 7-9 = panels 8,7,6.
+      That is the pad's 3x3 grid row by row, reversed within each row -- which
+      is what you would expect of a 3x3 housing facing the other way. The YL
+      9-circuit is physically a 3x3.
+      GENDER: RECEPTACLE, so male pin contacts, per the JST rule in PARTS.md.
+      Its mate must be a YLP-09V. That mate is not yet documented.
+
+  RJ12:
+    pn: RJ-12 receptacle, marked 623K
+    type: Panel data bus out
+    subtype: 6-position modular jack
+    pincount: 6
+    pinlabels: [unused, unused, DATA, GND, unused, unused]
+    notes: >
+      THE PANEL DATA BUS LEAVES THE MCU HERE, on just two conductors: DATA (red,
+      from D1/TX) and GND (green, from the Micro's GND).
+      "623K" IS THE ONLY MARKING -- a housing marking, not a part number, and the
+      vendor is unidentified. Same situation as the "2510" on the KF2510s.
+      POSITIONS 3 AND 4: pin 3 = DATA (red), pin 4 = GND (green). Read at
+      teardown with moderate confidence ("I think") -- worth one confirming look
+      before any rebuild, though the consequence below makes the reading
+      plausible on its own.
+      THAT IS THE CENTRE PAIR, which is the deliberate choice. On 6-position
+      modular hardware the centre two positions are "line 1" -- the pair that a
+      6P2C cable populates. Putting DATA and GND there means the bus works over
+      6P2C, 6P4C or 6P6C cable alike, since all three populate positions 3 and 4.
+      So the cable question is much less load-bearing than it looked: any
+      modular cable of any conductor count carries this bus.
+      CABLE POLARITY: STRAIGHT-THROUGH, not reversed. This matters, because
+      ordinary flat modular cable is REVERSED (pin 1 to pin 6, 2 to 5, 3 to 4),
+      and over a reversed cable position 3 here would land on position 4 at the
+      panel -- swapping DATA and GND.
+      EVIDENCE IS FUNCTIONAL, NOT VISUAL: the pad's RJ-12 cables were replaced
+      with straight-through ones in the past and the pad worked. A reversed-vs-
+      straight mismatch on a 2-wire centre-pair bus would swap signal and ground
+      outright, so a working substitution is strong evidence. BUY
+      STRAIGHT-THROUGH, and do not assume a random telephone cable will do.
+      TX-ONLY, NO RETURN PATH. D0/RX is covered by the P17 housing and left
+      unconnected, so nothing comes back to the MCU on this bus. That is
+      consistent with the reverse-engineered stock protocol in
+      docs/STOCK_PANEL_REFERENCE.md and the SDK notes referenced from CLAUDE.md,
+      where sensor data returns on the per-panel signal wires rather than on the
+      serial bus. Recorded here as a cross-reference, not a conclusion.
+
+cables:
+  W_INT:
+    category: bundle
+    gauge: 22 AWG
+    length: 0.300
+    colors: [BK, WH, GY, BN, BU, GN, YE, OG, RD]
+    notes: >
+      About 30 cm. Nine conductors, one per panel. Wire order here follows the
+      P17 pin order (positions 3 to 11, i.e. D10 down to D2), which is why the
+      color sequence looks scrambled against the YLR-09V's own order -- the two
+      ends are grouped differently. WIRE BY COLOR, and the color names the panel.
+
+  W_BUS:
+    category: bundle
+    gauge: 26 AWG
+    length: 0.150
+    colors: [GN, RD]
+    notes: >
+      Green = GND (from Micro GND, P17 position 12), red = DATA (from D1/TX,
+      P17 position 15).
+      GAUGE: 26 AWG. The conductors are too covered to read any printed
+      markings, so this is a judgement from thickness rather than a marking --
+      "quite small" at teardown, between 24 and 26, called as 26. Either way it
+      is noticeably thinner than the 22 AWG signal lines beside it, and at this
+      length and current nothing depends on which it is.
+      ABOUT 15 cm -- half the length of the signal bundle beside it, so the
+      RJ-12 jack sits closer to the MCU than the YLR-09V does.
+      NOTE THE COLOR TRAP: green is GND here. On the 5 V side green is also a
+      ground, but on the mains side green is protective earth, and red is a 5 V
+      rail elsewhere in this pad. Red carrying DATA is unique to this harness.
+
+connections:
+  - - P17: [3-11]
+    - W_INT: [1-9]
+    - YLR09: [7,8,9,4,5,6,1,2,3]
+
+  - - P17: [12]
+    - W_BUS: [1]
+    - RJ12: [4]
+  - - P17: [15]
+    - W_BUS: [2]
+    - RJ12: [3]
+
+  - - P17: [1-17]
+    - ==>
+    - MICRO_D: [1-17]

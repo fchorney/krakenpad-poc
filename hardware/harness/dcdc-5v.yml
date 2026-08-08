@@ -1,0 +1,67 @@
+metadata:
+  title: 12V to 5V DC-DC converter
+  description: >
+    Daygreen B15-1224-05, 75 W. Input 12-24 V, output 5 V at 15 A max.
+    Its INPUT screw terminals are what the two fork terminals of the 12V star
+    point actually bolt onto -- so this converter is the physical anchor of that
+    star point, not a separate downstream box. Everything on the 12 V side
+    (internal PSU, external cabinet input, underglow feed) meets on these two
+    terminals.
+    Its OUTPUT terminals take fork terminals of the same size, feeding the 5 V
+    harness documented separately.
+    THIS IS THE PAD'S VOLTAGE BOUNDARY. The stock SMX pad runs 5 V EVERYWHERE
+    downstream of this converter -- panels, LEDs, MCU, all of it. 12 V exists
+    only between the supply inputs and this box. Any reading of the stock
+    harnesses past this point should assume 5 V unless something says otherwise.
+  status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
+  pn: HARNESS-DCDC-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  STAR_FORKS:
+    type: 12V star point fork terminals
+    subtype: 4.0 mm ID / 6.5 mm OD
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      Shown for context only -- these are FORK_V12 and FORK_GND in
+      12v-distribution.yml, repeated here so the handoff between the two
+      drawings is visible. The arrow is a bolted joint, not a cable.
+      Each fork carries three conductors: from the internal PSU (YLP_A), to the
+      external 12 V barrel input (YLP_B), and to the underglow SM 3P.
+
+  DCDC_IN:
+    pn: Daygreen B15-1224-05
+    type: DC-DC converter, input side
+    subtype: screw terminals, 12-24 V in
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      Nameplate: Daygreen B15-1224-05, 75 W.
+      INPUT  DC 12-24 V.
+      OUTPUT DC 5 V, 15 A max.
+      These two screw terminals are where the 12 V star point physically lives.
+      The converter accepts up to 24 V in, so it is tolerant of the pad being
+      fed from a cabinet supply at a higher voltage than the internal 12 V PSU.
+
+  DCDC_OUT:
+    pn: Daygreen B15-1224-05
+    type: DC-DC converter, output side
+    subtype: screw terminals, 5 V 15 A max
+    pincount: 2
+    pinlabels: [V5, GND]
+    notes: >
+      DCDC_IN and DCDC_OUT are the two sides of ONE physical converter, drawn
+      separately because WireViz models a connector as a single pin set.
+      Takes fork terminals of the SAME size as the input side, 4.0 mm ID /
+      6.5 mm OD. The 5 V harness that lands here is documented separately.
+      EVERYTHING DOWNSTREAM OF HERE IS 5 V on the stock pad. 15 A at 5 V is the
+      whole budget for the panels, their LEDs and the MCU combined.
+
+connections:
+  - - STAR_FORKS: [1-2]
+    - ==>
+    - DCDC_IN: [1-2]

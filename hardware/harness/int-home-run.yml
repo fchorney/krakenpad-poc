@@ -1,0 +1,58 @@
+metadata:
+  title: INT home-run harness (one per panel)
+  description: >
+    The interrupt wire -- the sole gameplay input path. Open-drain: the panel
+    RP2040 sinks the line to GND on press; it is pulled HIGH at the master.
+    Home-run only, no daisy chain, so there are nine of these. Twisted pair with
+    a dedicated GND return (adopted 2026-07-26) so the return does not ride the
+    shared power ground network.
+  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+  pn: HARNESS-INT-01
+  qty_per_pad: 9
+
+options:
+  color_mode: full
+
+connectors:
+  MASTER:
+    pn: JST B2B-XH-A / XHP-2
+    type: Master PCB J3..J11
+    subtype: JST XH 2-pin, vertical
+    pincount: 2
+    pinlabels: [INT, GND]
+    notes: >
+      One connector per panel, silkscreened by pad position: UL U UR L C R
+      DL D DR, left to right = panel 0 through 8. Keyed, so INT and GND cannot
+      be swapped -- that swap on a screw terminal would read as a permanently
+      stuck press. Master-side XH vs panel-side FSR PH also prevents
+      cross-plugging.
+
+  PANEL:
+    pn: KANGNEX WJ500V-5.08-2P
+    type: Panel carrier J214
+    subtype: 2-pos screw terminal, 5.08mm
+    pincount: 2
+    pinlabels: [INT, GND]
+    notes: Screw terminal, so the panel end is field-serviceable without crimps.
+
+cables:
+  W1:
+    category: bundle
+    gauge: 24 AWG
+    length: 1.2
+    colors: [WH, BK]
+    notes: >
+      TODO LENGTH x9 -- every panel is a different distance from the master.
+      Measure all nine and record in MEASUREMENTS.md; they are separate part
+      numbers even though the connectors match.
+      Twisted pair. Per-panel identification is colored or printed heat-shrink
+      at BOTH cable ends, not conductor color (the chosen cable comes in one
+      color). The stock SMX color map in docs/BOM.md now names markers:
+      0=Red through 8=Black.
+      Slot-to-panel-ID agreement is NOT assumed anywhere -- the master learns
+      the real mapping with the 'I' identify pulse and reports mismatches.
+
+connections:
+  - - MASTER: [1-2]
+    - W1: [1-2]
+    - PANEL: [1-2]
