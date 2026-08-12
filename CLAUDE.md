@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Custom replacement hardware for a StepManiaX (SMX) 9-panel dance pad. Replaces the Master Control Unit (MCU) and all 9 Panel PCBs while keeping the existing frame. Targets open-source rhythm game software (Stepmania, ITGmania, DeadSync) — intentionally NOT SMX-compatible (no proprietary auth key, no leaderboard eligibility).
 
 Key improvements over stock SMX hardware:
-- Eliminate ~6ms input lag window caused by sensor readback interleaving with the LED update cycle
+- Live per-sensor FSR telemetry *during gameplay*, which stock hardware cannot do at all (see "Concurrent Telemetry" below)
 - USB polling rate increase from 1000Hz → 2000Hz (stretch goal; requires USB HS — see notes)
 - LED refresh rate increase from 30Hz → 60Hz+
 - Custom open protocol, fully open-source firmware
@@ -154,8 +154,37 @@ Matches original SMX physical routing (serpentine): MCU → 0(UL) → 3(L) → 6
 - **2000Hz–8000Hz**: HS microframes are 125µs; an interrupt endpoint's `bInterval` sets the polling period as `2^(bInterval-1)` microframes. Teensyduino's own RawHID/Joystick descriptors already ship with **`bInterval = 1` → 125µs → 8000Hz** on Teensy 4.x — this is off-the-shelf, not custom stack work. Our custom HID descriptor just needs to set `bInterval` to the desired rate (1 for 8000Hz, 2 for 4000Hz, 4 for 2000Hz, 8 for 1000Hz).
 - Original assumption that HS mode "requires custom USB descriptor/stack work" was **wrong** — corrected after empirical test. The main open question now is achieved *host-side* polling consistency (OS/driver jitter), not whether the device can offer the rate.
 
-### 6ms Lag Root Cause (for reference)
-Stock SMX LED cycle: 681 bytes × 40µs/byte at 250kbaud = 27.24ms per cycle (~36.7Hz), leaving ~6ms idle at 30Hz. Sensor readback (`'B?P'` + 81-byte clock burst = 3.2ms) runs in this gap. A press landing during the readback window is missed until the next cycle. The dedicated interrupt wire bypasses this entirely — press detection is independent of the RS-485 bus cycle.
+### Concurrent Telemetry (the real motivation)
+
+Stock SMX has **9 dedicated signal wires**, one per panel, and they are
+**dual-mode** (`../stepmaniax-sdk-mp/docs/INTERNAL_BUS_PROTOCOL.md` → "Signal
+Lines"):
+
+1. **Press detection** — line idles HIGH (5V), pulled LOW on press. This is the
+   gameplay input path on stock hardware.
+2. **Sensor test data** — after a `'B?P'` command the *same wires* switch to
+   carrying 80-bit frames (~25kHz clock, 3.2ms/frame), all 9 panels in parallel.
+
+The two modes are mutually exclusive on the same physical wires, and `'B?P'` is
+a **service-menu item only** — it does not run during SMX gameplay.
+
+The consequence is a missing capability, not a latency penalty: on stock
+hardware you **cannot read per-sensor FSR values while playing**, because doing
+so commandeers the wires that carry press state. Open-source software (DeadSync
+in particular) wants exactly that — live sensor telemetry concurrent with play,
+for calibration, visualization and analysis.
+
+Our design separates the paths so both run at once: the **INT wires carry press
+state** (sole gameplay input path) and **RS-485 carries FSR telemetry**. Neither
+blocks the other. That is the improvement.
+
+**Do not describe this as a "6ms lag window."** An earlier version of this
+section claimed the `'B?P'` readback interleaved with the LED cycle during play
+and caused ~6ms of missed presses. That path never runs during gameplay, so the
+claim was wrong. Stock press latency, if ever re-derived, would live in the
+master's panel debounce (`panelDebounceMicroseconds`, default 4000 = 4ms), the
+master's signal-line sampling, and the USB report cadence — not the LED cycle.
+No one has measured it.
 
 ### RS-485 Baud Rate: 1 Mbps
 At 1 Mbps: full 225-LED broadcast (~750 bytes with overhead) = 7.5ms; FSR round-robin poll (9 panels, ~144 bytes) = 1.5ms; total ~9ms per cycle → ~110Hz ceiling. 60Hz LED refresh is comfortably achievable. Cable runs are < 3m so 1 Mbps is reliable without needing tight impedance control. Baud rate should be a compile-time constant in firmware to allow easy adjustment.
