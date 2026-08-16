@@ -91,8 +91,7 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | **XT30 pair** (1 female + 2 male) | PSU→fan-out, + stock reconnect | **⬜ NOT SOURCED** | 2 pairs |
 | Inline fuse holder, 5×20 mm + **T8A** cartridge | trunk | **⬜ NOT SOURCED** | 1 |
 | M3 female-female standoff, **12 mm** | carrier↔brain spacer | ✅ **ON HAND** — see below | 3/panel |
-| **Wire ferrules, 0.34 mm² (AWG 22)** | J214 INT + underglow DATA | **⬜ CHECK STOCK** | 19/pad |
-| **Wire ferrules, 0.5 mm² (AWG 20)** | master J2 GND tie | **⬜ CHECK STOCK** | 1/pad |
+| **Wire ferrules** (likely 0.5 mm² / 0.75 mm² — **do not order on the AWG label**) | J214 INT, underglow DATA, J2 GND tie | **⬜ DEFERRED** — assortment on hand, size closes on a caliper measurement | 20/pad |
 | Molex **11-03-0043** extraction tool | Micro-Fit rework | ✅ **BOUGHT** (Newark) | 1 |
 
 ### Standoffs — CLOSED 2026-08-16, nothing to buy
