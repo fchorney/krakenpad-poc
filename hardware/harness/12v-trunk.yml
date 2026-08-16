@@ -40,20 +40,26 @@ metadata:
     The plan then would be procedural exclusivity, labelled. Note a 5.5 mm
     barrel jack is typically rated 5 A, so that input could not run the pad
     anyway.
-    OPEN ITEMS, none of which block the topology above:
+    OPEN ITEMS, neither of which blocks the topology above:
     (1) INLINE FUSE HOLDER part number, for a T8A 5x20 mm cartridge.
-    (2) TRUNK LENGTH -- the only measurement left. The carrier POSITION is now
-    settled (see the Daygreen note), so this is just PSU-to-that-spot.
+    TRUNK LENGTH: CLOSED 2026-08-16, deliberately by over-allocation rather
+    than measurement. The stock 20 AWG tail this replaces was 0.300 m; our run
+    uses ~0.5 m of single conductor. ALLOCATE 1 m -- roughly double -- from the
+    2C 20 AWG reel already ordered for the columns (10 m against a 5.4 m need),
+    and cut to fit on the bench. Nothing needs measuring first: the wire is
+    already bought, the surplus is free, and the carrier position is fixed by
+    the Daygreen holes anyway. The per-cable figures below are nominal splits
+    of that 1 m, not targets.
     DAYGREEN MOUNTING -- MEASURED 2026-08-16, CLOSED: TWO SCREWS, centres
     57 mm apart, exactly horizontal, holes 3 mm diameter (M3). The printed
     carrier reuses these two holes, so it drops into the converter's footprint
     with no new drilling and the carrier position needs no separate decision.
-    (3) PRINTED CARRIER: 57 mm hole spacing / 3 mm holes as above. PETG not PLA
+    (2) PRINTED CARRIER: 57 mm hole spacing / 3 mm holes as above. PETG not PLA
     (shares a compartment with the supply),
     zip-tie strain relief ahead of each block, engraved +12V/GND, pockets sized
     for the levers to swing open, and possibly the fuse housed in the same
     part. Wago's own 221-500 mounting carrier is a good dimensional reference.
-  status: PROPOSED -- topology and connectors settled 2026-08-16; parts and lengths still open. See "Open items".
+  status: PROPOSED -- topology, connectors and lengths settled 2026-08-16. Only the fuse holder and the printed carrier remain.
   pn: HARNESS-TRUNK-01
   qty_per_pad: 1
 
@@ -73,7 +79,7 @@ connectors:
       live supply cannot be shorted by anything laid across it. The male half
       has exposed unshrouded pins and belongs on the load side. This is the
       same source-is-shrouded rule good practice uses everywhere; it is NOT the
-      JST receptacle/plug naming trap documented in PARTS.md, which is about
+      JST receptacle/plug naming trap in stock-smx/PARTS.md, which is about
       what the housing is called rather than which side it goes on.
       MEASURE POLARITY BEFORE CUTTING THE BARREL. Power the supply and meter
       the barrel plug: centre pin vs outer sleeve. The label reads outer
@@ -234,8 +240,9 @@ cables:
     colors: [RD]
     notes: >
       Fuse holder output lead to the +12V lever block.
-      TODO LENGTH -- depends on carrier layout and whether the fuse is housed
-      inside the printed carrier. 0.15 m is a placeholder.
+      Nominal. Actual cut-to-fit on the bench from the 1 m allocation -- see
+      the trunk-length note in the metadata. Exact figure depends on carrier
+      layout and whether the fuse is housed inside the printed carrier.
       Drop across these three short 18 AWG runs at 6.34 A is a few tens of mV.
 
   W_GND:
@@ -245,7 +252,7 @@ cables:
     colors: [BK]
     notes: >
       XT30 male, GND contact, straight to the GND lever block. Unfused.
-      TODO LENGTH, as above.
+      Nominal, cut to fit on the bench -- as above.
 
 connections:
   - - PSU: [1-2]
