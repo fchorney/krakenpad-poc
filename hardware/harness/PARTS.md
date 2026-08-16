@@ -111,29 +111,66 @@ depth still spare. See `docs/DUAL_PANEL.md` → "Mechanical stack".
 ⚠ **The open question is quantity, not size: 3/panel × 20 panels = 60.** Count
 what is actually in the parts bin before assuming it is covered.
 
-### Ferrules — sizes settled 2026-08-16
+### Ferrules — DEFERRED to a bench measurement, 2026-08-16
 
 Every ferrule in this build lands in a **screw terminal**. The Wago lever blocks
 take **bare stranded conductor and want no ferrule at all** — the 221 series is
 designed for it.
 
-| Size | AWG | Where | Qty/pad |
+| Where | Conductor | Qty/pad | Qty, 2 pads |
 |---|---|---|---|
-| **0.34 mm²** | 22 | carrier **J214** INT (2 conductors × 9 panels) | 18 |
-| **0.34 mm²** | 22 | master **J2 pin 1**, underglow DATA from the SM pigtail | 1 |
-| **0.5 mm²** | 20 | master **J2 pin 2**, GND tie to the Wago fan-out | 1 |
+| carrier **J214** INT (2 conductors × 9 panels) | 22 AWG | 18 | 36 |
+| master **J2 pin 1**, underglow DATA from the SM pigtail | 22 AWG | 1 | 2 |
+| master **J2 pin 2**, GND tie to the Wago fan-out | 20 AWG | 1 | 2 |
 
-**Two pads = 38 × 0.34 mm² and 2 × 0.5 mm².** Buy 50 of the 0.34 if the bin is
-short; the 0.5 mm² count is trivial.
+#### ⚠ Do not pick the size from the AWG label — two conventions disagree
 
-⚠ **0.34 mm², not 0.25 mm² — this changed with the 24→22 AWG cable move.** The
-earlier spec called for 0.25 mm² sized to 24 AWG conductors, and a 22 AWG
-conductor will not enter one.
+**This bit a sizing call on 2026-08-16 and the first answer was wrong.**
 
-⚠ **Go by the printed mm² marking, not the colour.** Two incompatible colour
-conventions are in circulation (DIN 46228-4 vs the French/"other" system), and
-assortment boxes routinely mix them, so the same colour means different sizes
-across two boxes. Match the number.
+| source | 0.5 mm² is… | 0.75 mm² is… |
+|---|---|---|
+| Interpower chart, DIN 46228-4 colours | **20 AWG** (white) | **18 AWG** (gray) |
+| Multicomp `E0508` via Farnell/Newark | **22 AWG** | — |
+| most AliExpress listings | **22 AWG** | **20 AWG** |
+
+Both are defensible and neither is a typo. The DIN column maps by **conductor
+cross-section** (22 AWG = 0.326 mm², so strictly it "is" a 0.34); the vendor
+labels map by **what actually crimps well**, which is the more useful number.
+
+**Barrel inner diameter (`D1`) is what decides it, and CSA is a poor proxy:**
+
+| ferrule | `D1` barrel ID |
+|---|---|
+| 0.5 mm² | **1.0 mm** |
+| 0.75 mm² | **1.2 mm** |
+| 1.0 mm² | 1.4 mm |
+
+A **22 AWG stranded** conductor's bare bundle measures roughly **0.76–0.85 mm**
+(7/30 ≈ 0.765, 19/34 ≈ 0.80), so it seats in the 0.5 mm² barrel with room to
+crimp. A 0.34 mm² ferrule's barrel is ~0.8 mm — the wire would barely enter.
+**Our cable makes this worse, not better: RVSP's R is 软 = fine-stranded, and
+fine-stranded runs a wider bundle than standard stranding at the same CSA.**
+
+So the working assumption is **0.5 mm² for the 22 AWG conductors and 0.75 mm²
+for the 20 AWG GND tie** — i.e. the vendor labelling, not the DIN CSA column.
+
+#### The measurement that closes this
+
+**Not orderable yet, and deliberately left open.** Strip ~20 mm of the actual
+22 AWG RVSP when the reel arrives, measure the bare bundle OD with calipers, and
+pick the ferrule whose `D1` clears it by ~0.1–0.2 mm. An assortment is already on
+hand, so buy only what the bin turns out to lack.
+
+Ferrules are also the one item here that re-orders **domestically without a
+month's wait**, which is why they are the right thing to defer rather than guess.
+
+⚠ **Match the printed mm², never the colour.** Two incompatible colour systems
+are in circulation (DIN 46228-4 vs the French convention) and assortment boxes
+mix them, so the same colour means different sizes across two boxes.
+
+⚠ **Never tin a conductor as a ferrule substitute.** Solder cold-flows under the
+screw's clamping force and the joint loosens over months. Bare fine-stranded
+directly in the clamp is the legitimate no-ferrule option; tinned is not.
 
 ### Underglow — we DO build the SM 3P side
 
