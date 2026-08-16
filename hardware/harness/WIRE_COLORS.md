@@ -38,8 +38,8 @@ barrel before cutting it. See `stock-smx/harness/psu-12v.yml`.
 
 | Conductor | Gauge | Color | Code | Status |
 |-----------|-------|-------|------|--------|
-| A | 22–24 AWG | blue | `BU` | **TODO confirm** |
-| B | 22–24 AWG | white | `WH` | **TODO confirm** |
+| A | 22 AWG | blue | `BU` | **TODO confirm** |
+| B | 22 AWG | white | `WH` | **TODO confirm** |
 | Shield | — | drain | — | pin 3, both ends |
 
 ## INT home runs — `int-home-run.yml`
@@ -48,8 +48,8 @@ New builds, not stock — colors are ours to choose.
 
 | Conductor | Gauge | Color | Code | Status |
 |-----------|-------|-------|------|--------|
-| INT | 24 AWG | white | `WH` | proposed |
-| GND | 24 AWG | black | `BK` | proposed |
+| INT | 22 AWG | white | `WH` | proposed |
+| GND | 22 AWG | black | `BK` | proposed |
 
 Per-panel identification is **colored or printed heat-shrink at both cable
 ends**, not conductor color — the chosen RVSP cable comes in one color. The

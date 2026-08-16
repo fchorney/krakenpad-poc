@@ -112,7 +112,7 @@ connectors:
 cables:
   W_P0:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 0.900
     colors: [WH, BK]
     notes: >
@@ -124,37 +124,37 @@ cables:
       same convention applies to all nine cables below.
   W_P1:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 0.600
     colors: [WH, BK]
     notes: Master J4 to panel 1 (U). 60 cm -- shortest of the nine. Marker ORANGE.
   W_P2:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 0.700
     colors: [WH, BK]
     notes: Master J5 to panel 2 (UR). 70 cm. Marker YELLOW.
   W_P3:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 1.200
     colors: [WH, BK]
     notes: Master J6 to panel 3 (L). 120 cm. Marker GREEN.
   W_P4:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 0.900
     colors: [WH, BK]
     notes: Master J7 to panel 4 (C). 90 cm. Marker BLUE.
   W_P5:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 1.000
     colors: [WH, BK]
     notes: Master J8 to panel 5 (R). 100 cm. Marker BROWN.
   W_P6:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 1.500
     colors: [WH, BK]
     notes: >
@@ -163,13 +163,13 @@ cables:
       total the stock signal lines came to in 18 AWG.
   W_P7:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 1.200
     colors: [WH, BK]
     notes: Master J10 to panel 7 (D). 120 cm. Marker WHITE.
   W_P8:
     category: bundle
-    gauge: 24 AWG
+    gauge: 22 AWG
     length: 1.300
     colors: [WH, BK]
     notes: Master J11 to panel 8 (DR). 130 cm. Marker BLACK.

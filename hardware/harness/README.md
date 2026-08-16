@@ -93,8 +93,13 @@ these totals.
 | Cable | Needed **per pad** | Buy (build scope = **2 pads**) |
 |---|---|---|
 | 12 V columns + trunk, 2C 20 AWG | 5.4 m + ~1 m = **6.4 m** | **20 m** |
-| RS-485, 22 AWG shielded pair | **4.2 m** | **15–20 m** |
-| INT home runs, 24 AWG shielded pair | **9.3 m** | **30 m — not 20 m** |
+| **RS-485 + INT, 22 AWG 2-core shielded pair (RVSP)** — one reel | 4.2 m + 9.3 m = **13.5 m** | **40 m** |
+
+**RS-485 and INT share one cable as of 2026-08-16.** Both are 2-core shielded
+twisted pair at signal-level current; only the shield termination differs
+(RS-485 → Micro-Fit pin 3, INT trimmed). 22 AWG is the only gauge inside both
+connector windows — JST XH needs ≥1.30 mm insulation OD, Micro-Fit ≤1.85 mm.
+Rationale in `PARTS.md` → "RS-485 and INT share ONE cable".
 
 ⚠ **The "Needed" column is one pad; the "Buy" column is two.** These were
 mismatched until 2026-08-16, when the buy quantities were still sized for a

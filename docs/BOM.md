@@ -160,12 +160,11 @@ needs its match-check to pass before ordering.
 | Item | Qty | Candidate | Match-check |
 |------|-----|-----------|-------------|
 | 12V power cable, 2C 20 AWG jacketed | **12.8m needed → buy 20m** | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
-| RS-485 cable, 22 AWG shielded twisted pair (RVSP) | **8.4m needed → buy 15–20m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | **shield is now required, not merely tolerated** — it lands on Micro-Fit pin 3. See the shield note below |
-| INT cable, 24 AWG 2-core shielded twisted pair (RVSP) | **18.6m needed → BUY 30m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (same listing, 24 AWG / 2-core) | See the three checks below. **20m is NOT enough** — it leaves 1.4m across 18 home runs, i.e. no service loops and no crimp retries |
-| Wire ferrules (~0.25mm² for 24 AWG) | ~40 | assortment box | panel-side **J214 screw terminal only** — 2 conductors × 9 panels × 2 pads = 36. The master end is now JST XH crimps, not screw terminations |
+| **RS-485 + INT cable, 22 AWG 2-core shielded twisted pair (RVSP)** — **ONE reel, both harnesses** | **27.0m needed → buy 40m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (22 AWG / 2-core option) | **Conductor insulation OD must be 1.30–1.85mm** — see the checks below. Shield **required**: RS-485 lands it on Micro-Fit pin 3, INT trims it |
+| Wire ferrules (**~0.34mm² for 22 AWG**) | ~50 | assortment box | panel-side **J214 screw terminal only** — 2 conductors × 9 panels × 2 pads = 36. The master end is now JST XH crimps, not screw terminations. **Size changed with the 24→22 AWG move** (0.25mm² no longer fits) |
 | Colored + printed heatshrink, zip-tie anchors, grommets | — | — | heatshrink is now **load-bearing**: it carries the per-panel INT identification (see wire spec). Grommets where cable crosses frame metal |
 
-**Where the three cable quantities come from (all closed 2026-08-16):** they are
+**Where the cable quantities come from (all closed 2026-08-16):** they are
 transcribed from the completed stock record, since our harnesses run the same
 geometry through the same panel positions — `panel-power-chain.yml` +
 `5v-columns.yml` give the 12V columns (0.60m feed ×3 + 0.60m jumpers ×6 =
@@ -173,21 +172,39 @@ geometry through the same panel positions — `panel-power-chain.yml` +
 = **4.2m**), and `panel-signal-lines.yml` gives the INT home runs (**9.3m**).
 The WireViz BOMs in `hardware/harness/out/` regenerate these totals.
 
-⚠ **Those three figures are PER PAD; the Qty column above is for TWO pads**
+⚠ **Those figures are PER PAD; the Qty column above is for TWO pads**
 (corrected 2026-08-16 — the buy quantities had been sized for one pad while
 every other quantity in this doc was sized for two, which would have left the
-12V and INT reels short). The 12V line also carries **+1m per pad for the
-trunk** (`hardware/harness/12v-trunk.yml`), which is why it reads 12.8m and not
-10.8m. Reels sell in 5/10/20/50m steps, so round up rather than reorder —
-a second AliExpress order is a second month of shipping.
+reels short). The 12V line also carries **+1m per pad for the trunk**
+(`hardware/harness/12v-trunk.yml`), which is why it reads 12.8m and not 10.8m.
+The shielded-pair line is 2 × (4.2 + 9.3) = **27.0m**. Reels sell in 5/10/20/50m
+steps, so round up rather than reorder — a second AliExpress order is a second
+month of shipping.
 
-**INT cable — verify on arrival before crimping 36 contacts:**
+### RS-485 and INT are ONE cable now — 22 AWG, decided 2026-08-16
 
-1. **Conductor insulation OD must be 1.3–1.9mm** (SXH-001T-P0.6N spec). This is
-   the *individual conductor's* insulation, **not** the outer jacket OD. It is a
-   **floor**, and typical RVSP 24 AWG measures ~1.3–1.4mm — right at the edge.
-   If it comes up short: fold the insulation back, or step to 22 AWG (the contact
-   covers 22–26 and current here is microamps, so gauge is purely mechanical).
+They were two lines (RS-485 "22 AWG", INT "24 AWG"), and `rs485-chain.yml` had
+separately drifted to 24 AWG against this doc's 22. Both runs are **2-core
+shielded twisted pair** carrying signal-level current, so they are now a single
+**22 AWG** reel. Full rationale and the connector-window table:
+`hardware/harness/PARTS.md` → "RS-485 and INT share ONE cable".
+
+**22 AWG is the only gauge inside both connector windows** — JST XH needs
+insulation OD **≥1.30mm** (24 AWG RVSP measures ~1.3–1.4, right at the floor)
+and Micro-Fit needs **≤1.85mm**. Gauge here is purely mechanical; the current is
+microamps to milliamps.
+
+Only the shield termination differs: RS-485 lands it on Micro-Fit **pin 3**,
+INT trims and heatshrinks it at both ends. Cross-plugging is impossible — the
+connectors differ (3-circuit Micro-Fit vs JST XH and a 5.08mm screw terminal).
+
+**Verify before crimping 204 contacts:**
+
+1. **Conductor insulation OD must be 1.30–1.85mm.** This is the *individual
+   conductor's* insulation, **not** the outer jacket OD — and it is the one spec
+   that can sink this cable. It is rarely listed, so ask the seller or measure on
+   arrival. Below 1.30 the XH contact won't grip; above 1.85 the Micro-Fit
+   terminal's insulation wings won't close.
 2. **Genuinely twisted**, not 2-core parallel/zip.
 3. **Stranded, not solid** — solid cracks at the crimp after a few re-dresses.
 
@@ -223,8 +240,8 @@ rating.
 | Signal | Spec | Quantity |
 |--------|------|----------|
 | 12V power | 2×20 AWG jacketed round, red/black | 3 columns × 2 pads, ~5m/pad |
-| RS-485 | 22–24 AWG **actual twisted pair** | 9 segments/pad, ~5m/pad. Fix an A/B color convention and never deviate |
-| INT | 24 AWG **2-core twisted pair** (signal + dedicated GND), single color | **9.3m/pad, CLOSED 2026-08-16** from the stock record (`stock-smx/harness/panel-signal-lines.yml`, nine home runs of 60–150cm). The earlier "~8.5m, gated on the teardown" estimate is superseded |
+| RS-485 | **22 AWG** 2-core shielded **actual twisted pair** (RVSP) | 9 segments/pad, **4.2m/pad**. Fix an A/B color convention and never deviate. Shield → Micro-Fit pin 3 |
+| INT | **22 AWG** 2-core shielded twisted pair (signal + dedicated GND), single color — **same reel as RS-485 since 2026-08-16** | **9.3m/pad, CLOSED 2026-08-16** from the stock record (`stock-smx/harness/panel-signal-lines.yml`, nine home runs of 60–150cm). The earlier "~8.5m, gated on the teardown" estimate is superseded. Shield trimmed, **never bonded to the GND conductor** |
 | Master GND tie | 1 lead (20 AWG) to a GND port on the Wago fan-out | **mandatory**, not optional wiring |
 
 **INT identification changed 2026-07-26.** The old spec called for 9 distinct

@@ -289,10 +289,41 @@ Wire colors for every harness live in `WIRE_COLORS.md`.
 | Type | Spec | Used by |
 |------|------|---------|
 | Jacketed 2-conductor | 20 AWG | 12V columns |
-| Shielded twisted pair (RVSP) | 22–24 AWG | RS-485 |
-| Twisted pair | 24 AWG | INT home runs |
+| **Shielded twisted pair (RVSP), 2-core** | **22 AWG** | **RS-485 *and* INT home runs — one reel, see below** |
 | 3-conductor | 22 AWG | underglow adapter |
 
+### RS-485 and INT share ONE cable — 22 AWG, decided 2026-08-16
+
+They were spec'd separately (RS-485 "22–24 AWG", INT "24 AWG"), and
+`rs485-chain.yml` had drifted to 24 AWG against `docs/BOM.md`'s 22. Both runs
+are **2-core shielded twisted pair**, both carry signal-level current, and both
+now use the same 22 AWG reel. Only the *shield termination* differs:
+
+- **RS-485** lands the shield on Micro-Fit **pin 3** (hybrid grounding, DC-tied
+  at the master only).
+- **INT** trims and heatshrinks the shield at both ends. **Do not bond it to the
+  INT GND conductor** — that is a signal return, and paralleling a shield across
+  it restores the loop area the twisting exists to remove.
+
+**Why 22 and not 24 — it is the only gauge inside both connector windows:**
+
+| constraint | limit | 24 AWG RVSP | 22 AWG RVSP |
+|---|---|---|---|
+| JST XH `SXH-001T-P0.6N` insulation OD | **≥ 1.30 mm** | ~1.3–1.4 — at the floor | comfortable |
+| Molex Micro-Fit `430300001` insulation OD | **≤ 1.85 mm** | fine | comfortable |
+| Micro-Fit wire range | 20–24 AWG | bottom edge | mid-range |
+| XH wire range | 22–26 AWG | mid | top edge, fine |
+
+Current is microamps (INT) to milliamps (RS-485), so **gauge here is purely
+mechanical** — it is chosen to crimp reliably, not to carry load.
+
+⚠ **The one thing to verify with the seller or on arrival: conductor insulation
+OD must land in 1.30–1.85 mm.** That is the *individual conductor's* insulation,
+not the outer jacket. It is the only spec that can sink this cable, and it is
+rarely listed — measure before crimping 204 contacts.
+
+Cross-plugging is impossible despite the shared cable: RS-485 terminates in
+3-circuit Micro-Fit, INT in JST XH and a 5.08 mm screw terminal.
 
 ## Identification
 
