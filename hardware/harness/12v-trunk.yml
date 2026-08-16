@@ -41,7 +41,16 @@ metadata:
     barrel jack is typically rated 5 A, so that input could not run the pad
     anyway.
     OPEN ITEMS, neither of which blocks the topology above:
-    (1) INLINE FUSE HOLDER part number, for a T8A 5x20 mm cartridge.
+    (1) FUSE HOLDER + CARTRIDGE: CLOSED 2026-08-16. Inline 5x20 mm holder with
+    18 AWG leads (Amazon 5-pack) and T8AL250V glass time-lag cartridges (10-pack).
+    The 18 AWG leads matter: the common cheap inline holders ship with 22 AWG,
+    which would have put the thinnest conductor in the whole 12V path in series
+    with a 6.34 A load. STILL VERIFY the holder's own current rating is >=10 A --
+    lead gauge and holder rating are independent specs. On the cartridge, the
+    T prefix confirms IEC 60127 (the required standard) and the L is low breaking
+    capacity, which is fine because this SMPS folds back long before the >=35 A
+    a low-BC part interrupts. Glass over ceramic is deliberate: a blown glass
+    fuse is visible, and there is no current sensing anywhere in this pad.
     TRUNK LENGTH: CLOSED 2026-08-16, deliberately by over-allocation rather
     than measurement. The stock 20 AWG tail this replaces was 0.300 m; our run
     uses ~0.5 m of single conductor. ALLOCATE 1 m -- roughly double -- from the
@@ -139,7 +148,7 @@ connectors:
       spare female.
 
   F1:
-    pn: TODO -- inline fuse holder, see Open items
+    pn: Inline 5x20 mm holder, 18 AWG leads + T8AL250V glass cartridge
     type: Inline fuse, +12V leg
     subtype: 8 A slow-blow, IEC 60127 T-type (T8A, 5x20 mm)
     pincount: 2

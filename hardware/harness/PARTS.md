@@ -87,9 +87,10 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 12V + RS-485 | C259786 | 168 |
 | **JST SMR-03V-B** housing (receptacle, 3-way) | underglow, hand-made fallback | **C157907** | 1 (10 ordered) |
 | 3-pin SM 2.5 LED-strip pigtail pair, 22 AWG | underglow — the actual plan | **ON HAND** | 1 pair |
-| **Wago 221-415**, 5-way lever block | 12V fan-out | **⬜ NOT SOURCED** | 3 |
+| **Wago 221-415**, 5-way lever block | 12V fan-out | 🛒 **SELECTED** — Home Depot 10-pack, $12.97 (genuine) | 3 |
 | **XT30 pair** (1 female + 2 male) | PSU→fan-out, + stock reconnect | **⬜ NOT SOURCED** | 2 pairs |
-| Inline fuse holder, 5×20 mm + **T8A** cartridge | trunk | **⬜ NOT SOURCED** | 1 |
+| Inline fuse holder, 5×20 mm, **18 AWG leads** | trunk | 🛒 **SELECTED** — Amazon 5-pack, $11.99 | 1 |
+| **T8AL250V** glass cartridge, 5×20 mm, time-lag | trunk | 🛒 **SELECTED** — Amazon 10-pack, $6.99 | 1 |
 | M3 female-female standoff, **12 mm** | carrier↔brain spacer | ✅ **ON HAND** — see below | 3/panel |
 | **Wire ferrules** (likely 0.5 mm² / 0.75 mm² — **do not order on the AWG label**) | J214 INT, underglow DATA, J2 GND tie | **⬜ DEFERRED** — assortment on hand, size closes on a caliper measurement | 20/pad |
 | Molex **11-03-0043** extraction tool | Micro-Fit rework | ✅ **BOUGHT** (Newark) | 1 |
@@ -255,31 +256,32 @@ underglow tails.
 Mounted on the Daygreen converter's own two M3 holes — **57 mm centres, 3 mm
 holes, horizontal** (measured 2026-08-16). Full harness: `12v-trunk.yml`.
 
-#### Mounting: printed carrier vs. Wago's own 221-500 — OPEN, needs one measurement
+#### Mounting: printed PETG carrier — DECIDED 2026-08-16, modelled later
 
-**`221-500` is the off-the-shelf answer and it does both jobs**: it is Wago's
-mounting carrier for the 4 mm² 221 series (accepts the 2-, 3- **and** 5-way
-connectors, so it fits our `221-415`), and it **snaps to DIN-35 rail *or* screws
-to a flat surface**. That is exactly the retention a printed carrier would
-provide, so buying it removes the CAD work entirely.
+**The original plan stands: a printed carrier on the Daygreen's own two M3
+holes.** Wago's off-the-shelf `221-500` carrier was evaluated and **rejected in
+favour of printing** — it fits the `221-415` and does DIN-35 rail *or* screw
+mount, so it would have removed the CAD work, but its envelope was never
+verified (WAGO's datasheet 403'd, and the 77.6 mm length found in search looks
+wrong for a 30 mm connector) and it buys nothing that printing does not.
 
-**What is not yet known is whether it fits.** Reported dimensions are ~**17.5 mm
-wide** with a ~**25.5 mm** depth off the rail face, but the length figure found
-in search (77.6 mm) looks wrong for a 30 mm connector and **WAGO's datasheet
-returned 403**, so it is unverified. Three carriers side by side is ~52.5 mm,
-which sits suspiciously close to the 57 mm Daygreen hole spacing.
+**Deliberately sequenced after the parts arrive.** Model the carrier with the
+real Wago bodies and the real fuse holder in hand rather than from datasheet
+nominals — the pockets have to clear the levers through their full swing, and
+that is a measurement, not a specification. Nothing else waits on it.
 
-⚠ **Measure the free space in the Daygreen's footprint — depth especially —
-before buying carriers or rail.** That single measurement picks the path:
+Design notes for when it happens:
 
-| path | CAD | notes |
-|---|---|---|
-| **DIN-35 segment + 3× 221-500** | none | drill the rail at 57 mm centres, carriers clip on, blocks are repositionable. Wants the most depth |
-| **3× 221-500 screwed to a printed flat plate** | trivial — a flat plate with 57 mm M3 holes | retention comes from the carriers, so no lever pockets to model |
-| **Printed PETG carrier, original plan** | most | pockets sized for lever swing, engraved +12V/GND, zip-tie strain relief, possibly houses the fuse. Most compact, most work |
-
-The printed options both want **PETG not PLA** — this shares a compartment with
-the supply.
+- **PETG, not PLA** — this shares a compartment with the supply.
+- Reuses the Daygreen's **two M3 holes, 57 mm centres, 3 mm dia, horizontal**
+  (measured 2026-08-16), so no new drilling and the position needs no decision.
+- Pockets sized for the levers to **swing fully open** while installed.
+- **Zip-tie strain relief ahead of each block.**
+- Engraved `+12V` / `GND` — the two rails are otherwise identical orange blocks,
+  and getting them backwards puts 12 V on the ground network.
+- **Consider housing the fuse holder in the same part**, which makes the fuse
+  serviceable without unpacking the compartment.
+- Wago's own `221-500` remains a useful dimensional reference for the pocket.
 
 **Everything still to buy is marked ⬜ in the table above** — Wago blocks, XT30
 pairs, fuse holder + T8A cartridge, and possibly ferrules. Standoffs and the
@@ -295,23 +297,44 @@ the thinnest conductor in the entire 12 V path — in series with everything, bu
 inside a warm compartment. **The fuse would be protecting wire thinner than the
 wire it protects.**
 
-Pick one of:
+**✅ RESOLVED 2026-08-16 — an inline holder with 18 AWG leads was selected**
+(Amazon 5-pack, $11.99; ships with 1 A fast-blow cartridges that are discarded).
+The alternative was a panel-mount holder with solder tabs wired in our own
+20 AWG, which is still the better answer *if* the printed carrier ends up
+housing the fuse — it would make the fuse serviceable without unpacking the
+compartment.
 
-- **An inline holder with ≥18 AWG leads** — they exist, but the gauge is often
-  unstated, so treat "22 AWG" as the default assumption unless the listing says
-  otherwise.
-- **A panel-mount holder with solder or spade tabs**, wired with our own 20 AWG.
-  Preferred: it removes the gauge question, and mounted through the printed
-  carrier or bracket it makes the fuse **serviceable without opening the pad**.
+⚠ **Still verify the holder's own current rating: want ≥10 A.** Many 5×20 mm
+holders are specified around 6 A, which would make the *holder* the weak link
+rather than the fuse. **Lead gauge and holder rating are independent specs** —
+18 AWG leads make a low rating unlikely but do not prove it.
 
-Also confirm the holder is rated for the current — many 5×20 mm holders are
-specified around 6–10 A, which is not generous against a T8A cartridge.
+#### The cartridge — `T8AL250V`, selected 2026-08-16
 
-**The cartridge itself is uncontroversial:** 5×20 mm, **T8A** (IEC 60127
-time-delay), 250 V. Buy a multi-pack; the first one to blow is the one that
-tells you something. **Do not substitute a US/UL "slow blow" 8 A** — the two
-standards define the current rating differently, and IEC T-type is what the
-sizing in `12v-trunk.yml` assumes.
+Amazon 10-pack, $6.99. Glass, time-lag, 5×20 mm. The marking decodes as:
+
+| mark | meaning | verdict |
+|---|---|---|
+| **T** | time-lag per **IEC 60127** | ✅ the required standard — see the F1 note in `12v-trunk.yml` |
+| **8A** | rated current | ✅ 79% loaded at the 6.34 A datasheet worst case |
+| **L** | **low** breaking capacity | ✅ fine here, see below |
+| **250V** | max voltage | ✅ a maximum; 12 V DC is trivially inside it |
+
+**Low breaking capacity is not a compromise in this application.** Breaking
+capacity is the largest fault current the fuse can interrupt without rupturing,
+and low-BC is ≥35 A. Our source is a **12 V 8.5 A SMPS whose own OCP folds back**
+— it cannot present anything close to 35 A. High-BC ceramic exists for mains
+circuits backed by a utility transformer, which this is not.
+
+**Glass is the better choice here, not merely acceptable:** a blown glass fuse is
+visible. This pad has **no current sensing anywhere** (the master is USB-powered
+and deliberately outside the 12 V path), so a fuse you can inspect by eye is the
+only direct read you get on a fault.
+
+⚠ **Do not substitute a US/UL "slow blow" 8 A.** The standards define rated
+current differently — a UL 8 A part is good for only ~6 A continuous, *below*
+our 6.34 A worst case, and would nuisance-blow on the load it exists to pass.
+The `T` prefix is what confirms IEC.
 
 
 ## Crimp and extraction tooling
