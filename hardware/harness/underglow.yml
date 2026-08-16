@@ -1,26 +1,23 @@
 metadata:
   title: Underglow adapter harness
   description: >
-    Mates the stock underglow strip pigtail (JST SMP-03V-BC -- the PLUG, with
-    female socket contacts, confirmed at the 2026-08-08 teardown). 12V and GND
-    are tapped straight off the PSU lugs as
-    stock does; only DATA goes to the master. Supersedes the old
-    docs/UNDERGLOW.md claim that the strips terminate in a 12-pin Dupont housing
-    with no reusable connector -- they do not, there is a real connector here.
-    SUPERSESSION LIKELY -- READ FIRST. This file was drawn before the pad's 12V
-    distribution was documented. 12v-distribution.yml now shows that the pad
-    ALREADY has an SM 3P receptacle wired with 12V and GND from the fork
-    terminals, and that its DATA pin is fed by a single white 18 AWG conductor
-    on a JST YLR-01V -- which is exactly what the stock MCU drove.
-    If that holds, the replacement master does NOT need to build an SM 3P
-    pigtail tapping the PSU at all. It needs to drive ONE WIRE into the mate of
-    that 1-way connector, and the existing harness supplies the strips' power.
-    Keeping this file until the whole teardown is documented, as agreed, rather
-    than rewriting the design on a partial picture.
-    That 1-way is a JST YLR-01V (receptacle, male pin), so the master-side mate
-    to build is a YLP-01V (plug, female socket) -- corrected 2026-08-08 along
-    with the rest of the gender audit; it was recorded as a YLP-01V.
-  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+    Mates the stock underglow strip pigtail and feeds it 12V, GND and DATA.
+    The strips themselves are NOT replaced -- they keep their own moulded
+    3-pin SM plug, and this harness is its mate.
+    REWRITTEN 2026-08-16. Everything upstream of the strips changed: the fork
+    lugs and "PSU GND stud" this file used to describe DO NOT EXIST (the stock
+    supply is a brick with one captive output), and the 12V star point they
+    stood in for is replaced by the Wago lever-block fan-out in 12v-trunk.yml.
+    12V and GND now come off that fan-out; DATA comes from master J2 pin 1.
+    ALSO SUPERSEDED: a note that this harness "may not be needed at all",
+    which assumed we KEEP the stock segment feeding the strips and only drive
+    one wire into its JST YLR-01V. We remove all SMX wiring, so that segment
+    goes with it. What survives is only the strips' own moulded plug, so this
+    harness IS required. No YLP-01V is involved anywhere.
+    Underglow is 44 groups of 3 LEDs (WS2811, 12V), 2.44 A at full white.
+    Colour scales current linearly on this part -- unlike the panels' WS2815,
+    where it does not. See docs/UNDERGLOW.md.
+  status: PROPOSED -- this project's own design. Source end settled 2026-08-16 against the completed stock record.
   pn: HARNESS-UG-01
   qty_per_pad: 1
 
@@ -28,101 +25,111 @@ options:
   color_mode: full
 
 connectors:
-  X1:
-    pn: JST SMR-03V-B
-    type: JST SM 3P
-    subtype: receptacle -- male pin contacts (SM pin contact)
+  STRIP:
+    pn: 3-pin SM 2.5mm, LED-strip type (mates the strips' moulded plug)
+    type: Underglow strips
+    subtype: our half of the SM 3P pair
     pincount: 3
     pinlabels: [GND, DATA, V12]
     notes: >
-      GENDER NAMING FIXED 2026-08-08. This was written as "SM 3P male housing",
-      which is not orderable: JST sells it as a RECEPTACLE housing (SMR-03V-B)
-      that takes pin contacts. The male-contact intent was correct -- only the
-      word was wrong. The strips' own pigtail is the plug, SMP-03V-BC, with
-      female socket contacts (SHF-001T-0.8BS).
-      PIN ORDER RESOLVED 2026-08-08 from the mating half in 12v-distribution.yml:
-      pin 1 = GND, pin 2 = DATA, pin 3 = 12 V.
-      THIS REVERSES THE EARLIER ASSUMPTION of 12V/DATA/GND. Pins 1 and 3 were
-      the wrong way round, which would have swapped 12 V and ground into the
-      strips. The conductor SET was right; the ORDER was not.
-      On the pad side the colors are yellow = 12 V, white = DATA, black = GND
-      (16 AWG power, 18 AWG data).
-      See this file's description -- this harness may not be needed at all.
+      PIN ORDER IS pin 1 = GND, pin 2 = DATA, pin 3 = 12V. Confirmed at the
+      2026-08-08 teardown and it REVERSES the original assumption of
+      12V/DATA/GND -- building to the old order would have put 12V into the
+      DATA pin and destroyed the first LED. The conductor SET was right; the
+      ORDER was not.
+      On the pad side the colors are yellow = 12V, white = DATA, black = GND.
+      SOURCE IT AS A PRE-MADE LED-STRIP PIGTAIL PAIR, not as a housing plus
+      loose contacts. The strips' connector is an LED-strip "SM 2.5" clone
+      rather than true JST SM: the stock conductors are 18 AWG, while genuine
+      JST SM contacts stop around 22 AWG (SMM-003T-P0.5 is 28-30 AWG, far too
+      fine). A pre-made pair arrives crimped, needs no SM crimp tool, and its
+      bare tails land straight into the lever blocks and J2.
+      GENDER: TEST-FIT, DO NOT TRUST THE LISTING. LED-strip vendors label
+      "male/female" by housing, not by JST's contact convention -- the exact
+      trap that inverted the whole YL side of this project once already. Buy
+      the pair, use whichever half mates the strips, keep the other as a spare.
+      A JST SMR-03V-B housing (LCSC C157907) is on hand as a fallback if a
+      pigtail ever has to be made up by hand.
 
-  PSU_12V:
-    type: PSU +12V terminal
-    subtype: fork lug
+  WAGO_12V:
+    pn: Wago 221-415 (5-way lever block)
+    type: Fan-out, +12V rail
+    subtype: lever block port
     pincount: 1
     pinlabels: [V12]
     notes: >
-      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
-      captive output ending in a JST YL 2-way -- it has no terminal block and
-      no ground stud. Whatever fans 12V out to the three columns is not yet
-      documented, so these lug connections are UNCONFIRMED. See
-      MEASUREMENTS.md, Open questions.
+      The underglow port on the +12V rail. Full drawing: 12v-trunk.yml.
+      This replaces the "PSU +12V fork lug" this file used to name.
 
-
-  PSU_GND:
-    type: PSU GND stud
-    subtype: fork lug
+  WAGO_GND:
+    pn: Wago 221-415 (5-way lever block)
+    type: Fan-out, GND rail
+    subtype: lever block port
     pincount: 2
     pinlabels: [GND_ug, GND_tie]
     notes: >
-      Shared landing point for the underglow GND and the master's mandatory
-      GND tie (W2).
-      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
-      captive output ending in a JST YL 2-way -- it has no terminal block and
-      no ground stud. Whatever fans 12V out to the three columns is not yet
-      documented, so these lug connections are UNCONFIRMED. See
-      MEASUREMENTS.md, Open questions.
-
+      Two ports on the GND rail: the underglow return, and the master's
+      mandatory GND tie. This replaces the "PSU GND stud", which does not exist.
+      THE GND TIE GETS ITS OWN PORT AND ITS OWN LEAD. It no longer rides the
+      underglow cable, so unplugging or omitting underglow cannot break the
+      RS-485/INT ground reference. That reference is mandatory -- separate
+      grounds was a real bench failure mode during multi-panel bring-up.
+      The GND rail needs two 221-415 jumpered (six ports total) precisely
+      because of this extra tie; the +12V rail fits in one.
 
   J2:
-    pn: KF301-style 2-pos screw terminal
+    pn: KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465)
     type: Master PCB J2
     subtype: 2-pos screw terminal, 5.08mm
     pincount: 2
     pinlabels: [DATA, GND_TIE]
     notes: >
       On the master PCB. Pin 1 = underglow DATA, fed from Teensy GPIO11 via the
-      SN74AHCT1G125 buffer and a 330R series resistor. Pin 2 = the mandatory GND
-      tie to the pad ground network, required for RS-485/INT reference whether
-      or not underglow is fitted.
+      SN74AHCT1G125 buffer (U3) and a 330R series resistor (R5). Pin 2 = the
+      mandatory GND tie to the pad ground network.
+      Master logic is USB-powered and the master is NOT in the 12V path, so
+      this tie is the master's only connection to the pad ground network.
 
 cables:
-  W1:
+  W_UG:
     category: bundle
     gauge: 22 AWG
-    length: 0.5
-    colors: [YE, PK, BK]
+    length: 0.500
+    colors: [YE, WH, BK]
     notes: >
-      TODO LENGTH. Depends on the chosen splice point / master mounting
-      position -- measure once the master enclosure location is fixed.
-      Split bundle: two conductors go to the PSU lugs, one to the master.
+      The pre-made pigtail's own leads -- 22 AWG on the pair to hand, which is
+      ample: underglow draws 2.44 A at full white across all 44 groups, against
+      roughly 7 A of chassis ampacity for 22 AWG, and about 40 mV of drop over
+      this run. Stock used 18 AWG here, which was oversized.
+      Yellow = 12V, white = DATA, black = GND, matching the pad-side colors.
+      TODO LENGTH -- depends on the master's mounting position and where the
+      fan-out carrier sits. 0.50 m is a placeholder; a typical pre-made pigtail
+      is only ~15 cm and will likely need extending.
+      SPLIT BUNDLE: yellow and black go to the fan-out, white goes to the
+      master. They are one cable only for the part of the run they share.
 
-  W2:
+  W_TIE:
     category: bundle
     gauge: 20 AWG
-    length: 0.5
+    length: 0.500
     colors: [BK]
     notes: >
-      Master GND tie. MANDATORY even if underglow is never fitted -- INT and
-      RS-485 need a solid common reference with the pad ground network.
-      TODO LENGTH.
+      Master GND tie, its own lead from J2 pin 2 to a GND lever port.
+      MANDATORY EVEN IF UNDERGLOW IS NEVER FITTED. TODO LENGTH.
 
 connections:
-  - - X1: [1]
-    - W1: [1]
-    - PSU_12V: [1]
+  - - STRIP: [3]
+    - W_UG: [1]
+    - WAGO_12V: [1]
 
-  - - X1: [3]
-    - W1: [3]
-    - PSU_GND: [1]
+  - - STRIP: [1]
+    - W_UG: [3]
+    - WAGO_GND: [1]
 
-  - - X1: [2]
-    - W1: [2]
+  - - STRIP: [2]
+    - W_UG: [2]
     - J2: [1]
 
   - - J2: [2]
-    - W2: [1]
-    - PSU_GND: [2]
+    - W_TIE: [1]
+    - WAGO_GND: [2]

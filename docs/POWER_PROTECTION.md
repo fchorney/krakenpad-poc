@@ -50,15 +50,15 @@ The protection has to insert into this, so these facts drive the options:
 
 ## Architecture: protect the local tap, not the trunk (for the fuse)
 
-Anything in series with the IN→OUT pass-through would need 2.7A sizing instead
-of ~1A, would stack its drop three-deep for the last panel, and — decisive for
+Anything in series with the IN→OUT pass-through would need 1.3A sizing instead
+of ~0.44A, would stack its drop three-deep for the last panel, and — decisive for
 the fuse — has **no selectivity**: a fault at panel 6 flows through panels 0
 and 3's series elements too, so identical fuses on identical boards means the
 wrong fuse can blow first. The fuse therefore belongs between the trunk and
 the panel's own loads:
 
 ```
-J205 ══ 2mm pass-through ══════════════════════ J208     (2.7A, pure copper)
+J205 ══ 2mm pass-through ══════════════════════ J208     (1.3A, pure copper)
               │ single tap
               F201  PTC resettable fuse          ← overcurrent
               Q201  P-FET, reverse-blocking      ← reverse polarity
@@ -68,15 +68,25 @@ J205 ══ 2mm pass-through ═════════════════
               └─ J212.1 → brain      (AMS1117, sense divider)
 ```
 
-Local worst-case load: ~0.9A LED field (25 × 36mA full white) + ~60mA brain
-≈ **1.0A**.
+Local worst-case load: ~0.375A LED field (25 × 15mA full white) + ~60mA brain
+≈ **0.44A**, or **0.56A** sized at 20mA/pixel for binning headroom.
+
+**Corrected 2026-08-16, down from 1.24A.** The datasheet's 15mA is **per pixel,
+not per RGB channel** — WS2815 wires its three dies in series and shorts out the
+unlit ones to hold pixel current constant. The old 47mA/LED (and the 36mA before
+it) came from multiplying 15mA by three. Bench-measured at 10.5mA/pixel;
+`hardware/harness/README.md` → "Power budget" carries the readings and sources.
+
+**Note for this circuit specifically: pure red draws the same as full white.**
+The protection worst case is *any* saturated frame, and no firmware colour
+policy can lower it.
 
 ### Components
 
 | Ref | Part | Spec | Sizing rationale |
 |---|---|---|---|
-| F201 | PTC resettable fuse, **1812** SMD | **hold ≥1.6A, trip ~3.2A, rated ≥16V (prefer 24V)** | 1.6× steady load covers PTC thermal derating (~−20% at 40°C ambient inside the pad). Reference series: Littelfuse 1812L, Bourns MF-MSMF; pick an in-stock LCSC equivalent — search "1812 PTC 1.6A 24V". ~0.1Ω → ~0.1W and ~0.1V drop at full white, invisible at 12V. Resettable over one-time: no spare-fuse stocking, trip self-clears on unplug |
-| Q201 | P-channel MOSFET, SOT-23 | **Vds ≥ −30V, Id ≥ 3A cont., Rds(on) ≤ 80mΩ @ Vgs = −10V** | Must carry F201's trip current briefly, hence ≥3A. ≤80mW dissipation at 1A. **Check Vgs abs-max on the actual part** — see below |
+| F201 | PTC resettable fuse, **1812** SMD | **hold ≥1.0A, trip ~2A, rated ≥16V (prefer 24V)** | 1.6× the 0.56A headroom load covers PTC thermal derating (~−20% at 40°C ambient inside the pad). Reference series: Littelfuse 1812L, Bourns MF-MSMF; pick an in-stock LCSC equivalent — search "1812 PTC 1A 24V". Resettable over one-time: no spare-fuse stocking, trip self-clears on unplug. **Lowered from 2.0A hold 2026-08-16** when the per-pixel/per-channel error was found |
+| Q201 | P-channel MOSFET, SOT-23 | **Vds ≥ −30V, Id ≥ 2A cont., Rds(on) ≤ 80mΩ @ Vgs = −10V** | Must carry F201's trip current briefly, hence ≥2A (**lowered from 4A 2026-08-16**). ~25mW dissipation at 0.44A. **Check Vgs abs-max on the actual part** — see below. SOT-23 is now comfortably inside its package rating; the earlier note about needing SOT-223 or a PowerPAK no longer applies |
 | R2xx | 100k, 0603 | gate → GND | Gate pull-down; sets Vgs ≈ −12V in normal operation |
 | D2xx | 10V zener, SOD-123 (**only if Q201's Vgs max is ±12V**) | gate–source clamp | The ubiquitous AO3401A is ±12V Vgs — a 12V rail sits exactly at abs-max, so it needs the zener (BZT52C10). A **±20V-Vgs part (DMP3099L-class) skips the zener entirely** — prefer that if LCSC stock allows |
 
@@ -109,10 +119,10 @@ untouched** — becomes `+12V_LOCAL`, fed through F201→Q201 from the new bypas
 at its left end.
 
 - Least surgery to the existing tree: zero re-homing of taps or vias.
-- The new bypass is one fat route. On B.Cu it's a straight shot with **3–4×
-  0.6mm-drill vias at each end** (~1.5–2A conservative per via, so 3+ for
-  2.7A; these join the existing 44-via POFV question for JLC, changing
-  nothing about it). On F.Cu it needs a clear 2mm corridor, which the LED
+- The new bypass is one fat route. On B.Cu it's a straight shot with **4–5×
+  0.6mm-drill vias at each end** (~1.5–2A conservative per via; 1.3A now needs
+  only one, so the 4–5 is pure margin — these join the existing 44-via POFV
+  question for JLC, changing nothing about it). On F.Cu it needs a clear 2mm corridor, which the LED
   field probably doesn't have.
 - **Check before picking a B.Cu corridor: the FSR runs are on B.Cu**
   (accepted-rev-A risk). The bypass carries downstream panels' LED PWM
@@ -140,10 +150,10 @@ If the split is deferred: reverse-polarity protection alone can sit **in the
 trunk immediately at J205**, before the first tap. Everything — trunk, tree,
 brain, J208 onward — is behind it, and no restructuring happens.
 
-- FET sizes up: 2.7A continuous → **SOIC-8 / PowerPAK class, ≤20mΩ**
-  (SI4435-class), still cheap. Three in series per column drop ~0.16V total at
-  full load — negligible.
-- Covers the *actual* credible reversal (PSU lugs) completely, since
+- FET sizes up: 1.3A continuous → SOT-23 still suffices here, though
+  **SOIC-8 / PowerPAK class, ≤20mΩ** (SI4435-class) is cheap insurance. Three in
+  series per column drop well under 0.1V total at full load — negligible.
+- Covers the *actual* credible reversal (miswiring at the 12V fan-out) completely, since
   downstream panels receive already-protected power through keyed connectors.
 - **Cost 1: no per-panel fuse** — this option alone doesn't provide one, and a
   later fuse still needs the A/B split.
@@ -183,9 +193,12 @@ a harness decision and can be adopted regardless of A/B/C.
   the next re-crimp of the PSU harness). A PTC that has tripped many times
   ages toward higher resistance — at 0.1V/0.1W margins this stays irrelevant
   for a long time.
-- **What this does NOT change:** the trunk's verified 2mm/2.7A geometry (A
-  keeps it via a new route, B/C keep it literally), RS-485/INT/FSR circuits,
-  the brain, and the identical-panels invariant.
+- **What this does NOT change:** the trunk's 2mm geometry (A keeps it via a new
+  route, B/C keep it literally), RS-485/INT/FSR circuits, the brain, and the
+  identical-panels invariant. **Resolved 2026-08-16:** the 2.7A→3.7A scare came
+  from the per-channel misreading and is void. The class is **1.3A**, against
+  ~3.9A for 2mm of 1oz outer copper at a 10°C rise — a 3× margin, the most
+  comfortable this trunk has ever been.
 
 ## Decision checklist (in order)
 

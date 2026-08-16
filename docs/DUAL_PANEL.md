@@ -197,8 +197,13 @@ Small facts that are easy to get wrong at firmware or assembly time.
   routing density.
 - **Assembly is double-sided**: 115 SMD placements, **101 top / 14 bottom**. THT
   (connectors, switches, the interface headers) is hand-soldered, not JLC.
-- **High-current path:** the 12 V IN→OUT daisy-chain carries up to ~2.7 A
-  pass-through plus ~0.9 A of local LED load at the IN side — fat copper on L1/In2.
+- **High-current path:** at the IN connector of a column's first panel the 12 V
+  daisy-chain carries **~1.3 A** (three panels), of which ~0.9 A passes through
+  to OUT and ~0.44 A is local — fat copper on L1/In2 is now generous rather than
+  necessary. **Corrected 2026-08-16** from 3.7 A / 1.24 A: the WS2815 datasheet's
+  15 mA is **per pixel, not per channel** (three dies in series, unlit ones
+  shorted out), so per-LED draw is ~15 mA, not 47 mA. Bench-measured at
+  10.5 mA/pixel. See `hardware/harness/README.md` → "Power budget".
 - **10 nF ADC caps sit physically at the RP2040 pins.** The crosstalk fix is
   placement-sensitive; do not relocate them for routing convenience.
 - **QSPI is length-matched to a 20 nm spread across the five data/clock nets**
@@ -209,7 +214,7 @@ Small facts that are easy to get wrong at firmware or assembly time.
 
 | Class | Trace | Via |
 |---|---|---|
-| 12 V trunk (IN/OUT + ground return, ≤2.7 A) | 2 mm | 0.6 mm |
+| 12 V trunk (IN/OUT + ground return, ≤1.3 A) | 2 mm | 0.6 mm |
 | LED power feeds off the 12 V plane + grounds | 1 mm | 0.3 mm |
 | 5 V / 3V3 top-layer power | 1.5–2 mm | 0.6 mm |
 | Data | 0.2 mm (0.15 mm where needed, e.g. the QFN escape) | 0.3 mm |
@@ -217,6 +222,13 @@ Small facts that are easy to get wrong at firmware or assembly time.
 | Decoupling | ~2 mm, short beats wide | 0.3 mm |
 | QSPI | **0.15 mm**, length-matched | — |
 | USB / RS-485 | per impedance below | — |
+
+**CLOSED 2026-08-16 — no re-route needed.** This was opened when the class
+current appeared to rise from 2.7 A to 3.7 A, leaving 2 mm of 1 oz outer copper
+at only a 1.05× margin. That rise came from misreading the WS2815 datasheet's
+15 mA as per-channel; the real class current is **1.3 A**, against ~3.9 A for
+2 mm of 1 oz outer copper at a 10 °C rise — a **3× margin**. The trunk and its
+vias are comfortably oversized as drawn. Nothing to widen; nothing to decide.
 
 As-built deviation worth knowing: **`XIN`/`XOUT` are routed at 0.2 mm, not the
 0.15 mm the table implies.** That is fine — the 0.15 mm figure exists for the QSPI
@@ -262,7 +274,7 @@ crossover. If a future review reports a one-sided hop, it is a new finding.
 127 × 127 mm carrier core (real edges 128/127/128/127), mounting holes 4.5 mm on
 114 mm centres except the top pair at 113 mm, LED lattice at 33.5 mm column /
 17 mm row pitch — all measured off the stock board and confirmed with a 1:1
-printout (`docs/STOCK_PANEL_REFERENCE.md`). **X is locked at ~127 mm by the edge
+printout (`stock-smx/PANEL_PCB.md`). **X is locked at ~127 mm by the edge
 connectors; Y has ~20 mm of slack per end** if a future revision needs it. Height
 budget above the PCB is ~35 mm.
 
@@ -353,6 +365,61 @@ Three M3 screws take all mechanical load; the sockets carry none.
 - **Spacer: 11 mm M3, deliberately erring tall.** A 10 mm spacer would be 0.75 mm
   short and the screws would close that gap by flexing the boards, putting exactly
   the load on the connectors that the spacer exists to remove. **Never omit it.**
+- **⚠ The table above predates the sourced parts, and 11 mm no longer clears.**
+  The connectors chosen 2026-08-16 (LCSC **C5383116** header, **C7509515** socket)
+  measure **2.54 mm** and **8.50 mm** of plastic against the 2.45/8.30 assumed
+  here — so board-to-board is **11.04 mm**, and the plastics now meet 0.04 mm
+  *before* an 11 mm spacer bottoms out. That is the exact failure mode the
+  spacer exists to prevent, merely small.
+  **Buy 12 mm M3 spacers as well and measure the parts on arrival.** At 12 mm
+  the gap is 0.96 mm, pin engagement is still ~5 mm, and total depth below the
+  carrier becomes 16.6 mm against 20.0 mm available — 3.4 mm spare, so the
+  cavity fit is unaffected. Spacers cost pennies; buy both and settle it with
+  calipers rather than by arithmetic on datasheet nominals.
+- **The spacer sets separation, so socket body height only buys pin engagement.**
+  Worth stating plainly, because it is counterintuitive: as long as the spacer is
+  *taller* than header plastic + socket plastic, the plastics never touch, the
+  connectors carry no load, and a shorter socket simply means the 6 mm pin goes
+  less far in. A shorter socket cannot make the pin "stick out".
+
+  | socket | body | stack | spacer | air gap | **pin engagement** | load on connectors |
+  |---|---|---|---|---|---|---|
+  | C7509515 | 8.50 | 11.04 | 11 mm | −0.04 | 6.00 (full) | ⚠ yes, slight |
+  | **C7509515** | **8.50** | **11.04** | **12 mm** | **0.96** | **5.04** | **none ✓** |
+  | C55218878 | 5.70 | 8.24 | 11 mm | 2.76 | 3.24 | none ✓ |
+
+  The spacer is a bought part and freely chosen, so a shorter socket paired with
+  a shorter spacer is equally valid on load — 5.7 mm socket + 9 mm spacer gives
+  5.24 mm engagement, as good as 8.5 mm + 12 mm. **Height alone does not decide
+  this.** What decides it is the next bullet.
+
+- **What is in the gap, and why it does not constrain the spacer.** The brain's
+  **F.Cu faces the carrier**, and that is the side carrying `J305` (USB-C) and
+  both SOT-223 LDOs — verified from `dual-panel.kicad_pcb`: carrier headers on
+  B.Cu at x≈91–138, brain sockets/USB-C/LDOs on F.Cu at x≈193–247. The tallest
+  of them is the GCT USB4085 at **3.16 mm** (datasheet section view), so
+  component clearance is satisfied by every spacer under discussion.
+
+  **USB-C cable clearance is explicitly NOT a requirement.** `CLAUDE.md`: the
+  port "is only used on the bench with the panel top off, so cable clearance is
+  irrelevant". The in-situ access path is the **3-pin SWD header, which is on the
+  CARRIER's F.Cu** (x≈113) and therefore reachable without separating the boards.
+  Nothing needs to reach into the inter-board gap.
+  *(A 2026-08-16 analysis argued the gap was a USB-cable budget and used that to
+  justify the 8.5 mm socket. It was wrong — recorded so it is not re-derived.)*
+
+- **Socket choice is therefore open, and close to free.** Both give ~5 mm
+  engagement with a matched spacer and neither strains the depth budget:
+
+  | socket | spacer | pin engagement | note |
+  |---|---|---|---|
+  | C7509515 (8.5) | 12 mm | 5.04 mm | satisfies the pin-shorter-than-bore rule |
+  | C7509515 (8.5) | 11 mm | 6.00 mm | ⚠ connectors take load — do not use |
+  | C55218878 (5.7) | 9–10 mm | ~5.2 mm | lower profile, more cavity spare |
+
+  The only residual argument for the 8.5 mm part is that a 6 mm pin fits inside
+  its bore, so it can never be *pin*-loaded even if assembled with a wrong-length
+  spacer. Mildly more forgiving; not a strong reason.
 - **Separation is set by the two plastics meeting, not by pins bottoming out** —
   which only holds while the mating pin is shorter than the socket is deep. Source
   headers as **6.0 mm mating pin with a ≥3.0 mm solder tail**; some "short" headers
@@ -402,9 +469,18 @@ Re-run 2026-08-04 from clean project copies with
   power-distribution, none in a pad, so unfilled is electrically fine — but POFV is
   normally applied board-wide. **Ask JLC how they handle a board mixing fillable and
   non-fillable vias** rather than eating an engineering query.
-- **The 8 interface connectors (J210–J213, J301–J304) carry no LCSC part number.**
-  160 pieces across a 20-panel build. Source before ordering — and see the header
-  mating-length constraint above, which most "2.54 mm header" listings do not state.
+- ~~**The 8 interface connectors (J210–J213, J301–J304) carry no LCSC part
+  number.**~~ **CLOSED 2026-08-16:** header **C5383116** (HanElectricity
+  2541WV-08P, 6 mm pin / 3 mm tail) and socket **C7509515** (CONNFLY
+  DS1023-1x8SF11, 8.5 mm body), 50 of each ordered against a need of 36.
+  **They bring a spacer consequence — see the mechanical stack above.**
+  Original note retained for the reasoning:
+  **Type is NOT unknown** — read out of `dual-panel.kicad_pcb` 2026-08-16:
+  J210–J213 are `PinHeader_1x08_P2.54mm_Vertical` (carrier, B.Cu) and J301–J304
+  are `PinSocket_1x08_P2.54mm_Vertical` (brain). Ordinary 2.54 mm headers and
+  sockets, four of each per panel, 32 pins per side. The *only* non-commodity
+  spec is the **6.0 mm mating pin with ≥3.0 mm solder tail** from the mechanical
+  stack above, which most "2.54 mm header" listings state neither half of.
 - **`.kicad_dru` silently overrides the netclass clearance.** The rule "Minimum
   Trace Width and Spacing" carries `(constraint clearance (min 0.09mm))`, and in
   KiCad a custom rule **replaces** the netclass value rather than acting as a floor

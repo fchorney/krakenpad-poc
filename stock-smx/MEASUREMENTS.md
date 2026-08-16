@@ -84,16 +84,21 @@ noticeable slack you could shorten.
   the pin order were corrected on 2026-08-08.
   Its captive cable is **two black 18 AWG conductors, one with a moulded ridge**
   — the only place in the pad where color does not identify a conductor.
-  - [x] **Which of the two is +12V — CLOSED as not worth establishing.** The
-        joint is a sealed black box and both of its sides are documented;
-        polarity is unambiguous at the YL 2-way (red = 12 V, black = GND), which
-        is the only place anything downstream cares about. This only becomes a
-        question if the heatshrink ever comes off.
-  - [x] **PSU capacity decided 2026-08-08: buy a larger supply.** 8.5 A vs
-        ~8.1 A of panels at full white, before underglow. Replacement part not
-        yet chosen — size against panels + underglow + margin. The Gen 4/Gen 5
-        nameplate discrepancy is left unresolved on purpose; the supply is being
-        replaced regardless.
+  - [x] **Which of the two is +12V — STILL NOT ESTABLISHED, and now it matters
+        more.** Polarity is unambiguous at the YL 2-way (red = 12 V,
+        black = GND) and at the barrel (the supply's label reads
+        centre-positive), so nothing in the *stock* pad needs the answer.
+        **But the "sealed joint" reasoning that closed this is obsolete:** the
+        heatshrink came off 2026-08-16 and the joint is a plain 5.5 × 2.5 DC
+        barrel pair, not a splice. Anyone cutting that captive cable must meter
+        the barrel first — it is the only polarity reference on the supply side.
+  - [x] **PSU nameplate: DC 12 V, 8.5 A, 102 W (YU1208).** Recorded as an
+        observation. The **Gen 4 / Gen 5 nameplate discrepancy** — the manual
+        gives Gen 4 as 12 V 9 A and Gen 5 as 12 V 15 A, and this matches
+        neither — is left unresolved on purpose.
+        Whether 8.5 A is adequate for *this project*, and whether the supply is
+        kept, are design questions and live in `hardware/harness/README.md`
+        → "Power budget", not here.
 
 ## Pinout re-verification pass — COMPLETE 2026-08-08
 
@@ -174,9 +179,12 @@ MCU harness (`mcu-interface.yml`) turned both up and both were right:
 - 5 V branch, MCU side → predicted **SMP-02V-BC**, found **SMP-02V-BC**
 
 Good evidence the gender rule in `PARTS.md` is now stated correctly.
-- Whether the ~8.1 A panel load crossing the VL 4-way on two 18 AWG conductors
-  (~4 A each, ~20 cm run) is adequate. Recorded as an observation only — it is
-  a keep-or-replace question for after the stock record is finished.
+- Whether the stock 5 V panel load crossing the VL 4-way is adequate.
+  **Figure corrected 2026-08-14:** this said 8.1 A / ~4 A per conductor, but
+  8.1 A was our *12 V* budget wrongly applied to a 5 V connector. Stock is
+  225 × ~58.5 mA ≈ **13.2 A, so ~6.6 A per conductor** — against JST's 7 A
+  rating for a 4-circuit VL at #18. It sits at ~94% of rating at full white,
+  which is why both rails are doubled. Moot for us: the whole 5 V chain goes.
 
 ## MCU interface — `mcu-interface.yml`, recorded 2026-08-08
 
@@ -547,19 +555,26 @@ short lead to a **fork terminal on the PSU's GND stud**". The stock pad has no
 such arrangement: the PSU is a brick with one YL 2-way output, and the columns
 are on 5 V behind a converter.
 
-So these remain **unconfirmed placeholders inherited from the pre-teardown
-design notes, not observations**:
+These were **unconfirmed placeholders inherited from the pre-teardown design
+notes, not observations** — and all of them are now **RESOLVED, 2026-08-16**:
 
-- `power-column.yml` — `PSU_12V` / `PSU_GND` fork lugs, and its 12 V premise
-- `underglow.yml` — 12 V and GND to PSU lugs, and the master GND tie to a "PSU
-  GND stud"
-- The Underglow length table row "SM 3P to PSU lugs"
-- The open item "PSU terminal screw size, for fork lug selection" is moot —
-  the PSU has no screw terminals
+- ✅ `power-column.yml` — `PSU_12V`/`PSU_GND` fork lugs replaced by
+  `WAGO_12V`/`WAGO_GND` lever-block ports. Its 12 V premise **stands**: our
+  panels are WS2815 and 12 V-native, so the converter is what goes away.
+- ✅ `underglow.yml` — rewritten. 12 V and GND come from the fan-out; the master
+  GND tie gets **its own lever port and its own lead** rather than a "PSU GND
+  stud" or a ride on the underglow cable.
+- ✅ The Underglow length row "SM 3P to PSU lugs" — gone with the rewrite.
+- ✅ "PSU terminal screw size, for fork lug selection" — moot, as noted; the PSU
+  has no screw terminals and nothing now needs a lug.
 
-**Not acting on any of this yet**, per the agreed order: finish the stock record
-first, then decide what to keep and what to replace. No PCB changes are implied
-either way — this is all upstream of the boards.
+**What replaced them:** `12v-trunk.yml`. The stock 12 V star point (the
+converter's input screw terminals) becomes a **Wago 221-415 lever-block fan-out**
+mounted on the Daygreen's own two M3 holes (57 mm centres), fed from the PSU's
+captive cable through an XT30 and an 8 A slow-blow fuse.
+
+No PCB changes were implied by any of this — it is all upstream of the boards,
+exactly as predicted when the question was first raised.
 
 ### 2. Connector gender — AUDITED 2026-08-08, one item still open
 

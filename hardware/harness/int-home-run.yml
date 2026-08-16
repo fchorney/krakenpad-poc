@@ -1,22 +1,42 @@
 metadata:
-  title: INT home-run harness (one per panel)
+  title: INT home runs (master J3-J11 to nine panel carriers)
   description: >
-    The interrupt wire -- the sole gameplay input path. Open-drain: the panel
+    The interrupt wires -- the sole gameplay input path. Open-drain: the panel
     RP2040 sinks the line to GND on press; it is pulled HIGH at the master.
-    Home-run only, no daisy chain, so there are nine of these. Twisted pair with
-    a dedicated GND return (adopted 2026-07-26) so the return does not ride the
-    shared power ground network.
-  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+    Home-run only, no daisy chain. Twisted pair with a dedicated GND return
+    (adopted 2026-07-26) so the return does not ride the shared power ground
+    network -- a deliberate departure from stock, whose 2-position panel blocks
+    left the GND position EMPTY.
+    LENGTHS CLOSED 2026-08-16, transcribed from the STOCK per-panel signal
+    lines in panel-signal-lines.yml. Those are home runs from the MCU to the
+    same nine panels, so their measured lengths transfer directly.
+    STRUCTURE CHANGED 2026-08-16: this was one generic drawing at qty 9 with a
+    single TODO length. It is now the real set of nine, because the nine
+    lengths differ and they are what sizes the wire order -- the same reason
+    panel-signal-lines.yml is drawn that way. qty_per_pad is therefore 1.
+    NO MID-SPAN BREAKOUT -- DECIDED 2026-08-16. An 18-circuit wire-to-wire
+    breakout was floated so the master could be removed without unthreading
+    nine home runs. Dropped for the prototype to hold scope. Note it was never
+    REQUIRED by this harness: the master end is already a keyed JST XH crimp
+    housing and the panel end a screw terminal, so both ends are serviceable as
+    drawn. The breakout was only ever a cable-management convenience, and it is
+    purely additive if wanted later -- nothing here changes to accommodate it.
+    Caveat: the lengths assume the replacement master mounts where the stock
+    Arduino Micro sat. The stock set fits 60 + 30 per row down + a column
+    offset of 0 centre / 10 right / 30 left, in cm, which puts the MCU nearest
+    panel 1 and slightly right of centre. Re-derive from that formula if the
+    master moves rather than re-measuring all nine.
+  status: PROPOSED -- this project's own design. Lengths now derived from the completed stock record.
   pn: HARNESS-INT-01
-  qty_per_pad: 9
+  qty_per_pad: 1
 
 options:
   color_mode: full
 
 connectors:
-  MASTER:
+  M0: &master
     pn: JST B2B-XH-A / XHP-2
-    type: Master PCB J3..J11
+    type: Master J3 (UL)
     subtype: JST XH 2-pin, vertical
     pincount: 2
     pinlabels: [INT, GND]
@@ -26,33 +46,159 @@ connectors:
       be swapped -- that swap on a screw terminal would read as a permanently
       stuck press. Master-side XH vs panel-side FSR PH also prevents
       cross-plugging.
+      SLOT-TO-PANEL-ID AGREEMENT IS NOT ASSUMED. The silkscreen is a build aid
+      only; the master learns the real mapping with the 'I' identify pulse and
+      reports mismatches. See docs/RS485_PROTOCOL.md.
+  M1:
+    <<: *master
+    type: Master J4 (U)
+  M2:
+    <<: *master
+    type: Master J5 (UR)
+  M3:
+    <<: *master
+    type: Master J6 (L)
+  M4:
+    <<: *master
+    type: Master J7 (C)
+  M5:
+    <<: *master
+    type: Master J8 (R)
+  M6:
+    <<: *master
+    type: Master J9 (DL)
+  M7:
+    <<: *master
+    type: Master J10 (D)
+  M8:
+    <<: *master
+    type: Master J11 (DR)
 
-  PANEL:
+  P0: &panel
     pn: KANGNEX WJ500V-5.08-2P
-    type: Panel carrier J214
+    type: Panel 0 (UL) carrier J214
     subtype: 2-pos screw terminal, 5.08mm
     pincount: 2
     pinlabels: [INT, GND]
-    notes: Screw terminal, so the panel end is field-serviceable without crimps.
+    notes: >
+      Screw terminal, so the panel end is field-serviceable without crimps.
+      BOTH POSITIONS ARE USED, unlike stock -- position 2 is the dedicated
+      twisted-pair GND return, not an empty spare.
+  P1:
+    <<: *panel
+    type: Panel 1 (U) carrier J214
+  P2:
+    <<: *panel
+    type: Panel 2 (UR) carrier J214
+  P3:
+    <<: *panel
+    type: Panel 3 (L) carrier J214
+  P4:
+    <<: *panel
+    type: Panel 4 (C) carrier J214
+  P5:
+    <<: *panel
+    type: Panel 5 (R) carrier J214
+  P6:
+    <<: *panel
+    type: Panel 6 (DL) carrier J214
+  P7:
+    <<: *panel
+    type: Panel 7 (D) carrier J214
+  P8:
+    <<: *panel
+    type: Panel 8 (DR) carrier J214
 
 cables:
-  W1:
+  W_P0:
     category: bundle
     gauge: 24 AWG
-    length: 1.2
+    length: 0.900
     colors: [WH, BK]
     notes: >
-      TODO LENGTH x9 -- every panel is a different distance from the master.
-      Measure all nine and record in MEASUREMENTS.md; they are separate part
-      numbers even though the connectors match.
-      Twisted pair. Per-panel identification is colored or printed heat-shrink
-      at BOTH cable ends, not conductor color (the chosen cable comes in one
-      color). The stock SMX color map in docs/BOM.md now names markers:
-      0=Red through 8=Black.
-      Slot-to-panel-ID agreement is NOT assumed anywhere -- the master learns
-      the real mapping with the 'I' identify pulse and reports mismatches.
+      Master J3 to panel 0 (UL). 90 cm. Marker RED.
+      PER-PANEL IDENTIFICATION IS COLORED OR PRINTED HEAT-SHRINK AT BOTH ENDS,
+      not conductor color -- the chosen twisted pair comes in one color only.
+      The markers follow the stock SMX panel map in docs/BOM.md: 0=Red
+      1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black. The
+      same convention applies to all nine cables below.
+  W_P1:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.600
+    colors: [WH, BK]
+    notes: Master J4 to panel 1 (U). 60 cm -- shortest of the nine. Marker ORANGE.
+  W_P2:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.700
+    colors: [WH, BK]
+    notes: Master J5 to panel 2 (UR). 70 cm. Marker YELLOW.
+  W_P3:
+    category: bundle
+    gauge: 24 AWG
+    length: 1.200
+    colors: [WH, BK]
+    notes: Master J6 to panel 3 (L). 120 cm. Marker GREEN.
+  W_P4:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.900
+    colors: [WH, BK]
+    notes: Master J7 to panel 4 (C). 90 cm. Marker BLUE.
+  W_P5:
+    category: bundle
+    gauge: 24 AWG
+    length: 1.000
+    colors: [WH, BK]
+    notes: Master J8 to panel 5 (R). 100 cm. Marker BROWN.
+  W_P6:
+    category: bundle
+    gauge: 24 AWG
+    length: 1.500
+    colors: [WH, BK]
+    notes: >
+      Master J9 to panel 6 (DL). 150 cm -- longest of the nine. Marker GREY.
+      TOTAL FOR THE SET: 9.3 m of 24 AWG twisted pair before slack, the same
+      total the stock signal lines came to in 18 AWG.
+  W_P7:
+    category: bundle
+    gauge: 24 AWG
+    length: 1.200
+    colors: [WH, BK]
+    notes: Master J10 to panel 7 (D). 120 cm. Marker WHITE.
+  W_P8:
+    category: bundle
+    gauge: 24 AWG
+    length: 1.300
+    colors: [WH, BK]
+    notes: Master J11 to panel 8 (DR). 130 cm. Marker BLACK.
 
 connections:
-  - - MASTER: [1-2]
-    - W1: [1-2]
-    - PANEL: [1-2]
+  - - M0: [1-2]
+    - W_P0: [1-2]
+    - P0: [1-2]
+  - - M1: [1-2]
+    - W_P1: [1-2]
+    - P1: [1-2]
+  - - M2: [1-2]
+    - W_P2: [1-2]
+    - P2: [1-2]
+  - - M3: [1-2]
+    - W_P3: [1-2]
+    - P3: [1-2]
+  - - M4: [1-2]
+    - W_P4: [1-2]
+    - P4: [1-2]
+  - - M5: [1-2]
+    - W_P5: [1-2]
+    - P5: [1-2]
+  - - M6: [1-2]
+    - W_P6: [1-2]
+    - P6: [1-2]
+  - - M7: [1-2]
+    - W_P7: [1-2]
+    - P7: [1-2]
+  - - M8: [1-2]
+    - W_P8: [1-2]
+    - P8: [1-2]

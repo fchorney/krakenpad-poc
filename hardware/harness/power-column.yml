@@ -2,11 +2,21 @@ metadata:
   title: 12V power column harness
   description: >
     One of three identical parallel column chains. Left = panels 0,3,6;
-    Center = 1,4,7; Right = 2,5,8. 12V runs from the PSU terminals DIRECTLY to
-    each column's first panel -- the master PCB is NOT in the 12V distribution
-    path. Fork lugs at the PSU end, Micro-Fit 3.0 2-pin at the panel end.
-    Max chain load = 3 panels x 25 LEDs x ~36mA = ~2.7A, inside the 5A/pin rating.
-  status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
+    Center = 1,4,7; Right = 2,5,8. 12V runs from the Wago lever-block fan-out
+    (12v-trunk.yml) DIRECTLY to each column's first panel -- the master PCB is
+    NOT in the 12V distribution path. Lever block at the source end, Micro-Fit
+    3.0 2-pin at the panel end.
+    FORK LUGS REMOVED 2026-08-16. This file used to describe "PSU terminals"
+    with "fork lugs at the PSU end" and a "PSU GND stud". None of that exists --
+    the stock supply is a brick with one captive output. Those were pre-teardown
+    assumptions that survived far too long; the real source is the fan-out that
+    replaces the Daygreen converter.
+    Max chain load = 3 panels x 0.44 A = ~1.3 A, far inside the 5A/pin rating.
+    Per panel = 25 LEDs x 15 mA full white + ~60 mA brain. The WS2815 datasheet's
+    15 mA is PER PIXEL, not per channel -- its three dies are in series and unlit
+    ones are shorted out, so red draws the same as white. Corrected 2026-08-16;
+    the earlier 47 mA and 36 mA figures both came from multiplying by three.
+  status: PROPOSED -- source end and lengths settled 2026-08-16 against the completed stock record.
   pn: HARNESS-PWR-01
   qty_per_pad: 3
 
@@ -14,28 +24,30 @@ options:
   color_mode: full
 
 connectors:
-  PSU_12V:
-    type: 12V distribution point, +12V
-    subtype: fork lug -- UNCONFIRMED
+  WAGO_12V:
+    pn: Wago 221-415 (5-way lever block)
+    type: Fan-out, +12V rail
+    subtype: lever block port
     pincount: 1
     pinlabels: [V12]
     notes: >
-      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
-      captive output ending in a JST YL 2-way -- it has no terminal block and
-      no ground stud. Whatever fans 12V out to the three columns is not yet
-      documented, so these lug connections are UNCONFIRMED. See
-      MEASUREMENTS.md, Open questions.
-  PSU_GND:
-    type: 12V distribution point, GND
-    subtype: fork lug -- UNCONFIRMED
+      One of the three column ports on the +12V rail. Full drawing of the
+      fan-out is 12v-trunk.yml.
+      CORRECTED 2026-08-16: this was a "PSU +12V fork lug", which does not
+      exist. The stock supply is a BRICK with a single captive output and no
+      terminal block or ground stud; the pre-teardown design notes invented the
+      lugs. 12V distribution is now a Wago lever block sitting where the
+      Daygreen converter was.
+  WAGO_GND:
+    pn: Wago 221-415 (5-way lever block)
+    type: Fan-out, GND rail
+    subtype: lever block port
     pincount: 1
     pinlabels: [GND]
     notes: >
-      NOTE: the supply found at teardown (YU1208) is a BRICK with a single
-      captive output ending in a JST YL 2-way -- it has no terminal block and
-      no ground stud. Whatever fans 12V out to the three columns is not yet
-      documented, so these lug connections are UNCONFIRMED. See
-      MEASUREMENTS.md, Open questions.
+      One of the three column ports on the GND rail (two 221-415 jumpered, six
+      ports, the extra being the master GND tie). See 12v-trunk.yml.
+      CORRECTED 2026-08-16, as above -- there is no "PSU GND stud".
 
   P0_IN:
     pn: Micro-Fit 3.0 2-pin
@@ -79,34 +91,39 @@ cables:
   W_PSU:
     category: bundle
     gauge: 20 AWG
-    length: 1.0
+    length: 0.600
     colors: [RD, BK]
     notes: >
-      TODO LENGTH per column -- the three columns are different lengths.
-      Stock jacketed 2x20 AWG. Measure PSU-to-first-panel for each of the
-      three columns and record separately in MEASUREMENTS.md.
+      LENGTH FROM THE STOCK RECORD 2026-08-16: 5v-columns.yml measures all
+      THREE stock column feeds at 60 cm -- they are not different lengths, as
+      this file previously assumed. Our fan-out sits where the Daygreen sat, so
+      the run is the same. Stock jacketed 2x20 AWG.
+      Re-measure only if the fan-out carrier ends up somewhere else.
 
   W_JUMP_A:
     category: bundle
     gauge: 20 AWG
-    length: 0.35
+    length: 0.600
     colors: [RD, BK]
-    notes: TODO LENGTH. Panel-to-panel jumper, first to middle.
+    notes: >
+      Panel-to-panel jumper, first to middle. LENGTH FROM THE STOCK RECORD
+      2026-08-16: panel-power-chain.yml measures all six stock jumpers at 60 cm.
 
   W_JUMP_B:
     category: bundle
     gauge: 20 AWG
-    length: 0.35
+    length: 0.600
     colors: [RD, BK]
     notes: >
-      TODO LENGTH. Middle to last. Likely identical to W_JUMP_A -- confirm
-      from the stock harness before assuming one jumper part number covers both.
+      Middle to last. CONFIRMED IDENTICAL TO W_JUMP_A 2026-08-16 -- stock runs
+      60 cm in both positions (panel-power-chain.yml), so ONE JUMPER PART
+      NUMBER COVERS BOTH and six identical jumpers build all three columns.
 
 connections:
-  - - PSU_12V: [1]
+  - - WAGO_12V: [1]
     - W_PSU: [1]
     - P0_IN: [1]
-  - - PSU_GND: [1]
+  - - WAGO_GND: [1]
     - W_PSU: [2]
     - P0_IN: [2]
 

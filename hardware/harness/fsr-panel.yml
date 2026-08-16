@@ -50,13 +50,18 @@ connectors:
 cables:
   W1:
     category: bundle
-    gauge: 28 AWG
-    length: 0.15
+    gauge: 30 AWG
+    length: 0.100
     colors: [RD, BK]
     notes: >
-      TODO LENGTH -- measure the stock FSR tail plus any extension. Also record
-      whether all four edges use the same length or whether the sensors sit at
-      different distances from the carrier.
+      CLOSED 2026-08-16 from the stock record: red/black 30 AWG, about 10 cm,
+      ALL FOUR EDGES THE SAME. Corrected from a placeholder 28 AWG / 15 cm.
+      THIS IS NOT A CABLE WE BUILD OR BUY. It is the FSR's own moulded tail,
+      already terminated in a PHR-2 -- there is no extension and no inline
+      joint anywhere in the stock pad. It is drawn here because the 10 cm is
+      what fixes connector placement, not because it is a harness line item.
+      DO NOT ORDER 36 OF THESE: the quantity ships with the sensors. The
+      qty_per_pad of 36 counts sensor positions, not cables to make.
 
 connections:
   - - FSR: [1-2]

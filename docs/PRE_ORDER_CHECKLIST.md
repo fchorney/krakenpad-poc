@@ -20,28 +20,54 @@ changes, both docs move together.
 ✅ **Pad + harness teardown — done 2026-08-08.** Every component and wire is out.
 **J2's 2-pos screw terminal is confirmed final, not interim**: the underglow
 strips terminate in a **JST SM 3P female** carrying 12V/DATA/GND, so our side is
-an SM 3P male pigtail that sends 12V/GND to the PSU lugs and DATA alone to J2
-pin 1 — no splice, and no change to the master PCB. See `docs/UNDERGLOW.md`.
+an SM 3P male pigtail that sends 12V/GND to the pad's 12V distribution and DATA
+alone to J2 pin 1 — no splice, and no change to the master PCB. See
+`docs/UNDERGLOW.md`. (There are no "PSU lugs"; distribution is now the Wago
+fan-out in `hardware/harness/12v-trunk.yml`.)
 
 Remaining teardown follow-ups, none of which block the board order:
 
 - ✅ **SM 3P pin order resolved 2026-08-08: pin 1 = GND, pin 2 = DATA,
   pin 3 = 12V** — the *reverse* of the earlier assumption. Building to the old
   order would have put 12V into the DATA pin.
-- ⬜ Source a **JST SMR-03V-B** housing + SM pin contacts — *if this harness is
-  needed at all*. The pad already has an SM 3P fed from the 12V star point, with
-  DATA arriving on a **YLR-01V**, so the master may only need to drive one wire.
-  Decide during our own harness design.
+- ✅ **Underglow connector — RESOLVED 2026-08-16.** We *do* build this side:
+  removing all SMX wiring takes the stock `SMR-03V-B` with it, leaving only the
+  strips' moulded plug to mate. **Use a pre-made 3-pin SM 2.5 LED-strip pigtail
+  pair (22 AWG, on hand)**, not loose contacts — `SMM-003T-P0.5` is 28–30 AWG
+  and cannot crimp our wire. `SMR-03V-B` (LCSC **C157907**) is stocked as a
+  hand-made fallback. Pinout **1 = GND, 2 = DATA, 3 = 12 V**. Cable-side either
+  way, so it never blocked the board order.
 - ✅ **"PSU stud size" is moot** — the stock PSU is a brick with one JST YL 2-way
   output and no terminal block or ground stud. The 12V star point is physically
   the DC-DC converter's input screw terminals.
-- ✅ **Stock harness fully documented 2026-08-08** — 17 WireViz drawings in
-  `hardware/harness/`, wall socket through to the FSRs, with per-run lengths.
+- ✅ **Stock harness fully documented 2026-08-08** — 12 WireViz drawings plus a
+  one-page topology map in **`stock-smx/`**, wall socket through to the FSRs,
+  with per-run lengths. That tree is kept deliberately separate from our own
+  replacement harnesses in `hardware/harness/`.
 
-⬜ **Source the 8 board-to-board interface connectors.** Carrier headers
-**J210–J213** and brain sockets **J301–J304** carry **no LCSC number** — 160 pieces
-at a 20-panel build. They are hand-soldered, so they are a cart item, not a PCBA
-line. Constraint most listings don't state: **6.0 mm mating pin with a ≥3.0 mm
+✅ **Source the 8 board-to-board interface connectors — DONE 2026-08-16.**
+Carrier headers **J210–J213** = LCSC **C5383116** (HanElectricity 2541WV-08P,
+1×8 male 2.54 mm, **6 mm mating pin / 3 mm solder tail**, gold, 3 A/pin).
+Brain sockets **J301–J304** = LCSC **C7509515** (CONNFLY DS1023-1x8SF11, 1×8
+female, 8.5 mm body, gold). 50 of each ordered against a need of 36. They are
+hand-soldered, so they are a cart item, not a PCBA line.
+
+**⚠ Carries one consequence: order 12 mm M3 spacers too.** These parts measure
+2.54 + 8.50 = **11.04 mm** board-to-board, against the 10.75 mm the mechanical
+stack assumed — so the 11 mm spacer no longer clears, by 0.04 mm. Measure on
+arrival and use whichever of 11/12 mm actually clears. See `docs/DUAL_PANEL.md`
+→ "Mechanical stack".
+
+Original constraint, retained because it is what made these parts the right
+ones:
+
+**Type confirmed from `dual-panel.kicad_pcb` 2026-08-16 — they are ordinary
+2.54 mm parts, nothing exotic:** `PinHeader_1x08_P2.54mm_Vertical` on the
+carrier (B.Cu), `PinSocket_1x08_P2.54mm_Vertical` on the brain. Four of each per
+panel, 32 pins per side. Searchable on DigiKey/LCSC as plain 1×8 headers and
+sockets; the pitch and pin count are not the hard part.
+
+Constraint most listings don't state: **6.0 mm mating pin with a ≥3.0 mm
 solder tail** (the standard 11.6 mm total pin). Separation is set by the two
 plastics meeting, not by pins bottoming out, and some "short" headers trim the tail
 instead of the mating end — which leaves nothing to solder through the carrier.
@@ -52,7 +78,7 @@ contacts.
 
 ⬜ **INT cable length** — 9 home runs, not a chain. The *stock* equivalent is now
 measured: nine per-panel signal lines, 60–150 cm each, **9.3 m total** of 18 AWG
-(`hardware/harness/panel-signal-lines.yml`). Our own runs differ — the master
+(`stock-smx/harness/panel-signal-lines.yml`). Our own runs differ — the master
 mounts elsewhere and we use a twisted pair rather than a single conductor — but
 the stock figures bound the problem.
 
@@ -300,5 +326,8 @@ to the FSR connector symbols.
 - ⬜ Mate-and-solder order for the interface: assemble both headers into their
   sockets, mate the boards, **then** solder the second connector's pins with the
   stack held together. Four connectors must align in X, Y *and* rotation at once.
-- ⬜ **Never omit the 11 mm M3 spacer.** Without it, tightening pulls the brain into
+- ⬜ **Never omit the M3 spacer.** Without it, tightening pulls the brain into
   the carrier and the connectors absorb the entire clamping force.
+  **Buy 11 mm AND 12 mm and measure** — the connectors sourced 2026-08-16
+  (C5383116 + C7509515) stack to 11.04 mm, so 11 mm no longer clears by
+  0.04 mm. See `docs/DUAL_PANEL.md` → "Mechanical stack".

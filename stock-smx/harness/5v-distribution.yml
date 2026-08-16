@@ -93,10 +93,19 @@ connectors:
       THE CONDUCTORS ARE 18 AWG, not the 12 AWG recorded before 2026-08-08, so
       the old reasoning that the doubling 'follows from 12 AWG and the 15 A
       rating' does not hold and has been dropped. What is observed: the pad's
-      ENTIRE panel load (~8.1 A at full white) crosses this connector on two
-      18 AWG conductors, roughly 4 A each, over a ~20 cm run. Recorded as an
-      observation; whether it is adequate is a keep-or-replace question for
-      after the stock record is finished.
+      ENTIRE panel load crosses this connector on two 18 AWG conductors per
+      rail, over a ~20 cm run.
+      CURRENT FIGURE CORRECTED 2026-08-14. This previously said "~8.1 A at full
+      white, roughly 4 A each" -- but 8.1 A was OUR 12 V panel budget wrongly
+      applied to a 5 V connector. The stock 5 V load is 225 LEDs x ~58.5 mA
+      (from the IREF measurement in docs/STOCK_PANEL_REFERENCE.md) = ~13.2 A,
+      so roughly 6.6 A PER CONDUCTOR.
+      That reframes the doubling entirely. JST rates a 4-circuit VL at 7 A per
+      circuit with #18 wire (eVL-WW.pdf), so the stock build sits at ~94 percent
+      of rated current on each contact at full white. The doubling is not a
+      comfort margin -- it is what makes the connector legal at all. Consistent
+      with the Daygreen being a 15 A part feeding a 13.2 A load: the whole stock
+      5 V chain is sized to full white and no further.
       VL SERIES, NOT YL. This was first read as a YLR-04V; VLR-04V is correct.
       VL is JST's heavier power series, which is why it looks bigger than the
       YL parts on the 12 V side. VL accepts 22-12 AWG, so 18 AWG sits

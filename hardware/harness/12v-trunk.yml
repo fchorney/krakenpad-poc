@@ -1,0 +1,268 @@
+metadata:
+  title: 12V trunk and fan-out (PSU to Wago lever blocks)
+  description: >
+    The one genuinely new piece of our 12V harness, and the replacement for the
+    stock 12V star point. Everything the pad draws crosses this harness.
+    DESIGN, settled 2026-08-16: the stock 5.5x2.5 DC barrel plug is cut off the
+    PSU's captive cable and replaced with an XT30. Our trunk cable carries the
+    mating XT30, an inline 8 A slow-blow fuse in the +12V leg, and lands on
+    Wago 221-415 lever blocks sitting where the Daygreen converter was.
+    WHY CUT AT ALL, AND WHY THIS IS STILL REVERSIBLE. Every connector the stock
+    pad offers at this point is a ~5 A class part -- the JST YL 2-way at 2
+    circuits and #20 AWG is rated 5.0 A (PARTS.md), and the 5.5x2.5 barrel is
+    3-5 A depending on part. Our worst case is 6.34 A. Keeping either would
+    leave a permanent bottleneck below the load, so both go.
+    Cutting is nevertheless NOT a one-way door, because the SECOND XT30 half
+    goes on the cut stock 20 AWG tail. That restores the stock pad on demand:
+    unplug our trunk, plug the stock tail back in, and the original 12V path is
+    intact from the supply onward. This is the whole reason XT30 wins here over
+    a smaller connector -- its current rating was never the deciding factor.
+    WHAT THE STOCK CHAIN WAS: PSU, captive 18 AWG, 5.5x2.5 DC barrel pair
+    (found by removing heatshrink 2026-08-16 -- it was never a splice), 30 cm
+    of 20 AWG, JST YL 2-way, then the star point at the converter's input
+    screw terminals. Everything from the barrel onward is replaced.
+    HISTORY, so the reasoning is not re-run: an earlier plan kept the stock
+    tail intact so a non-technical end user could reuse their supply, with a
+    firmware power budget standing in for the deleted Daygreen ceiling. Dropped
+    as scope creep -- this is a prototype for its author, and any kit would ship
+    with a supply and harness made up. The research survives in
+    docs/UNDERGLOW.md as the WS2811 vs WS2815 current models, which turned out
+    to matter for animations regardless.
+    EXTERNAL 12V BARREL INPUT: DEFERRED 2026-08-16, NOT DESIGNED IN. This is a
+    DIFFERENT barrel from the PSU one above -- it is the stock cabinet input on
+    the star point, see external-12v-input.yml. It is simply left out; the rail
+    port counts below assume it is absent, which is what lets ONE 221-415 cover
+    the +12V rail. Deferring costs nothing because adding it later is a lever
+    press plus, if the +12V rail is then full, one more jumpered block.
+    If it is ever revisited, the unanswered questions are: its supply's rating,
+    the jack size, and whether it can be live at the same time as the internal
+    PSU -- two sources on one rail with nothing arbitrating, in stock and here.
+    The plan then would be procedural exclusivity, labelled. Note a 5.5 mm
+    barrel jack is typically rated 5 A, so that input could not run the pad
+    anyway.
+    OPEN ITEMS, none of which block the topology above:
+    (1) INLINE FUSE HOLDER part number, for a T8A 5x20 mm cartridge.
+    (2) TRUNK LENGTH -- the only measurement left. The carrier POSITION is now
+    settled (see the Daygreen note), so this is just PSU-to-that-spot.
+    DAYGREEN MOUNTING -- MEASURED 2026-08-16, CLOSED: TWO SCREWS, centres
+    57 mm apart, exactly horizontal, holes 3 mm diameter (M3). The printed
+    carrier reuses these two holes, so it drops into the converter's footprint
+    with no new drilling and the carrier position needs no separate decision.
+    (3) PRINTED CARRIER: 57 mm hole spacing / 3 mm holes as above. PETG not PLA
+    (shares a compartment with the supply),
+    zip-tie strain relief ahead of each block, engraved +12V/GND, pockets sized
+    for the levers to swing open, and possibly the fuse housed in the same
+    part. Wago's own 221-500 mounting carrier is a good dimensional reference.
+  status: PROPOSED -- topology and connectors settled 2026-08-16; parts and lengths still open. See "Open items".
+  pn: HARNESS-TRUNK-01
+  qty_per_pad: 1
+
+options:
+  color_mode: full
+
+connectors:
+  PSU:
+    pn: YU1208 (stock, 12V 8.5A) -- barrel plug CUT OFF, XT30 fitted
+    type: PSU captive cable
+    subtype: XT30 FEMALE (source side)
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      FEMALE ON THE SUPPLY, DELIBERATELY. XT30 convention puts the female half
+      on the source: its contacts are recessed and separated by a wall, so a
+      live supply cannot be shorted by anything laid across it. The male half
+      has exposed unshrouded pins and belongs on the load side. This is the
+      same source-is-shrouded rule good practice uses everywhere; it is NOT the
+      JST receptacle/plug naming trap documented in PARTS.md, which is about
+      what the housing is called rather than which side it goes on.
+      MEASURE POLARITY BEFORE CUTTING THE BARREL. Power the supply and meter
+      the barrel plug: centre pin vs outer sleeve. The label reads outer
+      negative / inner positive (CENTRE-POSITIVE), which is the usual
+      convention, but confirm it. Note which captive conductor went to the
+      centre pin -- that is +12V.
+      This is easy and safe precisely BECAUSE the joint turned out to be a
+      barrel: it gives an unambiguous polarity reference right up to the moment
+      of the cut. Both conductors of the captive cable are black and the only
+      thing distinguishing them is a moulded ridge whose meaning is NOT
+      recorded, so without the barrel there would have been nothing to check
+      against. Do the measurement first, then cut.
+      Capacity: 8.5 A supply against 6.34 A worst case = 75 percent.
+
+  STOCK_TAIL:
+    pn: Stock 20 AWG tail -- barrel receptacle CUT OFF, XT30 fitted
+    type: Stock harness, reconnect path
+    subtype: XT30 MALE (load side)
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      NOT PART OF OUR POWER PATH. Drawn here because fitting this connector is
+      what makes cutting the PSU plug reversible: plug this in instead of our
+      trunk and the stock 12V path works again from the supply onward.
+      Wiring is unambiguous -- the stock tail's conductors are RED = 12V,
+      BLACK = GND, confirmed at teardown (psu-12v.yml, cable W_TAIL).
+      Store it with the pad. Label it "STOCK".
+
+  XT30:
+    pn: XT30 male (Amass or equivalent)
+    type: Our trunk cable
+    subtype: XT30 MALE (load side)
+    pincount: 2
+    pinlabels: [V12, GND]
+    notes: >
+      Mates the PSU's female half.
+      XT30 CHOSEN OVER XT60 2026-08-16, and the wire fit is why, not the
+      rating. XT30's solder cups take 16-20 AWG, which covers BOTH gauges that
+      land on this connector: the PSU's captive 18 AWG on the female half, and
+      our 20 AWG trunk on the male halves. XT60's cups are sized for 12-14 AWG,
+      where either would sit loose and have to be made up with solder.
+      Current is a non-issue either way: XT30's conservative published rating is
+      15 A continuous (many sources say 30 A), against our 6.34 A worst case and
+      a supply that can only source 8.5 A.
+      It is also solder-cup, so no crimp tool is required, unlike every other
+      connector in this pad.
+      The housing is keyed (one chamfered corner) so it CANNOT be mated
+      backwards -- only mis-WIRED. Convention: the contact on the straight side
+      is positive, the angled side negative. Since we fit all three halves
+      ourselves, internal consistency plus correct PSU polarity is what matters.
+      SOLDERING NOTE: heatshrink each contact before assembling the housing.
+      No cup-filling tricks needed -- both 18 and 20 AWG are in range.
+      BUY 2 PAIRS: 1 female (PSU) + 2 male (our trunk, stock tail), leaving a
+      spare female.
+
+  F1:
+    pn: TODO -- inline fuse holder, see Open items
+    type: Inline fuse, +12V leg
+    subtype: 8 A slow-blow, IEC 60127 T-type (T8A, 5x20 mm)
+    pincount: 2
+    pinlabels: [IN, OUT]
+    notes: >
+      In the +12V leg only; GND runs through unfused.
+      BUY AN IEC-RATED T8A SPECIFICALLY. IEC 60127 T-type carries its full
+      rated current indefinitely and must open at 2.1x rating. US/UL fuses
+      follow a 75 percent derating convention instead, where an "8 A" part is
+      only good for ~6 A continuous -- which is BELOW our worst case and would
+      nuisance-blow. Same number, different meaning; check which standard the
+      part is built to.
+      SIZING, AND THE REASONING SHOULD NOT BE LOST. With the barrel and the YL
+      both cut out there is no longer a ~5 A connector to protect, so the fuse
+      is sized to the wiring and the supply. Realistic peak 5.30 A (measured
+      panel figures) = 66 percent of the fuse; datasheet worst case 6.34 A = 79
+      percent; supply 8.5 A sits just above the fuse so it can still act.
+      CORRECTED 2026-08-16 from 6.3 A, which was simply WRONG -- it sat BELOW
+      the 6.34 A worst case and would have opened on the load it exists to
+      pass. Standard practice is 125-150 percent of maximum continuous load,
+      i.e. 7.9-9.5 A here; 8 A is the only standard value in that band that
+      also stays under the supply rating.
+      NOTE THE LOAD IS CLOSE TO THE SUPPLY RATING, so no value satisfies every
+      convention at once. That is a consequence of running an 8.5 A supply at
+      75 percent, and is accepted.
+      Slow-blow so bulk capacitance inrush does not nuisance-trip it.
+      WHAT THIS FUSE IS AND IS NOT. The PSU's own over-current protection is
+      the PRIMARY defence, and on a hard short the supply folds back long
+      before a fuse this size opens quickly. This fuse is a wiring-fault
+      backstop, not a fast-acting element. It is still the only current
+      protection in OUR part of the pad: the master is USB-powered and
+      deliberately not in the 12V path, so there is no current sensing anywhere
+      and every power figure in this repo is an open-loop model prediction. The
+      stock ceiling was the Daygreen converter current-limiting at 75 W, and we
+      delete that converter. Do not treat the fuse as optional.
+      THIS FUSE IS THE ONLY CURRENT PROTECTION ANYWHERE IN THE PAD. The master
+      is USB-powered and deliberately not in the 12V path, so there is no
+      current sensing in the system and nothing can react to an overload --
+      every power figure in this repo is an open-loop model prediction, never a
+      measurement. The stock ceiling was the Daygreen converter current-limiting
+      at 75 W, and we delete that converter. Do not treat the fuse as optional.
+
+  WAGO_12V:
+    pn: Wago 221-415 (5-way lever block)
+    type: Fan-out, +12V rail
+    subtype: lever block, 24-12 AWG
+    pincount: 5
+    pinlabels: [TRUNK_IN, COL_LEFT, COL_CENTRE, COL_RIGHT, UNDERGLOW]
+    notes: >
+      Sits physically where the Daygreen converter was.
+      EXACTLY 5 PORTS, so ONE 221-415 covers the +12V rail. This is settled,
+      not provisional: the external barrel input is deferred and not designed
+      in (see the metadata note), which is what makes the count land at 5.
+      Three blocks total in the carrier: 1 here, 2 jumpered on GND.
+      Rated 32 A / 12 AWG, so the lever is not a limiting element and doubles
+      as a tool-free disconnect.
+      Downstream connections are drawn in power-column.yml (the three columns)
+      and underglow.yml.
+
+  WAGO_GND:
+    pn: Wago 221-415 x2, jumpered
+    type: Fan-out, GND rail
+    subtype: lever block, 24-12 AWG
+    pincount: 6
+    pinlabels: [TRUNK_IN, COL_LEFT, COL_CENTRE, COL_RIGHT, UNDERGLOW, MASTER_TIE]
+    notes: >
+      SIX PORTS, so the GND rail needs two 221-415 jumpered together even
+      without the barrel input -- one more than the +12V rail, because of the
+      master GND tie.
+      THE MASTER GND TIE IS MANDATORY whether or not underglow is ever fitted:
+      INT and RS-485 need a solid common reference with the pad ground network,
+      and separate grounds was a real bench failure mode during multi-panel
+      bring-up. It lands here as its OWN lead rather than riding the underglow
+      cable, so unplugging underglow cannot break the reference.
+      This replaces the "PSU GND stud" that power-column.yml and underglow.yml
+      still refer to. No such stud exists -- the stock PSU is a brick.
+
+cables:
+  W_FUSE_IN:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.100
+    colors: [RD]
+    notes: >
+      XT30 male to the fuse holder's input lead. Short.
+      This and the two cables below are OURS to make. The supply's captive
+      cable is not part of this harness -- it simply ends in the mating XT30.
+      GAUGE SETTLED 2026-08-16: 20 AWG, taken from the same 2C jacketed reel as
+      the power columns -- NOTHING EXTRA TO BUY. docs/BOM.md already carries
+      ~10 m against a 5.4 m column need; allocate 1 m to the trunk, which is
+      double the ~0.5 m actually used.
+      20 AWG is comfortable here: ~11 A chassis ampacity against 6.34 A, about
+      60 mV over the whole run, and XT30 solder cups accept 16-20 AWG. The
+      stock tail this replaces was 20 AWG and 0.300 m long, which is the
+      length reference.
+
+  W_FUSE_OUT:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.150
+    colors: [RD]
+    notes: >
+      Fuse holder output lead to the +12V lever block.
+      TODO LENGTH -- depends on carrier layout and whether the fuse is housed
+      inside the printed carrier. 0.15 m is a placeholder.
+      Drop across these three short 18 AWG runs at 6.34 A is a few tens of mV.
+
+  W_GND:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.250
+    colors: [BK]
+    notes: >
+      XT30 male, GND contact, straight to the GND lever block. Unfused.
+      TODO LENGTH, as above.
+
+connections:
+  - - PSU: [1-2]
+    - ==>
+    - XT30: [1-2]
+
+  - - XT30: [1]
+    - W_FUSE_IN: [1]
+    - F1: [1]
+  - - F1: [2]
+    - W_FUSE_OUT: [1]
+    - WAGO_12V: [1]
+
+  - - XT30: [2]
+    - W_GND: [1]
+    - WAGO_GND: [1]
+
+  - - STOCK_TAIL: [1-2]
+    - ==>
+    - PSU: [1-2]

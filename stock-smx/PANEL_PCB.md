@@ -120,8 +120,10 @@ modular jacks for data IN/OUT (J3/J2), blue 2-pos screw terminal
 
 5. **Brightness parity — RESOLVED 2026-07-11: not a concern.** IREF resistors
    measure 2kΩ in-circuit → stock max channel current ≈ 19.5mA per die (≤20mA
-   firm upper bound), ~1.6× our WS2815's fixed ~12mA — perceived difference
-   sub-linear, likely ~20–30%. **Verdict (user): stock is widely considered
+   firm upper bound), **~1.3× our WS2815's fixed 15mA** (datasheet; the ratio
+   said 1.6× against an assumed 12mA until 2026-08-14 — see
+   `hardware/harness/README.md` → "Power budget") — perceived difference
+   sub-linear, so more like ~10–20% than the ~20–30% first estimated. **Verdict (user): stock is widely considered
    TOO bright** — many players (including the user) apply tint film. A ~20–30%
    dimmer max is acceptable, likely preferable; software global-brightness
    scaling covers further adjustment. Optional curiosity, not a gate: a
@@ -138,8 +140,9 @@ modular jacks for data IN/OUT (J3/J2), blue 2-pos screw terminal
 
 ## Open items (pending full teardown)
 
-1. **PSU stud size** — for sizing the fork/spade lugs at the PSU end of the
-   12V column runs.
+1. ~~**PSU stud size**~~ — **MOOT.** The stock PSU is a brick with one captive
+   output cable; it has no screw terminals and no ground stud, so there are no
+   fork/spade lugs to size. Confirmed at the 2026-08-08 teardown.
 2. **Underglow data connector type/pinout at the old MCU** — gates the master
    PCB's underglow DATA-out connector choice (see `docs/UNDERGLOW.md`).
    Related: stock leads crimp directly into a 12-pin Dupont housing at the

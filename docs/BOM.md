@@ -65,8 +65,8 @@ Refs are `dual-panel`'s — **carrier 2xx, brain 3xx**. Re-derived from the boar
 | **C52177925** | Zhongdi DS-04 DIP slide, 4-pos | SW201 | carrier | 20 | 30 | 6.03 |
 | **C609835** | XKB SS22E01L5 DPDT slide | SW202 | carrier | 20 | 25 | 4.37 |
 | **C2937625** | XFCN PZ254V-11-03P pin header 1×03 (SWD) | J209 | carrier | 20 | 50 | 0.94 |
-| ⬜ **unsourced** | 1×8 2.54mm header, **6.0mm mating pin / ≥3.0mm tail** | J210–J213 | carrier | 80 | — | — |
-| ⬜ **unsourced** | 1×8 2.54mm socket, 8.30mm body | J301–J304 | **brain** | 80 | — | — |
+| **C5383116** | HanElectricity 2541WV-08P 1×8 header, **6.0mm mating pin / 3.0mm tail**, gold | J210–J213 | carrier | 80 | 100 | — |
+| **C7509515** | CONNFLY DS1023-1x8SF11 1×8 socket, 8.5mm body, gold | J301–J304 | **brain** | 80 | 100 | — |
 
 **Two corrections landed 2026-08-04, both from re-deriving against the real board:**
 
@@ -76,9 +76,12 @@ Refs are `dual-panel`'s — **carrier 2xx, brain 3xx**. Re-derived from the boar
   survives in `dual-panel.pretty` as a revert path, but it is not what is on the
   board.
 - **The 8 board-to-board interface connectors were missing entirely** — 160 pieces
-  across the build, and still unsourced. Watch the mating-pin length: separation is
-  set by the two plastics meeting, not by pins bottoming out, and some "short"
-  headers trim the *tail* instead, leaving nothing to solder through the carrier.
+  across the build. **Sourced 2026-08-16** (rows above). The load-bearing spec is
+  mating-pin length: separation is set by the two plastics meeting, not by pins
+  bottoming out, and some "short" headers trim the *tail* instead, leaving nothing
+  to solder through the carrier. ⚠ **These parts stack to 11.04 mm, so they need
+  12 mm M3 spacers, not the 11 mm the mechanical stack assumed** — see
+  `docs/DUAL_PANEL.md` → "Mechanical stack".
 
 The 30 test points are bare probe holes; `SW301` (BOOTSEL) is SMD on the brain, so
 JLC places it. Neither is ordered.
@@ -152,11 +155,19 @@ needs its match-check to pass before ordering.
 
 | Item | Qty | Candidate | Match-check |
 |------|-----|-----------|-------------|
-| 12V power cable, 2C 20 AWG jacketed | ~10m | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
-| RS-485 cable, 22 AWG shielded twisted pair (RVSP) | ~10m | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | **shield is now required, not merely tolerated** — it lands on Micro-Fit pin 3. See the shield note below |
-| INT cable, 24 AWG 2-core shielded twisted pair (RVSP) | **length TBD — gated on the pad teardown** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (same listing, 24 AWG / 2-core) | See the three checks below. Listing offers 10/20/30/50m; unverified estimate is ~8.5m of actual need, so **10m has almost no margin** |
+| 12V power cable, 2C 20 AWG jacketed | **5.4m needed → buy 10m** | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
+| RS-485 cable, 22 AWG shielded twisted pair (RVSP) | **4.2m needed → buy 10m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | **shield is now required, not merely tolerated** — it lands on Micro-Fit pin 3. See the shield note below |
+| INT cable, 24 AWG 2-core shielded twisted pair (RVSP) | **9.3m needed → BUY 20m, NOT 10m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (same listing, 24 AWG / 2-core) | See the three checks below. **Quantity CLOSED 2026-08-16** — was "TBD, gated on the pad teardown" with an unverified ~8.5m estimate. Real figure is **9.3m before any slack**, so the 10m option leaves 0.7m and is not viable |
 | Wire ferrules (~0.25mm² for 24 AWG) | ~40 | assortment box | panel-side **J214 screw terminal only** — 2 conductors × 9 panels × 2 pads = 36. The master end is now JST XH crimps, not screw terminations |
 | Colored + printed heatshrink, zip-tie anchors, grommets | — | — | heatshrink is now **load-bearing**: it carries the per-panel INT identification (see wire spec). Grommets where cable crosses frame metal |
+
+**Where the three cable quantities come from (all closed 2026-08-16):** they are
+transcribed from the completed stock record, since our harnesses run the same
+geometry through the same panel positions — `panel-power-chain.yml` +
+`5v-columns.yml` give the 12V columns (0.60m feed ×3 + 0.60m jumpers ×6 =
+**5.4m**), `panel-data-chain.yml` gives the RS-485 serpentine (0.60m + 8 × 0.45m
+= **4.2m**), and `panel-signal-lines.yml` gives the INT home runs (**9.3m**).
+The WireViz BOMs in `hardware/harness/out/` regenerate these totals.
 
 **INT cable — verify on arrival before crimping 36 contacts:**
 
@@ -202,7 +213,7 @@ rating.
 | 12V power | 2×20 AWG jacketed round, red/black | 3 columns × 2 pads, ~5m/pad |
 | RS-485 | 22–24 AWG **actual twisted pair** | 9 segments/pad, ~5m/pad. Fix an A/B color convention and never deviate |
 | INT | 24 AWG **2-core twisted pair** (signal + dedicated GND), single color | Length **gated on the pad teardown** — 9 *home runs* per pad, not a chain, so the stock harness is no guide. Unverified estimate ~8.5m/pad |
-| Master GND tie | 1 lead (18 AWG on hand) to the PSU GND stud | **mandatory**, not optional wiring |
+| Master GND tie | 1 lead (20 AWG) to a GND port on the Wago fan-out | **mandatory**, not optional wiring |
 
 **INT identification changed 2026-07-26.** The old spec called for 9 distinct
 wire colors; the twisted-pair cable that meets the mechanical requirements

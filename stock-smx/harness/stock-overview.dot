@@ -1,0 +1,113 @@
+// Stock SMX pad — single overview of every harness recorded at the
+// 2026-08-08 teardown. Facts only; per-harness detail lives in the .yml files.
+// Render: dot -Tsvg stock-overview.dot -o out/stock-overview.svg
+digraph stock_smx {
+  rankdir=TB;
+  graph [fontname="Helvetica", fontsize=11, splines=true, nodesep=0.40, ranksep=1.10,
+         bgcolor="white", labelloc="t", fontsize=20,
+         label="STOCK SMX PAD — AS FOUND, 2026-08-08 TEARDOWN"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="filled,rounded", fillcolor="white", margin="0.12,0.07"];
+  edge  [fontname="Helvetica", fontsize=9];
+
+  // ---------------- AC ----------------
+  subgraph cluster_ac {
+    label="AC MAINS";  style="filled"; fillcolor="#f2f2f2"; fontsize=13; color="#999999"; margin=18;
+    WALL  [label="Wall socket"];
+    CORD  [label="PC power cord\lC13 to mains plug\l~1.8 m\l"];
+    EMI   [label="YD06 EMI filter\l125/250 VAC 6 A\lC14 inlet, 6.3 mm tabs\l"];
+    SPL   [label="Splice\l16 AWG 3C to 18 AWG pigtails\lBK=L  WH=N  GN=GND\l"];
+    RING  [label="Chassis ring terminal\lGNYE 18 AWG, M4 (4.0/6.5 mm)\l"];
+    YLP03 [label="JST YLP-03V (unmated)\l1 BN = L\l2 GN = GND\l3 BU = N\l"];
+    C13   [label="XUANHUA XC13-X\llocking IEC C13, 13 A 250 V\l"];
+  }
+
+  WALL -> CORD -> EMI;
+  EMI  -> SPL   [label="16 AWG 3C\l45 cm\l"];
+  SPL  -> RING  [label="18 AWG GNYE\l15 cm\l"];
+  SPL  -> YLP03 [label="18 AWG BN/GN/BU\l20 cm\l"];
+  SPL  -> C13   [style=dashed];
+
+  // ---------------- 12V ----------------
+  subgraph cluster_12v {
+    label="12 V";  style="filled"; fillcolor="#fffbe6"; fontsize=13; color="#d6c25a"; margin=18;
+    PSU   [label="YU1208 PSU\lin 100–240 VAC 1.8 A\lout DC 12 V 8.5 A, 102 W\l"];
+    JOINT [label="Inline joint (heatshrink)\lnot opened\l"];
+    YLR02 [label="JST YLR-02V (PSU tail)\l1 = GND (BK)\l2 = +12 V (RD)\l"];
+    STAR  [label="12 V / GND STAR POINT\lfork terminals 4.0/6.5 mm\lbolted to the DC-DC input block\l+12 V = YE, GND = BK\l", fillcolor="#fff3b0"];
+    YLPB  [label="JST YLP-02V (B)\l1 = GND (BK)\l2 = +12 V (YE)\l16 AWG\l"];
+    BARREL[label="Barrel socket\l~5 mm bore\louter = GND, inner = +12 V\lexternal cabinet 12 V in\l"];
+    SM3   [label="JST SMR-03V-B\l1 = GND (BK)\l2 = DATA (WH)\l3 = +12 V (YE)\lall 18 AWG\l"];
+    UG    [label="Underglow strips\l132 LEDs\l", fillcolor="#e8e8ff"];
+    YLR01 [label="JST YLR-01V\lDATA in, WH 18 AWG\l"];
+  }
+
+  C13   -> PSU;
+  PSU   -> JOINT [label="captive 2× 18 AWG\lBK + BK (ridged)\l~1 m\lPOLARITY UNKNOWN\l", color="#cc0000", fontcolor="#cc0000"];
+  JOINT -> YLR02 [label="20 AWG RD/BK\l30 cm\l"];
+  YLR02 -> STAR  [label="mates YLP-02V (A)\l16 AWG BK/YE, 10 cm\l"];
+  STAR  -> YLPB  [label="16 AWG BK/YE\l10 cm\l"];
+  YLPB  -> BARREL[label="16 AWG YE/BK\l20 cm\l", dir=back];
+  STAR  -> SM3   [label="18 AWG YE/BK\l10 cm\l"];
+  YLR01 -> SM3   [label="WH 18 AWG\l10 cm\l", color="#0066cc", fontcolor="#0066cc"];
+  SM3   -> UG    [label="mates SMP-03V-BC\l"];
+
+  // ---------------- 5V ----------------
+  subgraph cluster_5v {
+    label="5 V — EVERYTHING DOWNSTREAM";  style="filled"; fillcolor="#ffeaea"; fontsize=13; color="#dd9999"; margin=18;
+    DCDC  [label="Daygreen B15-1224-05\lin 12–24 V, out 5 V 15 A, 75 W\l12 V / 5 V BOUNDARY\l", fillcolor="#ffb3b3"];
+    F5    [label="5 V fork terminals\l4.0/6.5 mm\l", fillcolor="#ffd6d6"];
+    SM2   [label="JST SMR-02V-B\l1 = +5 V (RD)\l2 = GND (BK)\l18 AWG\l"];
+    VLR04 [label="JST VLR-04V\l1 GN = GND\l2 WH = +5 V\l3 RD = +5 V\l4 BK = GND\l18 AWG\l"];
+    VLP04 [label="JST VLP-04V\l3-way fan-out\l"];
+  }
+
+  STAR -> DCDC [label="star point IS this\linput screw block\l", style=dashed];
+  DCDC -> F5;
+  F5   -> SM2   [label="18 AWG RD/BK\l7 cm\l"];
+  F5   -> VLR04 [label="18 AWG\l20 cm\l"];
+  VLR04-> VLP04 [label="pin 1 mates pin 1\l"];
+
+  // ---------------- MCU ----------------
+  subgraph cluster_mcu {
+    label="MCU";  style="filled"; fillcolor="#eef4ff"; fontsize=13; color="#8fa8cc"; margin=18;
+    K14 [label="KF2510, 14-pos (analog row, from D13)\l5 = DATA (WH, A1)\l12 = +5 V (RD)\l14 = GND (BK)\l22 AWG — other 11 positions unwired\l"];
+    MICRO [label="Arduino Micro\lA0, A2–A5 unused\lD0/RX covered, unconnected\l", fillcolor="#cddcf5"];
+    K17 [label="KF2510, 17-pos (digital row, from D12)\l3–11 = D10…D2, nine panel signal lines\l12 = data GND\l15 = data TX (D1)\l6 positions unwired\l"];
+    YLP01[label="JST YLP-01V\lWH 22 AWG\l"];
+    RJ12 [label="RJ-12 receptacle 623K\l3 = DATA (RD 26 AWG)\l4 = GND (GN 26 AWG)\lcentre pair, ~15 cm\l"];
+    YLR09[label="JST YLR-09V\l1–9 = panels 2,1,0,5,4,3,8,7,6\l22 AWG, 30 cm\l"];
+  }
+
+  SM2   -> K14   [label="mates SMP-02V-BC\l22 AWG, 25 cm bundle\l"];
+  K14   -> MICRO [label="pushes onto header pins\l"];
+  MICRO -> K17;
+  K14   -> YLP01 [label="A1, WH 22 AWG\l", color="#0066cc", fontcolor="#0066cc"];
+  YLP01 -> YLR01 [label="underglow DATA\l", color="#0066cc", fontcolor="#0066cc"];
+  K17   -> YLR09;
+  K17   -> RJ12  [label="TX only\l"];
+
+  // ---------------- Panels ----------------
+  subgraph cluster_panels {
+    label="PANELS 0–8";  style="filled"; fillcolor="#eefaee"; fontsize=13; color="#8fbf8f"; margin=18;
+
+    MOLEX [label="3× Molex 39014041 (Mini-Fit Jr. 4c)\l1 RD = +5 V\l2 BK = GND\l3 GN = GND\l4 WH = +5 V\l18 AWG, 60 cm\lclear housing = panel INPUT, red = OUTPUT\l"];
+    COLS  [label="Power columns, 2 jumpers each (60 cm, 18 AWG)\lLEFT    0 – 3 – 6\lCENTRE  1 – 4 – 7\lRIGHT   2 – 5 – 8\llast panel's OUT unmated\l", fillcolor="#d6f0d6"];
+
+    YLP09 [label="JST YLP-09V\l9 home runs, 18 AWG (gauge steps UP)\lRD 0 90  OG 1 60  YE 2 70\lGN 3 120 BU 4 90  BN 5 100\lGY 6 150 WH 7 120 BK 8 130   (cm)\l"];
+    TB    [label="2-pos terminal block ×9\lsignal used, GND position EMPTY\lreturn rides the power ground\l"];
+
+    CHAIN [label="RJ-12 data chain, serpentine\l0 – 3 – 6 – 7 – 4 – 1 – 2 – 5 – 8\l1× 60 cm + 8× 45 cm, 6P4C STRAIGHT-THROUGH\ltwo jacks per panel, wired pin-for-pin\lpanel 8 OUT empty, no termination\l", fillcolor="#d6e6ff"];
+
+    FSR   [label="4× FSR per panel\lRD/BK 30 AWG, ~10 cm, JST PHR-2\l"];
+    LEDS  [label="25 LEDs per panel\lno wiring — PCB traces only\l"];
+    PANEL [label="Panel PCB ×9\lidentical, interchangeable\l", fillcolor="#c9e8c9"];
+  }
+
+  VLP04 -> MOLEX -> COLS -> PANEL [label="+5 V\l"];
+  YLR09 -> YLP09 [label="pin 1 mates pin 1\l"];
+  YLP09 -> TB -> PANEL [label="press signal\l"];
+  RJ12  -> CHAIN [label="60 cm to panel 0\l"];
+  CHAIN -> PANEL [label="UART 250 kbaud, TX only\lno return path\l"];
+  PANEL -> FSR   [dir=back];
+  PANEL -> LEDS  [dir=none];
+}

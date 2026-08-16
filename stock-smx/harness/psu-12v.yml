@@ -3,11 +3,13 @@ metadata:
   description: >
     Picks up where ac-input.yml ends. The locking C13 plugs into the C14 inlet
     of a 102 W 12 V switching supply (model YU1208), whose output cable runs
-    through an unidentified joint under heatshrink to a JST YL 2-way connector
-    carrying 12 V and GND into the rest of the pad.
+    through a 5.5x2.5 DC BARREL PAIR (identified 2026-08-16 by removing the
+    heatshrink -- it was recorded as an unidentified joint until then) to a
+    JST YL 2-way connector carrying 12 V and GND into the rest of the pad.
     Recorded at the 2026-08-08 teardown. STOCK wiring, documented not redesigned.
-    SEE THE CAPACITY NOTE ON THE PSU BELOW -- 8.5 A is close to the calculated
-    all-panels-white draw, and that is worth a decision, not just a record.
+    Nameplate capacity is DC 12 V 8.5 A. Whether that is enough for THIS
+    project, and whether the supply is kept, are design questions and live in
+    the hardware/harness tree (README.md "Power budget", 12v-trunk.yml) -- not here.
   status: STOCK -- as found at the 2026-08-08 teardown. Descriptive only.
   pn: HARNESS-PWR12-01
   qty_per_pad: 1
@@ -51,30 +53,43 @@ connectors:
     notes: >
       PSU_IN and PSU_OUT are the two sides of ONE physical supply, drawn
       separately because WireViz models a connector as a single pin set.
-      CAPACITY IS TIGHT, AND ACKNOWLEDGED. 8.5 A against this project's own
-      panel budget of 9 panels x 25 LEDs x 36 mA = 8.1 A at full white, before
-      any underglow. Roughly 95 percent loaded on the panels alone.
-      DECISION 2026-08-08: a larger replacement supply is likely to be bought.
-      Not yet specified -- see README.md under "PSU capacity".
+      Nameplate, as found: DC 12 V, 8.5 A, 102 W, model YU1208.
       The pad is believed to be a Gen 5, but CLAUDE.md records Gen 5 as
       12 V 15 A, which this is not. Either the manual figure is wrong or these
-      pads shipped with a different supply. Unresolved, and not worth chasing:
-      the supply is being replaced regardless.
+      pads shipped with a different supply. UNRESOLVED, and recorded as an
+      observation only.
+      Whether this supply is kept or replaced is a DESIGN question, not a stock
+      one -- see the hardware/harness tree (README.md "Power budget", 12v-trunk.yml). Earlier revisions
+      of this file carried that debate plus three superseded current figures
+      (8.1 A, 11.2 A, 13.8 A); all of it has been moved out.
 
   JOINT:
-    type: Inline joint, concealed under heatshrink
-    subtype: UNIDENTIFIED
+    type: Inline DC barrel connector pair
+    subtype: 5.5 mm OD / 2.5 mm ID -- CONFIRMED 2026-08-16
     pincount: 2
     pinlabels: [V12, GND]
     notes: >
-      An inline connector or splice, wrapped in heatshrink, joining the PSU's
-      own 18 AWG output cable to the 20 AWG tail. NOT OPENED at teardown and
-      deliberately not guessed at.
-      Most likely a barrel plug and socket pair, since the supply is labelled
-      with barrel polarity (outer negative, inner positive) and brick supplies
-      of this type normally terminate in one -- but that is inference, not
-      observation. It does not matter electrically: 12 V and GND pass straight
-      through with the polarity shown.
+      IDENTIFIED 2026-08-16 by removing the heatshrink: it is a standard
+      5.5x2.5 DC BARREL PAIR joining the PSU's own 18 AWG output cable to the
+      20 AWG tail -- not a splice. Measured: barrel end 5.5 mm OD with a 2.5 mm
+      ID bore; mating half 5.5 mm ID with a 2.5 mm centre pin.
+      THE PRE-TEARDOWN INFERENCE WAS RIGHT. This file already reasoned it was
+      "most likely a barrel plug and socket pair, since the supply is labelled
+      with barrel polarity and brick supplies of this type normally terminate
+      in one", and flagged it as inference rather than observation. It is now
+      observation. Recording the hit because the same reasoning -- read the
+      supply's own label, then trust the convention -- is worth reusing.
+      POLARITY: the supply's label reads outer negative, inner positive, i.e.
+      CENTRE-POSITIVE, the usual convention. Still worth a meter check before
+      connecting anything, but there is no longer any mystery here.
+      THE SUPPLY CARRIES THE PLUG, the tail the receptacle -- confirmed
+      2026-08-16, matching convention.
+      This barrel is the ONLY unambiguous polarity reference on the supply side,
+      because both conductors of W_PSU_OUT are black and the moulded ridge's
+      meaning is not recorded anywhere. That is a property of the stock pad and
+      is why it matters to anyone working on it.
+      What our own harness does with this connector is a DESIGN question --
+      see 12v-trunk.yml.
 
   YL2:
     pn: JST YLR-02V

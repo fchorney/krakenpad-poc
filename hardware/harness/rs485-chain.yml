@@ -8,6 +8,15 @@ metadata:
     press path, which is the separate INT home-run harness.
     Termination: 120R at the master end and at the last panel in the chain
     (selected by that panel's DPDT switch -- all nine panels are identical).
+    LENGTHS CLOSED 2026-08-16, transcribed from the STOCK data chain in
+    panel-data-chain.yml. That bus runs the IDENTICAL serpentine through the
+    IDENTICAL panel positions, so its measured lengths transfer directly:
+    60 cm master to panel 0, then EIGHT IDENTICAL 45 cm jumpers. Total 4.2 m
+    of shielded pair before slack. Only two conductors and a drain replace
+    stock's RJ-12 leads; the geometry is unchanged.
+    Caveat: this assumes the replacement master mounts where the stock Arduino
+    Micro sat. Re-measure the 60 cm master lead if it moves; the eight 45 cm
+    panel-to-panel jumpers are unaffected by master position.
   status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
   pn: HARNESS-485-01
   qty_per_pad: 1
@@ -145,91 +154,91 @@ cables:
   W_M:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.600
     colors: [BU, WH]
     shield: true
     notes: >
-      Master to panel 0 (UL). TODO LENGTH -- measure this exact segment from the stock harness.
+      Master to panel 0 (UL). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_0_3:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 0 (UL) to panel 3 (L). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 0 (UL) to panel 3 (L). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_3_6:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 3 (L) to panel 6 (DL). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 3 (L) to panel 6 (DL). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_6_7:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 6 (DL) to panel 7 (D). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 6 (DL) to panel 7 (D). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_7_4:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 7 (D) to panel 4 (C). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 7 (D) to panel 4 (C). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_4_1:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 4 (C) to panel 1 (U). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 4 (C) to panel 1 (U). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_1_2:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 1 (U) to panel 2 (UR). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 1 (U) to panel 2 (UR). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_2_5:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 2 (UR) to panel 5 (R). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 2 (UR) to panel 5 (R). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
   W_5_8:
     category: bundle
     gauge: 24 AWG
-    length: 0.4
+    length: 0.450
     colors: [BU, WH]
     shield: true
     notes: >
-      Panel 5 (R) to panel 8 (DR). TODO LENGTH -- measure this exact segment from the stock harness.
+      Panel 5 (R) to panel 8 (DR). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
       NOT tied to GND at any panel.
 
