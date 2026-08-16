@@ -90,11 +90,16 @@ All three come from the completed stock record, since our harnesses run the same
 geometry through the same panel positions. The WireViz BOMs in `out/` regenerate
 these totals.
 
-| Cable | Needed | Buy |
+| Cable | Needed **per pad** | Buy (build scope = **2 pads**) |
 |---|---|---|
-| 12 V columns + trunk, 2C 20 AWG | 5.4 m + ~1 m | 10 m |
-| RS-485, 22 AWG shielded pair | 4.2 m | 10 m |
-| INT home runs, 24 AWG shielded pair | **9.3 m** | **20 m — not 10 m** |
+| 12 V columns + trunk, 2C 20 AWG | 5.4 m + ~1 m = **6.4 m** | **20 m** |
+| RS-485, 22 AWG shielded pair | **4.2 m** | **15–20 m** |
+| INT home runs, 24 AWG shielded pair | **9.3 m** | **30 m — not 20 m** |
+
+⚠ **The "Needed" column is one pad; the "Buy" column is two.** These were
+mismatched until 2026-08-16, when the buy quantities were still sized for a
+single pad even though the board and connector orders had long been sized for
+two. Sourcing detail and the match-checks are in `docs/BOM.md` → Order 4.
 
 ## Power budget
 

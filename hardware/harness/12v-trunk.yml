@@ -45,11 +45,14 @@ metadata:
     TRUNK LENGTH: CLOSED 2026-08-16, deliberately by over-allocation rather
     than measurement. The stock 20 AWG tail this replaces was 0.300 m; our run
     uses ~0.5 m of single conductor. ALLOCATE 1 m -- roughly double -- from the
-    2C 20 AWG reel already ordered for the columns (10 m against a 5.4 m need),
-    and cut to fit on the bench. Nothing needs measuring first: the wire is
-    already bought, the surplus is free, and the carrier position is fixed by
-    the Daygreen holes anyway. The per-cable figures below are nominal splits
-    of that 1 m, not targets.
+    same 2C 20 AWG reel spec'd for the columns, and cut to fit on the bench.
+    CORRECTION 2026-08-16: an earlier version of this note said that reel was
+    "already ordered" / "already bought" -- it is NOT. The wire is an open
+    AliExpress line (docs/BOM.md, Order 4). What is settled is the ALLOCATION:
+    add ~1 m per pad to the column footage when the reel is finally bought.
+    Nothing needs measuring first -- the surplus is cheap and the carrier
+    position is fixed by the Daygreen holes anyway. The per-cable figures below
+    are nominal splits of that 1 m, not targets.
     DAYGREEN MOUNTING -- MEASURED 2026-08-16, CLOSED: TWO SCREWS, centres
     57 mm apart, exactly horizontal, holes 3 mm diameter (M3). The printed
     carrier reuses these two holes, so it drops into the converter's footprint

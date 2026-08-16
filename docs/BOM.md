@@ -140,7 +140,11 @@ carries shield only, so a mis-mate still cannot put 12V on a transceiver.
 XH counts: 9 INT connectors per pad × 2 pads = 18 housings, 2 contacts each =
 36. 100 contacts ordered deliberately — XH crimping wants practice crimps.
 
-Power feed cables crimp only the panel end; the PSU end is fork/spade lugs.
+Power feed cables crimp only the panel end. **The PSU end is not crimped at
+all** — it is bare conductor into a Wago 221-415 lever block, fed from the PSU
+through an XT30 pair and an inline T8A fuse. The old "fork/spade lugs at the PSU"
+line was a pre-teardown assumption: there is no PSU terminal block and no ground
+stud. See `hardware/harness/12v-trunk.yml`.
 
 ## Order 3 — DigiKey / PJRC
 
@@ -155,9 +159,9 @@ needs its match-check to pass before ordering.
 
 | Item | Qty | Candidate | Match-check |
 |------|-----|-----------|-------------|
-| 12V power cable, 2C 20 AWG jacketed | **5.4m needed → buy 10m** | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
-| RS-485 cable, 22 AWG shielded twisted pair (RVSP) | **4.2m needed → buy 10m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | **shield is now required, not merely tolerated** — it lands on Micro-Fit pin 3. See the shield note below |
-| INT cable, 24 AWG 2-core shielded twisted pair (RVSP) | **9.3m needed → BUY 20m, NOT 10m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (same listing, 24 AWG / 2-core) | See the three checks below. **Quantity CLOSED 2026-08-16** — was "TBD, gated on the pad teardown" with an unverified ~8.5m estimate. Real figure is **9.3m before any slack**, so the 10m option leaves 0.7m and is not viable |
+| 12V power cable, 2C 20 AWG jacketed | **12.8m needed → buy 20m** | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
+| RS-485 cable, 22 AWG shielded twisted pair (RVSP) | **8.4m needed → buy 15–20m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) | **shield is now required, not merely tolerated** — it lands on Micro-Fit pin 3. See the shield note below |
+| INT cable, 24 AWG 2-core shielded twisted pair (RVSP) | **18.6m needed → BUY 30m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (same listing, 24 AWG / 2-core) | See the three checks below. **20m is NOT enough** — it leaves 1.4m across 18 home runs, i.e. no service loops and no crimp retries |
 | Wire ferrules (~0.25mm² for 24 AWG) | ~40 | assortment box | panel-side **J214 screw terminal only** — 2 conductors × 9 panels × 2 pads = 36. The master end is now JST XH crimps, not screw terminations |
 | Colored + printed heatshrink, zip-tie anchors, grommets | — | — | heatshrink is now **load-bearing**: it carries the per-panel INT identification (see wire spec). Grommets where cable crosses frame metal |
 
@@ -168,6 +172,14 @@ geometry through the same panel positions — `panel-power-chain.yml` +
 **5.4m**), `panel-data-chain.yml` gives the RS-485 serpentine (0.60m + 8 × 0.45m
 = **4.2m**), and `panel-signal-lines.yml` gives the INT home runs (**9.3m**).
 The WireViz BOMs in `hardware/harness/out/` regenerate these totals.
+
+⚠ **Those three figures are PER PAD; the Qty column above is for TWO pads**
+(corrected 2026-08-16 — the buy quantities had been sized for one pad while
+every other quantity in this doc was sized for two, which would have left the
+12V and INT reels short). The 12V line also carries **+1m per pad for the
+trunk** (`hardware/harness/12v-trunk.yml`), which is why it reads 12.8m and not
+10.8m. Reels sell in 5/10/20/50m steps, so round up rather than reorder —
+a second AliExpress order is a second month of shipping.
 
 **INT cable — verify on arrival before crimping 36 contacts:**
 
@@ -198,7 +210,7 @@ from LCSC anyway. Watch vertical-vs-**right-angle** on any PCB header.
 | **Master R1/R2** (390R 1%) | **DNP** — THVD1429's integrated failsafe makes RS-485 bias unnecessary; footprints exist if the bench disagrees |
 | FSR sensors | reuse stock SMX (Interlink FSR 408; iefsr.com if replacements are needed) |
 | 18 AWG stranded (underglow / GND tie) | on hand |
-| Spade/fork lugs (PSU ends + master GND tie) | on hand — size vs the PSU stud is a teardown item |
+| ~~Spade/fork lugs (PSU ends + master GND tie)~~ | **Deleted 2026-08-16 — not needed.** The teardown found no PSU terminal block and no ground stud; the 12V star point is a Wago lever-block fan-out that takes bare conductor, and the master GND tie lands in its own lever port |
 | M3 mounting hardware | on hand |
 | Master enclosure | future — 3D-print from the KiCad 3D export once boards are in hand |
 
@@ -212,7 +224,7 @@ rating.
 |--------|------|----------|
 | 12V power | 2×20 AWG jacketed round, red/black | 3 columns × 2 pads, ~5m/pad |
 | RS-485 | 22–24 AWG **actual twisted pair** | 9 segments/pad, ~5m/pad. Fix an A/B color convention and never deviate |
-| INT | 24 AWG **2-core twisted pair** (signal + dedicated GND), single color | Length **gated on the pad teardown** — 9 *home runs* per pad, not a chain, so the stock harness is no guide. Unverified estimate ~8.5m/pad |
+| INT | 24 AWG **2-core twisted pair** (signal + dedicated GND), single color | **9.3m/pad, CLOSED 2026-08-16** from the stock record (`stock-smx/harness/panel-signal-lines.yml`, nine home runs of 60–150cm). The earlier "~8.5m, gated on the teardown" estimate is superseded |
 | Master GND tie | 1 lead (20 AWG) to a GND port on the Wago fan-out | **mandatory**, not optional wiring |
 
 **INT identification changed 2026-07-26.** The old spec called for 9 distinct
