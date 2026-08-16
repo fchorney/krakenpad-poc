@@ -90,8 +90,50 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | **Wago 221-415**, 5-way lever block | 12V fan-out | **⬜ NOT SOURCED** | 3 |
 | **XT30 pair** (1 female + 2 male) | PSU→fan-out, + stock reconnect | **⬜ NOT SOURCED** | 2 pairs |
 | Inline fuse holder, 5×20 mm + **T8A** cartridge | trunk | **⬜ NOT SOURCED** | 1 |
-| M3 female-female standoff, **12 mm** | carrier↔brain spacer | **⬜ NOT SOURCED** | 3/panel |
+| M3 female-female standoff, **12 mm** | carrier↔brain spacer | ✅ **ON HAND** — see below | 3/panel |
+| **Wire ferrules, 0.34 mm² (AWG 22)** | J214 INT + underglow DATA | **⬜ CHECK STOCK** | 19/pad |
+| **Wire ferrules, 0.5 mm² (AWG 20)** | master J2 GND tie | **⬜ CHECK STOCK** | 1/pad |
 | Molex **11-03-0043** extraction tool | Micro-Fit rework | ✅ **BOUGHT** (Newark) | 1 |
+
+### Standoffs — CLOSED 2026-08-16, nothing to buy
+
+**12 mm M3 female-female is the right part and it is already on hand.** The
+stock of 4/6/8/10/12 mm even sizes cannot make 11 mm, and that does not matter:
+**11 mm was never the target once the connectors were sourced.** The connectors
+stack to 11.04 mm, so an 11 mm spacer is 0.04 mm *short* and lets the plastics
+take clamping load — the exact failure the spacer exists to prevent. 12 mm
+leaves a 0.96 mm air gap with ~5.04 mm of pin engagement and 3.4 mm of cavity
+depth still spare. See `docs/DUAL_PANEL.md` → "Mechanical stack".
+
+**Taller is the safe direction here**; shorter is the unsafe one. Do not stack
+4+6 to chase 10 mm.
+
+⚠ **The open question is quantity, not size: 3/panel × 20 panels = 60.** Count
+what is actually in the parts bin before assuming it is covered.
+
+### Ferrules — sizes settled 2026-08-16
+
+Every ferrule in this build lands in a **screw terminal**. The Wago lever blocks
+take **bare stranded conductor and want no ferrule at all** — the 221 series is
+designed for it.
+
+| Size | AWG | Where | Qty/pad |
+|---|---|---|---|
+| **0.34 mm²** | 22 | carrier **J214** INT (2 conductors × 9 panels) | 18 |
+| **0.34 mm²** | 22 | master **J2 pin 1**, underglow DATA from the SM pigtail | 1 |
+| **0.5 mm²** | 20 | master **J2 pin 2**, GND tie to the Wago fan-out | 1 |
+
+**Two pads = 38 × 0.34 mm² and 2 × 0.5 mm².** Buy 50 of the 0.34 if the bin is
+short; the 0.5 mm² count is trivial.
+
+⚠ **0.34 mm², not 0.25 mm² — this changed with the 24→22 AWG cable move.** The
+earlier spec called for 0.25 mm² sized to 24 AWG conductors, and a 22 AWG
+conductor will not enter one.
+
+⚠ **Go by the printed mm² marking, not the colour.** Two incompatible colour
+conventions are in circulation (DIN 46228-4 vs the French/"other" system), and
+assortment boxes routinely mix them, so the same colour means different sizes
+across two boxes. Match the number.
 
 ### Underglow — we DO build the SM 3P side
 
@@ -113,6 +155,24 @@ already on hand**). It matches what is actually on the strips, arrives already
 crimped — no SM contacts and no SM crimp tool — and its **bare tails land
 straight into the Wago lever block (12 V, GND) and the J2 screw terminal
 (DATA)**, so there is nothing to crimp at either end.
+
+**✅ USER-CONFIRMED 2026-08-16, and this is the whole build:** splice 12 V, GND
+and DATA onto the on-hand SM 3P pigtail, then **12 V → Wago block, GND → Wago
+block, DATA → 0.34 mm² ferrule → master J2 pin 1**. **No `YLP-01V`/`YLR-01V` is
+involved** — that idea belonged to the superseded keep-the-stock-harness plan.
+The `SMR-03V-B` (`C157907`) stays a hand-made fallback only.
+
+⚠ **Expect to splice, not just terminate.** LED-strip pigtails ship with roughly
+**15 cm** of tail, which will not reach from the strip connector to the fan-out
+and the master. Extend with 22 AWG (12 V/GND) and 22 AWG (DATA), solder-and-
+heatshrink or a lever block — this is the one deliberate splice in the build,
+and it is why the run is listed as "3-conductor 22 AWG, underglow adapter" in
+the cable table.
+
+⚠ **Get the pinout onto the spliced side before energising: pin 1 = GND,
+pin 2 = DATA, pin 3 = 12 V.** Reversed, 12 V lands on DATA and the first LED
+dies. Label the tails as you splice; do not rely on the pigtail's wire colours,
+which LED-strip vendors do not standardise.
 
 **22 AWG is ample here:** underglow draws 2.44 A at full white across all 44
 groups, against ~7 A of chassis ampacity for 22 AWG and ~40 mV of drop. Stock's
@@ -156,15 +216,66 @@ which is why no connector is needed between the PSU and the fan-out beyond the
 XT30. Accepts 24–12 AWG, covering our 20 AWG trunk and columns and the 22 AWG
 underglow tails.
 
-Mounted in a **printed PETG carrier** on the Daygreen converter's own two M3
-holes — **57 mm centres, 3 mm holes, horizontal** (measured 2026-08-16). Wago's
-own 221-500 mounting carrier is a useful dimensional reference. Full harness:
-`12v-trunk.yml`.
+Mounted on the Daygreen converter's own two M3 holes — **57 mm centres, 3 mm
+holes, horizontal** (measured 2026-08-16). Full harness: `12v-trunk.yml`.
+
+#### Mounting: printed carrier vs. Wago's own 221-500 — OPEN, needs one measurement
+
+**`221-500` is the off-the-shelf answer and it does both jobs**: it is Wago's
+mounting carrier for the 4 mm² 221 series (accepts the 2-, 3- **and** 5-way
+connectors, so it fits our `221-415`), and it **snaps to DIN-35 rail *or* screws
+to a flat surface**. That is exactly the retention a printed carrier would
+provide, so buying it removes the CAD work entirely.
+
+**What is not yet known is whether it fits.** Reported dimensions are ~**17.5 mm
+wide** with a ~**25.5 mm** depth off the rail face, but the length figure found
+in search (77.6 mm) looks wrong for a 30 mm connector and **WAGO's datasheet
+returned 403**, so it is unverified. Three carriers side by side is ~52.5 mm,
+which sits suspiciously close to the 57 mm Daygreen hole spacing.
+
+⚠ **Measure the free space in the Daygreen's footprint — depth especially —
+before buying carriers or rail.** That single measurement picks the path:
+
+| path | CAD | notes |
+|---|---|---|
+| **DIN-35 segment + 3× 221-500** | none | drill the rail at 57 mm centres, carriers clip on, blocks are repositionable. Wants the most depth |
+| **3× 221-500 screwed to a printed flat plate** | trivial — a flat plate with 57 mm M3 holes | retention comes from the carriers, so no lever pockets to model |
+| **Printed PETG carrier, original plan** | most | pockets sized for lever swing, engraved +12V/GND, zip-tie strain relief, possibly houses the fuse. Most compact, most work |
+
+The printed options both want **PETG not PLA** — this shares a compartment with
+the supply.
 
 **Everything still to buy is marked ⬜ in the table above** — Wago blocks, XT30
-pairs, fuse holder + T8A cartridge, 12 mm standoffs, and the Micro-Fit
-extraction tool. The old "fork/spade lugs, PSU stud size" row is **deleted**:
-there is no PSU stud, and the fan-out replaced the whole idea.
+pairs, fuse holder + T8A cartridge, and possibly ferrules. Standoffs and the
+extraction tool are settled. The old "fork/spade lugs, PSU stud size" row is
+**deleted**: there is no PSU stud, and the fan-out replaced the whole idea.
+
+### ⚠ Fuse holder — the pigtail gauge is the trap, not the fuse
+
+The cheap inline 5×20 mm screw-type holders that dominate search results
+(uxcell, PNGKNYOCN and similar) ship with **22 AWG pre-attached leads**. Our
+trunk is 20 AWG carrying **6.34 A worst case**, so a 22 AWG pigtail would become
+the thinnest conductor in the entire 12 V path — in series with everything, bundled
+inside a warm compartment. **The fuse would be protecting wire thinner than the
+wire it protects.**
+
+Pick one of:
+
+- **An inline holder with ≥18 AWG leads** — they exist, but the gauge is often
+  unstated, so treat "22 AWG" as the default assumption unless the listing says
+  otherwise.
+- **A panel-mount holder with solder or spade tabs**, wired with our own 20 AWG.
+  Preferred: it removes the gauge question, and mounted through the printed
+  carrier or bracket it makes the fuse **serviceable without opening the pad**.
+
+Also confirm the holder is rated for the current — many 5×20 mm holders are
+specified around 6–10 A, which is not generous against a T8A cartridge.
+
+**The cartridge itself is uncontroversial:** 5×20 mm, **T8A** (IEC 60127
+time-delay), 250 V. Buy a multi-pack; the first one to blow is the one that
+tells you something. **Do not substitute a US/UL "slow blow" 8 A** — the two
+standards define the current rating differently, and IEC T-type is what the
+sizing in `12v-trunk.yml` assumes.
 
 
 ## Crimp and extraction tooling

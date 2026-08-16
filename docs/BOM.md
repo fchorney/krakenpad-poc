@@ -161,7 +161,7 @@ needs its match-check to pass before ordering.
 |------|-----|-----------|-------------|
 | 12V power cable, 2C 20 AWG jacketed | **12.8m needed → buy 20m** | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
 | **RS-485 + INT cable, 22 AWG 2-core shielded twisted pair (RVSP)** — **ONE reel, both harnesses** | **27.0m needed → buy 40m** | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (22 AWG / 2-core option) | **Conductor insulation OD must be 1.30–1.85mm** — see the checks below. Shield **required**: RS-485 lands it on Micro-Fit pin 3, INT trims it |
-| Wire ferrules (**~0.34mm² for 22 AWG**) | ~50 | assortment box | panel-side **J214 screw terminal only** — 2 conductors × 9 panels × 2 pads = 36. The master end is now JST XH crimps, not screw terminations. **Size changed with the 24→22 AWG move** (0.25mm² no longer fits) |
+| Wire ferrules — **0.34mm² ×50** (AWG22) + a few **0.5mm²** (AWG20) | ~50 | assortment box | **Check the on-hand bin first.** 0.34: J214 INT (36) + underglow DATA into master J2 pin 1 (2) = 38. 0.5: master J2 pin 2 GND tie (2). **Wago lever blocks take bare stranded and want no ferrule.** Size changed with the 24→22 AWG move — 0.25mm² no longer fits. Full table: `hardware/harness/PARTS.md` → "Ferrules" |
 | Colored + printed heatshrink, zip-tie anchors, grommets | — | — | heatshrink is now **load-bearing**: it carries the per-panel INT identification (see wire spec). Grommets where cable crosses frame metal |
 
 **Where the cable quantities come from (all closed 2026-08-16):** they are
