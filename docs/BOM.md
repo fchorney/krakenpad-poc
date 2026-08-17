@@ -27,8 +27,15 @@ used here. Re-run it after any part change and reconcile before ordering:
 ```
 
 ⚠ **LCSC prices and stock are point-in-time and have burned us before — verify
-live in the cart before committing.** Prices below are the 2026-07-25 cart
-export (`tmp/export_cart_20260725_104011.csv`), USD.
+live in the cart before committing.** Prices below are the **2026-08-18** cart
+export (`tmp/export_cart_20260818_043803.csv`), USD — the audited, all-clear
+one. Older exports in `tmp/` predate the USB-C and level-shifter part swaps and
+must not be used.
+
+⚠ **Prices drift more than expected.** The USB-C (`C7095263`) was recorded here
+as "~16" for 30 and is actually **$31.75** — $1.0583 each, now the second most
+expensive line in the order. Re-read the extended price from a live export
+rather than trusting any figure in this table.
 
 Superseded material — the DigiKey price snapshot the pivot was measured
 against, the AliExpress comparisons, and the hand-solder-vs-JLC-assembly
@@ -52,9 +59,9 @@ artifact. Upload as a **customer panel**, not a single board. See
 Place this order **first or same-day** as order 2, then email
 `support@lcsc.com` with both order numbers to combine the shipment.
 
-## Order 2 — LCSC (~$124, 30 lines)
+## Order 2 — LCSC ($142.93, 30 lines)
 
-> ### ⚠ CART AUDIT 2026-08-18 — four defects found, FIX BEFORE ORDERING
+> ### ✅ CART AUDIT 2026-08-18 — four defects found, ALL FIXED AND RE-VERIFIED
 >
 > Reconciled `tmp/export_cart_20260818_042110.csv` against `tools/bom_census.py`.
 > The cart had drifted from the design in four ways. **Two would have stopped
@@ -77,6 +84,18 @@ Place this order **first or same-day** as order 2, then email
 > **Items 5–6 are the one-pad/two-pad error again**, this time live in a real
 > cart: `hardware/harness/PARTS.md` said *"36 for a 9-panel pad, 50 ordered"*
 > and the cart was built to it. The scope is **20 panel assemblies**.
+>
+> **✅ RESOLVED.** All six applied and re-verified against
+> `tmp/export_cart_20260818_043803.csv`: every one of the 30 lines meets or
+> exceeds need, nothing superseded remains, and there are no unneeded lines.
+> Total $118.33 → **$142.93**.
+>
+> **Reproduce this check before any future order** — it is the only step that
+> catches cart drift, because both docs already listed the correct parts:
+> ```
+> python3 tools/bom_census.py            # need, from the boards
+> # then diff the total column against a fresh LCSC cart export
+> ```
 
 Everything hand-soldered on both boards, plus the harness connectors.
 **Combined-shipped with the JLC order**, so it carries no extra freight.
@@ -95,13 +114,13 @@ Refs are `dual-panel`'s — **carrier 2xx, brain 3xx**. Re-derived from the boar
 | **C503478** | Molex Micro-Fit 3.0 3-pin RA header (436500300) | J204, J207 (+ master J1) | carrier | 42 | 50 | 21.10 |
 | **C192562** | Molex Micro-Fit 3.0 2-pin RA header (436500200) | J205, J208 | carrier | 40 | 50 | 19.93 |
 | **C131337** | JST B2B-PH-K-S 2-pin 2mm vertical (genuine JST) | J201, J202, J203, J206 | carrier | 80 | 100 | 3.53 |
-| **C7095263** | GCT USB4085-GF-A USB-C, horizontal all-THT | J305 | **brain** | 20 | 30 | ~16 |
+| **C7095263** | GCT USB4085-GF-A USB-C, horizontal all-THT | J305 | **brain** | 20 | 30 | **31.75** |
 | **C8465** | KANGNEX WJ500V-5.08-2P screw terminal | J214 (+ master J2) | carrier | 22 | 30 | 4.01 |
 | **C52177925** | Zhongdi DS-04 DIP slide, 4-pos | SW201 | carrier | 20 | 30 | 6.03 |
 | **C609835** | XKB SS22E01L5 DPDT slide | SW202 | carrier | 20 | 25 | 4.37 |
 | **C2937625** | XFCN PZ254V-11-03P pin header 1×03 (SWD) | J209 | carrier | 20 | 50 | 0.94 |
-| **C5383116** | HanElectricity 2541WV-08P 1×8 header, **6.0mm mating pin / 3.0mm tail**, gold | J210–J213 | carrier | 80 | 100 | — |
-| **C7509515** | CONNFLY DS1023-1x8SF11 1×8 socket, 8.5mm body, gold | J301–J304 | **brain** | 80 | 100 | — |
+| **C5383116** | HanElectricity 2541WV-08P 1×8 header, **6.0mm mating pin / 3.0mm tail**, gold | J210–J213 | carrier | 80 | 100 | 0.87 |
+| **C7509515** | CONNFLY DS1023-1x8SF11 1×8 socket, 8.5mm body, gold | J301–J304 | **brain** | 80 | 85 | 6.65 |
 
 **Two corrections landed 2026-08-04, both from re-deriving against the real board:**
 
