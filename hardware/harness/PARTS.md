@@ -88,9 +88,11 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | **JST SMR-03V-B** housing (receptacle, 3-way) | underglow, hand-made fallback | **C157907** | 1 (10 ordered) |
 | 3-pin SM 2.5 LED-strip pigtail pair, 22 AWG | underglow — the actual plan | **ON HAND** | 1 pair |
 | **Wago 221-415**, 5-way lever block | 12V fan-out | 🛒 **SELECTED** — Home Depot 10-pack, $12.97 (genuine) | 3 |
-| **XT30 pair** (1 female + 2 male) | PSU→fan-out, + stock reconnect | **⬜ NOT SOURCED** | 2 pairs |
-| Inline fuse holder, 5×20 mm, **18 AWG leads** | trunk | 🛒 **SELECTED** — Amazon 5-pack, $11.99 | 1 |
-| **T8AL250V** glass cartridge, 5×20 mm, time-lag | trunk | 🛒 **SELECTED** — Amazon 10-pack, $6.99 | 1 |
+| **XT30U-F** (PSU side) | PSU→fan-out | ✅ **ON THE LCSC ORDER** — **C99102**, 10 @ $2.06 | 1 |
+| **XT30U-M** (load side) | our trunk + stock reconnect | ✅ **ON THE LCSC ORDER** — **C99101**, 10 @ $2.28 | 2 |
+| Inline fuse holder, 5×20 mm, **18 AWG leads** | trunk | ✅ **PURCHASED** (Amazon 5-pack, $11.99) | 1 |
+| **T8AL250V** glass cartridge, 5×20 mm, time-lag | trunk | ✅ **PURCHASED** (Amazon 10-pack, $6.99) | 1 |
+| Heat-shrink (colours + clear), zip ties, M3 screws | identification, strain relief, carrier | ✅ **ON HAND** | — |
 | M3 female-female standoff, **12 mm** | carrier↔brain spacer | ✅ **ON HAND** — see below | 3/panel |
 | **Wire ferrules** (likely 0.5 mm² / 0.75 mm² — **do not order on the AWG label**) | J214 INT, underglow DATA, J2 GND tie | **⬜ DEFERRED** — assortment on hand, size closes on a caliper measurement | 20/pad |
 | Molex **11-03-0043** extraction tool | Micro-Fit rework | ✅ **BOUGHT** (Newark) | 1 |
@@ -441,7 +443,23 @@ sources say 30 A) against a 6.34 A worst case and a supply that can only source
   an ordinary source-is-shrouded safety convention and is **unrelated to the
   JST receptacle/plug naming trap in `stock-smx/PARTS.md`** — that one is about what a housing is
   *called*, this is about which side it *goes on*.
-- **Buy 2 pairs: 1 female (PSU) + 2 male** — one for our trunk cable, one for
+- **✅ Convention verified 2026-08-17.** XT30's **male carries the exposed metal
+  pins; the female carries recessed sockets** — so female-on-the-source puts the
+  only permanently-live contacts behind a shroud, and our male pins are dead
+  whenever they are unplugged. Note the RC world runs *both* conventions and
+  often does the opposite (male on the battery, so a battery's terminals sit
+  inside a shell). That reasoning is about a source that **cannot be switched
+  off**; our PSU is only live when it is plugged in, so the shrouded-source rule
+  is the right one here.
+- ⚠ **Confirm by looking at the parts, not the label.** Check which half has
+  recessed sockets and put *that* on the PSU. Vendors do occasionally name XT
+  halves by housing rather than contact — the same class of error as the JST
+  naming trap — and 10 of each were ordered, so either label being wrong costs
+  nothing.
+- **Parts on order: `XT30U-F` LCSC `C99102` and `XT30U-M` LCSC `C99101`**, 10 of
+  each against a need of 2F + 4M for two pads. The `U` variant has the longer
+  insulated housing.
+- **Need per pad: 1 female (PSU) + 2 male** — one for our trunk cable, one for
   the cut stock 20 AWG tail, which is what keeps the modification reversible.
   Leaves a spare female.
 - **Solder cup, no crimp tool** — the only connector in the pad that doesn't
@@ -494,6 +512,25 @@ rarely listed — measure before crimping 204 contacts.
 
 Cross-plugging is impossible despite the shared cable: RS-485 terminates in
 3-circuit Micro-Fit, INT in JST XH and a 5.08 mm screw terminal.
+
+### Grommets — dropped as a purchase, kept as an assembly check (2026-08-17)
+
+A "grommets where cable crosses frame metal" line sat in `docs/BOM.md` from the
+start with no quantity and no candidate. **It was precautionary, not derived
+from anything.** The completed stock record documents no frame penetration that
+our harness has to cross, and stock ran its own nine signal home-runs through
+the same pad without any recorded edge protection.
+
+So there is nothing to pre-buy. **What a grommet is for, and when to add one:**
+a cable that passes through a drilled hole or over a cut edge in the steel frame
+will have its insulation sawn through by vibration — and a dance pad is a
+vibration machine by definition. It is a slow failure that presents as an
+intermittent panel months later.
+
+**At assembly, walk each run and protect anywhere cable meets a cut steel edge.**
+A grommet, a short length of split loom, or a few wraps of self-amalgamating
+tape all work; the point is that bare cable never bears on bare metal. This is a
+five-minute inspection, not a BOM line.
 
 ## Identification
 

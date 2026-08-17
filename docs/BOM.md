@@ -125,6 +125,15 @@ TVS and 20 transceivers short — that is correct, not an under-order.
 | **C259786** | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 168 | 300 | 4.47 |
 | **C144401** | JST XHP-2 2-pos housing (INT, wire side) | 18 | 50 | — |
 | **C385122** | JST SXH-001T-P0.6N XH crimp, 22–26 AWG | 36 | 100 | — |
+| **C99102** | XT30U-**F** — PSU side of the 12V trunk (recessed sockets) | 2 | 10 | 2.06 |
+| **C99101** | XT30U-**M** — our trunk + the cut stock tail (exposed pins) | 4 | 10 | 2.28 |
+
+**XT30 added 2026-08-17.** Solder-cup, so no crimp tool — the only connector in
+the pad that needs none. **Female goes on the PSU**: its contacts are recessed,
+so the permanently-live side is shrouded and our male pins are dead whenever
+unplugged. Two males per pad because one goes on the **cut stock 20 AWG tail**,
+which is what keeps the PSU modification reversible. ⚠ Verify gender by looking
+at the parts — put whichever half has *sockets* on the supply.
 
 Housing/crimp counts derive from the stock SMX topology: 3 power columns of 3
 panels (5 housings per column × 3 × 2 pads = 30), RS-485 serpentine with 9
@@ -162,7 +171,7 @@ needs its match-check to pass before ordering.
 | 12V power cable, 2C 20 AWG jacketed | **12.8m needed → 20m (2×10m) ORDERED 2026-08-16** | [1005008621580316](https://www.aliexpress.com/item/1005008621580316.html) | 20 AWG (not 22/24), **stranded**, 2-conductor jacketed round |
 | **RS-485 + INT cable, 22 AWG 2-core shielded twisted pair (RVSP)** — **ONE reel, both harnesses** | **27.0m needed → 50m ORDERED 2026-08-16** (30m was the next step down and left only 3m; 50m is ~3.5 pads' worth and the better per-metre price) | [1005006546939974](https://www.aliexpress.com/item/1005006546939974.html) (22 AWG / 2-core option) | **Conductor insulation OD must be 1.30–1.85mm** — see the checks below. Shield **required**: RS-485 lands it on Micro-Fit pin 3, INT trims it |
 | Wire ferrules | **DEFER** | — | ⚠ **Do not order blind — vendors' AWG labels disagree by one step.** Working assumption is **0.5mm² for the 38× 22 AWG** conductors (J214 INT + underglow DATA) and **0.75mm² for the 2× 20 AWG** GND ties — the vendor labelling, *not* the DIN CSA column. Close it by measuring the stripped bundle OD when the reel lands; an assortment is on hand and ferrules re-order domestically without a month's wait. **Wago lever blocks want no ferrule at all.** Full reasoning: `hardware/harness/PARTS.md` → "Ferrules" |
-| Colored + printed heatshrink, zip-tie anchors, grommets | — | — | heatshrink is now **load-bearing**: it carries the per-panel INT identification (see wire spec). Grommets where cable crosses frame metal |
+| ~~Colored + printed heatshrink, zip-tie anchors, grommets~~ | — | ✅ **ON HAND / not needed** | **Heat-shrink and zip ties are on hand** — but heat-shrink is **load-bearing** here (it carries the per-panel INT identification, 36 marks), so confirm the stock covers 9 distinguishable colours, or use printed labels under clear. **Grommets were speculative and are dropped as a purchase**: the teardown recorded no frame penetration our harness crosses. Made an assembly-time check instead — see below |
 
 **Where the cable quantities come from (all closed 2026-08-16):** they are
 transcribed from the completed stock record, since our harnesses run the same
