@@ -234,6 +234,49 @@ on a scratch copy — and copy the **whole project set** (`.kicad_pro`, `.kicad_
 `.kicad_prl`, `fp-lib-table`, `.pretty`), or `${KIPRJMOD}` won't resolve and the
 counts differ.
 
+### JLC DFM run — 2026-08-17, findings and what was done
+
+Ran JLC's own DFM checker on `panel-gerbers.zip`. Reports are in `tmp/`.
+
+✅ **Annular ring (100 Danger) — FIXED.** Vias were **0.3 mm drill / 0.45 mm pad
+= 0.075 mm annular**, JLC's *absolute* minimum for the class. JLC recommends
+**≥0.15 mm** against drill-registration breakout, so their tool flagged all of
+them. Vias are now **0.60 mm pad = 0.150 mm annular**, meeting the recommendation.
+
+- **Drills are unchanged** (1063 @ 0.3 mm, 44 @ 0.6 mm), so current capacity and
+  the POFV story are untouched. ⚠ Do not confuse the two: the **0.5 mm POFV
+  limit is a DRILL limit**, not a pad diameter.
+- Copper pour lost **55 mm² of 72,756 — 0.076%**. Nothing else moved.
+- **Three vias stay at 0.45 mm** because growing them violates clearance:
+  `VBUS` @ (216.23, 85.24) against U305 pad 2, and GND vias @ (176.69, 27.18)
+  and (176.67, 151.95) against the board edge. Shrinking those three instead of
+  nudging them gives **0 DRC violations and no re-routing**. The netclass is
+  0.6 mm so new vias inherit the good size; the DRU `via_diameter` minimum stays
+  at 0.45 mm only so these three pass.
+
+⬜ **Trace spacing (5 Danger at 0.09 mm) — DELIBERATELY NOT FIXED.** 500 of the
+508 sub-0.15 mm gaps are **copper-pour-to-track**, not track-to-track: the DRU's
+blanket `(constraint clearance (min 0.09mm))` **replaces** the Default netclass's
+0.2 mm, so pours back off only 0.09 mm. Raising it looked like a free win — but
+**every value tested above 0.09 mm (0.10, 0.11, 0.12, 0.125) orphans a copper
+island and produces a `starved_thermal` on J211 pad 5.** 0.09 mm is JLC's stated
+minimum, so this is *at* spec rather than under it, and the real routing is
+comfortably clear (tightest track-track 0.1266 mm, track-pad 0.1328 mm). Left
+alone as the lesser risk.
+
+🟢 **Ignore:** silkscreen-over-pad/hole (96) is cosmetic — JLC clips it.
+Negative soldermask expansion (62) is normal. Fiducials reported "null" but **6
+exist** (`KiKit_FID_T/B_1-3`); JLC's detector just missed KiKit's. Slot width
+0.5 mm (6) sits at JLC's minimum, same "at limit, not under" as the vias.
+
+⚠ **The SMT DFM report is not trustworthy and should be re-run at order time
+WITH `panel-BOM.csv` and `panel-CPL.csv`.** It was run on the gerbers alone, so
+JLC had no placement or part data and inferred components from paste/silk — note
+the synthesised `component_v_top`/`component_v_bottom` layers, which are not in
+our 16-file zip. Its "component to board edge = 0 mm" does not reproduce: the
+closest SMD pad to any edge, panel rail and mouse-bite cutouts included, is
+**0.891 mm** (a mounting-hole pad), and the nearest real part is 1.84 mm.
+
 ### The two DRU subtleties, both still live
 
 ⬜ **J305's USB-C holes sit at exactly 0.45 mm edge-to-edge — zero margin against
