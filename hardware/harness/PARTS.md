@@ -78,6 +78,23 @@ standoffs, not the 11 mm the original design assumed. See `docs/DUAL_PANEL.md`
 
 All sourced in `docs/BOM.md`; repeated here for mating reference.
 
+> ### Sourcing status, 2026-08-17 — **one item left to buy**
+>
+> **The Wago 221-415 blocks are the only outstanding purchase in the entire
+> project**, and they are a walk-in at Home Depot. Everything else is purchased,
+> in hand, on a placed order, or deferred by an explicit decision.
+>
+> | state | items |
+> |---|---|
+> | ✅ in hand | Teensy 4.0 ×2, SM 2.5 pigtail, 12 mm standoffs, heat-shrink, zip ties, M3, crimpers (SN-28B, PA-09), Molex extractor |
+> | ✅ purchased | cable (50 m RVSP + 20 m 2C), fuse holders, T8AL250V cartridges |
+> | 📦 on the LCSC order | all board parts, Micro-Fit/XH housings + crimps, XT30 |
+> | 🛒 **still to buy** | **Wago 221-415 ×6** |
+> | ⏸ deferred by decision | ferrules (needs cable in hand), printed carrier (needs Wagos in hand) |
+>
+> **Quantities are for TWO pads throughout** — see the scope banner in
+> `docs/BOM.md`. This is settled and is not to be re-derived.
+
 | Part | For | LCSC | Qty per pad |
 |------|-----|------|-------------|
 | JST XHP-2 housing | INT, master end | C144401 | 9 |
@@ -87,7 +104,7 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 12V + RS-485 | C259786 | 168 |
 | **JST SMR-03V-B** housing (receptacle, 3-way) | underglow, hand-made fallback | **C157907** | 1 (10 ordered) |
 | 3-pin SM 2.5 LED-strip pigtail pair, 22 AWG | underglow — the actual plan | **ON HAND** | 1 pair |
-| **Wago 221-415**, 5-way lever block | 12V fan-out | 🛒 **SELECTED** — Home Depot 10-pack, $12.97 (genuine) | 3 |
+| **Wago 221-415**, 5-way lever block | 12V fan-out | 🛒 **THE LAST THING LEFT TO BUY** — Home Depot 10-pack, $12.97 (genuine), walk-in | 3 |
 | **XT30U-F** (PSU side) | PSU→fan-out | ✅ **ON THE LCSC ORDER** — **C99102**, 10 @ $2.06 | 1 |
 | **XT30U-M** (load side) | our trunk + stock reconnect | ✅ **ON THE LCSC ORDER** — **C99101**, 10 @ $2.28 | 2 |
 | Inline fuse holder, 5×20 mm, **18 AWG leads** | trunk | ✅ **PURCHASED** (Amazon 5-pack, $11.99) | 1 |

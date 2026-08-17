@@ -4,7 +4,18 @@ What we are buying, and from where. Four orders, one section each.
 
 **Build scope: 2 pads = 2 master PCBs + 20 panel assemblies** (2 × 9 + 2 spares).
 One fab panel = one carrier + one brain, so that is 20 panels.
-Every quantity below is sized to that scope.
+
+> ## ⛔ THE 2-PAD SCOPE IS SETTLED. DO NOT RE-DERIVE IT.
+>
+> **Every quantity in this document, and every harness quantity in
+> `hardware/harness/PARTS.md`, is sized for two complete pads.** That includes
+> the cable footage, both PSUs and their XT30 halves, the fuse holders, the
+> Wago blocks, the crimps, the housings and the panel markers.
+>
+> This has been re-questioned more than once — "does the second pad actually
+> exist?", "should this be ×1 for now?" — and the answer has not changed.
+> **It is ×2. Assume ×2. Do not ask again.** If the scope ever genuinely
+> changes it will be edited here first, and this banner will say so.
 
 **This doc is derived from the boards, not maintained by hand.** The
 per-part identity lives in the KiCad schematics (`LCSC` / `MPN` fields);
@@ -155,11 +166,13 @@ through an XT30 pair and an inline T8A fuse. The old "fork/spade lugs at the PSU
 line was a pre-teardown assumption: there is no PSU terminal block and no ground
 stud. See `hardware/harness/12v-trunk.yml`.
 
-## Order 3 — DigiKey / PJRC
+## Order 3 — DigiKey / PJRC ✅ COMPLETE
 
 | Item | Qty | Note |
 |------|-----|------|
-| Teensy 4.0 (PJRC 15583) | 2 | ~$36 each, the one part LCSC never carries. PJRC-direct, Adafruit or SparkFun work equally. **The only line left on this order.** |
+| Teensy 4.0 (PJRC 15583) | 2 | ✅ **PURCHASED AND IN HAND.** ~$36 each, the one part LCSC never carries. |
+
+**This order is closed — nothing further to buy from DigiKey/PJRC.**
 
 ## Order 4 — AliExpress
 
