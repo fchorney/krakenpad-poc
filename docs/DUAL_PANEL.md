@@ -195,6 +195,22 @@ Small facts that are easy to get wrong at firmware or assembly time.
   pours; that was never the as-built board. Chosen for analog noise —
   high-impedance FSR lines sharing a board with 25 switching LEDs — not for
   routing density.
+- ⚠ **The two boards need SEPARATE GND zones, and this has already broken once.**
+  As built there are **four** zones: `GND_Planes` (priority 0, carrier, 4 layers),
+  **`GND_Brain` (priority 1, brain, 4 layers)**, and the two F.Cu regulator islands
+  `LD0 5VDC AMS` (2) and `LD0 3.3VDC` (3).
+
+  `GND_Brain` was **deleted by commit `96f43c0` (2026-08-03, the shifter swap —
+  a 62 704-line full-file rewrite)** and the loss went unnoticed because
+  `GND_Planes` was then simply stretched east to cover both boards. That fills
+  correctly in KiCad, so **DRC, ERC, schematic parity and an external review all
+  passed** — but KiKit extracts each board with a rectangular `sourceArea`, so the
+  one spanning zone was attributed to the carrier and clipped to it, and **the
+  brain came out of panelization with no ground pour on any of its four layers.**
+  Two fab packages were generated in that state. Restored 2026-08-17.
+
+  A zone spanning the split cannot survive panelization. `gen_panel.py` now fails
+  the build if any board ends up without a ground pour on every copper layer.
 - **Assembly is double-sided**: 115 SMD placements, **101 top / 14 bottom**. THT
   (connectors, switches, the interface headers) is hand-soldered, not JLC.
 - **High-current path:** at the IN connector of a column's first panel the 12 V

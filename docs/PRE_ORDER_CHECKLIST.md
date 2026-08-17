@@ -130,6 +130,25 @@ PYTHONPATH=~/.kikit "$KPY" gen_panel.py
 PYTHONPATH=~/.kikit "$KPY" gen_fab.py
 ```
 
+🚨 **A FAB BLOCKER WAS CAUGHT HERE 2026-08-17 — the brain had no ground pour.**
+The first regenerated package (and the Jul 30 one before it) put the brain on the
+panel with **zero GND copper on all four layers**. Root cause: `GND_Brain` was
+deleted by `96f43c0` and `GND_Planes` stretched to cover both boards instead. That
+fills fine in KiCad, so **every existing check passed** — DRC, ERC, parity, and a
+human review. KiKit clips a spanning zone to one board and the other gets nothing.
+
+Fixed by recreating `GND_Brain`, and `gen_panel.py` now **fails the build** if any
+board lacks a GND pour on any copper layer. Expected passing output:
+
+```
+  ground pour per board (mm2):
+    carrier  F.Cu=13421  In1.Cu=15656  In2.Cu=15656  B.Cu=15093
+    brain    F.Cu=2412   In1.Cu=3418   In2.Cu=3418   B.Cu=3249
+```
+
+⚠ **If either row shows zeros, do not order** — the boards will arrive with no
+ground plane. See `docs/DUAL_PANEL.md` → "Layout and routing".
+
 ✅ **Package contents spot-checked**: D301/D302 (DNP) absent from both BOM and
 CPL while D303 is present; the 30 test points filtered; 16 gerber files (4 copper
 + paste/silk/mask pairs + Edge.Cuts + separate PTH/NPTH Excellon + 2 drill maps +

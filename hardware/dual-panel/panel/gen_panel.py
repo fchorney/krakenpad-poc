@@ -113,6 +113,73 @@ def board_outlines(path):
     return contours
 
 
+
+# Every board must leave panelization with a real ground pour on every copper
+# layer. Anything below this is a fill that technically exists but is not a plane.
+MIN_POUR_MM2 = 50.0
+
+
+def check_zones_survived(panel_path):
+    """Fail if any board came out of panelization without its ground pour.
+
+    Why this exists: on 2026-08-17 the brain shipped a fab package with NO ground
+    pour on any of its four layers. The source board looked fine -- a single GND
+    zone spanned both boards, so KiCad filled it across both outlines and DRC,
+    ERC, schematic parity and a human review all passed. But KiKit extracts each
+    board with a rectangular sourceArea, so that one zone was attributed to the
+    carrier, clipped to the carrier, and the brain silently received nothing. The
+    defect existed only in the panelized output, which nobody inspects per board.
+
+    Deliberately checks the OUTPUT against a fixed requirement rather than
+    diffing output against the source. The first version of this guard did the
+    diff and did not fire on the very board that motivated it: it attributed
+    source zones to a board by bounding-box centre, and the offending zone
+    spanned both boards, so its centre landed on the carrier and the source
+    census reproduced exactly the error it was meant to catch. A guard that
+    derives its expectation from the broken artifact cannot detect the breakage.
+    """
+    import pcbnew   # local: main()'s guarded import owns the friendly error message
+
+    board = pcbnew.LoadBoard(panel_path)
+    copper = list(board.GetEnabledLayers().CuStack())
+
+    pours = {}
+    for z in board.Zones():
+        m = re.match(r"Board_(\d+)-(.*)", z.GetNetname())
+        if not m:
+            continue
+        which = "carrier" if m.group(1) == "0" else "brain"
+        for lid in z.GetLayerSet().Seq():
+            filled = z.GetFilledPolysList(lid)
+            area = filled.Area() / 1e12 if filled else 0.0
+            pours.setdefault((which, m.group(2), lid), 0.0)
+            pours[(which, m.group(2), lid)] += area
+
+    print("\n  ground pour per board (mm2):")
+    problems = []
+    for which in ("carrier", "brain"):
+        row = []
+        for lid in copper:
+            area = pours.get((which, "GND", lid), 0.0)
+            row.append(f"{board.GetLayerName(lid)}={area:.0f}")
+            if area < MIN_POUR_MM2:
+                problems.append(f"{which}: no GND pour on {board.GetLayerName(lid)} "
+                                f"({area:.1f} mm2, floor is {MIN_POUR_MM2:.0f})")
+        print(f"    {which:<8} " + "  ".join(row))
+
+    other = sorted({(w, n) for (w, n, _) in pours if n != "GND"})
+    if other:
+        print("  other zones: " + ", ".join(f"{w}/{n}" for w, n in other))
+
+    if problems:
+        sys.exit("error: a board lost its ground pour in panelization --\n  - "
+                 + "\n  - ".join(problems)
+                 + "\n\nEvery board needs its OWN zones. A zone whose outline covers both\n"
+                   "boards is attributed to one of them and clipped to it, and the other\n"
+                   "board silently receives no copper pour -- while the source board still\n"
+                   "looks correct in KiCad and passes DRC. Split it into one zone per board.")
+
+
 def main():
     try:
         import pcbnew
@@ -249,6 +316,8 @@ def main():
     print(f"  contiguous : {'YES - one piece' if pieces == 1 else f'NO - {pieces} pieces'}")
     if pieces != 1:
         sys.exit("error: panel is not contiguous; it would fall apart on the router.")
+
+    check_zones_survived(OUT)
 
 
 if __name__ == "__main__":
