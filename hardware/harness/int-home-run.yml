@@ -116,12 +116,17 @@ cables:
     length: 0.900
     colors: [WH, BK]
     notes: >
-      Master J3 to panel 0 (UL). 90 cm. Marker RED.
-      PER-PANEL IDENTIFICATION IS COLORED OR PRINTED HEAT-SHRINK AT BOTH ENDS,
+      Master J3 to panel 0 (UL). 90 cm. Markers RED + BLUE.
+      PER-PANEL IDENTIFICATION IS TWO BANDS OF COLORED HEAT-SHRINK AT BOTH ENDS,
       not conductor color -- the chosen twisted pair comes in one color only.
-      The markers follow the stock SMX panel map in docs/BOM.md: 0=Red
-      1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black. The
-      same convention applies to all nine cables below.
+      SCHEME CHANGED 2026-08-17: a row/column code replaces the stock SMX
+      0=Red..8=Black map, which needed nine distinguishable colors that are not
+      actually sold. Rows top-to-bottom RED/YELLOW/GREEN, columns left-to-right
+      BLUE/WHITE/VIOLET; each cable end gets one band of each. The sets are
+      disjoint so band order does not matter. UL=red+blue, U=red+white,
+      UR=red+violet, L=yellow+blue, C=yellow+white, R=yellow+violet,
+      DL=green+blue, D=green+white, DR=green+violet. Full scheme in
+      WIRE_COLORS.md. The same convention applies to all nine cables below.
   W_P1:
     category: bundle
     gauge: 22 AWG

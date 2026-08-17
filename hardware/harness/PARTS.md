@@ -534,8 +534,13 @@ five-minute inspection, not a BOM line.
 
 ## Identification
 
-Per-panel identification is **colored or printed heat-shrink at both cable
+Per-panel identification is **two bands of coloured heat-shrink at both cable
 ends**, not conductor color — the chosen RVSP cable comes in one color only.
-The stock SMX color map (`docs/BOM.md`, 0=Red … 8=Black) now names markers
-rather than wires.
+
+**Row + column, six colours, decided 2026-08-17.** Rows top→bottom
+**red/yellow/green**; columns left→right **blue/white/violet**. So `UL` is
+red+blue, `C` is yellow+white, `DR` is green+violet. The sets are disjoint, so
+the band order does not matter. **This replaced the stock 0=Red … 8=Black map**,
+which needed nine distinguishable colours that are not sold. Full scheme and the
+substitution rules: `WIRE_COLORS.md` → "Panel identification".
 

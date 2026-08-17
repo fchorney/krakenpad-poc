@@ -258,8 +258,17 @@ wire colors; the twisted-pair cable that meets the mechanical requirements
 (RVSP) only comes in one color, so per-panel identity moved to **colored or
 printed heat-shrink at both ends of every cable**, plus silkscreen panel names
 on the master (`UL`/`U`/`UR`/`L`/`C`/`R`/`DL`/`D`/`DR`, left to right = panel
-0→8). The stock SMX map is retained as the marker scheme: 0=Red 1=Orange
-2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black.
+0→8).
+
+**The marker scheme changed again 2026-08-17 — it is now a two-band row/column
+code, and the stock 0=Red … 8=Black map is superseded.** Nine distinguishable
+colours of heat-shrink are not actually purchasable, which is what killed the
+stock map. The replacement uses **six** colours in two disjoint sets — rows
+top→bottom **red/yellow/green**, columns left→right **blue/white/violet** — and
+every cable end carries one band of each. It encodes *physical position*, which
+is what the master's silkscreen already says, rather than panel ID. Full scheme,
+the substitution rules and why black and clear are excluded:
+`hardware/harness/WIRE_COLORS.md` → "Panel identification".
 
 Prefer heat-shrink over tape — tape unwinds and its adhesive migrates in a warm
 pad. Printed labels under clear heat-shrink beat colors outright, since "P4"
