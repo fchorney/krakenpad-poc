@@ -1,20 +1,83 @@
-# Power-input protection (reverse polarity + per-panel fuse) — DRAFT
+# Power-input protection (reverse polarity + per-panel fuse) — REJECTED FOR REV A
 
-> **STATUS: PROPOSED 2026-08-06 — NOT IMPLEMENTED.** No schematic or layout
-> change has been made. This documents the reasoning, the measured as-built
-> topology it has to fit into, and the implementation options, so the decision
-> can be made deliberately. The open question is the trunk split (see
-> "The trunk-split problem"), which is a layout-strategy choice.
+> # ⛔ DECIDED 2026-08-17: NOTHING GOES ON THE BOARD.
+>
+> **Options A, B and C are all rejected for rev A. The board ships unprotected
+> and that is deliberate, not an oversight.** Do not re-propose this without
+> new information — the reasoning is recorded below and the inputs that drove
+> it have already been corrected once.
+>
+> **What protection actually exists:** the trunk **T8A** fuse, keyed XT30 and
+> Micro-Fit connectors, engraved `+12V`/`GND` on the printed fan-out carrier,
+> and **metering the fan-out before first power-on**.
+>
+> **Accepted risk, stated plainly:** a mis-wire at the Wago fan-out reverses
+> **all nine panels and the underglow at once** — C201 (polarised, vents), nine
+> AMS1117s, and up to 225 WS2815s. It is a single connection, checked once with
+> a multimeter, and it is the price of shipping rev A unprotected.
+>
+> **Per-column harness fuses are DEFERRED, not rejected** — see below. That
+> deferral is cheap; this one is not.
 
-## Threat model — what this actually protects against
+## ⚠ The two deferrals are not equivalent
 
-**Reverse polarity.** Panel-to-panel 12V jumpers cannot be reversed — Micro-Fit
-3.0 is keyed. The one credible reversal is the **PSU end of each column
-harness: hand-crimped fork/spade lugs** onto the PSU studs. One swapped crimp
-puts −12V on all three panels of that column. What dies: **C201** (aluminum
-electrolytic, polarised — vents/bursts), the **AMS1117** on each brain, and
-potentially 25× WS2815 per panel. That is the expensive, annoying failure this
-guards against.
+| | reversible later? |
+|---|---|
+| **Board protection (A/B/C)** | ❌ **No.** Without the footprints, adding it later is a board respin. This decision closes with the fab order. |
+| **Per-column harness fuses** | ✅ **Yes, freely.** Inline holders at the fan-out, no board involvement. Can be added the day a fault makes them look worthwhile. |
+
+If this is ever revisited *while already in the layout for another reason*, the
+cheap middle path is to **add the footprints as DNP** — F201/Q201 pads cost
+nothing at fab, and Option C's series FET only needs 0Ω strap pads across
+drain–source so an unpopulated board still passes current. That preserves the
+option for the price of layout time alone.
+
+## Why it was rejected
+
+- **The reversal is a one-time assembly error, not repeated exposure.** See the
+  corrected threat model below — the original rationale described hardware that
+  no longer exists.
+- **Stock SMX has no fuses either.** Its only current ceiling was the Daygreen
+  converter current-limiting at 75 W. Per-column fusing would put this build
+  *ahead* of stock, which is user-proofing a product rather than protecting a
+  prototype.
+- **This is a prototype with 2 spare panels**, built and wired by the person who
+  designed it, not a kit shipped to strangers.
+
+## Threat model — CORRECTED 2026-08-17
+
+> ⚠ **The original threat model described deleted hardware.** It read: *"The one
+> credible reversal is the PSU end of each column harness: hand-crimped
+> fork/spade lugs onto the PSU studs. One swapped crimp puts −12V on all three
+> panels of that column."* **There are no lugs and no PSU studs** — the
+> 2026-08-08 teardown found the supply is a brick with one captive output. That
+> sentence drove the whole document's urgency and was false by the time the
+> decision was made.
+
+**Reverse polarity.** The actual 12V path is
+`PSU captive cable → XT30 (keyed) → T8A fuse → Wago fan-out → Micro-Fit (keyed) → columns`.
+Both connectors are keyed and cannot be mated backwards, so the credible
+reversals are all **build-time wiring errors**:
+
+1. **Mis-soldering an XT30 half** — we fit all three, so all three are exposed.
+2. **Mis-wiring at the Wago fan-out** — a +12V lead into the GND block. The two
+   rails are identical orange blocks, which is exactly why the printed carrier
+   engraves `+12V`/`GND`.
+3. **Mis-reading the PSU's captive-cable polarity when cutting the barrel** —
+   both conductors are black. Already covered by the "meter before cutting"
+   warning in `hardware/harness/12v-trunk.yml`.
+
+**All three are caught by a multimeter before first power-on, and none recur.**
+The original model assumed *repeated* exposure — re-crimping lugs during
+service. The redesigned harness is build-once, then keyed and lever-locked.
+
+**What got worse, and it is the one real argument for protection:** a fan-out
+mis-wire reverses **the entire pad at once**, where the old lug model reversed
+one column. Bigger blast radius, but a single point to check rather than three.
+
+What dies in that case: **C201** (aluminum electrolytic, polarised —
+vents/bursts), the **AMS1117** on each brain, and potentially 25× WS2815 per
+panel.
 
 **Overcurrent.** A fault inside one panel (shorted LED, failed C201, solder
 bridge, crushed wire) is today fed by the PSU's full output through the column
@@ -165,13 +228,33 @@ brain, J208 onward — is behind it, and no restructuring happens.
 - Failure surface: a failed-open FET in panel 0 darkens the column (any
   series element shares this; PTCs in A/B fail the same way for one panel).
 
-### Complementary, board-free: harness fuses
+### Complementary, board-free: per-column harness fuses — DEFERRED 2026-08-17
 
-Three **inline blade-fuse holders (5A) at the PSU end of each column** cover
-the one thing per-panel protection can't — a shorted inter-panel cable or
-trunk — with zero board changes. Selectivity against the panel PTCs is
-imperfect in a hard short (both are slow devices), fine in overload. This is
-a harness decision and can be adopted regardless of A/B/C.
+**Not rejected, deferred** — and freely reversible, since it touches no board.
+
+⚠ **The 5A figure this section originally carried is void.** It was sized on the
+pre-correction ~2.7A/column. **A column is 1.3A**, so the right part is a
+**T2A slow-blow** (plus **T3A** for the underglow's 2.44A). Slow-blow is
+mandatory, not preference: three panels × 470µF = **1410µF** of inrush would
+nuisance-trip a fast 2A.
+
+That correction matters more than it looks, because it is what makes the option
+worth anything at all:
+
+| a single-panel fault sees | |
+|---|---|
+| **today** (trunk T8A only) | **8A** — smoke long before it opens |
+| **+ per-column T2A** | **2A** |
+| **+ per-panel PTC** (options A/B) | ~1A, localised to one panel |
+
+**The 8A → 2A step is the large one and costs zero board changes.** The PTC's
+increment only bites in a narrow partial-fault window — a panel drawing 1–2A. A
+dead short opens either device.
+
+**Why deferred anyway:** stock SMX has no fusing below its converter either, and
+this is a prototype with spare panels rather than a product shipped to strangers.
+The parts are inline holders at the fan-out and can be added the day a fault
+makes them look worthwhile — the same holder style is already purchased.
 
 ## Interactions and side effects
 
@@ -200,18 +283,37 @@ a harness decision and can be adopted regardless of A/B/C.
   ~3.9A for 2mm of 1oz outer copper at a 10°C rise — a 3× margin, the most
   comfortable this trunk has ever been.
 
-## Decision checklist (in order)
+## Decision checklist — CLOSED 2026-08-17
 
-1. **Pick the architecture:** A (role swap), B (new spine), C (entry FET,
-   defer the fuse), or harness-only. A vs B is a layout-taste call; C changes
-   what protection you get.
-2. If A/B: **map the FSR B.Cu runs** and pick the bypass/spine corridor clear
-   of them.
-3. **Pick parts on LCSC**: PTC (verify voltage rating ≥16V and hold current
-   at 40°C), P-FET (verify Vgs abs-max — decides whether the zener is
-   needed), confirm footprints.
-4. Schematic edit (new net + 2–4 parts), layout edit per chosen option,
-   refill zones, **re-run the three-check discipline** (DRC + parity +
-   netlist diff), and re-run the widest-path check on both the new
-   pass-through and `+12V_LOCAL`.
-5. Decide the harness blade-fuse question separately.
+**Step 1 resolved: none of the above.** The board ships unprotected for rev A;
+steps 2–4 were never started and no schematic or layout change exists. The
+material below is kept only so a rev-B revisit does not start from zero.
+
+**What actually has to happen instead — all procedural, all at build time:**
+
+1. ✅ **Meter the PSU's captive-cable polarity before cutting the barrel off.**
+   Both conductors are black and the moulded ridge's meaning is unrecorded, so
+   the barrel is the only unambiguous reference — and cutting destroys it.
+   Detail in `hardware/harness/12v-trunk.yml`.
+2. ✅ **Engrave `+12V` and `GND` on the printed fan-out carrier.** The two rails
+   are identical orange Wago blocks; this is the mitigation for the single
+   highest-consequence error in the build.
+3. ✅ **Meter the fan-out before first power-on.** One check, and it covers the
+   whole-pad reversal case.
+4. ✅ **Verify XT30 gender by inspection** — sockets on the supply side — and
+   confirm each soldered half's polarity before mating.
+5. ⏸ Per-column harness fuses remain available at any time. Not now.
+
+### Notes for a rev-B revisit, if one ever happens
+
+- **Option C is the cheapest board change** and its original "Cost 2" is void:
+  it worried a connectors-only passthrough carrier would break, but
+  `docs/MODULAR_PANEL_COUNT.md` describes the passthrough as a *separate,
+  simpler board that has never been built* — it would simply omit the FET.
+- **A trunk-level P-FET was never evaluated here** because this document
+  predates the harness design. One part in the 12V trunk would protect all nine
+  panels *and* the underglow, versus 20 on-board. At 6.34A it wants ≤10mΩ
+  (~0.4W) in DPAK/TO-220; the wrinkle is that a discrete FET in a harness needs
+  something to mount on, though the printed carrier could house it.
+- If in the layout anyway, **add F201/Q201 as DNP footprints** — see the banner
+  at the top.
