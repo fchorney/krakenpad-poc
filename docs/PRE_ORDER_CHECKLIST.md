@@ -102,11 +102,49 @@ python3 gen_panel.py     # joins carrier + brain to a rail frame with mouse bite
 python3 gen_fab.py       # gerbers zip + JLC-format BOM + CPL into production/
 ```
 
-⬜ **Read `gen_panel.py`'s tab breakdown**, don't trust the total — it is the "will
-a board actually come off the panel?" check. Expected shape: carrier 16 tabs
-(N3/S3/E7/W3), brain 6 (E3/W3). The brain gets no N/S tabs; that is a KiKit
-partition-line limitation, not a setting, and it is documented in
-`hardware/dual-panel/panel/README.md`.
+✅ **REGENERATED AND VERIFIED 2026-08-18.** The previous package was from
+**Jul 30** and predated the Aug 4 board edit (third mounting hole, hole refdes,
+via fill/cap) *and* the Aug 17 U303 fix — it would have been fabbed without the
+third mounting hole.
+
+```
+carrier : 16 tabs   N=3 S=3 E=7 W=3     ← expected shape, matched
+brain   :  6 tabs   N=0 S=0 E=3 W=3     ← expected shape, matched
+substrates 2 · tab cuts 22 · contiguous: YES — one piece
+panel 227.57 × 143.10 mm (326 cm²) · 291 footprints
+CPL 115 placements · BOM 35 lines · every line carries an LCSC number
+6 non-part footprints dropped (fiducials/tooling)
+```
+
+The brain gets no N/S tabs; that is a KiKit partition-line limitation, not a
+setting, and it is documented in `hardware/dual-panel/panel/README.md`.
+
+⚠ **KiKit is NOT importable from KiCad's Python directly** — it lives in
+`~/.kikit`, so both generators need the path prefix or they fail with
+`ModuleNotFoundError`:
+
+```sh
+KPY=/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3
+cd hardware/dual-panel/panel
+PYTHONPATH=~/.kikit "$KPY" gen_panel.py
+PYTHONPATH=~/.kikit "$KPY" gen_fab.py
+```
+
+✅ **Package contents spot-checked**: D301/D302 (DNP) absent from both BOM and
+CPL while D303 is present; the 30 test points filtered; 16 gerber files (4 copper
++ paste/silk/mask pairs + Edge.Cuts + separate PTH/NPTH Excellon + 2 drill maps +
+gbrjob). `In1_Cu` and `In2_Cu` come out byte-identical in size, corroborating
+that **both inner layers are solid GND** and no 12V plane exists.
+
+✅ **Master package: NO regeneration needed, verified rather than assumed.**
+Regenerated to a scratch dir and compared layer-by-layer against
+`hardware/master-pcb/production/`: **all 11 files are content-identical.**
+
+⚠ **When diffing gerbers, strip `%TF.CreationDate` as well as `G04` comments.**
+It is an X2 *attribute*, not a comment, so a comment-only filter leaves a
+timestamp in and every layer falsely reads as changed — that produced a wrong
+"master package is stale" verdict on 2026-08-18 before it was caught. The drill
+files being identical while all nine gerbers "differed" was the tell.
 
 ⬜ **Upload as a customer panel** ("panel by customer"), **not** as a single board
 — JLC's own panelization only arrays one design, and two different boards must be
