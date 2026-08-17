@@ -47,7 +47,15 @@ been in KiCad all along — read straight out of `dual-panel.kicad_pcb`
 | J301–J304 | brain | `PinSocket_1x08_P2.54mm_Vertical` | CONNFLY **DS1023-1x8SF11** — 1×8 female socket, 2.54 mm, 8.5 mm body, gold, 3 A/pin | **C7509515** |
 
 **SOURCED 2026-08-16**, closing a long-standing order blocker. Four of each per
-panel = **32 pins per side**; 36 of each for a 9-panel pad, 50 ordered. The
+panel = **32 pins per side**.
+
+> ⚠ **QUANTITY CORRECTED 2026-08-18 — this line caused a live cart shortage.**
+> It previously read *"36 of each for a 9-panel pad, 50 ordered"*, and the LCSC
+> cart was built to that 50. **36 is the ONE-PAD figure.** The build scope is
+> **20 panel assemblies**, so the need is **4 × 20 = 80 of each**, and 50 was
+> 30 short on both lines. See the scope banner in `docs/BOM.md`.
+
+The
 6 mm pin into an 8.5 mm socket cannot bottom out, so separation is set by the
 plastics meeting — which is the design intent (see the stack note below).
 3 A/pin is ample against a 0.44 A panel. An earlier version of this table

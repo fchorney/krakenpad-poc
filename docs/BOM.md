@@ -52,7 +52,31 @@ artifact. Upload as a **customer panel**, not a single board. See
 Place this order **first or same-day** as order 2, then email
 `support@lcsc.com` with both order numbers to combine the shipment.
 
-## Order 2 — LCSC (~$110, 22 lines)
+## Order 2 — LCSC (~$124, 30 lines)
+
+> ### ⚠ CART AUDIT 2026-08-18 — four defects found, FIX BEFORE ORDERING
+>
+> Reconciled `tmp/export_cart_20260818_042110.csv` against `tools/bom_census.py`.
+> The cart had drifted from the design in four ways. **Two would have stopped
+> the build outright** — a board cannot be assembled with a part that isn't there.
+>
+> | # | LCSC | action | why |
+> |---|---|---|---|
+> | 1 | **C7095263** | ➕ **ADD ~25** | GCT USB4085-GF-A, brain **J305**. Was simply absent. |
+> | 2 | **C53184807** | 🗑️ **REMOVE 30** | LCK-TCF829D — the **retired `panel-pcb`** vertical USB-C. Superseded 2026-08-04. |
+> | 3 | **C7484** | ➕ **ADD 5** | SN74AHCT1G125DBVR, master **U3**. Was simply absent. |
+> | 4 | **C354152** | 🗑️ **REMOVE 5** | SN74AHCT125N quad DIP — superseded by the single-gate part **2026-08-03**. |
+> | 5 | **C5383116** | ⬆️ **50 → 100** | Need **80** (4 × 20 boards); MOQ multiple is 50. |
+> | 6 | **C7509515** | ⬆️ **50 → 85** | Need **80**; multiple is 5. |
+>
+> **The pattern is worth noting: the cart was never updated after two part
+> swaps.** Items 1–4 are two swaps left half-applied — the old part still in the
+> cart, the new one never added. A part swap is not done when the schematic
+> changes; it is done when the cart changes too.
+>
+> **Items 5–6 are the one-pad/two-pad error again**, this time live in a real
+> cart: `hardware/harness/PARTS.md` said *"36 for a 9-panel pad, 50 ordered"*
+> and the cart was built to it. The scope is **20 panel assemblies**.
 
 Everything hand-soldered on both boards, plus the harness connectors.
 **Combined-shipped with the JLC order**, so it carries no extra freight.
@@ -136,6 +160,7 @@ TVS and 20 transceivers short — that is correct, not an under-order.
 | **C259786** | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 168 | 300 | 4.47 |
 | **C144401** | JST XHP-2 2-pos housing (INT, wire side) | 18 | 50 | — |
 | **C385122** | JST SXH-001T-P0.6N XH crimp, 22–26 AWG | 36 | 100 | — |
+| **C157907** | JST SMR-03V-B 3-pos housing — **underglow hand-made fallback only** | 1 | 10 | 0.77 |
 | **C99102** | XT30U-**F** — PSU side of the 12V trunk (recessed sockets) | 2 | 10 | 2.06 |
 | **C99101** | XT30U-**M** — our trunk + the cut stock tail (exposed pins) | 4 | 10 | 2.28 |
 
