@@ -121,13 +121,31 @@ hardware/master-pcb/master-pcb.kicad_pcb`.
 
 ## 2. Design-file state
 
-✅ **Verified 2026-08-04 from clean project copies**, `kicad-cli pcb drc
---severity-all --schematic-parity`:
+✅ **RE-VERIFIED 2026-08-18** from clean project copies, after the U303 pad edit.
+Counts are **identical to the 2026-08-04 baseline** — the edit introduced nothing.
 
 | board | DRC | unconnected | parity | ERC | exclusions |
 |---|---|---|---|---|---|
 | master-pcb | 1 ✱ | 0 | 0 | 0 | 0 DRC / 0 ERC |
 | dual-panel | 0 | 19 ✱✱ | 90 ✱✱✱ | 0 | 0 DRC / 0 ERC |
+
+✅ **U303's SOT-223 tab is FIXED and the fix is in the copper.** The tab pad now
+carries `zone_connect 2` (solid) into the `+5VDC_AMS` pour, replacing the 4×0.5mm
+thermal spokes that were throttling the AMS1117's stated heatsink path.
+
+⚠ **A `zone_connect` change only reaches the gerbers if the zone was refilled
+afterwards** — the fill polygons are stored in the `.kicad_pcb`, so an unrefilled
+board keeps the old spokes in the artwork while the *rule* reads solid. Verified
+by refilling all 6 zones headlessly and comparing areas: **zero change**, so the
+saved copper already matches the solid-connection rule. Worth repeating after any
+future pad/zone/rule edit:
+
+```python
+# kicad python; threshold in nm^2
+before = {…z.GetFilledPolysList(layer).Area()…}
+pcbnew.ZONE_FILLER(b).Fill(b.Zones())
+# any area delta ⇒ the saved fill was stale
+```
 
 Both `drc_exclusions` and `erc_exclusions` are genuinely **empty** — nothing is
 suppressed by exclusion. Two rule severities are set to `ignore` on both boards,
