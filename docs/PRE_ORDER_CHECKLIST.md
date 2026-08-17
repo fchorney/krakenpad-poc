@@ -49,14 +49,21 @@ Remaining teardown follow-ups, none of which block the board order:
 Carrier headers **J210–J213** = LCSC **C5383116** (HanElectricity 2541WV-08P,
 1×8 male 2.54 mm, **6 mm mating pin / 3 mm solder tail**, gold, 3 A/pin).
 Brain sockets **J301–J304** = LCSC **C7509515** (CONNFLY DS1023-1x8SF11, 1×8
-female, 8.5 mm body, gold). 50 of each ordered against a need of 36. They are
-hand-soldered, so they are a cart item, not a PCBA line.
+female, 8.5 mm body, gold). They are hand-soldered, so they are a cart item, not
+a PCBA line.
 
-**⚠ Carries one consequence: order 12 mm M3 spacers too.** These parts measure
+> ⚠ **QUANTITY CORRECTED 2026-08-18.** This read *"50 of each ordered against a
+> need of 36"* — **36 is the ONE-PAD figure** and the cart had been built to the
+> 50. The scope is **20 panel assemblies**, so the need is **4 × 20 = 80 of
+> each**. Now **100 / 85** in the cart. Same stale per-pad number appeared in
+> `hardware/harness/PARTS.md`; both are fixed.
+
+**⚠ Carries one consequence: the M3 spacer must be 12 mm.** These parts measure
 2.54 + 8.50 = **11.04 mm** board-to-board, against the 10.75 mm the mechanical
-stack assumed — so the 11 mm spacer no longer clears, by 0.04 mm. Measure on
-arrival and use whichever of 11/12 mm actually clears. See `docs/DUAL_PANEL.md`
-→ "Mechanical stack".
+stack assumed — so an 11 mm spacer no longer clears, by 0.04 mm, and would let
+the connector plastics take the clamping load. ✅ **12 mm F-F is on hand**
+(2026-08-16); the only open question is having **60** of them. See
+`docs/DUAL_PANEL.md` → "Mechanical stack".
 
 Original constraint, retained because it is what made these parts the right
 ones:
@@ -72,15 +79,15 @@ solder tail** (the standard 11.6 mm total pin). Separation is set by the two
 plastics meeting, not by pins bottoming out, and some "short" headers trim the tail
 instead of the mating end — which leaves nothing to solder through the carrier.
 
-⬜ **INT cable OD check on arrival** — conductor insulation must be 1.3–1.9 mm for
-the JST XH contact (`docs/BOM.md` → Order 4). Do this **before** crimping 36
-contacts.
+✅ **INT cable length — CLOSED 2026-08-16 at 9.3 m/pad**, from the stock record
+(`stock-smx/harness/panel-signal-lines.yml`, nine home runs of 60–150 cm).
+**Purchased**: RS-485 and INT now share one **50 m** reel of 22 AWG 2-core
+shielded RVSP against a 27.0 m two-pad need.
 
-⬜ **INT cable length** — 9 home runs, not a chain. The *stock* equivalent is now
-measured: nine per-panel signal lines, 60–150 cm each, **9.3 m total** of 18 AWG
-(`stock-smx/harness/panel-signal-lines.yml`). Our own runs differ — the master
-mounts elsewhere and we use a twisted pair rather than a single conductor — but
-the stock figures bound the problem.
+⬜ **INT cable OD check on arrival** — conductor insulation must be **1.30–1.85 mm**:
+a floor for the JST XH contact and a ceiling for the Micro-Fit terminal, since
+one cable now feeds both. Do this **before crimping 204 contacts**. It is the
+only spec that can sink this cable and it is rarely listed by sellers.
 
 ---
 
