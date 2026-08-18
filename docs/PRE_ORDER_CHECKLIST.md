@@ -2,6 +2,11 @@
 
 Run this top to bottom before paying JLCPCB. ⬜ is open, ✅ is closed.
 
+> 📋 **`docs/ORDER_NOTES.md` is the companion to this file** — the text and
+> answers you need *while the order form is open*: what to say about POFV and
+> J305, and every DFM flag that is intentional. This file is the process;
+> that one is the script.
+
 **Rescoped 2026-08-04.** Rev 1.0 of this doc was written around the single-board
 `hardware/panel-pcb`, which was retired when the two-board split won. Where a
 closed item below names a part rather than a board, it still holds — the parts are
