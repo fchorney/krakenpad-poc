@@ -72,6 +72,26 @@ in `dual-panel.pretty` as a deliberate revert path.
 
 ## 3. DFM findings that are INTENTIONAL
 
+> ### ✅ Post-fix DFM re-run, 2026-08-18 — everything remaining is accepted
+>
+> **Cleared by the fixes:** the ~100 annular-ring Dangers (vias now 0.60 mm pad /
+> 0.150 mm annular) and the flash trace-spacing Dangers (scoped QSPI pour rule).
+>
+> **What is left, all four categories accepted — the board is orderable:**
+>
+> | remaining | verdict |
+> |---|---|
+> | USB differential pair at ~0.15 mm | ⚠ **intentional — do NOT widen** |
+> | tht to smd, 11 | not applicable to this order |
+> | silkscreen warnings | cosmetic |
+> | slot width | at JLC's stated minimum |
+>
+> ⚠ **The USB pair is the one to actively refuse to "fix."** USB± are 0.25 mm
+> wide with ~0.14–0.15 mm spacing, routed as a coupled pair over the GND planes.
+> **The gap is what sets the differential impedance** — widening it to satisfy a
+> generic spacing check would detune the pair. It is also 0.15 mm against JLC's
+> 0.09 mm minimum, so this is a margin advisory, not a violation.
+
 If JLC queries any of these, the answer is "yes, as drawn":
 
 | DFM flag | why it is fine |
