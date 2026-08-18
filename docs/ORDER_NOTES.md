@@ -38,8 +38,12 @@ PCBA setup, one stencil, one shipment.
 | Confirm production file / parts placement | **Keep both** (~$1.50) and answer the emails same-day |
 | Master board | **Bare fab only, no PCBA.** 4-layer, qty 5 |
 
-**Surface finish is an open aesthetic choice** — the logo is exposed *ground*
-copper, so the finish shows. HASL = silver, ENIG (+$) = gold.
+**Surface finish: ENIG — decided, not open.** JLC's free OSP was evaluated and
+rejected: OSP's flatness advantage is nil against ENIG, while this board has **30
+bench-probed test points**, hand-soldered through-hole done *after* SMD assembly
+across 20 panels, and spares meant to stay solderable for years. OSP degrades on
+all three counts. The logo is **silkscreen**, so the finish is not an aesthetic
+question at all.
 
 ---
 
@@ -118,7 +122,7 @@ the render.** An error there repeats ×25.
 Page through JLC's gerber viewer — it renders the same artwork the fab uses.
 Confirm: board outline and rail frame, mouse-bite tabs, layer order
 (F / In1=GND / In2=GND / B), silk name + rev + year, logo copper/mask pair intact,
-**and a ground pour present on BOTH boards** (a missing brain pour is a real
+the **silkscreen logo**, **and a ground pour present on BOTH boards** (a missing brain pour is a real
 defect this project has already shipped once — see `docs/DUAL_PANEL.md`).
 
 Sanity-check the total against the qty-20 band. The recorded **qty-5** baseline

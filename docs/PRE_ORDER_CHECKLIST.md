@@ -381,9 +381,26 @@ netclass govern.
 ## 5. Order options
 
 - ⬜ 4-layer, both boards on one customer panel (~228 × 143 mm, ≈326 cm²).
-- ⬜ **Surface finish**: HASL = silver exposed-copper logo, ENIG (+$) = gold. The
-  logo is exposed *ground* copper, so the finish is visible. Aesthetic choice —
-  decide deliberately.
+- ✅ **Surface finish: ENIG. DECIDED — not an open aesthetic choice, and not
+  about the logo.** An earlier version of this line said the finish mattered
+  because the logo was exposed ground copper; **the logo is silkscreen** (board
+  graphics are F.Silkscreen only — there is no copper/mask logo pair anywhere).
+
+  **JLC's free OSP was evaluated 2026-08-18 and rejected.** OSP's advantage is a
+  flat surface for fine pitch, but ENIG is equally flat, so there is no gain.
+  Three properties of *this* board decide it:
+  1. **30 test points that get bench-probed.** OSP is a thin organic film over
+     bare copper; probing scratches through it and the copper oxidises. The gold
+     stays probe-friendly indefinitely, and those test points are the whole
+     bring-up plan.
+  2. **All THT is hand-soldered by us, after JLC's SMD assembly**, across 20
+     panels over an extended window. OSP solderability degrades within months of
+     the bag being opened; ENIG keeps for years.
+  3. **Spares and repairability** — 20 panels for 18 slots, meant to stay
+     maintainable. OSP boards stored a year solder badly.
+
+  Free OSP is a real saving on a board that ships and is never touched again.
+  This is the opposite of that board.
 - ⬜ **Assembly: both sides**, SMD only. The ~$25 double-sided delta is worth it.
 - ⬜ **Epoxy filled & capped (POFV)** on the brain — decided 2026-08-04. **Ask JLC
   two things at quote time** rather than eating an engineering query:
@@ -410,7 +427,8 @@ netclass govern.
 
 - ⬜ Page through JLC's gerber viewer (it renders the same artwork the fab uses):
   board outline and rail frame, mouse-bite tabs, layer order (F / In1=GND /
-  In2=power / B), silk name + rev + year, logo copper/mask pair intact.
+  In2=GND / B), silk name + rev + year, **and the silkscreen logo** — it is
+  silkscreen, not a copper/mask pair, so check it on F.Silkscreen.
 - ⬜ Sanity-check the total against the qty-20 band. The recorded qty-5 baseline is
   $297.38 — if a qty-20 quote comes in near *that*, the quantity field is wrong.
 
@@ -469,8 +487,8 @@ to the FSR connector symbols.
 
 ## Deliberately NOT blocking the order
 
-- Project logo (waiting on artwork; add via the verified exposed-copper flow +
-  sliver check when it exists).
+- ~~Project logo~~ — **done, and it is silkscreen**, not exposed copper. The old
+  exposed-copper flow and its sliver check no longer apply.
 - Accepted-for-rev-A review items — U303 thermal, +5 V rail margin,
   INT-into-dead-panel, hot-plug/SI/ADC-on-B.Cu. These are **bring-up measurements**,
   not order blockers.

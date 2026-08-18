@@ -295,8 +295,16 @@ connectors; Y has ~20 mm of slack per end** if a future revision needs it. Heigh
 budget above the PCB is ~35 mm.
 
 Silkscreen: "Kraken Pad by SenPi / Rev. 1.0", JLC order-number placeholder on
-B.Silkscreen, personal logo as exposed GND copper via the mask-opening technique.
-Project logo pending artwork.
+B.Silkscreen, and the project logo.
+
+⚠ **Corrected 2026-08-18: the logo is SILKSCREEN, not exposed copper.** This line
+previously described it as "exposed GND copper via the mask-opening technique"
+with artwork still pending. Verified against the board — all graphics live on
+`F.Silkscreen` (10 items) and `User.Drawings` (5); **there is no copper/mask logo
+pair anywhere.** The stale claim mattered because it was the stated reason the
+surface finish was an aesthetic choice, which propagated into
+`docs/PRE_ORDER_CHECKLIST.md`. Finish is **ENIG**, decided on solderability and
+probe life, not appearance.
 
 ## Passthrough variant
 
