@@ -160,6 +160,12 @@
 # above 0.09mm orphans a copper island near J211 and produces a starved_thermal.
 # 0.13mm is the largest value the existing routing satisfies -- the tightest
 # QSPI track-to-track/pad is 0.1314mm.
+# Scoped to B.Type == 'Zone' on 2026-08-18, when the RP2040 pads were widened to
+# 0.23mm: without the B-side condition the rule also policed track-to-pad, and the
+# wider pads left one +1.1VDC track 0.1253mm from U306 pad 51. That is a routing
+# gap, not a pour gap -- and at 0.1253mm it is still well clear of JLC's 0.09mm
+# floor. Zone-scoping matches the rule's stated purpose above. Verified live:
+# raising it to 0.20mm produces 101 QSPI-vs-GND_Brain violations.
 (rule "QSPI flash pour clearance"
-	(condition "A.NetName == 'QSPI_SD0' || A.NetName == 'QSPI_SD1' || A.NetName == 'QSPI_SD2' || A.NetName == 'QSPI_SD3' || A.NetName == 'QSPI_SCLK' || A.NetName == 'QSPI_SS'")
+	(condition "(A.NetName == 'QSPI_SD0' || A.NetName == 'QSPI_SD1' || A.NetName == 'QSPI_SD2' || A.NetName == 'QSPI_SD3' || A.NetName == 'QSPI_SCLK' || A.NetName == 'QSPI_SS') && B.Type == 'Zone'")
 	(constraint clearance (min 0.13mm)))

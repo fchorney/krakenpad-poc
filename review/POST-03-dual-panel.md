@@ -48,7 +48,7 @@ transceiver. Nine of these go in a dance pad; all nine are identical.
   termination switch, 470 µF bulk, SWD header.
 - **Brain**: 70.9 × 62.6 mm, 4 layers. RP2040 (QFN-56), 12 MHz crystal,
   W25Q32JV 4 MB QSPI flash, edge-mounted USB-C for bench flashing with
-  USBLC6-2SC6 ESD protection, BOOTSEL, THVD1429 RS-485 transceiver,
+  USBLC6-2SC6 ESD protection, BOOTSEL, THVD1450 RS-485 transceiver,
   SN74AHCT125 level shifter, AMS1117-5.0 → AP7361C-33ER linear cascade off the
   12 V bus, LM66200 ideal-diode mux ORing USB VBUS against the 5 V rail
   (PMEG3015EH pair kept as DNP fallback footprints).

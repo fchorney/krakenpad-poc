@@ -23,7 +23,7 @@ still isn't worth it at this volume × 2 boards; the 2026-07-24 INT-filter
 additions — 9× 330R + 9× 1nF, all 0805 — roughly double the passive count but
 stay easy to hand-place). Sourcing: the whole master is
 hand-assembled from the LCSC order — see `docs/BOM.md` order 2. Hot air available; SOT-23-6 and
-SOIC-8 are fine. Do not re-litigate: THVD1429 has no DIP equivalent worth the
+SOIC-8 are fine. Do not re-litigate: THVD1450 has no DIP equivalent worth the
 downgrade (MAX3485CPA loses failsafe + surge), and the passives are 0805 by
 choice (hand-placed, not dense).
 
@@ -179,7 +179,7 @@ needed a connector change.
 
 | Ref(s) | Part | Notes |
 |--------|------|-------|
-| U1 | THVD1429DR (SOIC-8) | same part as panels; VCC +3.3VDC, C1 100nF |
+| U1 | THVD1450DR (SOIC-8), LCSC C2671361 | same part as panels; VCC +3.3VDC, C1 100nF. Swapped from THVD1429DR 2026-08-18 — identical pinout, see CLAUDE.md |
 | U2 | Teensy 4.0 (PJRC 15583), socketed | 2× PPPC141LFBN-RC 14-pos female headers |
 | U3 | SN74AHCT1G125DBVR (SOT-23-5) | underglow shifter (single gate, swapped from quad SN74AHCT125N DIP 2026-08-03), VCC +5VDC_USB, C2 100nF; A ← GPIO11, Y → R5 330R → J2.1; OE̅ → GND |
 | D1–D9 | SMAJ5.0A TVS (DO-214AC) | one per INT line, entry-node ESD clamp — see table above |
@@ -187,7 +187,7 @@ needed a connector change.
 | C3–C11 | 1nF C0G 0805 | INT filter cap per line, Teensy-side node → GND |
 | R4 | 10k 0805 | `UNDERGLOW_DATA` pull-down (defines U3 A input LOW at boot) |
 | R3 | 120R | RS-485 termination, always fitted (master is always a bus end — no switch) |
-| R1/R2 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1429's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
+| R1/R2 | 390R 1% — **DNP** | RS-485 failsafe bias (+3.3VDC→RS485+, RS485−→GND). THVD1450's integrated open/short/idle failsafe makes them unnecessary; footprints exist so bias can be added at the one correct bus point if the bench ever disagrees (≈236mV across the 60Ω loaded bus) |
 | RN1 | Bourns 4610**X**-101-103LF (SIP-10, 10k ×9 bussed, LCSC C840655) | pin 1 common → +3.3VDC |
 | SW1 | DORABO DS-3P-BU (DIP-3, LCSC C46595747) | player ID 0–7 to GND, internal pull-ups |
 | J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, **pin 3 = cable shield, tied directly to GND here** (see "RS-485 shield" below) — **matches the panel's J204/J207 exactly** so the cable is straight-through |

@@ -4351,7 +4351,7 @@
 		)
 		(uuid "2fcfe6fc-4b9a-4d88-8709-0a23fa8a5d6e")
 	)
-	(text "RS-485 bias (R4/R5): fitted as DNP footprints, insurance only.\nTHVD1429 has integrated open/short/idle failsafe, so the idle bus\nis already defined and no external bias is normally needed.\nBias belongs at ONE point on the bus - the master is that point,\nso if the bench ever disagrees, populate here and nowhere else.\n390R pair = approx. 236mV across the 60R terminated bus at 3.3V."
+	(text "RS-485 bias (R4/R5): fitted as DNP footprints, insurance only.\nTHVD1450 has integrated open/short/idle failsafe, so the idle bus\nis already defined and no external bias is normally needed.\nBias belongs at ONE point on the bus - the master is that point,\nso if the bench ever disagrees, populate here and nowhere else.\n390R pair = approx. 236mV across the 60R terminated bus at 3.3V."
 		(exclude_from_sim no)
 		(at 14.224 122.936 0)
 		(effects
@@ -10162,7 +10162,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP failsafe bias insurance (panel review 3.a, 2026-07-20): pull-up RS485+ (A) to +3V3. THVD1429 integrated open/short/idle failsafe makes bias normally unnecessary; populate R4+R5 only if idle-bus noise is ever observed. 390R pair gives ~236mV across 60R differential load at 3.3V. PARKED UNWIRED - to be wired DNP by hand."
+		(property "Description" "DNP failsafe bias insurance (panel review 3.a, 2026-07-20): pull-up RS485+ (A) to +3V3. THVD1450 integrated open/short/idle failsafe makes bias normally unnecessary; populate R4+R5 only if idle-bus noise is ever observed. 390R pair gives ~236mV across 60R differential load at 3.3V. PARKED UNWIRED - to be wired DNP by hand."
 			(at 88.9 161.29 0)
 			(hide yes)
 			(show_name no)
@@ -10379,7 +10379,7 @@
 				)
 			)
 		)
-		(property "Value" "THVD1429"
+		(property "Value" "THVD1450"
 			(at 78.994 180.594 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10400,7 +10400,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/thvd1429.pdf"
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/thvd1450.pdf"
 			(at 70.3 172.87 0)
 			(hide yes)
 			(show_name no)
@@ -10422,7 +10422,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1850236"
+		(property "LCSC" "C2671361"
 			(at 70.3 172.87 0)
 			(hide yes)
 			(show_name no)
@@ -10433,7 +10433,7 @@
 				)
 			)
 		)
-		(property "MPN" "THVD1429DR"
+		(property "MPN" "THVD1450DR"
 			(at 70.3 172.87 0)
 			(hide yes)
 			(show_name no)

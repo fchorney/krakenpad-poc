@@ -6966,7 +6966,7 @@
 		)
 		(uuid "3a021a94-588e-4c57-8f18-9adb3e9b0553")
 	)
-	(text "No external bus biasing: THVD1429 has\nintegrated open/short/idle failsafe."
+	(text "No external bus biasing: THVD1450 has\nintegrated open/short/idle failsafe."
 		(exclude_from_sim no)
 		(at 350.012 182.88 0)
 		(effects
@@ -12461,7 +12461,7 @@
 				)
 			)
 		)
-		(property "Value" "10nF C0G 50V"
+		(property "Value" "10nF C0G 25V"
 			(at 375.666 146.304 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12504,7 +12504,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C57112"
+		(property "LCSC" "C723749"
 			(at 372.11 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -12887,7 +12887,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1uF X5R 16V"
+		(property "Value" "1uF X5R 25V"
 			(at 141.478 227.076 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12987,7 +12987,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm"
+		(property "Footprint" "dual-panel:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm_RPiPad"
 			(at 289.56 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -14501,7 +14501,7 @@
 				)
 			)
 		)
-		(property "Value" "10nF C0G 50V"
+		(property "Value" "10nF C0G 25V"
 			(at 394.97 146.304 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14544,7 +14544,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C57112"
+		(property "LCSC" "C723749"
 			(at 391.16 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -15120,7 +15120,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C858950"
+		(property "LCSC" "C25190"
 			(at 248.92 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -16112,7 +16112,7 @@
 				)
 			)
 		)
-		(property "Value" "10nF C0G 50V"
+		(property "Value" "10nF C0G 25V"
 			(at 356.87 146.304 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16155,7 +16155,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C57112"
+		(property "LCSC" "C723749"
 			(at 353.06 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -16538,7 +16538,7 @@
 				)
 			)
 		)
-		(property "Value" "10nF C0G 50V"
+		(property "Value" "10nF C0G 25V"
 			(at 334.518 146.558 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16581,7 +16581,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C57112"
+		(property "LCSC" "C723749"
 			(at 330.2 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -19263,7 +19263,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1uF X5R 16V"
+		(property "Value" "1uF X5R 25V"
 			(at 283.21 36.83 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21347,7 +21347,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C858950"
+		(property "LCSC" "C25190"
 			(at 248.92 87.63 0)
 			(hide yes)
 			(show_name no)
@@ -21473,7 +21473,7 @@
 				)
 			)
 		)
-		(property "Value" "1uF X5R 16V"
+		(property "Value" "1uF X5R 25V"
 			(at 305.054 36.83 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22292,7 +22292,7 @@
 				)
 			)
 		)
-		(property "Value" "THVD1429"
+		(property "Value" "THVD1450"
 			(at 381.508 214.63 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22313,7 +22313,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/thvd1429.pdf"
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/thvd1450.pdf"
 			(at 375.92 228.6 0)
 			(hide yes)
 			(show_name no)
@@ -22324,7 +22324,7 @@
 				)
 			)
 		)
-		(property "Description" "Half duplex RS-485/RS-422, 12 Mbps, 3V - 5.5V supply, ±12kV electro-static discharge (ESD) protection, with receiver/driver enable, 32 receiver drive capacity, SOIC-8"
+		(property "Description" "Half duplex RS-485, 50 Mbps, 3V-5.5V supply, +/-18kV IEC 61000-4-2 contact ESD, open/short/idle failsafe, SOIC-8"
 			(at 375.92 228.6 0)
 			(hide yes)
 			(show_name no)
@@ -22335,7 +22335,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1850236"
+		(property "LCSC" "C2671361"
 			(at 375.92 228.6 0)
 			(hide yes)
 			(show_name no)
@@ -22346,7 +22346,7 @@
 				)
 			)
 		)
-		(property "MPN" "THVD1429DR"
+		(property "MPN" "THVD1450DR"
 			(at 375.92 228.6 0)
 			(hide yes)
 			(show_name no)
@@ -24631,7 +24631,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1uF X5R 16V"
+		(property "Value" "1uF X5R 25V"
 			(at 135.382 205.74 0)
 			(show_name no)
 			(do_not_autoplace no)

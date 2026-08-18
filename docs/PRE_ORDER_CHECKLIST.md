@@ -1,5 +1,11 @@
 # Pre-order checklist — dual-panel + master (rev 2.0, rescoped 2026-08-04)
 
+> # 🔒 ORDERED 2026-08-18 — THIS CHECKLIST IS NOW A HISTORICAL RECORD
+>
+> **Both boards are at fab.** Nothing here is actionable any more; it documents how
+> rev 1 was verified. Tag **`rev1-fab`**, artifacts in
+> `hardware/fab-archive/rev1-2026-08-18/`. Any change from here is **rev 2**.
+
 Run this top to bottom before paying JLCPCB. ⬜ is open, ✅ is closed.
 
 > 📋 **`docs/ORDER_NOTES.md` is the companion to this file** — the text and
@@ -279,7 +285,8 @@ exist** (`KiKit_FID_T/B_1-3`); JLC's detector just missed KiKit's. Slot width
 | finding | Danger | verdict |
 |---|---|---|
 | Lead to hole distance | 72 | ✅ **deliberate via-in-pad** — makes POFV mandatory, see below |
-| Pin inner / left / right edge | 42 / 28 / 28 | ⚠ **all U306 (RP2040)** — pad width, see below |
+| Pin left / right / outer edge | 28 / 28 | ✅ **fixed 2026-08-18** — pads widened to 0.23 mm = datasheet b max; confirmed cleared on the DFM re-run |
+| Pin **inner** edge | 42 | ⚠ **ACCEPTED, do not fix** — pad inner edge 3.000 mm = pin inner edge at datasheet **L max 0.500**. Zero heel at worst case only; 0.100 mm at nominal. Adding heel measured to cause solder-mask bridging. Full argument + JLC reply in `docs/ORDER_NOTES.md` §8 |
 | Lead area overlapping pad | 1 | RP2040 exposed pad; conservative, see below |
 | component→board edge, through-hole ×4, pad spacing, clipped by outline, pin without pad, pin outer edge, missing hole | **0** | clean |
 
@@ -297,13 +304,44 @@ Raspberry Pi's own reference board (`Minimal-KiCAD.zip` →
 search claiming RP2040 needs a 5.6 × 5.6 mm EP is **wrong** — KiCad ships that
 variant for other parts in the same body. Do not "fix" this.
 
-⬜ **The pin-edge findings are a pad-width difference on U306, open.** We use
-KiCad's generic `QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm` with **0.875 × 0.20 mm**
-signal pads; Raspberry Pi's official land pattern uses **0.80 × 0.23 mm** — ours
-are 0.075 mm longer and **0.03 mm narrower**. The narrower width is the likely
-cause, and 28 + 28 = **56 = exactly the pin count**. Adopting RPi's geometry
-would likely clear it; KiCad's generic pattern is IPC-valid, so this is a
-judgement call, not a defect.
+✅ **The pin-edge findings were a pad-width difference on U306 — FIXED 2026-08-18,
+pads widened to Raspberry Pi's 0.23 mm.** We were on KiCad's generic
+`QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm` with **0.875 × 0.20 mm** signal pads against
+Raspberry Pi's official **0.80 × 0.23 mm**; 28 + 28 = **56 = exactly the pin
+count**, which identified the width as the cause. Resolved by the user's pre-order
+call rather than deferring to rev-B.
+
+**What was changed, and what deliberately was not.** A local footprint
+`dual-panel:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm_RPiPad` widens **only** the signal
+pad width, 0.20 → **0.23 mm**. Pad **length stays 0.875 mm** (not RPi's 0.80) —
+the extra toe overhang aids solderability and inspection, and shortening it would
+have moved geometry the DFM never complained about. Pitch, pad centres and the
+3.2 × 3.2 mm exposed pad are untouched. Pad-to-pad gap goes 0.20 → **0.17 mm**,
+still far above JLC's floor.
+
+⚠ **The widening had two knock-on effects; both are handled.**
+1. **Zone refill is mandatory** — the wider pads produced three pad-to-`GND_Brain`
+   clearance errors that exist only in stale fill polygons. A headless
+   `ZONE_FILLER` pass cleared them (`GND_Brain` F.Cu 2423.787 → 2423.741 mm²).
+2. **The `QSPI flash pour clearance` rule had to be scoped to zones.** It was
+   written with no B-side condition, so it also policed track-to-pad, and the
+   wider pad 51 left one +1.1VDC track at 0.1253 mm against the 0.13 mm rule.
+   That is a routing gap, not a pour gap — and 0.1253 mm is still well clear of
+   JLC's 0.09 mm floor. The condition now ends `&& B.Type == 'Zone'`, matching the
+   rule's own stated purpose. **Verified still live:** raising it to 0.20 mm
+   produces 101 QSPI-vs-`GND_Brain` violations, so it is genuinely holding the
+   pour back.
+
+⚠ **Edit the schematic INSTANCE, not the `lib_symbols` cache.** Changing the
+footprint in both places raises a `lib_symbol_mismatch` ERC warning, because the
+cached symbol then disagrees with the on-disk `MCU_RaspberryPi` library. The
+instance override alone is what assigns the footprint, and is what the GUI would
+have produced. Reverting the cache took ERC back to 0.
+
+✅ **Re-verified after the change: DRC 0 · unconnected 19 · parity 90 · ERC 0** —
+identical to the baseline. Gerbers confirmed to carry the new geometry (roundrect
+apertures at 0.0575 mm corner radius with ±0.0575/±0.380 mm vertices = 0.23 ×
+0.875 mm, present in both pad orientations).
 
 ✅ **`tht to smd` (11 Danger) does not apply to this order.** The pairs are
 TP303→D303 (1.55), TP306→U308 (2.17), J213→D204 (2.01), J303→U303 (2.16),
@@ -356,7 +394,7 @@ netclass govern.
 - ⬜ **D201 (SMAJ5.0A, LCSC C113952)** is an *extended* part, so it adds a
   feeder/handling line. Confirm live stock and re-pick if short — C87074 (Diodes)
   and C98802 (ST) are the same part in the same DO-214AC body.
-- ⬜ **THVD1429 (U308, C1850236)** — verify live stock at order time.
+- ⬜ **THVD1450 (U308, C2671361)** — verify live stock at order time. It replaced THVD1429/`C1850236` on 2026-08-18; that part had only 60 units and was the BOM's tightest line.
 
 ---
 
@@ -408,16 +446,25 @@ netclass govern.
   2. how POFV handles a board mixing fillable and non-fillable vias — **44 vias sit
      at 0.60 mm drill, above the 0.5 mm fill limit.** All power-distribution, none
      in a pad, so unfilled is electrically fine, but POFV is normally board-wide.
-- ⬜ **0.075 mm via annular ring** — partially answered: the master quoted fine at
-  0.075 mm on a standard 4-layer build. Confirm it holds for this panel.
-- ⬜ **Quantity: 20 panels, ONE run.** Fixed overhead is ~$97/order ($25 eng fee +
-  $51.12 PCBA setup + $16.42 stencil + $4.93 storage) plus ~$40 shipping,
-  regardless of quantity. Two runs = paying all of it twice. Reference: the qty-5
-  dual-panel quote came to **$297.38** ($89.01 PCB + $199.67 PCBA + $8.70
-  advanced) — full breakdown in `hardware/dual-panel/panel/QUOTE-2026-07-31.md`.
-- ⬜ **Master boards: ≈$8 for 5.** Board cost is negligible; **shipping dominates.**
-  Batch master + panel into one shipment if the teardown allows.
-- ⬜ Slow build time (3–4 day assembly); expedite was +$49 for one day.
+- ✅ **0.075 mm via annular ring — FIXED ON THE MASTER 2026-08-18.** The panel was
+  moved to 0.60 mm pad / 0.150 mm annular earlier; **the master was never checked
+  and still had 297 vias at 0.45 mm / 0.075 mm annular**, because DFM had never been
+  run on it. JLC flags this. All 297 enlarged to **0.60 mm → 0.150 mm annular**,
+  matching the panel. Cost: nothing — **DRC/ERC/parity/unconnected all stayed at 0**,
+  and the gerber diff is a single aperture (`ADD24` 0.450 → 0.600) with drills
+  untouched. ⚠ **A quote is not a DFM check** — the master "quoted fine" at 0.075 mm
+  for months, which proved nothing.
+- ✅ **Quantity: 20 panels, ONE run.** Fixed overhead is ~$93/order ($25 eng fee +
+  $51.12 PCBA setup + $16.42 stencil) plus shipping, regardless of quantity — two
+  runs = paying all of it twice. **Real qty-20 quote, 2026-08-18: PCB $174.47 +
+  PCBA $375.41**, full breakdown in `hardware/dual-panel/panel/QUOTE-2026-08-18.md`.
+  ⚠ **Do not estimate a quantity change by scaling linearly** — 18→20 PCBA cost
+  **+$70.45**, not the ~$20 that dividing predicts, because component cost steps.
+- ✅ **Master boards: $8.04 for 5** — confirmed on the real quote, unchanged since
+  July. Board cost is negligible; **shipping dominates** ($82.01 JLC + $21.19 net
+  LCSC = **$103.20**, 13% of the project). Combine the shipments — `ORDER_NOTES.md` §7.
+- ✅ Slow build time (3–4 day assembly) — **$0**. The 2–3 day expedite is **+$49.26**
+  and is not being taken.
 - ⬜ Keep "Confirm Production file" / "Confirm Parts Placement" (~$1.50 total) —
   and actually respond to the DFM emails.
 
@@ -429,8 +476,13 @@ netclass govern.
   board outline and rail frame, mouse-bite tabs, layer order (F / In1=GND /
   In2=GND / B), silk name + rev + year, **and the silkscreen logo** — it is
   silkscreen, not a copper/mask pair, so check it on F.Silkscreen.
-- ⬜ Sanity-check the total against the qty-20 band. The recorded qty-5 baseline is
-  $297.38 — if a qty-20 quote comes in near *that*, the quantity field is wrong.
+- ⬜ Sanity-check against the real 2026-08-18 quote: **merchandise $557.92**
+  (dual-panel $549.88 + master $8.04). If a "qty 20" total lands near the old qty-5
+  figure of **$297.38**, the quantity field did not take.
+- ⬜ ⚠ **Remember the displayed total EXCLUDES "Advanced Options"** — bake $7.88 +
+  cleaning $3.28 = **$11.16**, billed after review. Budget **$642.09**, not $630.93.
+- ⬜ ⚠ **Editing the quantity WIPES both remark fields**, and possibly other
+  options. Set quantity FIRST, then paste §9a/§9b, then re-verify the whole form.
 
 ---
 
@@ -511,3 +563,152 @@ to the FSR connector symbols.
   **Buy 11 mm AND 12 mm and measure** — the connectors sourced 2026-08-16
   (C5383116 + C7509515) stack to 11.04 mm, so 11 mm no longer clears by
   0.04 mm. See `docs/DUAL_PANEL.md` → "Mechanical stack".
+
+### LCSC part-identity audit — all 35 PCBA lines, 2026-08-18
+
+**Every C-number was fetched from its live LCSC product page and compared against
+the schematic value and footprint.** This is a different check from the ones above:
+BOM↔CPL matching, `bom_census.py` reconciliation and "every line has an LCSC
+number" are all *internal consistency* — none of them can catch a transposed digit
+that points at a real but wrong part.
+
+**33 of 35 match exactly.** Confirmed on the ones that carry design decisions:
+
+| line | LCSC page says | verdict |
+|---|---|---|
+| ~~C1850236~~ → **C2671361** | was THVD1429DR (20 Mbps); **now THVD1450DR**, SOIC-8 | ✅ audited as correct, then **superseded 2026-08-18** on stock + cost — see below |
+| C3743528 | **AP7361C-33ER-13**, SOT-223R | ✅ correct suffix — `-33E-` would be pin-reversed |
+| C179173 | W25Q32JVSSIQ, **32 Mbit** SPI | ✅ = 4 MByte, not the 2 MB part |
+| C5446699 | **WS2815B-V1**, 12 V, SMD5050-6P | ✅ |
+| C7484 | SN74AHCT1G125**DBVR**, SOT-23-5 | ✅ single-gate, not the quad |
+| C2040 / C113952 / C2827654 / C3235556 / C8020 / C82014 / C552867 / C6187 / C231329 / C20625731 | RP2040 · SMAJ5.0A (unidir, SMA) · USBLC6-2SC6 · LM66200DRLR · TAJB226K016RNJ · RVT1E471M1010 · PMEG3015EH,115 · AMS1117-5.0 · B3U-1000P · ABM8-272-T3 (12 MHz, CL 10 pF) | ✅ all exact |
+
+All 0603 resistors resolved to the correct value at ±1 %, and every MLCC to the
+correct capacitance, package and a voltage rating at or above spec.
+
+#### ⚠ Two mismatches found — BOTH NOW FIXED
+
+1. 🔴 **`C57112` — schematic said `10nF C0G 50V`, the linked part was X7R.**
+   ✅ **RESOLVED: replaced with `C723749`** (Yageo CC0603JRNPO8BN103, 10 nF
+   **25 V NP0 ±5 % 0603**, 2,513 in JLC assembly stock, $0.0282 → **$2.54** for
+   the 90 JLC will draw). Identical 0603 footprint, so this was an LCSC-field edit
+   only — no layout change, no DRC risk. The value string was updated to
+   `10nF C0G 25V` to stay truthful about the rating.
+   Original finding, for the record:
+   Confirmed on **both** LCSC and JLC pages: Fenghua **0603B103K500NT**, 10 nF,
+   **X7R**, ±10 %, 50 V, 0603. It is a JLC **Basic** part.
+   **These are the four FSR ADC input filter caps** — C324 (FSR_East), C326
+   (FSR_North), C329 (FSR_West), C330 (FSR_South), each sitting from its ADC net
+   to GND. Value, rating and package are all fine; only the **dielectric class**
+   disagrees with the schematic. See below.
+2. 🟡 **`C52923` — schematic said `1uF X5R 16V`, the part is 25 V.** Samsung
+   CL05A105KA5NQNC, 1 µF X5R ±10 %, **25 V**, 0402. Harmless — a higher rating
+   than specified. ✅ **RESOLVED: the value string is now `1uF X5R 25V`.** The
+   part was always correct; only the label was wrong.
+
+#### Also noted
+
+**`C3743528` (AP7361C-33ER-13) showed only ~215 in stock at LCSC** against a need
+of 20. Not a problem, but it is the thinnest line in the BOM. Remember LCSC stock
+is not JLC assembly stock — confirm in the matcher.
+
+#### Why the C0G/X7R difference is worth a decision, not a shrug
+
+Class II dielectrics (X7R) are **piezoelectric**; Class I (C0G/NP0) are not.
+Mechanical stress on the board generates a voltage on the cap. **This is a dance
+pad** — the panel is stomped on, hard, repeatedly, and the board flexes on its
+standoffs at exactly that moment. The cap sits directly across the ADC input, so
+any injected charge lands on the measurement node, **synchronously with the
+footstep** — i.e. correlated with the event being measured, which is the one kind
+of noise averaging cannot remove.
+
+Magnitude is likely small (single-digit to tens of mV against a ~400 mV press
+threshold at 0.8 mV/LSB), so this is **unlikely to cause false presses**. The
+exposure is to **telemetry quality** — the live per-sensor FSR stream that is this
+project's headline feature over stock SMX — and to calibration baselines.
+
+**Neither absolute accuracy nor DC bias is the issue here** (a 50 V part at 3.3 V
+barely derates, and the RC corner is ~1.6 kHz with the 10 k divider either way).
+The dielectric class is the whole question.
+
+### JLC ASSEMBLY stock — all 35 lines, authoritative, 2026-08-18
+
+⚠ **Do not use LCSC stock, and do not use third-party mirrors.** This was learned
+the hard way in one session: for `C389113`, the tscircuit mirror reported
+**139,737** in stock, LCSC's page said **out of stock**, and JLC's own page said
+**14**. The mirror was simply wrong, and a part was nearly ordered on it.
+
+**The authoritative source is JLC's own API** (`componentLibraryType`: `base` =
+Basic, `expand` = Extended; `describe` carries the dielectric, which is how the
+C0G/X7R mismatch above was confirmed):
+
+```sh
+curl -s -X POST \
+  "https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: Mozilla/5.0" \
+  -d '{"currentPage":1,"pageSize":5,"keyword":"C2671361"}'
+```
+
+**Result: every one of the 35 lines has stock. 14 Basic / 21 Extended.**
+Re-run before ordering — these are point-in-time.
+
+#### ✅ The tightest line was THVD1429 — and it has been designed out
+
+The audit found **`C1850236` (THVD1429DR) with only 60 units** against a need of
+20: 3× headroom on the BOM's only single-source part, and the one line where an
+intervening order could have stalled the build.
+
+**Resolved 2026-08-18 by switching to `C2671361` (THVD1450DR) — 5,056 in stock,
+84× the headroom, and 3.6× cheaper.** The full engineering justification is in
+`CLAUDE.md`; the short version is that the 1450 has an **identical SOIC-8 pinout**
+(verified against both datasheets), keeps the open/short/idle failsafe, and is
+**better on ESD** (±18 kV vs ±8 kV IEC 61000-4-2 contact) — the threat this product
+actually documents — while giving up on-die IEC 61000-4-5 surge protection, which
+TI's own datasheet scopes to lightning and industrial power-grid transients.
+
+⚠ **The accepted trade: the RS-485 A/B pair has no external TVS** (D201 is on the
+INT line), so the transceiver's own rating is the only bus protection.
+**DECIDED 2026-08-18: ships as-is for rev A; an external TVS on A/B is a rev-2
+candidate.** Purely additive — two parts, placement and routing on the carrier —
+so nothing is lost by deferring it. ⛔ Not a rev-A item; do not re-open.
+
+Applied to **both boards** — panel `U308` and master `U1` — and to the live LCSC
+cart (5 pcs, $5.60). Both boards re-verified after the change: **dual-panel
+0/19/90/0, master 0/0/0/0.**
+
+Remaining stock picture, all comfortable:
+
+| line | need | JLC stock | headroom |
+|---|---|---|---|
+| C82014 — 470 µF electrolytic | 20 | 401 | 20× |
+| C3743528 — AP7361C-33ER-13 | 20 | 628 | 31× |
+| C552867 — PMEG3015EH | 20 | 1,075 | 54× |
+| C723749 — 10 nF C0G | 80 | 2,513 | 28× |
+| C2671361 — THVD1450DR | 20 | 5,056 | 253× |
+| everything else | — | ≥5,349 | ≥267× |
+
+#### Choosing the C0G part — 25 V won, and why the first answer was wrong
+
+Candidates, priced at the **real** quantity (80 needed + JLC's per-part loss
+allowance), not at qty 1:
+
+| LCSC | brand | V | JLC stock | qty | total |
+|---|---|---|---|---|---|
+| **`C723749`** ✅ | Yageo | **25 V** | 2,513 | 90 | **$2.54** |
+| `C76710` | TDK | 50 V | 18,627 | 84 | $3.18 |
+| `C85973` | Murata | 50 V | 350,270 | 88 | $3.61 |
+| `C82282` | Fenghua | 50 V | 9,446 | 86 | $6.70 |
+
+**C85973 was picked first, on stock depth, and that was wrong.** 2,513 against a
+need of 90 is **28× coverage** — an entirely healthy line, not a thin one — so the
+stock argument bought nothing and cost $1.07.
+
+**There is also no engineering reason to prefer 50 V here.** Class I dielectrics
+(C0G/NP0 — two names for the same thing) have **no voltage coefficient**, so unlike
+X7R nothing is gained at bias. 25 V against a 0–3.3 V ADC node is **7.5× margin**,
+against the 2× that is conventional practice.
+
+⚠ **Lesson: price at the quantity you will actually buy.** The qty-1 prices made
+the gap look like $1.02; the real tiered figure at 84–90 pieces reordered the list
+(Fenghua, the "cheap" brand, is the most expensive by 2.6×).

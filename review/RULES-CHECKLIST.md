@@ -49,7 +49,7 @@ renumbering and stitching-via work.
 | Colour next to every LED | ⚠️ the debug LED (D202) has no colour called out |
 | Pole/throw next to every switch | ⚠️ the termination switch (SW202) isn't marked DPDT; the panel-ID DIP (SW201) isn't marked 4P |
 | Purpose text next to LEDs/buttons/switches | ✅ "BOOTSEL", "RS-485 Termination", "PANEL_ID" |
-| Part number next to every IC/regulator/transistor | ✅ RP2040, THVD1429, SN74AHCT1G125, AMS1117-5.0, AP7361C-33ER, LM66200, W25Q32JV |
+| Part number next to every IC/regulator/transistor | ✅ RP2040, THVD1450, SN74AHCT1G125, AMS1117-5.0, AP7361C-33ER, LM66200, W25Q32JV |
 | Connector family + pitch next to connector symbols | ⚠️ master says "B2B-XH-A"; the carrier's J201/J202/J203/J206 say only "FSR West/South/East/North" — add "JST PH 2.0 mm" etc. |
 | Linear regulator subcircuits drawn in→out, left to right | ✅ power-management block reads left to right |
 | RS-485 drawn in the conventional form | ✅ |

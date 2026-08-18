@@ -347,7 +347,7 @@ upstream and never crosses the interface.
 |---|---|
 | MCU | **U306** RP2040 + decoupling **C309–C325**, **X301** 12 MHz + **C311/C313** 15pF |
 | flash | **U307** W25Q32JV 4MB + **R307** 10k CS pull-up, **R310** 10k |
-| RS-485 | **U308** THVD1429 (20 Mbps grade) |
+| RS-485 | **U308** THVD1450 (50 Mbps grade, LCSC C2671361 — swapped from THVD1429 2026-08-18). ⏸ **Rev-2 candidate: external TVS on A/B** — the bus has none (D201 is INT-only) and the 1450 has no on-die surge cell. Deliberate for rev A |
 | LED shifter | **U301** SN74AHCT1G125 (single gate, SOT-23-5) + **R301** 330Ω series |
 | power | **U303** AMS1117-5.0 (12V→5V) → **U304** LM66200 ideal-diode OR → **U302** AP7361C-33ER-13 (5V→3.3V) |
 | power-OR rescue | **D301/D302** PMEG3015EH, **DNP** — populate both and remove U304 to restore a hand-solderable Schottky OR |

@@ -45,6 +45,23 @@ analysis — is in `docs/archive/BOM_SOURCING_HISTORY.md`.
 
 ## Order 1 — JLCPCB
 
+> ### 💵 ACTUAL COST, 2026-08-18 — `hardware/dual-panel/panel/QUOTE-2026-08-18.md`
+>
+> | | |
+> |---|---|
+> | dual-panel ×20: PCB $174.47 + PCBA $375.41 | $549.88 |
+> | master-pcb ×5, bare fab | $8.04 |
+> | **merchandise** | **$557.92** |
+> | shipping $82.01, coupon −$9.00 | |
+> | **shown total** | **$630.93** |
+> | ⚠ advanced options (bake $7.88 + cleaning $3.28), billed after review | +$11.16 |
+> | **JLC all-in** | **$642.09** |
+>
+> **Project total: $642.09 + $155.80 (LCSC) = $797.89**, of which **$103.20 is
+> shipping** — combine the two shipments, see `ORDER_NOTES.md` §7.
+>
+> **$28.05 per complete assembled panel.**
+
 | Item | Qty | Note |
 |------|-----|------|
 | Panel, 4-layer, **+ SMD assembly (PCBA)** | 20 | One fab panel = one carrier + one brain. 115 SMD placements/panel, DNP excluded. Part identity comes from the exported BOM/CPL's `LCSC` column and auto-matches. These parts never reach the bench and are **not** in order 2. |
@@ -59,7 +76,7 @@ artifact. Upload as a **customer panel**, not a single board. See
 Place this order **first or same-day** as order 2, then email
 `support@lcsc.com` with both order numbers to combine the shipment.
 
-## Order 2 — LCSC ($142.93, 30 lines)
+## Order 2 — LCSC ($138.68 merchandise / **$155.80 delivered**, 30 lines)
 
 > ### ✅ CART AUDIT 2026-08-18 — four defects found, ALL FIXED AND RE-VERIFIED
 >
@@ -89,6 +106,19 @@ Place this order **first or same-day** as order 2, then email
 > `tmp/export_cart_20260818_043803.csv`: every one of the 30 lines meets or
 > exceeds need, nothing superseded remains, and there are no unneeded lines.
 > Total $118.33 → **$142.93**.
+>
+> ### 🔄 UPDATE 2026-08-18 — RS-485 transceiver swapped in the cart
+>
+> **`C1850236` (THVD1429DR, 4 pcs, $16.28) → `C2671361` (THVD1450DR, 5 pcs,
+> $5.60)** — applied to the live cart by the user. Same SOIC-8 pinout, and it
+> covers the master's need of 2 with spares. Rationale is in `CLAUDE.md`; the
+> panel-side saving is separate and larger (JLC PCBA, −$52).
+>
+> **Final live figures at order time: merchandise $138.68**, i.e. **+$6.43 above
+> the $132.25 this doc predicted** — ordinary LCSC price drift since the
+> 2026-08-18 cart export, exactly what the warning at the top of this file exists
+> for. Delivered: $138.68 + $33.19 shipping − $16.07 discounts = **$155.80**
+> (the −$16.07 is the *sum* of the $4.07 and $12.00 lines, not a third discount).
 >
 > **Reproduce this check before any future order** — it is the only step that
 > catches cart drift, because both docs already listed the correct parts:
@@ -144,7 +174,7 @@ JLC places it. Neither is ordered.
 
 | LCSC | Part | Refs | Need | Cart | Ext $ |
 |------|------|------|------|------|-------|
-| **C1850236** | TI THVD1429DR RS-485 transceiver, SOIC-8 | U1 | 2 | 4 | 16.28 |
+| **C2671361** | TI THVD1450DR RS-485 transceiver, SOIC-8 | U1 | 2 | **5** | **5.60** |
 | **C7484** | TI SN74AHCT1G125DBVR single buffer, SOT-23-5 (was C354152 quad DIP, swapped 2026-08-03) | U3 | 2 | 5 | 0.23 |
 | **C840655** | Bourns 4610X-101-103LF 10k ×9 bussed, SIP-10 | RN1 | 2 | 5 | 1.66 |
 | **C46595747** | DORABO DS-3P-BU DIP slide, 3-pos | SW1 | 2 | 5 | 1.23 |
@@ -165,7 +195,7 @@ order and onto this one. Nine per board, 18 for two pads.
 
 **Two of these part numbers also appear on the panel, and the quantities here
 deliberately do not cover that:** the panel's D201 (SMAJ5.0A, **C113952**) and U308
-(THVD1429, **C1850236**) are SMD, so **JLCPCB sources and places them** as part
+(THVD1450, **C2671361**) are SMD, so **JLCPCB sources and places them** as part
 of order 1. Only the master's 18 TVS and 2 transceivers are hand-soldered and
 bought here. Checking design totals against this table will therefore look 20
 TVS and 20 transceivers short — that is correct, not an under-order.
@@ -290,7 +320,7 @@ from LCSC anyway. Watch vertical-vs-**right-angle** on any PCB header.
 | Item | Why |
 |------|-----|
 | **Panel D301/D302** (PMEG3015EH, C552867) | **DNP** — the LM66200 ideal-diode mux (U304) replaced the Schottky power-OR. Footprints stay so populating both + removing U304 is a hand-solderable rescue |
-| **Master R1/R2** (390R 1%) | **DNP** — THVD1429's integrated failsafe makes RS-485 bias unnecessary; footprints exist if the bench disagrees |
+| **Master R1/R2** (390R 1%) | **DNP** — THVD1450's integrated failsafe makes RS-485 bias unnecessary; footprints exist if the bench disagrees |
 | FSR sensors | reuse stock SMX (Interlink FSR 408; iefsr.com if replacements are needed) |
 | 18 AWG stranded (underglow / GND tie) | on hand |
 | ~~Spade/fork lugs (PSU ends + master GND tie)~~ | **Deleted 2026-08-16 — not needed.** The teardown found no PSU terminal block and no ground stud; the 12V star point is a Wago lever-block fan-out that takes bare conductor, and the master GND tie lands in its own lever port |

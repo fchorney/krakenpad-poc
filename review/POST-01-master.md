@@ -40,7 +40,7 @@ hand-assembled.
   330 R series resistor and 1 nF to ground for glitch filtering. Inputs land on
   nine JST XH 2.54 mm connectors, one per panel position (silkscreened
   UL/U/UR/L/C/R/DL/D/DR), each carrying signal + its own ground return.
-- **RS-485**: THVD1429 half-duplex transceiver, DE/RE tied to one GPIO, 120 R
+- **RS-485**: THVD1450 half-duplex transceiver, DE/RE tied to one GPIO, 120 R
   termination at this end of the bus, bus out on a 3-circuit 3 mm connector
   (A / B / cable shield). Idle-bus bias resistors R4/R5 are laid out but marked
   DNP — the transceiver has integrated failsafe, so they are insurance only.

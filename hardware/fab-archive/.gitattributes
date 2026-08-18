@@ -1,0 +1,5 @@
+# The fab archive must stay BYTE-EXACT to what was uploaded to the fab.
+# Git's CRLF normalisation would silently rewrite the CSVs and break SHA256SUMS.
+* -text
+*.zip binary
+*.csv binary

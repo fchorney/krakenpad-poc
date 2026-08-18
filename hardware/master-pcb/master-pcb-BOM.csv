@@ -11,6 +11,6 @@ Qty,Refs,Value,LCSC,MPN,Source,DNP,Description
 10,R5 R6 R7 R8 R9 R10 R11 R12 R13 R14,330R,C844839,,LCSC,,10 per-instance descriptions
 1,RN1,10k x9,C840655,4610X-101-103LF,LCSC,,"INT pull-ups to 3.3V, deliberately 10k not stiff (INT-into-dead-panel case); common pin to +3V3"
 1,SW1,PLAYER_ID,C46595747,DS-3P-BU,LCSC,,"3-bit player/pad ID to GND, Teensy internal pull-ups; 0-3=P1-P4, 4-7 reserved"
-1,U1,THVD1429,C1850236,THVD1429DR,LCSC,,"RS-485 transceiver, 3.3V; DE+/RE tied to GPIO2 net; same MPN as panel U2"
+1,U1,THVD1450,C2671361,THVD1450DR,LCSC,,"RS-485 transceiver, 3.3V; DE+/RE tied to GPIO2 net; same MPN as panel U2"
 1,U2,Teensy 4.0,,15583,DigiKey,,"Teensy 4.0 development board (600MHz Cortex-M7, socketed). Symbol vendored from XenGi/teensy_library (MIT), pin numbering per PJRC pinout cards rev2; pins renamed/relaid for this project. Pins 35-54 (bottom-side SMT pads) and 15-19 (the 5-pad short-end row: VBAT, VDD, GND, PROGRAM, ON_OFF) removed to match the Teensy40_Socketed footprint and keep schematic-parity clean. 15-19 dropped 2026-07-22 to free routing area: 16/17 were stacked duplicates of the VDD/GND on pins 31/1/32, and VBAT/PROGRAM/ON_OFF are unused on this design."
 1,U3,SN74AHCT1G125,C7484,SN74AHCT1G125DBVR,LCSC,,Single Bus Buffer Gate With 3-State Output

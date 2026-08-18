@@ -2,6 +2,34 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> # 🔒 REV 1 IS AT FAB AS OF 2026-08-18 — EVERYTHING FROM HERE IS REV 2
+>
+> **The boards are ordered and being manufactured. They can no longer be changed.**
+>
+> | | |
+> |---|---|
+> | Git tag | **`rev1-fab`** |
+> | Byte-exact files that were built | **`hardware/fab-archive/rev1-2026-08-18/`** (with SHA256SUMS) |
+> | What was ordered + cost | `hardware/dual-panel/panel/QUOTE-2026-08-18.md` |
+> | What was said to JLC | `docs/ORDER_NOTES.md` |
+>
+> **Why the archive exists:** `hardware/**/production/` is gitignored as a build
+> artifact, so without it there would be **no record in git of what was physically
+> made**. When a real board misbehaves, diff against that directory — not a fresh
+> export, which may differ with `kicad-cli`/KiKit versions.
+>
+> ## Rules from here
+>
+> - **Any board change is REV 2.** Say so explicitly, and never describe a change as
+>   if it affects the boards in hand.
+> - **To inspect exactly what was fabricated:** `git checkout rev1-fab`, or read the
+>   archive directory, which is present on `main` too.
+> - **Firmware, docs, harness and tooling are NOT frozen** — only the two PCBs.
+> - **Known rev-2 candidate:** external TVS on the RS-485 A/B pair (decided
+>   2026-08-18, purely additive — the bus has no external TVS; D201 is on INT).
+> - When debugging a physical board, check the four order-day changes first — they
+>   are the youngest edits in the design. Listed in the archive's `README.md`.
+
 ## Project Overview
 
 Custom replacement hardware for a StepManiaX (SMX) 9-panel dance pad. Replaces the Master Control Unit (MCU) and all 9 Panel PCBs while keeping the existing frame. Targets open-source rhythm game software (Stepmania, ITGmania, DeadSync) — intentionally NOT SMX-compatible (no proprietary auth key, no leaderboard eligibility).
@@ -79,7 +107,7 @@ Chosen over the RP2040-Zero module: ~$3–4/panel support BOM vs ~$10 module, fu
 - 4× FSR inputs via ADC0–ADC3 (GPIO26–29). GPIO29/ADC3 is usable as a regular ADC on custom PCB (no VSYS monitoring needed)
 - 25× WS2815 addressable LEDs (12V native; same 25-LED layout and topology as stock SMX panels). **Prototype uses WS2812B (5V)** — identical protocol, simpler power supply for breadboard testing.
 - 4-position DIP switch for panel ID (0–8); values 9–13 select panel-local diagnostic modes (LED check, sensor pressure test, standalone mode, raw ADC streaming, factory reset), 14–15 reserved — see `docs/PANEL_CONFIG.md`
-- RS-485 transceiver: **THVD1429** (preferred, final PCB; swapped from THVD1419 on 2026-07-19 — the 1419 is TI's **250kbps** speed grade, too slow for the 1Mbps bus; the 1429 is the 20Mbps grade with identical pinout/package/surge protection/failsafe, and was actually cheaper at LCSC) or **MAX3485** (budget breadboard substitute, same SOIC-8 footprint, 10Mbps) — must be 3.3V-logic compatible. Do NOT use MAX485 (5V-only, logic thresholds marginal at 3.3V)
+- RS-485 transceiver: **THVD1450DR** (final PCB, both boards — LCSC **C2671361**, TI, SOIC-8). History: THVD1419 (250kbps, too slow for the 1Mbps bus) → THVD1429 (20Mbps grade) on 2026-07-19 → **THVD1450 on 2026-08-18**. The 1450 has the **identical SOIC-8 pinout** (R1, RE̅2, DE3, D4, GND5, A6, B7, VCC8 — verified against both datasheets), the same open/short/idle failsafe, same 1/8-unit-load 256-node bus, same 3–5.5V supply. **What changed and why:** it drops the 1429's on-die ±2.5kV IEC 61000-4-5 surge TVS, which TI's own datasheet frames as protection against *lightning and industrial power-grid transients* — not a threat this indoor, ~3m, in-chassis, shielded bus faces. In exchange it is **better on the threat that IS documented here** (ESD from a tribocharged pad and from hand-servicing connectors): **±18kV vs ±8kV IEC 61000-4-2 contact**, ±30kV vs ±16kV HBM. It also improves common-mode range (±15V vs ±12V), bus-fault range (±18V vs ±15V), and adds glitch-free hot-plug. It was **3.6× cheaper ($0.99 vs $3.60) and had 84× the JLC stock (5,056 vs 60)**, the latter having been the tightest line in the whole BOM. ⚠ **The RS-485 A/B pair has no external TVS** — D201 is on the INT line — so the transceiver's own rating (±18kV IEC 61000-4-2 contact) is the only bus protection. **DECIDED 2026-08-18: this ships as-is for rev A, and an external TVS on A/B is a rev-2 candidate.** It is purely additive — two parts plus placement and routing on the carrier — so deferring costs nothing but a rev. Do not re-open for rev A. Alternative: **MAX3485** (budget breadboard substitute, same SOIC-8 footprint, 10Mbps) — must be 3.3V-logic compatible. Do NOT use MAX485 (5V-only, logic thresholds marginal at 3.3V)
 - **Flash**: W25Q32JV (4MB QSPI, SOIC-8) — required for RP2040 boot. 4MB chosen over 2MB (W25Q16JV) for future-proofing; both are pin-compatible, same footprint, negligible cost difference. Stores firmware + released/pressed animation slots + config. See `docs/ANIMATIONS.md` for flash layout.
 - **LED data level shifter**: **SN74AHCT1G125 (SOT-23-5, single gate) as of 2026-08-03** — swapped in on all three boards (panel, dual-panel brain, master) from the quad SN74AHCT125 after an external review noted only one gate was used. The reviewer suggested 74LVC1G34/74LVC1G17; both were rejected on datasheet grounds (LVC at 5V has VIH = 0.7×VCC = 3.5V; the 1G17's Schmitt VT+ max reaches 3.33V at 5.5V — same marginal-threshold trap as MAX485). AHCT keeps the guaranteed TTL VIH = 2.0V. LCSC **C7484**, DigiKey **296-4708-1-ND**, MPN SN74AHCT1G125DBVR; OE̅ (pin 1) tied to GND. Breadboard prototype keeps the quad SN74AHCT125N DIP. VCC = 5V in all cases. Its output stays at ~5V regardless — the chip cannot run from 12V (its own VCC abs max is far below that) and doesn't need to: WS2815's DIN comparator threshold is not scaled to its 12V power rail, so a normal 5V logic signal is sufficient (well-established in the addressable-LED community; only the LED VDD/GND pins are 12V, never the data line). Direct 3.3V connection works for WS2812B in practice (spec says 3.5V min) but the shifter is required on the final PCB.
 
