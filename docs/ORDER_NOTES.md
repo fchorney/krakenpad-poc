@@ -80,7 +80,7 @@ If JLC queries any of these, the answer is "yes, as drawn":
 | **Pin inner / left / right edge** on U306 | RP2040 uses KiCad's **IPC-generic `QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm`**. Pads are 0.875 × 0.20 mm vs Raspberry Pi's official 0.80 × 0.23 mm — 0.03 mm narrower. Accepted. |
 | **Lead area overlapping pad** on U306's ground pad | Our EP is **3.2 × 3.2 mm, matching Raspberry Pi's own reference board**. Correct as drawn. |
 | **tht to smd** (11) | **Seven are bare test-point probe holes** with nothing soldered into them; the other four (J213, J303, SW202's two lugs) are **hand-soldered by us**. JLC assembles SMD only here. Closest pair is 1.13 mm. |
-| **Trace spacing 0.09 mm** | **Copper-pour-to-track**, not track-to-track, and at JLC's stated 0.09 mm minimum. Real routing is clear — tightest track-to-track is the USB± differential pair at 0.1377 mm. |
+| **Trace spacing 0.09 mm** | **Copper-pour-to-track**, not track-to-track, and at JLC's stated 0.09 mm minimum. Real routing is clear — tightest track-to-track is the USB± differential pair at 0.1377 mm. **The QSPI flash serpentine, which is what JLC's screenshot showed, is fixed** — a scoped `.kicad_dru` rule holds the pour ≥0.13 mm off those nets, so nothing QSPI remains under 0.15 mm. |
 | **Slot width 0.5 mm** (6) | At JLC's stated minimum, not under it. |
 | **Silkscreen over pads / holes** (96) | Cosmetic. Clip as needed. |
 | **Negative soldermask expansion** (62) | Intentional — mask openings slightly smaller than pads. |

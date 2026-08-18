@@ -150,3 +150,16 @@
 	(constraint silk_clearance (min 0.14mm))
 	(layer outer)
 	(condition "A.Type == 'pad' && (B.Type == 'text' || B.Type == 'graphic')"))
+
+# The QSPI flash bus runs a length-matched serpentine through the GND pour, and
+# the blanket "Minimum Trace Width and Spacing" rule above lets the pour close to
+# 0.09mm against it -- JLC's DFM flags that as a trace-spacing Danger. It is a
+# POUR clearance, not a routing problem: re-routing the serpentine twice did not
+# move it, because the pour simply refills to whatever the rule permits.
+# Scoped to the QSPI nets rather than raised board-wide: any board-wide value
+# above 0.09mm orphans a copper island near J211 and produces a starved_thermal.
+# 0.13mm is the largest value the existing routing satisfies -- the tightest
+# QSPI track-to-track/pad is 0.1314mm.
+(rule "QSPI flash pour clearance"
+	(condition "A.NetName == 'QSPI_SD0' || A.NetName == 'QSPI_SD1' || A.NetName == 'QSPI_SD2' || A.NetName == 'QSPI_SD3' || A.NetName == 'QSPI_SCLK' || A.NetName == 'QSPI_SS'")
+	(constraint clearance (min 0.13mm)))
