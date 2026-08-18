@@ -269,13 +269,45 @@ Negative soldermask expansion (62) is normal. Fiducials reported "null" but **6
 exist** (`KiKit_FID_T/B_1-3`); JLC's detector just missed KiKit's. Slot width
 0.5 mm (6) sits at JLC's minimum, same "at limit, not under" as the vias.
 
-⚠ **The SMT DFM report is not trustworthy and should be re-run at order time
-WITH `panel-BOM.csv` and `panel-CPL.csv`.** It was run on the gerbers alone, so
-JLC had no placement or part data and inferred components from paste/silk — note
-the synthesised `component_v_top`/`component_v_bottom` layers, which are not in
-our 16-file zip. Its "component to board edge = 0 mm" does not reproduce: the
-closest SMD pad to any edge, panel rail and mouse-bite cutouts included, is
-**0.891 mm** (a mounting-hole pad), and the nearest real part is 1.84 mm.
+### SMT DFM — run WITH BOM + CPL, all findings triaged 2026-08-17
+
+| finding | Danger | verdict |
+|---|---|---|
+| Lead to hole distance | 72 | ✅ **deliberate via-in-pad** — makes POFV mandatory, see below |
+| Pin inner / left / right edge | 42 / 28 / 28 | ⚠ **all U306 (RP2040)** — pad width, see below |
+| Lead area overlapping pad | 1 | RP2040 exposed pad; conservative, see below |
+| component→board edge, through-hole ×4, pad spacing, clipped by outline, pin without pad, pin outer edge, missing hole | **0** | clean |
+
+🚨 **POFV IS NOW MANDATORY, NOT A COST DECISION.** "Lead to hole distance" is the
+**83 via-in-pad instances** from `9bf960f` ("via-in-pad pass on the brain").
+Measured: **all 0.3 mm drill, all on the brain, none over the 0.5 mm fill limit**,
+17 of them under U306. Without filling, solder wicks down those vias during
+reflow and starves 83 joints including the RP2040's. This also sharpens the
+question for JLC — ask them to **fill the 0.3 mm vias; the 44 at 0.6 mm drill do
+not need filling and none of them sit in a pad.**
+
+✅ **The RP2040 exposed pad is CORRECT at 3.2 × 3.2 mm.** Verified against
+Raspberry Pi's own reference board (`Minimal-KiCAD.zip` →
+`RPI-RP2040-MINIMAL_R3-S1.kicad_pcb`), which uses the same 3.2 mm EP. ⚠ A web
+search claiming RP2040 needs a 5.6 × 5.6 mm EP is **wrong** — KiCad ships that
+variant for other parts in the same body. Do not "fix" this.
+
+⬜ **The pin-edge findings are a pad-width difference on U306, open.** We use
+KiCad's generic `QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm` with **0.875 × 0.20 mm**
+signal pads; Raspberry Pi's official land pattern uses **0.80 × 0.23 mm** — ours
+are 0.075 mm longer and **0.03 mm narrower**. The narrower width is the likely
+cause, and 28 + 28 = **56 = exactly the pin count**. Adopting RPi's geometry
+would likely clear it; KiCad's generic pattern is IPC-valid, so this is a
+judgement call, not a defect.
+
+✅ **`tht to smd` (11 Danger) does not apply to this order.** The pairs are
+TP303→D303 (1.55), TP306→U308 (2.17), J213→D204 (2.01), J303→U303 (2.16),
+TP208→D212 (2.17), TP304→U308 (**1.13**, closest), TP309→C327 (2.23),
+TP310→X301 (2.83), TP301→U302 (2.39), and SW202's two ground lugs (1.69 to
+R201). **Seven are bare test-point probe holes with nothing soldered into them**,
+and the other four are hand-soldered by us. **JLC does SMD only on this order —
+every through-hole part is hand-assembled**, so their THT-process clearance check
+is inapplicable. Nothing is under 1.1 mm.
 
 ### The two DRU subtleties, both still live
 
