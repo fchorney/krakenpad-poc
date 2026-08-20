@@ -18,7 +18,7 @@
 | **dual-panel** | ×20, 4-layer, **ENIG**, POFV, SMD-only PCBA both sides (101 top / 14 bottom, 115 placements, 35 BOM lines), bake, board cleaning |
 | **master-pcb** | ×5, 4-layer, **OSP**, bare fab only — no PCBA, no bake, no POFV |
 | Panel size | 227.57 × 143.10 mm (326 cm²), customer panel, one carrier + one brain per panel |
-| Cost | $630.93 USD JLC ($876.05 CAD) + $155.80 USD LCSC ($216.33 CAD) |
+| Cost | $630.93 USD JLC ($876.05 CAD) + $155.80 USD LCSC ($216.33 CAD), plus a **$24.42 USD / $33.91 CAD panelisation supplement** charged after review for carrying two designs on one panel |
 
 Full quote and reasoning: `hardware/dual-panel/panel/QUOTE-2026-08-18.md`.
 What was said to JLC: `docs/ORDER_NOTES.md`.

@@ -181,6 +181,13 @@ near the old **qty-5** figure of $297.38, the quantity field did not take.
 ⚠ **The displayed total EXCLUDES "Advanced Options"** — bake $7.88 + cleaning $3.28
 = **$11.16** is billed separately after review. Budget $642.09, not $630.93.
 
+⚠ **CONFIRMED 2026-08-18 (post-order): a "two designs on one panel" supplement of
+$24.42 USD / $33.91 CAD was charged after review.** The dual-panel carrier and
+brain are two different designs in one panelised `.kicad_pcb`, and JLC bills for
+that. **It was anticipated, and it is a real, recurring cost of the two-board
+split — budget it into any rev-2 panelisation decision.** Not yet reconciled
+against the invoice whether it subsumes the $11.16 advanced-options line.
+
 ⚠ **Editing the quantity WIPES both remark fields.** Set quantity first, then
 paste §9a/§9b, then re-verify every option.
 
