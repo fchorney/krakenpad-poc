@@ -83,8 +83,8 @@ superseded.
 |--------|---------|---------------------|----------------|------|
 | U1 | TQFP-32 | `MEGA 328P U-TH` | **ATmega328P-AU** (Microchip AVR, same MCU as Arduino Uno) | Panel MCU. 16MHz crystal at Y1 |
 | U6, U7, U8, U11, U12 | TSSOP-28 ×5 | `TLC5940` | **TI TLC5940** 16-ch constant-current LED sink driver, 12-bit PWM | LED drive: 5 × 16 = 80 channels for 25 RGB LEDs (75 used, 5 spare) |
-| ×4 (one per sensor position, SOIC-8 next to each FSR/AMP jumper) | SOIC-8 | `B32` / `04H3` | **Unidentified** — topmark not decoded (checked SMD marking databases 2026-07-11) | Sensor analog front-end for the AMP (load-cell) path; bypassed/reconfigured by the per-sensor `AMP`/`FSR` jumper |
-| U10 | small SMD, only one on board | `7A` / TI logo / `M5P` | **Unidentified** TI part | Unknown; south edge, bottom-center-right |
+| ×4 (one per sensor position, next to each FSR/AMP jumper) | SOIC-8-class | — | unidentified | Sensor analog front-end for the AMP (load-cell) path; bypassed/reconfigured by the per-sensor `AMP`/`FSR` jumper |
+| U10 | small SMD, only one on board | — | unidentified | Analog support, south edge |
 
 Also on board: 25× 4-pad RGB LEDs (D1–D25, dumb common-anode driven by the
 TLC5940s — **not addressable**), 4-pos DIP switch (SW1, panel ID), 6-pin
@@ -92,7 +92,6 @@ right-angle header (J1 — standard AVR ISP programming interface), RJ-style
 modular jacks for data IN/OUT (J3/J2), blue 2-pos screw terminal
 (SIGNAL/GND), 2× 4-pin power connectors (J9/J10, silkscreened
 **+5V GND GND +5V**), per-sensor `AMP`/`FSR` selection jumpers.
-
 
 ## Insights for our design
 
@@ -110,9 +109,9 @@ modular jacks for data IN/OUT (J3/J2), blue 2-pos screw terminal
    departure — don't transfer stock wiring-gauge assumptions, and the stock
    4-pin power connector is not a precedent for our 2-pin Micro-Fit at 12V.
 
-3. **Load-cell support is what the 4 mystery SOIC-8s buy.** One amp chip +
-   jumper per sensor position. We dropped load cells, so our panel deletes all
-   four plus jumpers — FSR dividers need no active front-end.
+3. **Every sensor position has an amplifier for a load-cell path**, one per
+   edge, selected by the `AMP`/`FSR` jumper. We dropped load cells, so our panel
+   deletes all four plus jumpers — FSR dividers need no active front-end.
 
 4. **Stock MCU is an 8-bit AVR at 16MHz.** The ~6ms lag window and 30Hz LED
    ceiling weren't just protocol choices — the platform had little headroom.
