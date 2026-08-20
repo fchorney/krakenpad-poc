@@ -478,3 +478,35 @@ annular-ring problem the panel had already been fixed for.
 ⚠ **Lesson: a quote is not a DFM check.** `docs/PRE_ORDER_CHECKLIST.md` had carried
 "the master quoted fine at 0.075 mm" as partial reassurance for months. JLC will
 happily quote a board it would then flag.
+
+## 12. Post-order confirmation emails — what actually came back
+
+### 2026-08-20 — JLC queried the baking selection (RESOLVED, replied same day)
+
+JLC (order `SMT026081862839`) wrote that the **component baking
+service was selected but their system identified no component in the order that
+requires baking**, and asked which JLCPCB part number to bake.
+
+**The §9b note 3 was not wrong — it was simply not on the automated path.** The
+remark fields are read by a human at review time; the MSL check runs off JLC's
+parts database, and their entry for the **WS2815 (`C5446699`)** is not tagged
+moisture-sensitive. Ticking the checkbox conveys *that* you want baking, never
+*which part*.
+
+**Replied: bake `C5446699` only** (25× per board, D203–D227), on the MSL 5a /
+24 h floor-life grounds already in §9b note 3, and accepted the charge.
+**Price confirmed: $7.71 per component KIND, 48 h at 60 °C** — one kind here, so
+in line with the ~$7.88 advanced-options line in §6.
+
+### The generalisable rule
+
+**Intent encoded in the FILES needs no remark; intent that is a PROCESS does.**
+
+- `panel-BOM.csv` (37 lines) and `panel-CPL.csv` (115 placements) contain **no
+  `D301`/`D302` and no through-hole part at all**, and `D303` is present and
+  unambiguous. So **PCBA 1 (SMD only) and PCBA 2 (DNP) are belt-and-braces** —
+  JLC assembles BOM ∩ CPL, and that set is already correct.
+- **Baking, the cleaning-sensitive parts list (§10) and the "180° rotation is
+  intentional" placement note have no file representation.** They exist only as
+  prose, which is exactly why baking is the one that got queried. Expect the
+  other two to be the next things asked about.
