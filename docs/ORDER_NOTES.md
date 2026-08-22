@@ -4,6 +4,10 @@ Companion to `docs/PRE_ORDER_CHECKLIST.md`. That file is the *process*; this one
 is the **text and answers you need while the order form is open**, including
 everything JLC's DFM flags that is intentional.
 
+**After the order:** `docs/CAM_REVIEW.md` reviews the production files JLC sends
+back for approval — what their CAM changed versus what we uploaded, and the
+process parameters read out of their own job files.
+
 Generated against the 2026-08-18 packages, **regenerated after the RP2040
 pad-width and R305/R306 part changes of that same day** (see §7). **Regenerate and
 re-verify if the boards change** — see the checklist §1.

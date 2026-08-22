@@ -10,6 +10,14 @@
 > Regenerating from source *should* reproduce these, but `kicad-cli` and KiKit
 > versions drift. When a board misbehaves, compare against **these** files, not a
 > fresh export.
+>
+> ⚠ **One caveat, found 2026-08-21 (`docs/CAM_REVIEW.md` §2).** "Byte-exact" holds
+> for **master-pcb** — all 14 files match what JLC received. It does **not** hold
+> literally for **panel-gerbers.zip**: JLC's copy is the `08:28:44` export and this
+> one is a `10:05:44` re-export of the same board, so all 16 files differ by
+> timestamp and by a copper-pour re-fill whose boundary moves **≤ 2.5 µm**. Every
+> pad, trace, via, drill, mask and silk feature is identical. Do not mistake that
+> drift for a real change.
 
 ## What was ordered
 
