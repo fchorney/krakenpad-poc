@@ -25,8 +25,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > - **To inspect exactly what was fabricated:** `git checkout rev1-fab`, or read the
 >   archive directory, which is present on `main` too.
 > - **Firmware, docs, harness and tooling are NOT frozen** — only the two PCBs.
-> - **Known rev-2 candidate:** external TVS on the RS-485 A/B pair (decided
->   2026-08-18, purely additive — the bus has no external TVS; D201 is on INT).
+> - **Known rev-2 candidates:**
+>   1. **External TVS on the RS-485 A/B pair** (decided 2026-08-18, purely additive —
+>      the bus has no external TVS; D201 is on INT).
+>   2. **Master: raise the ground-pour clearance above 0.09 mm** (found 2026-08-22,
+>      `docs/CAM_REVIEW.md` §4). Some pour-to-trace gaps sit *exactly* on JLCPCB's
+>      3.5 mil floor, so after their +15 µm etch compensation they would have gone
+>      sub-spec. JLC's CAM silently opened those gaps to 180 µm rather than querying
+>      — verified non-destructive (component counts identical, no slivers), and rev 1
+>      is fine. But the design should not depend on a vendor's CAM being generous.
+>      **Master only; the panel shows none of it.**
 > - When debugging a physical board, check the four order-day changes first — they
 >   are the youngest edits in the design. Listed in the archive's `README.md`.
 
