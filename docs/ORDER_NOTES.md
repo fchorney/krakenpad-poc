@@ -169,6 +169,16 @@ the render.** An error there repeats ×25.
 
 **Fix rotations in JLC's preview UI** (select + rotate), not by re-uploading the CPL.
 
+### ✅ Done 2026-08-22 — placement confirmed, LED orientation verified
+
+JLC's "Confirm parts placement" step was approved on **2026-08-22**, with the
+**WS2815 orientation checked and correct** in the preview. That closes the
+highest-consequence item in this section: the 180° rotation had **no file
+representation** — it lived only as prose here and in the order remark — and an
+error would have repeated 25× per board across 20 boards, which is not the
+"rework a part or two" case every other item on the list is. Caught at the right
+point, before manufacture rather than on arrival.
+
 ## 6. Final human pass
 
 Page through JLC's gerber viewer — it renders the same artwork the fab uses.
