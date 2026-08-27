@@ -60,6 +60,11 @@ analysis — is in `docs/archive/BOM_SOURCING_HISTORY.md`.
 > **Project total: $642.09 + $155.80 (LCSC) = $797.89**, of which **$103.20 is
 > shipping** — combine the two shipments, see `ORDER_NOTES.md` §7.
 >
+> ⚠ **USD, and freight only.** On delivery **UPS billed a further $109.30 CAD** in
+> import charges (brokerage + duty + tax) on the JLC parcel — 1.85× JLC's own
+> $82.01 shipping line. The LCSC parcel ships separately and may draw its own.
+> **Full landed cost: $1,587.51 CAD**, see `hardware/dual-panel/panel/QUOTE-2026-08-18.md`.
+>
 > **$28.05 per complete assembled panel.**
 
 | Item | Qty | Note |
