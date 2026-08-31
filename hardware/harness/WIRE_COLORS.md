@@ -9,14 +9,65 @@ The two-letter codes are WireViz's, used in the `.yml` sources:
 `BK` black, `WH` white, `RD` red, `GN` green, `YE` yellow, `BU` blue,
 `BN` brown, `PK` pink, `GY` grey, `VT` violet, `OG` orange.
 
-**Per-panel identification is colored heat-shrink at BOTH cable ends, not
-conductor color** — the chosen RVSP cable comes in one color only. **The scheme
-is two bands encoding row + column** (below), which replaced the stock SMX
-0=Red … 8=Black map on 2026-08-17.
+**Per-panel identification is a marker at BOTH cable ends, not conductor
+color** — the chosen RVSP cable comes in one color only. **The scheme is a
+printed label under clear heat-shrink** (below), decided 2026-08-31 when the
+reel landed. The **two-band row/column colour code** is the documented fallback,
+and it in turn replaced the stock SMX 0=Red … 8=Black map on 2026-08-17.
 
-## Panel identification — two-band row/column code
+## Panel identification — printed labels under clear shrink
 
-**DECIDED 2026-08-17.** The stock map needed **9 distinct colors**, and coloured
+**DECIDED 2026-08-31, and it supersedes the colour code below as the primary
+scheme.** Each cable end carries a printed slip reading the panel's physical
+position — `UL` `U` `UR` `L` `C` `R` `DL` `D` `DR` — captured under a piece of
+**clear** heat-shrink.
+
+**Why it won, when the colour code was already designed and costed:**
+
+- **No lookup table.** `UL` is self-describing; `red + blue` is not. Every
+  decode of the colour scheme is a trip back to this file.
+- **It matches the socket.** The master's J3–J11 silkscreen already reads
+  `UL`/`U`/`UR`/…, so the label and the socket are the *same string*. The colour
+  code only encoded the same information indirectly.
+- **The bin was one colour short anyway.** Stock on hand is red, blue, green,
+  white, yellow, black and clear — **no violet**, and black and clear are both
+  excluded as markers (see rule 2 below). The colour scheme needed a purchase;
+  this one uses clear shrink already on the shelf.
+- **Immune to bad light.** The failure mode the colour code fights hardest —
+  telling blue from violet inside a closed pad — does not exist here.
+
+**Practical rules:**
+
+- **Laser-print the slips, not inkjet** — toner will not smudge or run when the
+  shrink is heated; inkjet ink can. No printer to hand? A fine **paint pen on
+  white heat-shrink** is the acceptable substitute; a permanent marker directly
+  on shrink rubs off with handling and is not.
+- **Print the position, never the panel ID.** Slot↔ID agreement is not assumed
+  anywhere in this project — the master learns the real mapping with the `'I'`
+  identify pulse and reports mismatches (`docs/RS485_PROTOCOL.md`).
+- **Quantity: 9 cables × 2 ends × 2 pads = 36 labels**, half the 72 pieces the
+  two-band code needed.
+- Mark both ends of every cable identically.
+
+### ⚠ Slide the shrink on BEFORE crimping
+
+This applies to either scheme and is the one ordering mistake that cannot be
+undone. Heat-shrink has to go onto the cable **before** the connectors are
+terminated. Crimp all 204 contacts first and the only retrofit markers left are
+tape or clip-on sleeves — and **tape is rejected here** (adhesive migrates and
+the wrap unwinds in a warm pad), which is the whole reason it is not the scheme.
+
+Note the RS-485 ends also need heat-shrink for the **braid-to-drain joint** (the
+reel has foil + braid and no drain wire — `docs/BOM.md`). Load both pieces onto
+the conductor in the same pass.
+
+## Fallback — two-band row/column colour code
+
+**Decided 2026-08-17; demoted to fallback 2026-08-31.** Kept in full because it
+is what to build if labels prove impractical at assembly, and because its design
+rules constrain any colour marking used anywhere in this harness.
+
+The stock map needed **9 distinct colors**, and coloured
 heat-shrink is simply not sold in nine distinguishable colours — that was the
 blocker. This scheme needs **6**, as two disjoint sets of three, and every cable
 end carries **two bands: one row, one column.**
@@ -63,10 +114,9 @@ from what is actually in the bin, but keep:
 **Quantity: 2 bands × 9 cables × 2 ends × 2 pads = 72 pieces**, ~8 of each
 colour per pad. Mark both ends of every cable identically.
 
-**Printed labels under clear shrink remain the gold standard** — `UL` needs no
-lookup table at all — and stay the recommended upgrade if a label printer is
-ever to hand. This scheme exists because nine colours are unobtainable, not
-because colour-coding is preferable.
+**This scheme existed because nine colours are unobtainable, not because
+colour-coding was ever preferable** — which is exactly why the printed labels
+above took over as soon as the alternative was actually on the shelf.
 
 ## 12V trunk and fan-out — `12v-trunk.yml`
 

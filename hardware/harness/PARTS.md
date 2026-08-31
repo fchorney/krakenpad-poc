@@ -191,6 +191,109 @@ hand, so buy only what the bin turns out to lack.
 Ferrules are also the one item here that re-orders **domestically without a
 month's wait**, which is why they are the right thing to defer rather than guess.
 
+#### Reel landed 2026-08-31 — measured ~0.6 mm, and that is SMALLER than expected
+
+The bare bundle of a stripped 22 AWG RVSP conductor reads **~0.6 mm**, below the
+0.76–0.85 mm predicted above, and fine stranding should have pushed it *up*. So
+the reel's copper is plausibly **24 AWG sold as 22** — common on AliExpress cable
+and, here, almost entirely harmless: the insulation OD passes both connector
+windows (`docs/BOM.md`), the Molex `430300001` crimp covers 20–24 AWG, the JST
+`SXH-001T-P0.6N` covers 22–28 AWG, and the conductor carries microamps.
+**The ferrule barrel is the only thing the answer changes.**
+
+Two caveats before acting on 0.6 mm: calipers **compress** a fine-stranded
+bundle, so the figure is a lower bound; and fill matters more than clearance —
+a 0.5 mm² barrel (`D1` 1.0 mm, area 0.79 mm²) is only ~36% full at 0.6 mm,
+against ~56% for a 0.34 mm² barrel (`D1` 0.8 mm).
+
+#### ✅ CLOSED 2026-08-31 — **16/0.13 mm COPPER, 0.212 mm² = 24 AWG**, sold as 0.3 mm² / 22 AWG
+
+Copper is **confirmed by measurement, not assumed** — see "Is it CCA?" below.
+The cable is one standard construction below its marking: `16/0.13` (nominal
+0.2 mm²) jacket-printed as `2x0.3mm²`.
+
+End-to-end resistance of one conductor across the nominally 50 m reel measured
+**4.5 Ω**. That is **90 Ω/km**, i.e. a CSA of **0.19 mm²**:
+
+| | Ω/km | expected over 50 m | CSA |
+|---|---|---|---|
+| 22 AWG (labelled) | 52.9 | 2.65 Ω | 0.326 mm² |
+| **24 AWG (measured)** | 84.2 | **4.21 Ω** | **0.205 mm²** |
+| reading | **90** | **4.5 Ω** | **0.19 mm²** |
+
+**Corrected: the meter's own leads read 0.3 Ω**, so the conductor is **4.2 Ω =
+84.0 Ω/km**, which is 24 AWG copper to within 0.1%. Either way it is ~60% above
+what 22 AWG would read, far outside any measurement slop. **It also
+independently confirms the caliper**: a 0.6 mm bare bundle at a typical ~75%
+stranding fill is ~0.21 mm², the same answer from a completely different
+measurement. Two methods agreeing closes this.
+
+*(Read as a shorted loop instead, 4.5 Ω would imply 0.38 mm² — thicker than the
+label — which flatly contradicts the 0.6 mm bundle. The single-conductor reading
+is the self-consistent one.)*
+
+**Consequences: ferrule size, and nothing else.**
+
+- ✅ **Insulation OD** (1.45 mm) passes both connector windows regardless — that
+  check never depended on the copper.
+- ✅ **JST XH `SXH-001T-P0.6N`** covers 22–28 AWG: 24 sits mid-range, a better
+  fit than 22 was.
+- ⚠ **Molex `430300001`** covers 20–24 AWG: 24 is at the **bottom edge** of the
+  range. Still in spec, but crimp edges deserve verification — **pull-test the
+  first few Micro-Fit crimps** before committing to the remaining 200.
+- ✅ **Electrically irrelevant.** INT sinks ~0.33 mA through the master's 10 k
+  pull-up; RS-485 drives ~40 mA into the doubly-terminated pair, where 8.4 m of
+  24 AWG loop adds ~0.7 Ω against a 54 Ω load — about 1% of the differential
+  swing. Gauge on this cable was always mechanical, never current.
+
+**Ferrule: 0.34 mm² (`D1` 0.8 mm) is now the pick**, not the 0.5 mm² working
+assumption above — a 0.6 mm bundle fills the 0.8 mm barrel ~56% versus ~36% in a
+1.0 mm barrel. Two caveats:
+
+1. **Assortment boxes often start at 0.5 mm².** If the bin has no 0.34, that is
+   the domestic re-order — the reason this item was deferred in the first place.
+2. **Or fold the conductor back on itself** and crimp the doubled bundle into
+   the 0.5 mm² ferrule already on hand. Standard practice for an undersized
+   conductor, and it needs no purchase at all.
+
+Either way, **crimp one and tug-test it** before doing all 38.
+
+#### The jacket marking explains where the "22 AWG" came from — and indicts the cable, not the listing
+
+Printed on the jacket: **`ZC-RVSP 2x0.3mm² 300/300V JB/T8734.5-2016 PVC CABLE`**.
+
+- **`2x0.3mm²`** — the cable is sold by **metric CSA, not AWG**. 0.3 mm² is
+  nearest to **22 AWG** (0.326 mm²), so the seller's "22 AWG" was an honest
+  conversion of the printed marking. **The shortfall is at the factory, not in
+  the listing** — there is no point disputing it with the seller.
+- **It fails its own printed standard.** Flexible class-5 copper's maximum
+  resistance scales as ~19.5/CSA Ω·km, giving **~65 Ω/km for 0.3 mm²**
+  (≈3.26 Ω over 50 m). The reel measures **90 Ω/km / 4.5 Ω** — **38% over the
+  limit**. At 0.19 mm² it is really **0.2 mm², one standard size down**, whose
+  ~98 Ω/km limit it passes comfortably. 0.2 mm² ≈ **24 AWG**, which is exactly
+  what the resistance and the calipers both said.
+- **The conclusion is robust against reel-length error.** The reel would have to
+  be **69 m** — 38% over its nominal 50 — for 4.5 Ω to read as a true 0.3 mm².
+  Reels run short, not long.
+- **`ZC`** = 阻燃 C, flame-retardant class C. A small unlooked-for bonus for
+  cable running inside a chassis.
+- **`300/300V`** — 300 V core-to-core and to earth. Against our 12 V, irrelevant.
+- ⚠ **`JB/T 8734.5-2016` implies a 70 °C PVC rating**, and `docs/BOM.md` →
+  "Wire specification" asks for **≥80 °C**. **Accepted deviation, not a
+  problem**: these conductors carry microamps to milliamps with no self-heating,
+  and the pad is a room-temperature environment. Recorded so the next reader
+  does not have to re-derive it.
+
+⚠ **For rev 2: specify the insulation OD, not the gauge — in any unit.** The
+listing's "22 AWG" was wrong by a full gauge, but so was the jacket's own
+`0.3mm²`, so tightening the order to metric buys nothing. A re-order from this
+seller ships this cable. **Do not chase the gauge by ordering 0.5 mm² instead** —
+24 AWG is mechanically and electrically fine here (see above), and a genuine
+0.5 mm² conductor's insulation could breach the **1.85 mm Micro-Fit ceiling**,
+turning a non-problem into a real one. Hold the vendor to **1.30–1.85 mm
+insulation OD**, which is the dimension that actually gates the connectors, and
+re-run the 4.5 Ω check on arrival.
+
 ⚠ **Match the printed mm², never the colour.** Two incompatible colour systems
 are in circulation (DIN 46228-4 vs the French convention) and assortment boxes
 mix them, so the same colour means different sizes across two boxes.
@@ -282,6 +385,123 @@ underglow tails.
 
 Mounted on the Daygreen converter's own two M3 holes — **57 mm centres, 3 mm
 holes, horizontal** (measured 2026-08-16). Full harness: `12v-trunk.yml`.
+
+#### ✅ Is it CCA? — NO, it is copper. Settled 2026-08-31 by resistance × mass
+
+**`docs/BOM.md` → "Wire specification" says "never CCA", so this was a
+spec-compliance question, not a curiosity. The reel passes; no re-buy needed.**
+
+**Keep the method.** Multiply the two measurements and the cross-section
+cancels, leaving a pure material fingerprint: `R/L = ρ/A` and `m/L = A·d`, so
+**`(R/L)·(m/L) = ρ·d`** — independent of CSA, of stranding fill, and of caliper
+technique, i.e. independent of everything that made the individual measurements
+ambiguous for three rounds.
+
+Measured: **84.0 Ω/km × 1.90 g/m = 159.6**, from a 20 cm stripped conductor
+weighing **0.38 g**.
+
+| | ρ·d | vs measured |
+|---|---|---|
+| **copper** | **154.5** | **+3%** |
+| CCA-15% | 93.8 | +70% |
+| CCA-10% | 88.4 | +81% |
+| pure aluminium | 76.3 | +109% |
+
+Copper by better than a factor of two over the nearest alternative.
+
+With the metal fixed, CSA follows from resistance alone: **0.212 mm²**, exactly
+the standard `16/0.13` build (16 strands confirmed by count). Predicted
+81.3 Ω/km against 84.0 measured — a reel 1.5 m short of nominal closes that.
+
+**What each signal was actually saying:**
+
+| signal | reading | verdict |
+|---|---|---|
+| bend/fatigue | strands would not break | ✅ correct — copper |
+| cut faces | coppery | ✅ correct, but would look identical on CCA |
+| strand diameter | 100 µm (true 130) | calipers compress a soft strand ~30 µm |
+| **stripped bundle Ø** | 0.60, then ≥0.73 mm | ❌ **the one misleading measurement** |
+
+⚠ **Never infer CSA from stripped-bundle diameter on fine-stranded cable.**
+Bunched strands splay once the insulation is off, so the relaxed bundle
+overstates the conductor — here ~0.73 mm against ~0.62 mm compacted, which is
+what made CCA look like the leading hypothesis twice. Use strand count × strand
+diameter, mass, or resistance.
+
+The superseded reasoning is kept below for the arithmetic.
+
+CCA's resistivity is ~1.5× copper's, which means **a full-size 0.3 mm² CCA
+conductor and a shrunken 0.2 mm² copper one read almost identically.** The
+resistance measurement is degenerate between them:
+
+| candidate | Ω/km | over 50 m | bundle Ø | **g/m** |
+|---|---|---|---|---|
+| copper, 0.205 mm² (24 AWG) | 84.1 | **4.21 Ω** | ~0.60 mm | **1.84** |
+| copper, 0.300 mm² (as marked) | 57.5 | 2.87 Ω | ~0.73 mm | 2.69 |
+| CCA-15%, 0.300 mm² (as marked) | 86.0 | **4.30 Ω** | ~0.73 mm | **1.09** |
+| CCA-10%, 0.300 mm² (as marked) | 88.6 | **4.43 Ω** | ~0.73 mm | 1.00 |
+| **measured (lead-corrected)** | **84.0** | **4.20 Ω** | ~0.60 mm | — |
+
+Copper-24 AWG fits to 0.1% and CCA is 2–5% off, but that gap is **inside
+reel-length slop** — a reel 3% short of its nominal 50 m swings it. The 0.60 mm
+caliper reading favours copper, but calipers *compress* a fine-stranded bundle,
+so a true 0.73 mm bundle squeezing to 0.60 is not impossible either. **Neither
+measurement discriminates. Do a physical test.**
+
+1. **Cut a single strand at a shallow angle and look at the cut face** under
+   magnification. CCA is silver-white aluminium under a thin copper skin, and it
+   is unmistakable on a fresh cut. Free, instant, decisive.
+2. **Weigh a stripped 2 m sample** if the cut is ambiguous — density differs by
+   ~2.5×, dwarfing every error above. There are ~23 m spare.
+
+   | conductor | 2 m stripped |
+   |---|---|
+   | copper, 0.205 mm² | **3.7 g** |
+   | copper, 0.300 mm² | **5.4 g** |
+   | CCA-18%, 0.300 mm² | **2.3 g** |
+
+#### ❌ SUPERSEDED — "the bundle is ≥0.73 mm, so CCA leads"
+
+*Wrong, and kept only to record why. The stripped bundle splays; see the splay
+warning above.*
+
+The 0.60 mm figure above was a **compressed** reading and is withdrawn. Set to
+0.73 mm, the calipers will not pass the bundle without squeezing it — so the
+free diameter is **at least** 0.73 mm, i.e. the conductor is close to its marked
+0.3 mm² after all. **Combined with 84 Ω/km, that rules pure copper out across
+every plausible stranding fill:**
+
+| stranding fill | implied CSA | implied ρ | vs copper (17.24) | implied Cu by volume |
+|---|---|---|---|---|
+| 0.65 (loose bunched) | 0.272 mm² | 22.9 | **+33%** | ~37% |
+| 0.72 (typical) | 0.301 mm² | 25.3 | **+47%** | ~18% |
+| 0.78 (tight concentric) | 0.326 mm² | 27.4 | **+59%** | ~5% |
+
+Even the most conservative corner is a third too resistive to be copper, and the
+typical one lands at **~18% copper by volume — squarely in the CCA-10A/15A
+range.** Tinning accounts for a few percent, not thirty.
+
+**So the picture inverts: the factory did not shave the cross-section, it
+substituted the metal.** `0.3mm²` on the jacket is dimensionally honest; the
+misrepresentation is `JB/T 8734.5-2016`, a **copper-conductor** standard, and by
+extension the `RVSP` type code, whose R/V/S/P say nothing about the metal but
+whose whole family is specified in copper.
+
+**This is still a two-hypothesis situation until a physical test is run** — the
+≥0.73 mm is a feel-based go/no-go against knife-edge jaws, not a measurement.
+**Run the cut-face check before acting on it.** But it is now the hypothesis to
+disprove rather than the long shot.
+
+**If it is CCA, seriously consider re-buying rather than accepting.** The
+electrical penalty is still nil at these currents — the problem is mechanical
+and it lands on the **204 crimps**: aluminium creeps under crimp pressure and
+grows an insulating oxide, so joints relax over months, and aluminium
+work-hardens and cracks where copper merely bends. In a pad that gets stomped on
+and whose panels get lifted for service, that is the wrong failure mode to
+design in, and re-terminating later costs far more than the cable does. Soldered
+joints (the braid-to-drain lead) are unaffected — those only touch the copper
+cladding.
+
 
 #### Mounting: printed PETG carrier — DECIDED 2026-08-16, modelled later
 
@@ -568,4 +788,3 @@ red+blue, `C` is yellow+white, `DR` is green+violet. The sets are disjoint, so
 the band order does not matter. **This replaced the stock 0=Red … 8=Black map**,
 which needed nine distinguishable colours that are not sold. Full scheme and the
 substitution rules: `WIRE_COLORS.md` → "Panel identification".
-

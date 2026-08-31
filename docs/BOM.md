@@ -312,6 +312,85 @@ connectors differ (3-circuit Micro-Fit vs JST XH and a 5.08mm screw terminal).
 Checks 2 and 3 are already satisfied by the type code: **RVSP** = R 软 flexible
 (stranded) + V PVC + S 双绞 (twisted) + P shielded. Only the OD is open.
 
+### ✅ BOTH REELS LANDED AND MEASURED 2026-08-31 — cable ACCEPTED
+
+No import charges were billed on this delivery (unlike the JLC parcel — see
+`hardware/dual-panel/panel/QUOTE-2026-08-18.md`).
+
+| Measured | RVSP (50 m) | 2C power (20 m) | Requirement | |
+|---|---|---|---|---|
+| Outer jacket OD | ~5.0 mm | ~4.75 mm | *(informational)* | — |
+| **Conductor insulation OD** | **~1.45 mm** | **~1.50 mm** | **1.30–1.85 mm** | ✅ **PASS** — 0.15 mm above the JST XH floor, 0.35–0.40 mm under the Micro-Fit ceiling |
+| Twisted | genuine twist | n/a | required | ✅ |
+| Stranded | yes | yes | required | ✅ |
+
+**Both connector windows clear on both cables**, so the mechanical risk that
+made this the gating check is closed. Crimp the 204 contacts.
+
+**Both cables are one gauge step under their markings — copper, and harmless.**
+Each was measured by end-to-end resistance, then confirmed against mass and/or
+construction:
+
+| | marked | **actual** | shortfall | metal |
+|---|---|---|---|---|
+| RVSP 50 m | `2x0.3mm²` / 22 AWG | **0.212 mm² — 16/0.13, 24 AWG** | 29% | copper ✅ |
+| 2C power 20 m | `STYLE 2464 20AWG` | **0.42 mm² — 21/0.16, 21 AWG** | 22% | copper ✅ |
+
+The power cable was measured as a **single 20 m spool** (the 2×10 m ordered
+arrived as one length) shorted at the far end: 2.0 Ω raw, 1.7 Ω after the
+meter's 0.3 Ω leads, over 40 m of conductor = 42.5 Ω/km, which is 99% of
+nominal 21 AWG. A 21-strand count then fixes the build as **21/0.16** (0.42 mm²)
+where the honest 20 AWG is 21/0.18. **CCA is excluded without weighing**: to read
+42.5 Ω/km as CCA the conductor would need 0.607 mm², i.e. 21 strands of 192 µm —
+thicker than the genuine build, against a caliper reading of 120 µm.
+**No build impact** — the worst column drops 135 mV at the far panel against
+106 mV for true 20 AWG.
+
+⚠ **Both cables shipped the honest strand COUNT with thinner strands** — RVSP
+16/0.13 where 0.3 mm² is 16/0.15, power 21/0.16 where 0.5 mm² is 21/0.18. So
+**counting strands never exposes the substitution**; only strand diameter or
+resistance does. Note this before accepting any future cable on a strand count.
+Note too that this project's calipers read a soft round strand **30–40 µm low**,
+consistently — enough to make a good conductor look like a fraudulent one.
+
+✅ **The power cable's `80C 300V` meets the ≥80 °C/300 V spec below**; the RVSP's
+70 °C does not and is recorded as an accepted deviation. The cable carrying real
+current is the better-rated one.
+
+⚠ **`STYLE 2464` is printed with no UL file number** (no `E…`), so the UL style
+claim is decorative rather than a listing. Common at this end of the market; it
+means the `20AWG` assertion has no certification behind it.
+
+**Shield construction: foil + braid, NO separate drain wire.** The
+braid-as-drain technique already specified under "RS-485 shield" below is
+therefore **mandatory, not a contingency** — at every one of the 18 RS-485 ends,
+gather the braid, solder a short 22 AWG lead, heatshrink the joint, and crimp
+that into Micro-Fit pin 3. The 18 INT ends trim and heatshrink the braid
+instead. Budget the extra assembly time.
+
+⚠ **The conductor is 24 AWG copper, not the 22 AWG on the label — CLOSED
+2026-08-31. It is copper (the "never CCA" rule below is satisfied), and the
+gauge shortfall changes only the ferrule size.** One conductor end-to-end across the 50 m reel
+reads **4.5 Ω = 90 Ω/km = 0.19 mm²**; 22 AWG would read 2.65 Ω. The stripped
+bundle's ~0.6 mm caliper reading independently gives the same ~0.21 mm², so two
+methods agree. **Nothing in the build depends on it except the ferrule barrel** —
+the insulation OD passes either way, `SXH-001T-P0.6N` covers 22–28 AWG, and the
+current is microamps to milliamps. Two follow-ons: Molex `430300001` covers
+20–24 AWG so 24 sits at the **bottom edge** — pull-test the first few Micro-Fit
+crimps; and **for rev 2, hold the vendor to the insulation OD, not the gauge in
+any unit** — the jacket's own `0.3mm²` was as wrong as the listing's "22 AWG".
+
+**CCA was suspected and is ruled out.** A 0.3 mm² CCA conductor measures nearly
+the same 84 Ω/km as a 0.2 mm² copper one, so resistance alone could not separate
+them — but **resistance × mass cancels the cross-section and fingerprints the
+metal**: 84.0 Ω/km × 1.90 g/m = 159.6, against 154.5 for copper and 93.8 for
+CCA-15%. Copper, by better than 2×. The construction is `16/0.13` (0.212 mm²)
+sold as `2x0.3mm²`. Full working, and the ⚠ warning about inferring CSA from a
+stripped bundle's diameter: `hardware/harness/PARTS.md` → "Ferrules". The jacket reads `ZC-RVSP 2x0.3mm² 300/300V JB/T8734.5-2016` — so
+the seller's "22 AWG" was an honest conversion of `0.3mm²` and **the cable
+misses its own printed marking**, by 38% against the ~65 Ω/km that flexible
+class-5 0.3 mm² allows. Full working: `hardware/harness/PARTS.md` → "Ferrules".
+
 The Euroblock line (the master's old 9-pos header + plug) was **removed 2026-07-26** — INT
 moved to JST XH, which is sourced on the LCSC order.
 
@@ -338,10 +417,16 @@ All runs: **stranded pure copper** (never solid — vibration and flex
 work-harden it; never CCA), PVC insulation (UL1007-class), any ≥80°C/300V
 rating.
 
+⚠ **Accepted deviation, 2026-08-31:** the RVSP reel as delivered is
+`JB/T 8734.5-2016`, i.e. **70 °C** PVC rather than ≥80 °C, at 300/300 V. Fine
+here — these conductors carry microamps to milliamps with no self-heating, in a
+room-temperature pad. Noted so it is not re-derived later. It is `ZC` grade
+(flame-retardant class C), which the spec above never asked for.
+
 | Signal | Spec | Quantity |
 |--------|------|----------|
 | 12V power | 2×20 AWG jacketed round, red/black | 3 columns × 2 pads, ~5m/pad |
-| RS-485 | **22 AWG** 2-core shielded **actual twisted pair** (RVSP) | 9 segments/pad, **4.2m/pad**. Fix an A/B color convention and never deviate. Shield → Micro-Fit pin 3 |
+| RS-485 | **22 AWG** 2-core shielded **actual twisted pair** (RVSP) — ⚠ *the reel as delivered measures 24 AWG despite its 22 AWG label (2026-08-31); harmless, see above* | 9 segments/pad, **4.2m/pad**. Fix an A/B color convention and never deviate. Shield → Micro-Fit pin 3 |
 | INT | **22 AWG** 2-core shielded twisted pair (signal + dedicated GND), single color — **same reel as RS-485 since 2026-08-16** | **9.3m/pad, CLOSED 2026-08-16** from the stock record (`stock-smx/harness/panel-signal-lines.yml`, nine home runs of 60–150cm). The earlier "~8.5m, gated on the teardown" estimate is superseded. Shield trimmed, **never bonded to the GND conductor** |
 | Master GND tie | 1 lead (20 AWG) to a GND port on the Wago fan-out | **mandatory**, not optional wiring |
 
@@ -361,6 +446,15 @@ every cable end carries one band of each. It encodes *physical position*, which
 is what the master's silkscreen already says, rather than panel ID. Full scheme,
 the substitution rules and why black and clear are excluded:
 `hardware/harness/WIRE_COLORS.md` → "Panel identification".
+
+**And once more on 2026-08-31 — the marker is now a PRINTED LABEL under clear
+heat-shrink**, reading the physical position (`UL`/`U`/`UR`/…), which is the
+same string as the master's silkscreen. The two-band colour code is demoted to a
+documented fallback: the heat-shrink stock on hand turned out to be one colour
+short (no violet, and black and clear are both excluded as markers), while clear
+shrink for labels was already on the shelf. 36 labels instead of 72 bands, and
+no lookup table. ⚠ **Slide the shrink on before crimping** — after termination
+the only retrofit markers are tape or clip-ons.
 
 Prefer heat-shrink over tape — tape unwinds and its adhesive migrates in a warm
 pad. Printed labels under clear heat-shrink beat colors outright, since "P4"
