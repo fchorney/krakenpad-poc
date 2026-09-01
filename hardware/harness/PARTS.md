@@ -86,19 +86,24 @@ standoffs, not the 11 mm the original design assumed. See `docs/DUAL_PANEL.md`
 
 All sourced in `docs/BOM.md`; repeated here for mating reference.
 
-> ### Sourcing status, 2026-08-17 — **one item left to buy**
+> ### Sourcing status, updated 2026-09-01 — **one item left to buy**
 >
-> **The Wago 221-415 blocks are the only outstanding purchase in the entire
-> project**, and they are a walk-in at Home Depot. Everything else is purchased,
-> in hand, on a placed order, or deferred by an explicit decision.
+> **100× 0.34 mm² ferrules are the only outstanding purchase in the entire
+> project**, and they re-order domestically. Everything else is purchased, in
+> hand, on a placed order, or deferred by an explicit decision.
+>
+> **The Wago 221-415 blocks are PURCHASED** (10-pack, $14.53 — not sold in
+> sixes), which closed the sourcing list on 2026-08-22. The ferrules re-opened it
+> on 2026-09-01: the sizes were settled at the bench, but only ~30 of the
+> 0.34 mm² are on hand against 36 needed for two pads.
 >
 > | state | items |
 > |---|---|
 > | ✅ in hand | Teensy 4.0 ×2, SM 2.5 pigtail, 12 mm standoffs, heat-shrink, zip ties, M3, crimpers (SN-28B, PA-09), Molex extractor |
-> | ✅ purchased | cable (50 m RVSP + 20 m 2C), fuse holders, T8AL250V cartridges |
+> | ✅ purchased | cable (50 m RVSP + 20 m 2C), fuse holders, T8AL250V cartridges, **Wago 221-415 (10-pack, $14.53)** |
 > | 📦 on the LCSC order | all board parts, Micro-Fit/XH housings + crimps, XT30 |
-> | 🛒 **still to buy** | **Wago 221-415 ×6** |
-> | ⏸ deferred by decision | ferrules (needs cable in hand), printed carrier (needs Wagos in hand) |
+> | 🛒 **still to buy** | **ferrules, 100× 0.34 mm²** (sizes closed 2026-09-01; ~30 on hand against 36 needed) |
+> | ⏸ deferred by decision | printed carrier (dimensions off the real Wago bodies + fuse holder in hand) |
 >
 > **Quantities are for TWO pads throughout** — see the scope banner in
 > `docs/BOM.md`. This is settled and is not to be re-derived.
@@ -112,14 +117,14 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 12V + RS-485 | C259786 | 168 |
 | **JST SMR-03V-B** housing (receptacle, 3-way) | underglow, hand-made fallback | **C157907** | 1 (10 ordered) |
 | 3-pin SM 2.5 LED-strip pigtail pair, 22 AWG | underglow — the actual plan | **ON HAND** | 1 pair |
-| **Wago 221-415**, 5-way lever block | 12V fan-out | 🛒 **THE LAST THING LEFT TO BUY** — Home Depot 10-pack, $12.97 (genuine), walk-in | 3 |
+| **Wago 221-415**, 5-way lever block | 12V fan-out | ✅ **PURCHASED 2026-08-22** — 10-pack, $14.53 (genuine); not sold in sixes | 3 |
 | **XT30U-F** (PSU side) | PSU→fan-out | ✅ **ON THE LCSC ORDER** — **C99102**, 10 @ $2.06 | 1 |
 | **XT30U-M** (load side) | our trunk + stock reconnect | ✅ **ON THE LCSC ORDER** — **C99101**, 10 @ $2.28 | 2 |
 | Inline fuse holder, 5×20 mm, **18 AWG leads** | trunk | ✅ **PURCHASED** (Amazon 5-pack, $11.99) | 1 |
 | **T8AL250V** glass cartridge, 5×20 mm, time-lag | trunk | ✅ **PURCHASED** (Amazon 10-pack, $6.99) | 1 |
 | Heat-shrink (colours + clear), zip ties, M3 screws | identification, strain relief, carrier | ✅ **ON HAND** | — |
 | M3 female-female standoff, **12 mm** | carrier↔brain spacer | ✅ **ON HAND** — see below | 3/panel |
-| **Wire ferrules** (likely 0.5 mm² / 0.75 mm² — **do not order on the AWG label**) | J214 INT, underglow DATA, J2 GND tie | **⬜ DEFERRED** — assortment on hand, size closes on a caliper measurement | 20/pad |
+| **Wire ferrules** — **0.34 mm² (0.8 mm ID)** ×36 for the INT conductors, **0.5 mm² (1.0 mm ID)** ×4 for J2 | J214 INT, underglow DATA, J2 GND tie | 🛒 **SIZES CLOSED 2026-09-01; BUY 100× 0.34 mm²** — only ~30 on hand against 36 needed, and they are a single-use consumable. 0.5 mm² needs no purchase (~30 on hand, 4 needed). See below | 20/pad |
 | Molex **11-03-0043** extraction tool | Micro-Fit rework | ✅ **BOUGHT** (Newark) | 1 |
 
 ### Standoffs — CLOSED 2026-08-16, nothing to buy
@@ -257,6 +262,104 @@ assumption above — a 0.6 mm bundle fills the 0.8 mm barrel ~56% versus ~36% in
    conductor, and it needs no purchase at all.
 
 Either way, **crimp one and tug-test it** before doing all 38.
+
+#### ✅ CLOSED 2026-09-01 — 0.34 mm² confirmed at the bench; **the tool was the problem, not the barrel**
+
+**Ferrule: 0.34 mm² (1.25 mm OD / 0.8 mm ID). Crimped and pull-tested on the
+real RVSP conductor. Neither caveat above was needed — no domestic re-order, and
+no fold-back.**
+
+The first attempts pulled out of the barrel under a firm tug, which reads like a
+fill problem and is not one. The crimper is an **HSC8 6-4** — a self-adjusting
+square four-indent tool, **0.25–6.0 mm² / AWG 23–10**. It has *no die stations*:
+one jaw set spans the whole range and an internal stop decides closure. A
+0.34 mm² ferrule therefore sits at the very bottom of a 24:1 span, which is
+exactly where these tools run out of travel and deliver a well-shaped,
+under-compressed crimp.
+
+**Tightening the tool's adjustment pin fixed it outright.** At the new setting
+the conductor **snaps before the ferrule will come off** — failure outside the
+barrel, i.e. the crimp is stronger than the wire, which is the pass criterion.
+
+⚠ **Two consequences of the adjustment:**
+
+1. ✅ **The global stop was checked and is fine.** Tightening for 0.34 mm² also
+   tightens the **0.5 mm² GND-tie ferrules** (master J2 pin 2, 20 AWG, 2 per
+   pad — the only large ferrules in the build). One was crimped at the new
+   setting and is good: no crushed or split barrel. **Both ends of the range in
+   use here work at one setting**, so no re-adjustment between sizes.
+2. **The tool is now off its factory setting and nothing about that is visible
+   from outside.** Mark it, or the second pad rediscovers this from scratch.
+
+**Do not conclude the 0.5 mm² ferrule or the fold-back are needed** — both were
+contingency plans for a fill problem that turned out to be a tool-closure
+problem. 56% fill is sufficient given an adequately compressed crimp.
+
+#### What to buy — 0.34 mm² only, 2026-09-01
+
+Only two screw terminals exist in the build (carrier **J214** ×9/pad, master
+**J2** ×1/pad), so the demand is fully bounded. **Quantities are for two pads.**
+
+| ferrule | where | /pad | **2 pads** | on hand | action |
+|---|---|---|---|---|---|
+| **0.34 mm²** | J214 INT — 9 panels × 2 conductors | 18 | **36** | ~30 | 🛒 **buy 100** |
+| **0.5 mm²** | J2 pin 2, GND tie (20 AWG) | 1 | 2 | ~30 | ✅ none |
+| **0.5 mm²** | J2 pin 1, underglow DATA (22 AWG) — see warning below | 1 | 2 | ↑ | ✅ none |
+
+**Buy 100 rather than the ~6 shortfall.** It is the standard bag size and costs a
+few dollars, and ferrules are **single-use** — every tool trial and every
+re-termination during bring-up consumes one. 100 is ~2.8× coverage. Do **not**
+buy 0.5 mm²: 30 on hand against a need of 4.
+
+**Two things to match, not guess:**
+
+1. **Barrel length.** 0.34 mm² ships in 6 mm and 8 mm barrels (the `E0306` /
+   `E0308` convention — CSA code, then length). **Measure the barrel on one
+   already in the bin and order the same**, so strip length and the tool setting
+   carry over unchanged.
+2. **Bare, not insulated.** The ones in use are bare (1.25 mm OD); an insulated
+   0.34 mm² carries a ~3 mm plastic collar and a different strip length.
+
+Order **domestically** — that ferrules re-order without a month's wait was the
+original reason this item was safe to defer.
+
+#### ⚠ The underglow DATA lead is 0.5 mm², NOT 0.34 — the 24 AWG finding does not travel
+
+The "✅ USER-CONFIRMED 2026-08-16" block below says **DATA → 0.34 mm² ferrule →
+master J2 pin 1**. **That is believed wrong and is superseded here.**
+
+That conductor is **not** the RVSP reel — it is the 22 AWG extension spliced onto
+the SM pigtail, i.e. *genuine* 22 AWG at 0.326 mm², bundle ~0.75–0.85 mm. The
+0.8 mm barrel of a 0.34 mm² ferrule would barely accept it, exactly as the
+sizing section above warns. **The 24 AWG measurement applies only to the RVSP
+cable; it does not generalise to other hookup wire in the build.**
+
+⚠ **Test-fit one before committing** — this is reasoned from the wire's nominal
+gauge, not from a caliper reading of the actual on-hand wire. It is 2 ferrules
+across both pads and both sizes are in the bin, so it blocks nothing.
+
+#### Both size guesses came out ONE SIZE TOO BIG — measure the ferrule, don't trust the bin label
+
+Measured with calipers on the two ferrules actually used, 2026-09-01:
+
+| conductor | ferrule OD / ID | ferrule size | earlier assumption |
+|---|---|---|---|
+| 24 AWG RVSP (INT, underglow DATA) | **1.25 / 0.8 mm** | **0.34 mm²** | 0.5 mm² ✗ |
+| 20 AWG (J2 GND tie to the Wago fan-out) | **1.45 / 1.05 mm** | **0.5 mm²** | 0.75 mm² ✗ |
+
+Barrel ID is the identifying dimension (`D1` = 0.8 / 1.0 / 1.2 / 1.4 mm for
+0.34 / 0.5 / 0.75 / 1.0 mm²); bare OD runs ~0.4 mm above it at these sizes.
+
+**The GND tie resolves in favour of the DIN CSA column, not the vendor
+labelling** — the opposite of what the "do not pick the size from the AWG label"
+section above assumed. 20 AWG is 0.518 mm², so the 0.5 mm² ferrule is an almost
+exact CSA match, and a ~0.95 mm bundle in a 1.0 mm barrel fills it ~80% — better
+than the 56% on the INT conductors. **Neither convention wins in general; the
+lesson is that only the caliper settles it.**
+
+**Pull-test the assembled joint, not the bare crimp** — wire → ferrule → seated
+in the WJ500V with the screw torqued. The screw deforms the ferrule and does
+real retention work, so that is the joint that actually ships.
 
 #### The jacket marking explains where the "22 AWG" came from — and indicts the cable, not the listing
 
@@ -530,8 +633,8 @@ Design notes for when it happens:
   serviceable without unpacking the compartment.
 - Wago's own `221-500` remains a useful dimensional reference for the pocket.
 
-**Everything still to buy is marked ⬜ in the table above** — Wago blocks, XT30
-pairs, fuse holder + T8A cartridge, and possibly ferrules. Standoffs and the
+**The only thing still to buy is 100× 0.34 mm² ferrules** — the Wago blocks,
+XT30 pairs and fuse holder + T8A cartridge are all purchased. Standoffs and the
 extraction tool are settled. The old "fork/spade lugs, PSU stud size" row is
 **deleted**: there is no PSU stud, and the fan-out replaced the whole idea.
 
