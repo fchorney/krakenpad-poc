@@ -345,8 +345,8 @@ upstream and never crosses the interface.
 
 | block | designators |
 |---|---|
-| MCU | **U306** RP2040 + decoupling **C309–C325**, **X301** 12 MHz + **C311/C313** 15pF |
-| flash | **U307** W25Q32JV 4MB + **R307** 10k CS pull-up, **R310** 10k |
+| MCU | **U306** RP2040 + decoupling **C309–C325**, **X301** 12 MHz + **C311/C313** 15pF + **R302** 1k `XOUT` series, **R307** 10k `RUN` pull-up |
+| flash | **U307** W25Q32JV 4MB + **R310** 10k `QSPI_SS` pull-up + **R309** 1k to `SW301` (BOOTSEL). **`R307` is NOT here — it is the 10k `RUN` pull-up**, see "Signal conventions" |
 | RS-485 | **U308** THVD1450 (50 Mbps grade, LCSC C2671361 — swapped from THVD1429 2026-08-18). ⏸ **Rev-2 candidate: external TVS on A/B** — the bus has none (D201 is INT-only) and the 1450 has no on-die surge cell. Deliberate for rev A |
 | LED shifter | **U301** SN74AHCT1G125 (single gate, SOT-23-5) + **R301** 330Ω series |
 | power | **U303** AMS1117-5.0 (12V→5V) → **U304** LM66200 ideal-diode OR → **U302** AP7361C-33ER-13 (5V→3.3V) |
@@ -455,6 +455,89 @@ Three M3 screws take all mechanical load; the sockets carry none.
   placement change.
 - Carrier underside carries only D201, R202, R203 and the four headers.
 
+## First bring-up — blank RP2040 over USB
+
+Written 2026-09-02, before the first board was powered. Every net claim here was
+re-derived from `dual-panel.kicad_pcb`.
+
+**A blank board is the easy case.** The RP2040 bootrom checksums the first 256
+bytes of QSPI flash; blank flash (`0xFF`) fails that check and the chip drops
+into the USB bootloader **automatically — no BOOTSEL press needed**, enumerating
+as `RPI-RP2`. `SW301` only matters once a valid image is on the flash.
+
+**The brain is standalone.** MCU, flash, crystal, both regulators, the power-OR,
+USB and the transceiver are all 3xx parts, so brains can be flashed on the bench
+before being mated to a carrier.
+
+### USB-only power path
+
+```
+J305 VBUS ──→ U304 pin 3 (LM66200 IN1) ─┐
+                                        ├─→ +5VDC ──→ U302 AP7361C-33 ──→ +3.3VDC
+U303 AMS1117-5.0 out ──→ U304 pin 6 ────┘   (dead at 0 V with no +12VDC)
+```
+
+With no 12V the mux simply selects VBUS, and the AP7361C's dropout at the ~50 mA
+panel load is tens of mV — **this is the case the AP7361C swap was made for**
+(the old AMS1117-3.3's ~1.1 V dropout was the USB-VBUS-only weak point). The
+LM66200 blocks reverse conduction, so nothing back-feeds the host.
+
+**No inrush concern:** `C308` (22 µF tantalum) sits on the AMS1117 *input* side
+of the mux, so USB never charges it. VBUS only sees `C304`, `C301`, `C303` and
+`C309` — well inside the 100 mA pre-enumeration budget.
+
+### If a board does not enumerate
+
+The suspect list is short, because USB needs the PLL and the PLL needs the crystal:
+
+1. **`X301` / `C311` / `C313` / `R302`** — no 12 MHz XOSC means *completely* dead
+   USB, not degraded USB. Check this first. `R302` (1 k on `XOUT`) is present and
+   correct — the classic RP2040 omission is not one of our failure modes.
+2. **Rails** — probe `TP302` (+5VDC), then +3.3VDC. `J305` is the all-TH GCT part,
+   so VBUS joints are visually inspectable.
+3. **`RUN` held low** — `R307` is the 10 k pull-up; **`TP303` is a `RUN` test
+   point**, so it both probes and (momentarily shorted to GND) resets the chip.
+4. **`USB_D±`** — `R305`/`R306` 27 Ω, `U305` USBLC6 on the connector side. A cold
+   joint on the QFN-56 USB pads.
+
+⚠ **BOOTSEL enumerating does NOT prove the flash is good.** The bootrom enters
+BOOTSEL *because* it could not read a valid image, so a dead, mis-oriented or
+unsoldered `U307` is indistinguishable from a blank one. `U307` is only validated
+when the first `picotool load` write-verifies **and** the board runs the program.
+Do not tick the flash off the list at enumeration.
+
+macOS: use `picotool load`, never the `RPI-RP2` drag-drop. `picotool info`
+segfaults on RP2040.
+
+### Do not drive LEDs on USB-only power
+
+`U301` runs from `+5VDC`, which is live from VBUS, so it will drive
+`LED_DATA_5V` into WS2815 `DIN` pins whose 12V rail is dead — forward-biasing
+their input protection. `R301` (330 Ω) limits this to ~10 mA so it is not
+destructive, but it is not a valid LED test either. Only applies to a mated
+brain; standalone, the net terminates at `J303` pin 5.
+
+**The board detects this case for free.** `SENSE_12V` is the `R313`/`R314`
+100 k/33 k divider into **GPIO17, a digital pin — not an ADC**. 12V present reads
+12 × 33/133 ≈ **2.98 V = logic high**; USB-only reads 0. A one-line guard
+(`if (!gpio_get(17)) skip_led_output();`) is that pin's intended job.
+
+### Bench check: `RS485_DE` at rest
+
+**`RS485_DE` has no external pull resistor** — the net is only GPIO4, `U308`
+pins 2/3 and `TP306` — so DE/R̅E̅ is undriven between power-on and firmware
+configuring the pin, and for the whole time a board sits in BOOTSEL.
+
+In principle this is fine: RP2040 pads reset to input-with-internal-pull-down,
+which parks the THVD1450 in **receive** mode, the safe state. An unflashed panel
+should therefore not jam the bus. But the internal pull-down is weak (~50–80 kΩ)
+and is not established until POR completes.
+
+**Confirm it once, on a blank powered board: measure `TP306` to GND — expect
+~0 V.** If it floats high, a 10 k to GND tacked at `TP306` fixes the boards in
+hand, and an external pull-down becomes a rev-2 candidate (purely additive, one
+part). Unresolved until someone puts a meter on it.
+
 ## Verification status
 
 Re-run 2026-08-04 from clean project copies with
@@ -489,6 +572,10 @@ Re-run 2026-08-04 from clean project copies with
 
 ### Known open items
 
+- **`RS485_DE` rest state is unverified on real silicon.** No external pull on
+  the net; the RP2040's internal pull-down should park the THVD1450 in receive,
+  but nobody has measured it. **Measure `TP306` to GND on a blank powered board
+  — expect ~0 V.** See "First bring-up" above; drives a possible rev-2 pull-down.
 - **44 vias at 0.60 mm drill exceed JLC's 0.5 mm epoxy-fill limit.** All
   power-distribution, none in a pad, so unfilled is electrically fine — but POFV is
   normally applied board-wide. **Ask JLC how they handle a board mixing fillable and

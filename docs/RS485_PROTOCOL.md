@@ -182,7 +182,7 @@ then reply`) rather than waiting to be individually asked.
 
 ⚠ **Breadboard only — this is NOT either board's as-built pinout.** On the real
 hardware RS-485 runs on the master's **Serial2** (GPIO7 RX / GPIO8 TX, DE on
-GPIO3) and on the panel's **GPIO0/GPIO1 with DE on GPIO4**. See
+**GPIO6**) and on the panel's **GPIO0 TX / GPIO1 RX with DE on GPIO4**. See
 `docs/MASTER_PCB.md` and `docs/DUAL_PANEL.md` for the netlist-verified maps.
 
 | Role | Teensy 4.0 | Pico |
