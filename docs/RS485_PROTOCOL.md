@@ -191,6 +191,11 @@ hardware RS-485 runs on the master's **Serial2** (GPIO7 RX / GPIO8 TX, DE on
 | RX | 0 (RX1) | GPIO1 (UART0 RX) |
 | DE/~RE | 2 (auto via transmitterEnable) | GPIO2 (manual) |
 
+**As of 2026-09-03 the master half no longer uses this map** —
+`firmware/master/master.ino` was ported to the as-built board (Serial2, DE on 6,
+nine INT lines on 15–23). The table above now describes `firmware/panel/` only,
+which is still breadboard-pinned pending its own port.
+
 Panel ID is read once at boot from GPIO6 (internal pull-down): floating = panel
 0, jumpered to the Pico's own 3V3 OUT = panel 1. Bench-test stand-in for the
 final PCB's 4-position DIP switch (0–8) — a single pin only distinguishes two
