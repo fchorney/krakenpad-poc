@@ -460,6 +460,11 @@ Three M3 screws take all mechanical load; the sockets carry none.
 Written 2026-09-02, before the first board was powered. Every net claim here was
 re-derived from `dual-panel.kicad_pcb`.
 
+> **The staged procedure and the firmware that runs it are now
+> `docs/PANEL_BRINGUP.md` + `firmware/panel/c/bringup/`** (2026-09-03). This
+> section stays as the netlist-level reference it has always been; that one is
+> what to follow at the bench.
+
 **A blank board is the easy case.** The RP2040 bootrom checksums the first 256
 bytes of QSPI flash; blank flash (`0xFF`) fails that check and the chip drops
 into the USB bootloader **automatically — no BOOTSEL press needed**, enumerating
