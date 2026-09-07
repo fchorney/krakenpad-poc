@@ -121,6 +121,9 @@ carrier.
 | DIP | all OFF → 15, leftmost ON → 7, rightmost ON → 14 | **matches the documented map**: leftmost = bit 3, rightmost = bit 0, ON = 0. Kept as-is |
 | FSR raw, unfitted | South 13, West 13, North 12, East 12 | all four channels alive across the carrier interface |
 | `f` with 4 FSRs fitted | **all four map correctly**, 2026-09-07 | the edge pressed is the name that moves — `J201`/`J202`/`J203`/`J206` wired as documented. This is the carrier mix-up that would otherwise surface as a gameplay bug much later |
+| FSR resting | **94–98** counts | slightly below the breadboard-era ~100–115. Comfortably under the 187 float threshold — ~2× headroom before a resting channel is flagged |
+| FSR full press | **~4000** counts | at the top of the 12-bit range; marginally better swing than the prototype's ~3900 |
+| ADC crosstalk | **none observed** under a hard press | see below — closes `ADC_DUMMY_READ` |
 | `p` with 12V | **`1 1 1`** | pull-down did **not** mask 12V → this die's Rpd > 63.5 kΩ, the weak end. Predicted `1 0 …`; prediction was wrong, rule unchanged |
 | `l` LED test | **all 25 lit**, red/green/blue/white | WS2815 chain, `U301`, `R301`, serpentine and the 12V rail under load |
 
@@ -149,13 +152,26 @@ cannot be plugged into a live panel**; drop 12V on that column first.
 bleeder is the wrong fix: against a 1.5 k pull-up it needs to be <600 Ω and then
 burns ~8 mA whenever USB is live.
 
+### ✅ `ADC_DUMMY_READ = 0` confirmed on hardware
+
+Pressing one channel hard moved none of the other three. The breadboard firmware
+discarded the first conversion after every mux switch to absorb ~15 counts of
+sample-cap charge injection, **at the cost of halving the sample rate**; its own
+comment said to drop it once the ADC nodes had 10 nF caps to GND, which this
+board has (`C324/C326/C329/C330`). That is now measured rather than assumed, so
+**the gameplay firmware keeps the full sample rate** (102 kHz was the RP2040
+bench figure) with no dummy read.
+
+### Thresholds against real hardware
+
+Resting 94–98, full press ~4000. The defaults hold with room to spare: press 500
+/ release 400 sit well clear of both ends, and the 187 float threshold has ~2×
+headroom over a healthy resting channel. No retuning needed. Note that unfitted
+channels read ~12, so "unplugged" and "unpressed" remain electrically
+indistinguishable by design — presence is config, not measurement.
+
 ### Still open for this board
 
-- **ADC neighbour crosstalk under a hard press** — decides whether
-  `ADC_DUMMY_READ` stays 0. The board has the 10 nF caps (`C324/C326/C329/C330`)
-  the breadboard firmware's own comment said would make the dummy read
-  unnecessary, and the dummy read costs **half the sample rate**. Not yet checked.
-- **Resting / full-press counts per channel** — wanted as the basis for
-  calibration defaults. The ~100–115 / ~3900 / threshold 500 figures in
-  `CLAUDE.md` are breadboard-era.
-- **Stage 3** — RS-485, needs a second panel and the master.
+- **Stage 3** — RS-485. Needs a second panel and the master; cannot be
+  self-tested, since `DE`/`R̅E̅` are tied and transmitting disables the local
+  receiver.
