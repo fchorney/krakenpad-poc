@@ -25665,9 +25665,8 @@
 		(descr "USB 2.0 Type C Receptacle, right-angle all-THT. GCT USB4085-GF-A. https://gct.co/Files/Drawings/USB4085.pdf")
 		(tags "USB Type-C Receptacle Through-hole Right angle GCT USB4085")
 		(property "Reference" "J305"
-			(at 2.975 -1.8 0)
+			(at 10.248629 5.085 0)
 			(layer "F.SilkS")
-			(hide yes)
 			(uuid "ae728350-f7b9-465e-bf6a-f2980fac2fbc")
 			(effects
 				(font
