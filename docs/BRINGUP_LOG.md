@@ -12,7 +12,7 @@ brought up.
 
 | board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | notes |
 |---|---|---|---|---|---|---|
-| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | — | — | first board powered; found the `INT_OUT` pull-down bug |
+| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | — | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive |
 
 ## `DE6558A69754442F` — first board
 
@@ -103,3 +103,51 @@ the prediction when stage 2 runs.
 
 `l` (LEDs) and `b` (debug LED `D202`) are carrier-side; the `U304` power-mux
 hot-swap needs 12V; RS-485 needs peers. Stages 2 and 3.
+
+### Stage 2 — carrier mated, 12V applied
+
+Carrier hand-assembled and mated 2026-09-07. 12V measured **12.02 V** at the
+carrier.
+
+| check | result | verdict |
+|---|---|---|
+| 12V-only, no USB | `D202` blinking 1 Hz | **`U303` AMS1117 proven** — the whole 12V→5V→3.3V chain carries the board with no VBUS anywhere. The documented stage-2 order never reaches this |
+| `TP302`, 12V only | **4.965 V** | AMS1117 output. Below VBUS's 5.25 V, so VBUS wins the mux whenever present |
+| `TP301`, 12V only | **3.29 V** | `U302` in regulation off the AMS1117 |
+| `U303` temperature | barely warm | ~0.2 W in SOT-223 with pour; as expected |
+| mux handover | USB removed with 12V live → board kept running, beat unbroken | **`U304` hot-swap passes** in the direction that actually switches |
+| `SENSE_12V` edge | `12V PRESENT` logged on applying 12V | **the divider proven** — an edge, not a level a solder bridge could fake |
+| `TERM_SENSE` | tracks `SW202`; `TERMINATED` when thrown | pole B agrees with pole A |
+| DIP | all OFF → 15, leftmost ON → 7, rightmost ON → 14 | **matches the documented map**: leftmost = bit 3, rightmost = bit 0, ON = 0. Kept as-is |
+| FSR raw | South 13, West 13, North 12, East 12 | all four channels alive across the carrier interface (no FSRs fitted yet — channel↔edge mapping still to do with `f`) |
+| `p` with 12V | **`1 1 1`** | pull-down did **not** mask 12V → this die's Rpd > 63.5 kΩ, the weak end. Predicted `1 0 …`; prediction was wrong, rule unchanged |
+| `l` LED test | **all 25 lit**, red/green/blue/white | WS2815 chain, `U301`, `R301`, serpentine and the 12V rail under load |
+
+### 🐛 Second finding: the brain back-drives its own VBUS
+
+**USB will not enumerate if 12V is already applied.** Isolated over a 2×2
+(cable orientation × 12V): both orientations work with no 12V, neither works with
+12V. So it is not a CC joint.
+
+Measured with 12V on and USB unplugged: **VBUS = 2.78 V, D+ = 3.3 V** — one diode
+drop apart. The RP2040 asserts its D+ pull-up (1.5 k to 3.3 V) as soon as the USB
+stack initialises, and `U305`'s I/O→VBUS ESD diode carries that onto the VBUS
+net, which has **no bleeder** (the net is only `J305` VBUS, `U304` IN1 and
+`U305`). 2.78 V is above vSafe0V, so a USB-C source refuses to attach.
+
+Corollary seen on the way: pulling 12V from a board with USB attached-but-unpowered
+kills it outright and it reboots once the host finally attaches. That looks like a
+mux failure and is not one — there was simply nothing to hand over to.
+
+**Rev 1: no rework. Connect USB before 12V** — already the documented stage-2
+order, which is why this stayed hidden. Consequence worth knowing: **a laptop
+cannot be plugged into a live panel**; drop 12V on that column first.
+
+**Rev 2: candidate #3** — VBUS divider into a spare GPIO so firmware can
+`tud_connect()` on real VBUS instead of the SDK's `VBUS_DETECT_OVERRIDE`. A plain
+bleeder is the wrong fix: against a 1.5 k pull-up it needs to be <600 Ω and then
+burns ~8 mA whenever USB is live.
+
+### Still open for this board
+
+`f` channel↔edge mapping (needs FSRs fitted), and stage 3 (RS-485, needs peers).

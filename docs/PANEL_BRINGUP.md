@@ -190,20 +190,52 @@ caught leaving a pull-down on `INT_OUT` (GPIO22) on 2026-09-07; see "INT — `i`
 below. Any pin whose released or floating state carries meaning needs
 `gpio_disable_pulls()` explicitly, because `gpio_init()` will not do it.
 
-**Measured pull-down strength, board `DE6558A69754442F`: ~45 kΩ**, solved from
-the `INT_OUT` divider. That is at or beyond the *strong* end of the 50–80 kΩ
-spec — the row above that fails. It is the same pad structure on the same die as
-GPIO17, so **expect this board's stage-2 `p` to show the pull-down masking 12V**,
-i.e. `1 0 …`. That would be the trap confirmed on real silicon rather than
-argued from arithmetic.
+**Result on the first board, stage 2 with 12V live: `1 1 1`** — the pull-down did
+*not* mask 12V. At 12.02 V the divider is a 2.983 V source behind 24.81 kΩ, so
+reading HIGH through the pull-down requires **Rpd > 63.5 kΩ**: this die sits at
+the *weak* end of the 50–80 kΩ spec.
+
+> An earlier version of this doc predicted `1 0 …`, from a ~45 kΩ pull-down
+> back-solved out of the `INT_OUT` reading. **That inference was worthless** — it
+> came off a coarse "about 2.7 V", and the answer swings from 46 kΩ to 65 kΩ
+> between 2.70 V and 2.85 V. Pull-up and pull-down are also separate devices with
+> no guarantee of tracking. Don't estimate pull strength from one rounded reading.
+
+**This changes nothing about the rule.** `gpio_disable_pulls(17)` stays mandatory:
+a board that reads high through its pull-down has a weak pull-down, not margin,
+and the next die can land at 50 kΩ. The firmware says exactly this when it sees
+the case.
 
 ---
 
 ## Stage 2 — carrier mated, 12V applied, USB still connected
 
+> ### ⚠ Connect USB BEFORE 12V. This is mandatory, not stylistic.
+>
+> **A USB-C host will not attach to a brain that is already running on 12V.**
+> Confirmed at the bench 2026-09-07: the RP2040 asserts its D+ pull-up (1.5 k to
+> 3.3 V) the moment the USB stack initialises, `U305`'s I/O→VBUS ESD diode carries
+> that onto the VBUS net, and that net **has no bleeder** — so VBUS floats up to
+> **2.78 V** (measured; D+ 3.3 V, one diode drop apart). That is above vSafe0V, so
+> the source refuses to power the port. Both cable orientations, every time.
+>
+> It is not a `U304` fault and there is nothing to fix on rev 1. But it has teeth:
+> **you cannot plug a laptop into a live panel to debug it** — drop 12V on that
+> column first. Rev-2 candidate #3 in `CLAUDE.md` fixes it properly with VBUS
+> sense on a spare GPIO.
+>
+> A related trap: pulling 12V from a board whose USB is attached but *unpowered*
+> kills it outright (nothing to hand over to), and it then reboots as the host
+> finally attaches. That looks like a mux failure and is not one.
+
 Keeping USB connected while 12V comes up is the point of this stage, not a
 convenience: it is the only test of the **`U304` LM66200 power mux** under the
 condition it was chosen for.
+
+⚠ **And it is *not* a test of `U303`.** If VBUS is higher than the AMS1117's
+output — 5.25 V vs 4.965 V on the first board — the mux simply stays on VBUS for
+the whole stage and the AMS1117 never carries the board. **Run 12V-only at least
+once** (no USB at all, watch `D202` blink) or that regulator ships untested.
 
 ### Power mux
 
@@ -256,6 +288,29 @@ to get backwards and this is the one place to settle them physically:
 
 An unmated brain also reads 15 (pull-ups, nothing pulling down), which the status
 line uses as a "looks unmated" hint.
+
+**Confirmed physically 2026-09-07** on board `DE6558A69754442F`, and it matches
+the map above: all four OFF → **15**, leftmost only ON → **7** (so leftmost is
+bit 3), rightmost only ON → **14** (so rightmost is bit 0). Read left to right,
+the switches are MSB-first; the only inversion is that ON = 0.
+
+**Decided 2026-09-07: keep the raw (inverted) reading, do not invert in
+firmware.** All-OFF landing on 15 — a *reserved* code — is a safer factory
+default than every unconfigured panel silently claiming to be panel 0 (UL).
+
+Setting table, since nine of these get configured by hand:
+
+| panel | ID | switches, left → right |
+|---|---|---|
+| 0 UL | `0000` | ON ON ON ON |
+| 1 U | `0001` | ON ON ON OFF |
+| 2 UR | `0010` | ON ON OFF ON |
+| 3 L | `0011` | ON ON OFF OFF |
+| 4 C | `0100` | ON OFF ON ON |
+| 5 R | `0101` | ON OFF ON OFF |
+| 6 DL | `0110` | ON OFF OFF ON |
+| 7 D | `0111` | ON OFF OFF OFF |
+| 8 DR | `1000` | OFF ON ON ON |
 
 ### Termination — `s`
 

@@ -35,6 +35,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >      — verified non-destructive (component counts identical, no slivers), and rev 1
 >      is fine. But the design should not depend on a vendor's CAM being generous.
 >      **Master only; the panel shows none of it.**
+>   3. **Brain: VBUS sense on a spare GPIO** (found at the bench 2026-09-07). The
+>      brain **back-drives its own VBUS to 2.78 V** whenever it runs on 12V: the
+>      RP2040 asserts the D+ pull-up (1.5 k to 3.3 V) as soon as the USB stack
+>      inits, and `U305`'s I/O→VBUS ESD diode carries that onto the VBUS net,
+>      which has **no bleeder** (net = `J305` VBUS + `U304` IN1 + `U305` only).
+>      2.78 V is above vSafe0V, so **a USB-C host refuses to attach: you cannot
+>      plug a laptop into a panel that is already powered.** Measured, not
+>      inferred — D+ 3.3 V, VBUS 2.78 V, one diode drop apart. **Rev 1 needs no
+>      rework: connect USB *before* 12V.** Fix is a VBUS divider into one of the
+>      free GPIOs (2, 3, 5–9, 12–15, 23–25) so firmware can `tud_connect()` on
+>      real VBUS instead of the SDK's blanket `VBUS_DETECT_OVERRIDE`; it drains
+>      the node as a side effect. ⚠ **A plain bleeder is the wrong fix** — against
+>      a 1.5 k pull-up it must be <600 Ω and then burns ~8 mA whenever USB is live.
+>   - ~~RS-485 DE pull-down~~ **DROPPED 2026-09-07**: `TP306` measured 35 mV on a
+>     blank board, so the RP2040's internal pull-down does park the THVD1450 in
+>     receive. See `docs/BRINGUP_LOG.md`.
 > - When debugging a physical board, check the four order-day changes first — they
 >   are the youngest edits in the design. Listed in the archive's `README.md`.
 
