@@ -527,7 +527,7 @@ brain; standalone, the net terminates at `J303` pin 5.
 12 × 33/133 ≈ **2.98 V = logic high**; USB-only reads 0. A one-line guard
 (`if (!gpio_get(17)) skip_led_output();`) is that pin's intended job.
 
-### Bench check: `RS485_DE` at rest
+### Bench check: `RS485_DE` at rest — ✅ CLOSED 2026-09-07, measured 35 mV
 
 **`RS485_DE` has no external pull resistor** — the net is only GPIO4, `U308`
 pins 2/3 and `TP306` — so DE/R̅E̅ is undriven between power-on and firmware
@@ -535,13 +535,23 @@ configuring the pin, and for the whole time a board sits in BOOTSEL.
 
 In principle this is fine: RP2040 pads reset to input-with-internal-pull-down,
 which parks the THVD1450 in **receive** mode, the safe state. An unflashed panel
-should therefore not jam the bus. But the internal pull-down is weak (~50–80 kΩ)
-and is not established until POR completes.
+should therefore not jam the bus. But the internal pull-down was weak (~50–80 kΩ)
+and unestablished until POR completed, so it wanted measuring.
 
-**Confirm it once, on a blank powered board: measure `TP306` to GND — expect
-~0 V.** If it floats high, a 10 k to GND tacked at `TP306` fixes the boards in
-hand, and an external pull-down becomes a rev-2 candidate (purely additive, one
-part). Unresolved until someone puts a meter on it.
+**Measured on the first board, 2026-09-07: `TP306` to GND = 35 mV**, on a blank
+brain sitting in BOOTSEL on USB power. That is a hard low, not a float — the
+internal pull-down establishes and holds, the THVD1450 parks in receive, and an
+unflashed panel cannot jam the bus.
+
+**No rework, and the rev-2 external pull-down is dropped.** Do not re-open: this
+is a property of the design and the silicon, not of an individual board, so it
+does not need repeating per board.
+
+> **Note the measurement window.** A standalone brain has no 12V — that rail only
+> reaches it through `J303` pins 1/6 from the carrier — so USB *is* the power, and
+> "blank and powered" means **enumerated as `RPI-RP2` and sitting in BOOTSEL**.
+> The bootrom never touches GPIO4, so that state holds the reset default
+> indefinitely and is the window to meter in.
 
 ## Verification status
 
@@ -577,10 +587,11 @@ Re-run 2026-08-04 from clean project copies with
 
 ### Known open items
 
-- **`RS485_DE` rest state is unverified on real silicon.** No external pull on
-  the net; the RP2040's internal pull-down should park the THVD1450 in receive,
-  but nobody has measured it. **Measure `TP306` to GND on a blank powered board
-  — expect ~0 V.** See "First bring-up" above; drives a possible rev-2 pull-down.
+- ~~**`RS485_DE` rest state is unverified on real silicon.**~~ **CLOSED
+  2026-09-07:** `TP306` to GND measured **35 mV** on the first board, blank and in
+  BOOTSEL on USB power. A hard low — the internal pull-down parks the THVD1450 in
+  receive as intended. **No rework; the rev-2 external pull-down candidate is
+  dropped.** See "Bench check: `RS485_DE` at rest" above.
 - **44 vias at 0.60 mm drill exceed JLC's 0.5 mm epoxy-fill limit.** All
   power-distribution, none in a pad, so unfilled is electrically fine — but POFV is
   normally applied board-wide. **Ask JLC how they handle a board mixing fillable and

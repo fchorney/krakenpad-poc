@@ -2,9 +2,12 @@
 
 How to prove a freshly assembled `dual-panel` board works, and in what order.
 
-Written 2026-09-03, while the LCSC parts parcel was still in transit — so nothing
-here has been run against real hardware yet. Every pin, net and part number was
-re-derived from `dual-panel.kicad_pcb` and `docs/DUAL_PANEL.md`.
+Written 2026-09-03, while the LCSC parts parcel was still in transit. Every pin,
+net and part number was re-derived from `dual-panel.kicad_pcb` and
+`docs/DUAL_PANEL.md`.
+
+**Stage 0 has since been run on real hardware (2026-09-07) and is closed** — see
+below. Stages 1–3 are still as-written and unexercised.
 
 **Firmware: `firmware/panel/c/bringup/`.** It is deliberately *not* the gameplay
 firmware. `firmware/panel/c/main.c` is breadboard-pinned (LED on GPIO4, INT on
@@ -34,7 +37,7 @@ segfaults on RP2040.
 
 | stage | what is connected | what it can prove |
 |---|---|---|
-| **0** | brain, 12V, blank flash | `TP306` rest state — meter only, no firmware |
+| **0** | brain alone, USB, blank flash (in BOOTSEL) | `TP306` rest state, rails, `RUN` — meter only, no firmware. ✅ **done 2026-09-07** |
 | **1** | brain alone, USB | flash, rails, `SENSE_12V` reads absent, pull configuration |
 | **2** | + carrier + 12V, USB kept | power mux, DIP, termination, FSR mapping, INT, LEDs |
 | **3** | 2 panels + master | RS-485 — needs peers, cannot be self-tested |
@@ -44,22 +47,48 @@ The staging is not arbitrary: each stage is the largest set of checks that the
 
 ---
 
-## Stage 0 — blank board, meter only
+## Stage 0 — blank board, meter only — ✅ CLOSED 2026-09-07
 
-Before any firmware. **Measure `TP306` (`RS485_DE`) to GND on a blank, powered
-board — expect ~0 V.**
+Before any firmware. **Measure `TP306` (`RS485_DE`) to GND — expect ~0 V.**
 
-This is the one open item from `docs/DUAL_PANEL.md`. The net has no external pull
-(only GPIO4, `U308` pins 2/3 and `TP306`), so between power-on and firmware
-configuring the pin — and for the entire time a board sits in BOOTSEL — DE/R̅E̅
-is held only by the RP2040's internal pull-down, which is weak (~50–80 kΩ) and
-not established until POR completes. It should park the THVD1450 in receive.
+⚠ **A standalone brain has no 12V.** That rail only reaches it through `J303`
+pins 1/6 from the carrier, so **USB is the only power source**, and there is
+nothing to measure before the cable goes in. "Blank and powered" means: plug USB,
+let the board enumerate as `RPI-RP2`, and meter it **while it sits in BOOTSEL**.
+The bootrom never touches GPIO4, so the reset default holds indefinitely there —
+that is the window, and it is an unhurried one.
 
-If it floats high: a 10 k to GND tacked at `TP306` fixes the boards in hand, and
-an external pull-down becomes a rev-2 candidate (purely additive, one part).
+The net has no external pull (only GPIO4, `U308` pins 2/3 and `TP306`), so
+between power-on and firmware configuring the pin — and for the entire time a
+board sits in BOOTSEL — DE/R̅E̅ is held only by the RP2040's internal pull-down,
+which is weak (~50–80 kΩ) and not established until POR completes. It should park
+the THVD1450 in receive.
 
-**Do this on the first board only** — it is a design question, not a per-board
-test.
+**Result, first board, 2026-09-07: 35 mV.** A hard low, not a float. The
+pull-down establishes and holds, the THVD1450 parks in receive, and an unflashed
+panel cannot jam the bus. **No rework, and the rev-2 external pull-down candidate
+is dropped.**
+
+**This was a first-board-only check** — a design question, not a per-board test —
+and it is now answered. Skip it on boards 2–20.
+
+While the meter is out and the board is in BOOTSEL, the rest of the stage is
+three more probes, and these *are* worth doing per board:
+
+| point | signal | first board, 2026-09-07 |
+|---|---|---|
+| `TP302` | +5VDC | **5.25 V** — VBUS straight through `U304`, no meaningful drop |
+| `TP301` | +3.3VDC | **3.29 V** — `U302` AP7361C in regulation |
+| `TP303` | `RUN` | **3.3 V** — `R307` pull-up good |
+
+`TP302` is the one to actually read rather than tick: it feeds `U301`, whose
+4.5 V minimum is why `U304` replaced the Schottky OR (that left this rail
+~4.7 V). 5.25 V is 0.75 V of margin instead of 0.2 V.
+
+> **Carry this into stage 2.** VBUS at 5.25 V sits *above* the AMS1117-5.0's
+> output, so with both sources present the mux should stay on VBUS. That makes
+> the **unplug** the informative half of the hot-swap test — it is the transition
+> where `U304` actually has to hand over.
 
 ---
 
@@ -128,11 +157,45 @@ means a bridge or a wrong-value `R313` — stop and check.
 `gpio_disable_pulls(17)` is therefore mandatory, and the bring-up firmware does
 it before anything else. The `p` command reports the pin state under all three
 configurations so the margin on *this* silicon becomes a recorded fact rather
-than the arithmetic above. Run it at stage 1 (expect `0 0 1`) and again at stage
-2 with 12V live — that second reading is the one worth writing down.
+than the arithmetic above. Run it at stage 1 and again at stage 2 with 12V live —
+**that second reading is the only one that tests the risk.**
+
+**Stage 1 must print `0 0 0`** (measured on the first board, 2026-09-07; an
+earlier version of this doc predicted `0 0 1`, which was an arithmetic slip).
+With no 12V the `+12VDC` net floats — standalone it reaches the brain only
+through `J303` pins 1/6 — so the pin sees just `R314`'s 33 k to GND, and the
+internal pull-up cannot beat it:
+
+| internal pull-up | pin voltage, no 12V | vs VIH = 2.145 V |
+|---|---|---|
+| 50 kΩ (strong end) | 3.3 × 33/83 = **1.31 V** | reads 0 |
+| 80 kΩ (weak end) | 3.3 × 33/113 = **0.96 V** | reads 0 |
+
+Both ends of the spec land far below VIH, so **`0` in the pull-up column is
+guaranteed rather than board-specific** — and therefore says nothing about how
+strong this chip's pulls are. It is not a weak result to be explained away, but
+it is not predictive either: the pull-down risk is settled at stage 2 and nowhere
+else. (Same answer on a mated board with 12V merely switched off: `R313`∥`R314`
+= 24.8 k gives 1.09 V.)
+
+The stage-1 line that *is* load-bearing is **`pulls off : 0`** — the negative
+half of the 12V-sense test. It rules out a solder bridge to +3.3V and a
+mis-stuffed `R313`/`R314`.
 
 Whatever `p` reports, **do not relax the rule**. A board that happens to read
 high through its pull-down has a weak pull-down, not margin.
+
+**This is not a GPIO17 quirk — it is every pad.** The same reset default was
+caught leaving a pull-down on `INT_OUT` (GPIO22) on 2026-09-07; see "INT — `i`"
+below. Any pin whose released or floating state carries meaning needs
+`gpio_disable_pulls()` explicitly, because `gpio_init()` will not do it.
+
+**Measured pull-down strength, board `DE6558A69754442F`: ~45 kΩ**, solved from
+the `INT_OUT` divider. That is at or beyond the *strong* end of the 50–80 kΩ
+spec — the row above that fails. It is the same pad structure on the same die as
+GPIO17, so **expect this board's stage-2 `p` to show the pull-down masking 12V**,
+i.e. `1 0 …`. That would be the trap confirmed on real silicon rather than
+argued from arithmetic.
 
 ---
 
@@ -238,10 +301,65 @@ drive it HIGH. Driving push-pull would fight the master's 10 k pull-up and break
 the documented safe-failure behaviour (a disconnected wire reads HIGH = not
 pressed).
 
-Standalone, meter GPIO22: ~0 V asserted, **floating** when released. With the
-master present, the pulse must land on the JST XH header silkscreened for this
-panel's position — but that is really the `'I'` identify command's job at stage
-3, and it does not assume slot ↔ panel-ID agreement.
+⚠ **Metering GPIO22 bare does not work, and an earlier version of this doc said
+to do exactly that** ("~0 V asserted, floating when released"). Standalone there
+is **no pull-up anywhere on `INT_OUT`** — the master's 10 k is absent and so are
+the carrier's `R203`/`D201` — so the released pin is hi-Z with nothing pulling it
+up, and a ~10 MΩ meter reads it as ~0 V. Measured on the first board: **0.4 mV
+released vs 0.2 mV asserted.** Both states read zero; the test distinguishes
+nothing. A DMM cannot show you "floating".
+
+⚠ **And do not meter the pulse phase.** `i` pulses 200 ms low / 800 ms high — a
+1 Hz square wave. A handheld DMM cannot track that and reports the time-average,
+**0.8 × 3.3 = 2.64 V**, dipping toward 1.3 V as it catches low-weighted windows.
+That looks like a broken pin and is a correct one seen through a slow instrument.
+It cost one round of false diagnosis on the first board. **`i` therefore has a
+second phase: 8-second steady dwells, asserted then released, each announced
+before it starts. Meter that phase.** The fast pulses are for the master end of
+the wire, or a scope.
+
+**Supply the pull-up the master would.** Tack **10 k (1 k–100 k all work) from
+`TP301` (+3.3VDC) to `J302` pin 6**, then run `i` and read during the dwells:
+
+| state | expected | proves |
+|---|---|---|
+| released | **~3.3 V** | the pin really goes hi-Z, and is not stuck driven low |
+| asserted | **~0 V** | it can sink against a pull-up |
+
+> ### ⚠ This test found a real firmware bug on its first run (2026-09-07)
+>
+> The released dwell read **2.7 V, not 3.3 V**. That is not a meter artefact —
+> it is the **GPIO17 trap on a second pin**. RP2040 pads reset with the internal
+> pull-**down** enabled (`PADS_BANK0_GPIOn_PDE_RESET = 1`), and `gpio_init()`
+> does *not* touch pulls; it only sets direction, level and function. So
+> `int_out_release()` produced hi-Z **plus a ~45 kΩ pull-down**, which fights the
+> master's 10 k pull-up:
+>
+> | internal pull-down | V with 10 k to 3.3 V |
+> |---|---|
+> | 45 kΩ (this board, solved from 2.7 V) | 2.70 V |
+> | 50 kΩ (strong end of spec) | 2.75 V |
+> | 80 kΩ (weak end of spec) | 2.93 V |
+>
+> It would have *worked* — 2.7 V clears the Teensy's ~2.31 V VIH — but with
+> **0.4 V of noise margin instead of 1.0 V, on the sole gameplay input path.**
+> Fixed by adding `gpio_disable_pulls(PIN_INT_OUT)` to `int_out_init()`.
+> **`firmware/panel/c/main.c` needs the same call when it is ported.**
+>
+> Two things to take from this. First, **`gpio_init()` is not enough for any pin
+> whose released state matters** — audit every one. Second, this was invisible
+> without the external pull-up: with a bare meter both states read ~0 V and the
+> board looked fine.
+
+Both halves are needed. Note what this *can* and cannot catch: a firmware bug
+that drove the pin push-pull HIGH instead of releasing to input would also read
+3.3 V here, and only shows up at stage 3 when it fights the master's pull-up.
+What the bench test catches is driven-low vs hi-Z — and without the pull-up it
+catches neither.
+
+With the master present, the pulse must land on the JST XH header silkscreened
+for this panel's position — but that is really the `'I'` identify command's job
+at stage 3, and it does not assume slot ↔ panel-ID agreement.
 
 ### LEDs — `l`
 
@@ -291,6 +409,10 @@ the one with the odd FSR channel" is a question that gets asked later.
 Minimum to record per board: JEDEC ID, `w` result (both lines), `p` at stage 1
 and at stage 2, the mux hot-swap result, DIP sweep, FSR channel mapping, LED
 count.
+
+**The logs live in `docs/BRINGUP_LOG.md`** — a summary table plus a detail
+section per board, rather than one file each, so twenty boards stay greppable and
+diffable.
 
 ## Defaults this firmware carries
 

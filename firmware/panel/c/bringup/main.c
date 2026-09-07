@@ -179,8 +179,17 @@ static void sense_pull_probe(void) {
 // to input (hi-Z) and let the master's 10k pull-up do the work. Driving HIGH
 // would fight that pull-up and break the documented safe-failure behaviour
 // (disconnected wire reads HIGH = not pressed). Never call gpio_put(22, 1).
+// gpio_disable_pulls() is MANDATORY and was missing until 2026-09-07. RP2040
+// pads reset with the pull-DOWN enabled (PADS_BANK0_GPIOn_PDE_RESET = 1) and
+// gpio_init() does not touch pulls — it only sets direction, level and function.
+// So "released" was hi-Z *plus a ~45k pull-down*, which fights the master's 10k
+// pull-up: measured 2.7V instead of 3.3V on board DE6558A69754442F. Still above
+// the Teensy's VIH, so it would have worked — with 0.4V of noise margin on the
+// sole gameplay input path instead of 1.0V. This is the GPIO17 trap on a second
+// pin, and it is invisible without an external pull-up on the bench.
 static void int_out_init(void) {
     gpio_init(PIN_INT_OUT);
+    gpio_disable_pulls(PIN_INT_OUT);       // released must be TRUE hi-Z
     gpio_put(PIN_INT_OUT, 0);              // latch low, ready for the dir flip
     gpio_set_dir(PIN_INT_OUT, GPIO_IN);    // released = hi-Z
 }
@@ -320,16 +329,47 @@ static void dip_watch(void) {
     printf("  stopped.\n");
 }
 
+// Two phases, because they need different instruments.
+//
+// The 5 fast pulses are for the master end of the wire (and for a scope): they
+// show edges landing on the right JST XH header. They are USELESS on a handheld
+// DMM — 200ms low / 800ms high is a 1Hz square wave, and a meter that cannot
+// track it reports the time-average, 0.8 * 3.3 = 2.64V, which looks like a
+// broken pin but is a correct one seen through a slow instrument. (Measured on
+// board DE6558A69754442F: 2.7V "resting", dipping to 1.3V. Both artefacts.)
+//
+// So the second phase holds each state still for DWELL_MS. That is the phase to
+// meter. Standalone it needs an external pull-up (10k from TP301 to J302 pin 6)
+// or both states read ~0V through the meter's own impedance and prove nothing.
+#define INT_DWELL_MS 8000
+
 static void int_test(void) {
-    printf("  pulsing INT_OUT low 5 times, 200ms on / 800ms off.\n"
-           "  With the master present this must land on the header silkscreened for\n"
-           "  this panel's position. Standalone, meter GPIO22: ~0V asserted, and\n"
-           "  FLOATING (not 3.3V) when released — pushing it high is the bug.\n");
+    printf("  Phase 1: pulsing INT_OUT low 5 times, 200ms on / 800ms off.\n"
+           "  For the MASTER end or a scope — with the master present these edges\n"
+           "  must land on the header silkscreened for this panel's position.\n"
+           "  Do NOT try to read this phase on a handheld meter; it will show you\n"
+           "  the ~2.6V duty-cycle average and look like a fault.\n");
     for (int i = 0; i < 5; i++) {
         int_out_assert();  gpio_put(PIN_DEBUG_LED, 1); sleep_ms(200);
         int_out_release(); gpio_put(PIN_DEBUG_LED, 0); sleep_ms(800);
     }
-    printf("  done, released (hi-Z).\n");
+
+    printf("\n  Phase 2: steady dwells, %d s each — THIS is the one to meter.\n"
+           "  Standalone you need 10k from TP301 (+3.3VDC) to J302 pin 6, else\n"
+           "  both readings are ~0V and distinguish nothing.\n", INT_DWELL_MS / 1000);
+
+    printf("\n  >>> ASSERTED (driven LOW) — read the meter now. Expect ~0V.\n");
+    int_out_assert(); gpio_put(PIN_DEBUG_LED, 1);
+    sleep_ms(INT_DWELL_MS);
+
+    printf("  >>> RELEASED (hi-Z) — read again. Expect ~3.3V via the pull-up.\n"
+           "      If this reads ~0V the pin is stuck driven low. If it reads 3.3V\n"
+           "      with the pull-up REMOVED, firmware is driving it high — the bug\n"
+           "      this test exists to catch.\n");
+    int_out_release(); gpio_put(PIN_DEBUG_LED, 0);
+    sleep_ms(INT_DWELL_MS);
+
+    printf("\n  done, released (hi-Z).\n");
 }
 
 static void help(void) {
