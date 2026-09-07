@@ -119,7 +119,8 @@ carrier.
 | `SENSE_12V` edge | `12V PRESENT` logged on applying 12V | **the divider proven** — an edge, not a level a solder bridge could fake |
 | `TERM_SENSE` | tracks `SW202`; `TERMINATED` when thrown | pole B agrees with pole A |
 | DIP | all OFF → 15, leftmost ON → 7, rightmost ON → 14 | **matches the documented map**: leftmost = bit 3, rightmost = bit 0, ON = 0. Kept as-is |
-| FSR raw | South 13, West 13, North 12, East 12 | all four channels alive across the carrier interface (no FSRs fitted yet — channel↔edge mapping still to do with `f`) |
+| FSR raw, unfitted | South 13, West 13, North 12, East 12 | all four channels alive across the carrier interface |
+| `f` with 4 FSRs fitted | **all four map correctly**, 2026-09-07 | the edge pressed is the name that moves — `J201`/`J202`/`J203`/`J206` wired as documented. This is the carrier mix-up that would otherwise surface as a gameplay bug much later |
 | `p` with 12V | **`1 1 1`** | pull-down did **not** mask 12V → this die's Rpd > 63.5 kΩ, the weak end. Predicted `1 0 …`; prediction was wrong, rule unchanged |
 | `l` LED test | **all 25 lit**, red/green/blue/white | WS2815 chain, `U301`, `R301`, serpentine and the 12V rail under load |
 
@@ -150,4 +151,11 @@ burns ~8 mA whenever USB is live.
 
 ### Still open for this board
 
-`f` channel↔edge mapping (needs FSRs fitted), and stage 3 (RS-485, needs peers).
+- **ADC neighbour crosstalk under a hard press** — decides whether
+  `ADC_DUMMY_READ` stays 0. The board has the 10 nF caps (`C324/C326/C329/C330`)
+  the breadboard firmware's own comment said would make the dummy read
+  unnecessary, and the dummy read costs **half the sample rate**. Not yet checked.
+- **Resting / full-press counts per channel** — wanted as the basis for
+  calibration defaults. The ~100–115 / ~3900 / threshold 500 figures in
+  `CLAUDE.md` are breadboard-era.
+- **Stage 3** — RS-485, needs a second panel and the master.
