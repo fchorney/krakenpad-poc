@@ -20,6 +20,8 @@ target_link_libraries(panel_bringup
     hardware_pio
     hardware_flash
     hardware_sync
+    hardware_uart
+    hardware_irq
 )
 
 # W25Q32JV is 4MB. The SDK's default board header assumes 2MB, which would put

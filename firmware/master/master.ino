@@ -151,6 +151,15 @@ uint32_t poll_ok_window[NUM_PANELS] = {};
 // so they cannot answer "has this panel EVER answered" — which is what decides
 // whether a panel is worth printing a line for.
 uint32_t poll_ok_total[NUM_PANELS] = {};
+// Presence tracking. `poll_ok_total` is a LIFETIME counter, so on its own it can
+// only ever say "this panel replied at some point" — which made the heartbeat
+// keep printing a panel's last-known FSR values as though they were live long
+// after it stopped answering. A panel that is unplugged, reset, or dead must
+// read as gone, not as frozen. Found at the bench 2026-09-08 by toggling the
+// panel's responder off and watching the master carry on regardless.
+constexpr uint32_t PANEL_TIMEOUT_MS = 1000;   // ~22 missed polls at 9 x 5ms
+uint32_t last_reply_ms[NUM_PANELS] = {};
+bool     panel_online[NUM_PANELS]  = {};
 
 extern volatile int ident_ack_id;   // defined with the bench checks below
 
@@ -190,6 +199,7 @@ void parseRx() {
           stat_replies++;
           poll_ok_window[pidx]++;
           poll_ok_total[pidx]++;
+          last_reply_ms[pidx] = millis();
         } else if (cmd == 'i' && len == 0) {
           ident_ack_id = addr;
         } else if (cmd == 'c' && len == 5) {
@@ -661,12 +671,26 @@ void checkPanelHealth() {
   int worst = -1, best = -1;
   uint32_t worst_rate = 101, best_rate = 0;
 
+  // ⚠ A panel at 0% is ABSENT, not a duplicate ID — exclude it entirely.
+  // The signature of two boards sharing an address is that both reply SOME of
+  // the time, because their replies collide; a panel that never answers is
+  // simply not on the bus (or is dead), which is a different fault with a
+  // different fix. Including zeros here made a single-panel bench spam a
+  // duplicate-ID warning about the eight empty slots on every heartbeat, and
+  // it would equally mislabel one genuinely dead panel in a full pad.
+  int present = 0;
   for (int i = 0; i < NUM_PANELS; i++) {
     if (poll_sent_window[i] < MIN_SAMPLE) continue;
+    if (poll_ok_window[i] == 0) continue;          // absent, not colliding
+    present++;
     uint32_t rate = (poll_ok_window[i] * 100) / poll_sent_window[i];
     if (rate < worst_rate) { worst_rate = rate; worst = i; }
     if (rate > best_rate)  { best_rate = rate; best = i; }
   }
+
+  // With only one panel answering there is nothing to compare it against, so
+  // the heuristic cannot say anything either way.
+  if (present < 2) { worst = best = -1; }
 
   if (worst >= 0 && best >= 0 && worst != best &&
       worst_rate < BAD_PCT && best_rate > GOOD_PCT) {
@@ -812,6 +836,22 @@ void loop() {
     checkPanelHealth();
     // Nine panels would make the old single-line heartbeat unreadable, and with
     // no panels attached it was nine lines of zeros. Report only what replied.
+    // Report presence transitions before the table, so a panel dropping off the
+    // bus is an event and not something you have to notice by re-reading rows.
+    for (int i = 0; i < NUM_PANELS; i++) {
+      if (!poll_ok_total[i]) continue;
+      bool online = (now_ms - last_reply_ms[i]) < PANEL_TIMEOUT_MS;
+      if (online != panel_online[i]) {
+        panel_online[i] = online;
+        Serial.print(online ? "# panel " : "# !! panel ");
+        Serial.print(PANEL_IDS[i]);
+        Serial.print(" (");
+        Serial.print(PANEL_NAME[i]);
+        Serial.println(online ? ") is replying again"
+                              : ") STOPPED REPLYING -- unplugged, reset, or dead");
+      }
+    }
+
     Serial.print("[heartbeat] ");
     int seen = 0;
     for (int i = 0; i < NUM_PANELS; i++) if (poll_ok_total[i]) seen++;
@@ -825,6 +865,13 @@ void loop() {
         Serial.print(PANEL_NAME[i]);
         Serial.print("\t id ");
         Serial.print(PANEL_IDS[i]);
+        // Never print a stale reading as if it were current.
+        if (!panel_online[i]) {
+          Serial.print("  NO REPLY for ");
+          Serial.print((now_ms - last_reply_ms[i]) / 1000.0f, 1);
+          Serial.println("s  (values below would be stale, withheld)");
+          continue;
+        }
         Serial.print("  INT=");
         Serial.print(panel_pressed[i] ? "LOW(pressed)" : "HIGH(idle)");
         Serial.print("  FSR=");

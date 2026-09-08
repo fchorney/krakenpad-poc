@@ -22,6 +22,9 @@
 #include "hardware/clocks.h"
 #include "hardware/flash.h"
 #include "hardware/sync.h"
+#include "hardware/uart.h"
+#include "hardware/irq.h"
+#include "pico/bootrom.h"
 #include "ws2812.pio.h"
 
 // ── As-built pin map (docs/DUAL_PANEL.md → "RP2040 (U306) GPIO map") ─────────
@@ -372,12 +375,247 @@ static void int_test(void) {
     printf("\n  done, released (hi-Z).\n");
 }
 
+// ── RS-485 responder (stage 3) ──────────────────────────────────────────────
+// A minimal peer for docs/RS485_PROTOCOL.md — enough to make the master's bus
+// and its slot<->ID self-test real. NOT the gameplay firmware: no animations,
+// no flash config, no persistence. ../main.c still needs its wholesale port.
+//
+// Frame, both directions: 0x55 | cmd | addr | len | payload[len] | crc8
+// CRC-8 poly 0x07 init 0x00, over cmd..payload.
+//
+// Answers frames addressed to this panel's DIP ID, or to 0xFF broadcast:
+//   'F' -> 'f'   4 x uint16 LE raw ADC, then a pressed bitmask
+//   'I' -> 'i'   ack FIRST, then pull INT low for payload[0] ms
+//   'C' -> 'c'   set thresholds (RAM only), echo what was applied
+//   'L'          LED frame — counted; displayed only if 'E' is on, see below
+//
+// ⚠ THREE things this code must not do. Two of them already bit this project.
+//
+//   1. NEVER printf on the reply path. A USB CDC write takes ~ms; the master
+//      polls every 5 ms and expects a reply in ~150 us. So the responder is
+//      SILENT while running and stats print only on demand ('T'). "One dropped
+//      reply per second" that turns out to be your own logging is exactly the
+//      kind of lie a bring-up tool must not tell.
+//   2. RX must be interrupt-driven. The main loop's getchar_timeout_us(1000)
+//      blocks a full millisecond — 100 byte times at 1 Mbps against a 32-byte
+//      FIFO. Polling the UART from that loop drops frames. The IRQ fills a
+//      ring; the loop parses it. The loop also stops blocking while 'R' is on.
+//   3. DE must be released on the PL011's BUSY flag, never on FIFO-empty.
+//      TX-FIFO-empty does NOT mean the shift register is empty: release there
+//      and the last byte is truncated. uart_tx_wait_blocking() does wait on
+//      BUSY, which is correct — but a character time of slack is added anyway,
+//      because releasing early costs a byte and releasing late costs nothing
+//      here (the master paces polls 5 ms apart).
+#define RS485_BAUD      1000000u
+#define RS485_SYNC      0x55
+#define RS485_BCAST     0xFF
+#define RS485_MAX_PAY   80
+#define RS_RING         2048   // must outlast a 50ms 'I' pulse at ~42 kB/s
+
+static bool g_rs485_on   = false;
+static bool g_rs485_init = false;
+static bool g_led_echo   = false;   // OFF by default — see rs485_handle()
+
+static uint16_t g_press_th[NUM_FSR];
+static uint16_t g_rel_th[NUM_FSR];
+static bool     g_pressed[NUM_FSR];
+
+static volatile uint8_t  rs_ring[RS_RING];
+static volatile uint16_t rs_head = 0, rs_tail = 0;
+static volatile uint32_t rs_overruns = 0;
+static uint32_t rs_frames = 0, rs_crc_errs = 0, rs_polls = 0,
+                rs_led = 0, rs_ident = 0, rs_cfg = 0, rs_notmine = 0;
+
+static void rs485_rx_irq(void) {
+    while (uart_is_readable(uart0)) {
+        uint8_t c = (uint8_t)(uart_get_hw(uart0)->dr & 0xFF);
+        uint16_t next = (uint16_t)((rs_head + 1u) % RS_RING);
+        // ⚠ MUST keep draining the FIFO even when the ring is full. Returning
+        // here with bytes still pending leaves the RX interrupt asserted, so it
+        // re-fires immediately, forever — the main loop never runs, the ring
+        // never drains, and the board livelocks with USB dead. It would have
+        // fired on the first 'I': that handler blocks up to 50ms pulsing INT,
+        // which at ~42 kB/s of bus traffic is thousands of bytes into a ring
+        // this size. Drop the BYTE, never the drain.
+        if (next == rs_tail) { rs_overruns++; continue; }
+        rs_ring[rs_head] = c;
+        rs_head = next;
+    }
+}
+
+static uint8_t crc8_update(uint8_t crc, uint8_t b) {
+    crc ^= b;
+    for (int i = 0; i < 8; i++)
+        crc = (crc & 0x80u) ? (uint8_t)((crc << 1) ^ 0x07u) : (uint8_t)(crc << 1);
+    return crc;
+}
+
+static void rs485_send(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t len) {
+    uint8_t hdr[4] = { RS485_SYNC, cmd, addr, len };
+    uint8_t crc = 0;
+    crc = crc8_update(crc, cmd);
+    crc = crc8_update(crc, addr);
+    crc = crc8_update(crc, len);
+    for (uint8_t i = 0; i < len; i++) crc = crc8_update(crc, pay[i]);
+
+    gpio_put(PIN_RS485_DE, 1);
+    busy_wait_us(2);                      // driver enabled before the start bit
+    uart_write_blocking(uart0, hdr, 4);
+    if (len) uart_write_blocking(uart0, pay, len);
+    uart_write_blocking(uart0, &crc, 1);
+    uart_tx_wait_blocking(uart0);         // BUSY flag, not FIFO-empty — see (3)
+    busy_wait_us(12);                     // ~1 char at 1 Mbps of slack
+    gpio_put(PIN_RS485_DE, 0);            // back to receive
+}
+
+static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t len) {
+    uint8_t me = dip_read();
+    if (addr != me && addr != RS485_BCAST) { rs_notmine++; return; }
+
+    switch (cmd) {
+    case 'F': {
+        uint8_t r[9], mask = 0;
+        for (int i = 0; i < NUM_FSR; i++) {
+            uint16_t v = fsr_read(i);
+            r[i * 2]     = (uint8_t)(v & 0xFF);
+            r[i * 2 + 1] = (uint8_t)(v >> 8);
+            if      (v >= g_press_th[i]) g_pressed[i] = true;    // hysteresis
+            else if (v <= g_rel_th[i])   g_pressed[i] = false;
+            if (g_pressed[i]) mask |= (uint8_t)(1u << i);
+        }
+        r[8] = mask;
+        rs485_send('f', me, r, 9);
+        rs_polls++;
+        break;
+    }
+    case 'I': {
+        uint16_t ms = len ? pay[0] : 2;
+        if (ms < 1)  ms = 1;
+        if (ms > 50) ms = 50;
+        // Ack FIRST, then pulse: the master needs an explicit "expect an edge in
+        // the next N ms" window so correlating it needs no guesswork. rs485_send
+        // has already dropped DE, but give the bus a moment to settle before
+        // loading it with an INT edge.
+        rs485_send('i', me, NULL, 0);
+        busy_wait_us(50);
+        int_out_assert();
+        sleep_ms(ms);
+        int_out_release();
+        rs_ident++;
+        break;
+    }
+    case 'C':
+        if (len >= 5) {
+            uint8_t  ch = pay[0];
+            uint16_t p  = (uint16_t)(pay[1] | (pay[2] << 8));
+            uint16_t rl = (uint16_t)(pay[3] | (pay[4] << 8));
+            if (ch == 0xFF)
+                for (int i = 0; i < NUM_FSR; i++) { g_press_th[i] = p; g_rel_th[i] = rl; }
+            else if (ch < NUM_FSR) { g_press_th[ch] = p; g_rel_th[ch] = rl; }
+            rs485_send('c', me, pay, len);
+        }
+        rs_cfg++;
+        break;
+    case 'L':
+        rs_led++;
+        // ⚠ OFF by default, and that is deliberate. led_fill() pushes 25 pixels
+        // at 800 kHz — ~750 us of blocking PIO writes. The master sends 'L' at
+        // 60 Hz per panel, so echoing every frame stalls this loop enough to
+        // delay a poll reply and make a healthy bus look lossy. Turn it on with
+        // 'E' to prove data arrives; turn it off before trusting poll numbers.
+        if (g_led_echo && g_12v_present && led_ready && len >= 3)
+            led_fill(pay[0], pay[1], pay[2]);
+        break;
+    default:
+        break;
+    }
+}
+
+static void rs485_service(void) {
+    static enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
+    static uint8_t cmd, addr, len, idx, crc, pay[RS485_MAX_PAY];
+
+    while (rs_tail != rs_head) {
+        uint8_t c = rs_ring[rs_tail];
+        rs_tail = (uint16_t)((rs_tail + 1u) % RS_RING);
+
+        switch (st) {
+        case W_SYNC: if (c == RS485_SYNC) { crc = 0; st = W_CMD; } break;
+        case W_CMD:  cmd  = c; crc = crc8_update(crc, c); st = W_ADDR; break;
+        case W_ADDR: addr = c; crc = crc8_update(crc, c); st = W_LEN;  break;
+        case W_LEN:
+            len = c; crc = crc8_update(crc, c); idx = 0;
+            if (len > RS485_MAX_PAY) { rs_crc_errs++; st = W_SYNC; }
+            else st = len ? W_PAY : W_CRC;
+            break;
+        case W_PAY:
+            pay[idx++] = c; crc = crc8_update(crc, c);
+            if (idx >= len) st = W_CRC;
+            break;
+        case W_CRC:
+            if (c == crc) { rs_frames++; rs485_handle(cmd, addr, pay, len); }
+            else rs_crc_errs++;
+            st = W_SYNC;
+            break;
+        }
+    }
+}
+
+static void rs485_init(void) {
+    uart_init(uart0, RS485_BAUD);
+    gpio_set_function(PIN_RS485_TX, GPIO_FUNC_UART);
+    gpio_set_function(PIN_RS485_RX, GPIO_FUNC_UART);
+    uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
+    uart_set_fifo_enabled(uart0, true);
+    uart_set_hw_flow(uart0, false, false);
+    gpio_put(PIN_RS485_DE, 0);
+    irq_set_exclusive_handler(UART0_IRQ, rs485_rx_irq);
+    irq_set_enabled(UART0_IRQ, true);
+    uart_set_irq_enables(uart0, true, false);   // RX only; TX is blocking
+    for (int i = 0; i < NUM_FSR; i++) {
+        g_press_th[i] = FSR_PRESS_THRESHOLD;
+        g_rel_th[i]   = FSR_RELEASE_THRESHOLD;
+        g_pressed[i]  = false;
+    }
+    g_rs485_init = true;
+}
+
+static void rs485_stats(void) {
+    uint8_t me = dip_read();
+    printf("\n  RS-485 responder: %s\n", g_rs485_on ? "ON" : "off");
+    printf("  my address    : %u  (%s)\n", me, dip_meaning(me));
+    if (me > 8)
+        printf("  ** THE MASTER WILL NEVER ADDRESS THIS PANEL — it polls IDs 0-8.\n"
+               "     Set the DIP to a panel ID. Remember CLOSED = 0, so ID 0 is\n"
+               "     all four switches ON and an untouched all-OFF switch is 15.\n");
+    printf("  frames ok     : %lu\n", (unsigned long)rs_frames);
+    printf("  crc errors    : %lu\n", (unsigned long)rs_crc_errs);
+    printf("  rx overruns   : %lu\n", (unsigned long)rs_overruns);
+    printf("  'F' answered  : %lu\n", (unsigned long)rs_polls);
+    printf("  'L' received  : %lu   (echo to LEDs: %s)\n",
+           (unsigned long)rs_led, g_led_echo ? "ON" : "off");
+    printf("  'I' answered  : %lu\n", (unsigned long)rs_ident);
+    printf("  'C' answered  : %lu\n", (unsigned long)rs_cfg);
+    printf("  not for me    : %lu   (other panels' traffic — normal on a shared bus)\n",
+           (unsigned long)rs_notmine);
+    if (rs_frames == 0 && rs_crc_errs == 0)
+        printf("  => NOTHING RECEIVED AT ALL. Check A/B not swapped, termination at\n"
+               "     both ends only, a shared ground, and U308's solder joints.\n");
+    else if (rs_frames == 0 && rs_crc_errs > 0)
+        printf("  => Bytes arrive but no frame validates: bus is alive, so suspect\n"
+               "     baud, A/B polarity, or reflections from missing termination.\n");
+}
+
 static void help(void) {
     printf("\n  s  status snapshot          f  stream FSR values\n"
            "  d  watch DIP switch         i  pulse INT_OUT\n"
            "  b  blink debug LED          l  LED test (needs 12V)\n"
            "  p  SENSE_12V pull probe     w  flash write + capacity test\n"
-           "  v  re-print banner          ?  this help\n");
+           "  v  re-print banner          ?  this help\n"
+           "\n  stage 3 (RS-485, needs the master):\n"
+           "  R  responder on/off         T  responder counters\n"
+           "  E  echo 'L' frames to LEDs (off by default — it stalls the loop)\n"
+           "  B  reboot into BOOTSEL for reflashing\n");
 }
 
 // ── Stage 1 self-test ───────────────────────────────────────────────────────
@@ -452,7 +690,12 @@ int main(void) {
             next_beat = delayed_by_ms(get_absolute_time(), 500);
         }
 
-        int c = getchar_timeout_us(1000);
+        // ⚠ Do NOT block for a millisecond while the responder is live: at
+        // 1 Mbps that is 100 byte times against a 32-byte FIFO. The IRQ still
+        // catches bytes, but the ring only drains here, so keep the loop tight.
+        if (g_rs485_on) rs485_service();
+
+        int c = getchar_timeout_us(g_rs485_on ? 0 : 1000);
         switch (c) {
             case 's': print_status();      break;
             case 'f': fsr_stream();        break;
@@ -467,6 +710,27 @@ int main(void) {
                     gpio_put(PIN_DEBUG_LED, i & 1); sleep_ms(150);
                 }
                 printf("  debug LED blinked 3x (carrier D202).\n");
+                break;
+            case 'R':
+                if (!g_rs485_init) rs485_init();
+                g_rs485_on = !g_rs485_on;
+                printf("\n  RS-485 responder %s (address %u). Silent while running —\n"
+                       "  press 'T' for counters. See docs/PANEL_BRINGUP.md stage 3.\n",
+                       g_rs485_on ? "ON" : "OFF", dip_read());
+                break;
+            case 'T': rs485_stats();       break;
+            case 'B':
+                // Reboot into BOOTSEL so reflashing needs no button. Stage 3 is
+                // an edit/build/flash loop; SW301 is under the panel platform.
+                printf("\n  rebooting into BOOTSEL — drag the .uf2 onto RPI-RP2.\n");
+                sleep_ms(120);          // let the CDC write drain first
+                reset_usb_boot(0, 0);
+                break;
+            case 'E':
+                g_led_echo = !g_led_echo;
+                printf("\n  'L' -> LED echo %s.%s\n", g_led_echo ? "ON" : "off",
+                       g_led_echo ? " ~750us of blocking PIO writes per frame —"
+                                    " turn it off before trusting poll counts." : "");
                 break;
             case '?': help();              break;
             default: break;

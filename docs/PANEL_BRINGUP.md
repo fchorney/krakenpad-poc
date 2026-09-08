@@ -432,7 +432,70 @@ power.
 
 ---
 
-## Stage 3 — RS-485, two panels and the master
+## Stage 3 — RS-485, the master and at least one panel — ✅ FIRST PASS 2026-09-08
+
+**Implemented.** The bring-up firmware carries a minimal responder for
+`docs/RS485_PROTOCOL.md` — enough to make the master's bus and its slot↔ID
+self-test real. It is **not** the gameplay firmware: no animations, no flash
+config, no persistence. `../main.c` still needs its wholesale port.
+
+| cmd | what it does |
+|---|---|
+| `R` | responder on/off (**off at boot**; prints its address) |
+| `T` | counters — frames, CRC errors, RX overruns, per-command tallies |
+| `E` | echo `'L'` frames to the LEDs (**off by default**, see below) |
+| `B` | reboot into BOOTSEL |
+
+It answers frames addressed to this panel's DIP ID or to `0xFF`:
+`'F'`→`'f'` (4 × uint16 LE raw ADC + pressed bitmask), `'I'`→`'i'` (ack **first**,
+then pulse INT), `'C'`→`'c'` (thresholds, RAM only). `'L'` is counted.
+
+⚠ **Set the DIP to a panel ID first.** The master only ever addresses 0–8, and
+**closed reads 0** — so ID 0 is all four switches ON and an untouched all-OFF
+switch reads **15**, which is never addressed and looks exactly like a dead bus.
+`T` prints a loud warning if the address is out of range.
+
+⚠ **`E` is off by default and should stay off while judging poll numbers.**
+`led_fill()` is ~750 µs of blocking PIO writes and the master sends `'L'` at
+60 Hz, so echoing every frame stalls the loop enough to delay poll replies and
+make a healthy bus look lossy. Turn it on to prove data arrives, off to measure.
+
+### Three constraints the responder is built around
+
+1. **Never printf on the reply path.** A USB CDC write is ~ms; the master polls
+   every 5 ms and expects a reply in ~150 µs. The responder is silent while
+   running and counters print only on `T`. "One dropped reply per second" that
+   turns out to be your own logging is the exact class of error this project has
+   hit repeatedly (see the `i` pulse-train and `u` duty-cycle traps).
+2. **RX must be interrupt-driven**, and the main loop must stop blocking while
+   the responder is live. `getchar_timeout_us(1000)` is 100 byte times at 1 Mbps
+   against a 32-byte FIFO.
+3. **The RX ISR must always drain the FIFO, even when its ring is full.**
+   Returning early with bytes pending leaves the interrupt asserted, so it
+   re-fires forever, the main loop never runs, and the board livelocks with USB
+   dead. This was written wrong first time and would have fired on the first
+   `'I'` — that handler blocks up to 50 ms pulsing INT, thousands of bytes at
+   ~42 kB/s. Drop the byte, never the drain. Ring is 2048 to outlast the pulse.
+
+### First pass
+
+Master #1 + brain `DE6558A69754442F`, one panel at ID 0 on the `UL` slot.
+Polls answered with live ADC values matching the board's recorded 94–98 resting
+range, **0 CRC errors**, and the master's `I` self-test passed. That clears
+`U1` on the master and `U308` on the panel — both SOIC-8 hot-air joints that had
+had no electrical test until this point.
+
+### 🐛 Found by this: the master reported stale telemetry as live
+
+Toggling `R` off, **the master carried on printing the panel's last-known FSR
+values as though nothing had happened.** Its heartbeat gated on `poll_ok_total`,
+a *lifetime* counter, so a panel that had ever replied was listed forever with
+its last reading. A panel that is unplugged, reset or dead must read as gone,
+not frozen. Fixed: per-panel `last_reply_ms`, a 1 s timeout (~22 missed polls at
+9 × 5 ms), a one-shot `STOPPED REPLYING` / `is replying again` transition line,
+and the row withholds the values rather than showing stale ones.
+
+### Why it still cannot be self-tested on one board
 
 **RS-485 cannot be self-tested on one board.** `DE` and `R̅E̅` are tied, so
 transmitting disables the local receiver — there is no loopback through `U308`.
