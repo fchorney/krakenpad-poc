@@ -28,7 +28,7 @@ file fills in as they are brought up.
 
 | board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
 |---|---|---|---|---|---|---|
-| **master #1** | 2026-09-08 | 🔄 | — | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT front end fully verified both directions |
+| **master #1** | 2026-09-08 | ✅ except `u` | 🔄 | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT front end verified both directions; `r` closed the single-GPIO-port open item |
 
 ## `DE6558A69754442F` — first board
 
@@ -228,6 +228,30 @@ it and the test still passes. Both together prove no shorts *and* no opens acros
 
 `N` also doubles as a seated/not-seated check — standalone it reads all nine LOW.
 
+### `r` — single-GPIO-port claim CONFIRMED, and it closes a documented open item
+
+`docs/MASTER_PCB.md` carried GPIO15–23 sharing one i.MX RT port as a
+*processor-reference claim, not derived from the board files*, to be checked at
+bring-up. It holds: **all nine INT pins report register `0x42000008`.** A single
+read samples the whole pad, which the glitch-qualify re-read and the `'I'`
+self-test both want.
+
+⚠ **The bits are scattered — this needs a lookup table, not a shift.**
+
+| panel | 0 `UL` | 1 `U` | 2 `UR` | 3 `L` | 4 `C` | 5 `R` | 6 `DL` | 7 `D` | 8 `DR` |
+|---|---|---|---|---|---|---|---|---|---|
+| pin | 23 | 22 | 21 | 20 | 19 | 18 | 17 | 16 | 15 |
+| bit | 25 | 24 | 27 | 26 | 16 | 17 | 22 | 23 | 19 |
+
+They do not descend with pin number, and `DR`/pin 15 lands on bit 19 — in the
+middle, not at an end.
+
+### `D` — player-ID DIP confirmed
+
+Reads **0 (P1)** with all three switches ON, exactly as the inverted-DIP note
+predicts. All-OFF reads 7, a reserved code — the deliberate choice, so that an
+unconfigured master does not claim to be P1.
+
 ### 🐛 Firmware bugs found and fixed
 
 - **Staircased output on `?` and `r`.** `printHelp()` passes one multi-line
@@ -250,10 +274,9 @@ it and the test still passes. Both together prove no shorts *and* no opens acros
 
 ### Still open for this board
 
-- **Stage 1 remainder:** `r` (single-port confirmation), `D` (player-ID DIP,
-  reads 7 = all-OFF until set; P1 needs all three switches ON), `u` (underglow
-  through `U3`, scope its Y pin — the strip's 12V comes from the Wago fan-out,
-  not this board).
+- **Stage 1 remainder:** `u` only (underglow through `U3` — scope its Y pin; the
+  strip's 12V comes from the Wago fan-out, not this board). Underglow was not
+  connected at the bench on 2026-09-08. `r` and `D` are done, above.
 - **Stage 2 and 3** need panels: RS-485 cannot be self-tested, since `U1` pads 2
   and 3 are both on `RS485_DE` and transmitting disables the local receiver.
 - **`I` will report "no ack" for every ID** until `firmware/panel/c/main.c` is

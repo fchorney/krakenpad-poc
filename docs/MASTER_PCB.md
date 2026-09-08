@@ -75,12 +75,16 @@ the pin can actually do. **No blockers.**
   before firmware drives the pin.
 - ✅ **DIP on GPIO3/4/5** — plain inputs, `INPUT_PULLUP`, no board resistors.
 
-**Worth confirming at bring-up, not verified here:** GPIO15–23 are all `AD_B1_xx`
-pads, which sit on a single i.MX RT GPIO port. If that holds, **all nine INT lines
-can be sampled in one register read** — useful both for the glitch-qualify re-read
-and for the `'I'` identify self-test, which has to watch all nine at once. This is a
-processor-reference claim, not something derived from the board files, so check it
-with a one-liner rather than assuming it.
+✅ **CONFIRMED AT BRING-UP 2026-09-08 on master #1 — this is closed.** GPIO15–23
+are all `AD_B1_xx` pads and they do sit on **one** i.MX RT GPIO port: `r` reports
+every one of the nine at register **`0x42000008`**, so **all nine INT lines can be
+sampled in a single register read** — useful both for the glitch-qualify re-read
+and for the `'I'` identify self-test, which has to watch all nine at once.
+
+⚠ **The bits are scattered, so it needs a lookup table, not a shift.** Measured
+bit positions, panel 0→8: **25, 24, 27, 26, 16, 17, 22, 23, 19.** Do not assume
+they descend with pin number — they do not, and `DR`/`pin 15` lands on bit 19,
+in the middle rather than at either end.
 
 The one hard constraint is that RS-485 TX/RX sit on a matched hardware UART
 pair — **as built that's Serial2 (GPIO 7/8)**. The INT lines occupy GPIO 15–23,
