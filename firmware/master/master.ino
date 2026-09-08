@@ -269,6 +269,81 @@ void reportIntLines(const char *when) {
   }
 }
 
+// `n` reads the INT lines with the Teensy's own pull-ups enabled, so it CANNOT
+// see a MISSING external pull-up: with RN1 unsoldered every line still reads
+// HIGH, held by the internal pull-up instead. That matters because RN1 is a
+// hand-soldered SIP-10 whose pin 1 is the common feeding all nine resistors —
+// one cold joint there silently removes all nine external pull-ups at once, and
+// the 10k value is deliberate (docs/MASTER_PCB.md: "deliberately 10k not stiff",
+// the INT-into-dead-panel case).
+//
+// This inverts the bias instead. With the internal pull-DOWN selected (~100k on
+// i.MX RT) RN1's 10k to +3.3VDC still wins the divider — 3.3 * 100/110 ~= 3.0V,
+// a solid HIGH — while a line with no external pull-up is dragged to 0V. RN1
+// lands on the Teensy-side node (same net as C3-C11), so the settling RC is
+// 100k * 1nF = 100us worst case; 1ms is 10 time constants.
+//
+//   all nine HIGH  RN1 present and pulling on every line
+//   any line LOW   that line has no external pull-up: RN1 joint, or open trace
+//   all nine LOW   no external pull-ups at all — RN1's common pin 1 is open, or
+//                  the Teensy is not seated on the master board
+//
+// Nothing may be plugged into J3-J11 while this runs: a panel holding its
+// open-drain INT low is indistinguishable from a missing pull-up.
+void reportIntPullups() {
+  Serial.println("INT external pull-up (RN1) check.");
+  Serial.println("Nothing may be plugged into J3-J11 — a held INT reads as a missing pull-up.");
+
+  for (int i = 0; i < NUM_PANELS; i++)
+    detachInterrupt(digitalPinToInterrupt(INT_PINS[i]));
+
+  bool pulled[NUM_PANELS];
+  for (int i = 0; i < NUM_PANELS; i++) {
+    pinMode(INT_PINS[i], INPUT_PULLDOWN);
+    delayMicroseconds(1000);
+    pulled[i] = (digitalReadFast(INT_PINS[i]) == HIGH);
+    pinMode(INT_PINS[i], INPUT_PULLUP);
+  }
+
+  // Those mode changes toggled every pin, so the ring now holds phantom edges.
+  // Drop them before the ISRs go back on, or they surface as nine fake presses.
+  noInterrupts();
+  ring_head = 0;
+  ring_tail = 0;
+  interrupts();
+  for (int i = 0; i < NUM_PANELS; i++)
+    attachInterrupt(digitalPinToInterrupt(INT_PINS[i]), INT_ISR[i], CHANGE);
+
+  int missing = 0;
+  for (int i = 0; i < NUM_PANELS; i++) {
+    if (!pulled[i]) missing++;
+    Serial.print("  ");
+    Serial.print(PANEL_NAME[i]);
+    Serial.print("\t panel ");
+    Serial.print(PANEL_IDS[i]);
+    Serial.print("\t pin ");
+    Serial.print(INT_PINS[i]);
+    Serial.print("\t ");
+    Serial.print(INT_CONN[i]);
+    Serial.print("\t RN1.");
+    Serial.print(i + 2);            // RN1 pin 1 is the common; .2 = UL
+    Serial.println(pulled[i] ? "\t OK   (external pull-up present)"
+                             : "\t ??   NO external pull-up");
+  }
+
+  if (missing == 0) {
+    Serial.println("  => PASS: all nine external pull-ups present.");
+  } else if (missing == NUM_PANELS) {
+    Serial.println("  => ALL NINE MISSING. Either RN1 pin 1 (the common, to +3.3VDC)");
+    Serial.println("     is open, or the Teensy is not seated on the master board.");
+  } else {
+    Serial.print("  => ");
+    Serial.print(missing);
+    Serial.println(" line(s) missing an external pull-up: reflow that RN1 pin,");
+    Serial.println("     then check the trace from it to the Teensy pin.");
+  }
+}
+
 // docs/MASTER_PCB.md flags this as "worth confirming at bring-up, not verified
 // here": all nine INT pins are AD_B1_xx pads and should therefore sit on a
 // single i.MX RT GPIO port, which would let a future fast path sample every
@@ -306,7 +381,7 @@ void reportIntPortLayout() {
     Serial.println(bit);
   }
   Serial.println(same
-    ? "  => CONFIRMED: all nine on one register. A single read samples the pad;\n"
+    ? "  => CONFIRMED: all nine on one register. A single read samples the pad;\r\n"
       "     the bits are scattered, so it needs a table, not a shift."
     : "  => NOT all on one register — the single-read fast path is not available.");
 }
@@ -439,15 +514,16 @@ void identifySelfTest() {
 // Newline-terminated. The board-local ones (?, n, r, D, u, x) need no panels.
 void printHelp() {
   Serial.println(F(
-    "commands:\n"
-    "  ?                          this help\n"
-    "  n                          INT line states, by panel position\n"
-    "  r                          INT GPIO port/bit layout (single-read check)\n"
-    "  D                          read the player-ID DIP (SW1)\n"
-    "  u                          underglow test pattern\n"
-    "  x                          pause/resume LED frames + FSR polling\n"
-    "  I                          slot <-> panel-ID self-test (needs panels)\n"
-    "  t                          toggle telemetry stream\n"
+    "commands:\r\n"
+    "  ?                          this help\r\n"
+    "  n                          INT line states, by panel position\r\n"
+    "  N                          INT external pull-up (RN1) check\r\n"
+    "  r                          INT GPIO port/bit layout (single-read check)\r\n"
+    "  D                          read the player-ID DIP (SW1)\r\n"
+    "  u                          underglow test pattern\r\n"
+    "  x                          pause/resume LED frames + FSR polling\r\n"
+    "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
+    "  t                          toggle telemetry stream\r\n"
     "  S <panel> <press> <rel>    set FSR thresholds on one panel"));
 }
 
@@ -456,6 +532,8 @@ void handleCommand(const char *s) {
     printHelp();
   } else if (strcmp(s, "n") == 0) {
     reportIntLines("now");
+  } else if (strcmp(s, "N") == 0) {
+    reportIntPullups();
   } else if (strcmp(s, "r") == 0) {
     reportIntPortLayout();
   } else if (strcmp(s, "D") == 0 || strcmp(s, "dip") == 0) {

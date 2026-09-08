@@ -1,18 +1,34 @@
 # Bring-up log
 
-Per-board results from `docs/PANEL_BRINGUP.md`. One row per board in the summary,
-one detail section below it. Boards are named by the RP2040 unique ID the banner
-prints (read out of `U307`) — silkscreen carries no serial, so this is the only
-durable handle on a physical board.
+Per-board results from `docs/PANEL_BRINGUP.md` and `docs/MASTER_BRINGUP.md`. One
+row per board in the summary, one detail section below it.
 
-Twenty brains and twenty carriers were fabricated; this file fills in as they are
-brought up.
+**Panels** are named by the RP2040 unique ID the banner prints (read out of
+`U307`) — silkscreen carries no serial, so this is the only durable handle on a
+physical board.
+
+⚠ **Masters have no equivalent, and the Teensy's serial is NOT a substitute.**
+The Teensy is socketed, so its serial identifies *the MCU module, not the board
+it is plugged into* — the same Teensy can move between masters, and the
+prototype Teensy was in fact reused for master #1. Masters are therefore numbered
+by hand, and **the number must be written on the board** (silkscreen carries no
+serial here either). The Teensy serial is recorded alongside it only to say which
+module was fitted at the time.
+
+Twenty brains and twenty carriers were fabricated, and five master boards; this
+file fills in as they are brought up.
 
 ## Summary
 
 | board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | notes |
 |---|---|---|---|---|---|---|
 | `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | — | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive |
+
+### Masters
+
+| board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
+|---|---|---|---|---|---|---|
+| **master #1** | 2026-09-08 | 🔄 | — | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT front end fully verified both directions |
 
 ## `DE6558A69754442F` — first board
 
@@ -175,3 +191,70 @@ indistinguishable by design — presence is config, not measurement.
 - **Stage 3** — RS-485. Needs a second panel and the master; cannot be
   self-tested, since `DE`/`R̅E̅` are tied and transmitting disables the local
   receiver.
+
+---
+
+## master #1
+
+**2026-09-08.** First master assembled. Bare JLC fab (OSP, 4-layer), every part
+hand-soldered including SMD — `U1` SOIC-8, `U3` SOT-23-5, `D1`–`D9` DO-214AC and
+22 × 0805 — with **MG Chemicals 4902P (Sn42Bi57Ag1)** low-temp paste by hot air.
+`R1`/`R2` left unpopulated as designed.
+
+**Teensy fitted: serial `20432520`, the ex-prototype module** (a new Teensy was
+short of headers). Its VUSB↔VIN bridge was inspected and is **intact** — the
+board taps VIN, and cutting that bridge costs `U3` its 5V supply with no other
+symptom. It was flashed with the as-built `firmware/master/master.ino` *before*
+being seated.
+
+> The old prototype build turned out to be harmless on this board anyway, which
+> is worth recording so the next person does not over-worry: every pin it drove
+> as an output (Serial1 TX pin 1, DE pin 2, LED pin 13) lands on a **spare,
+> unconnected** pad here, and the two pins that were repurposed (3/4, breadboard
+> INT → player-ID DIP) were `INPUT_PULLUP` inputs against a switch to GND, i.e.
+> ~150 µA. Flashing first is still the right habit; it just was not load-bearing.
+
+### INT front end — verified in both directions
+
+| check | result |
+|---|---|
+| `n` — all nine INT lines idle | **all HIGH** — no bridge, no shorted `C3`–`C11` |
+| `N` — external pull-up (`RN1`) present | **all nine OK** — PASS |
+
+`N` was written for this board (see `docs/MASTER_BRINGUP.md`) after noticing that
+`n` alone **cannot** detect a missing `RN1`: the Teensy's internal pull-ups mask
+it and the test still passes. Both together prove no shorts *and* no opens across
+`D1`–`D9` / `R6`–`R14` / `C3`–`C11` and all ten `RN1` joints.
+
+`N` also doubles as a seated/not-seated check — standalone it reads all nine LOW.
+
+### 🐛 Firmware bugs found and fixed
+
+- **Staircased output on `?` and `r`.** `printHelp()` passes one multi-line
+  literal to `Serial.println()`, which appends `\r\n` only at the very end — the
+  nine embedded `\n`s stayed bare LF, so a raw terminal dropped a line without
+  returning the carriage. Ten literals changed to `\r\n`, including the two-line
+  "CONFIRMED: all nine on one register" message at `master.ino:309`, which would
+  have staircased the first time `r` ran. Every other output uses individual
+  `println()` calls, which is why only these two were affected.
+
+### Bench-method notes
+
+- **The master needs a command *and Enter*; the panel bring-up does not.** The
+  panel uses `getchar_timeout_us()` (single keypress); the master buffers a line.
+  It has to — `S <panel> <press> <rel>` takes arguments. Coming straight off a
+  panel bring-up this reads as "the board is ignoring me". There is also no local
+  echo, and replies land between `[heartbeat]` lines.
+- **`screen` holding the port blocks flashing** — "Unable to open … for reboot
+  request". Quit the session, or press the PROGRAM button, which works regardless.
+
+### Still open for this board
+
+- **Stage 1 remainder:** `r` (single-port confirmation), `D` (player-ID DIP,
+  reads 7 = all-OFF until set; P1 needs all three switches ON), `u` (underglow
+  through `U3`, scope its Y pin — the strip's 12V comes from the Wago fan-out,
+  not this board).
+- **Stage 2 and 3** need panels: RS-485 cannot be self-tested, since `U1` pads 2
+  and 3 are both on `RS485_DE` and transmitting disables the local receiver.
+- **`I` will report "no ack" for every ID** until `firmware/panel/c/main.c` is
+  ported and implements the panel half of `'I'`. That is a correct result.

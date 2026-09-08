@@ -41,12 +41,24 @@ label, so nothing at the bench needs a lookup table.
 
 ## Bench commands
 
-Type a letter and Enter over USB serial. `?` lists them. The first five need no
-panels and no 12V.
+Type a letter **and press Enter** over USB serial. `?` lists them. The first
+five need no panels and no 12V.
+
+> ⚠ **This differs from the panel, and the difference bites coming off a panel
+> bring-up.** `firmware/panel/c/bringup/` uses `getchar_timeout_us()` and acts
+> on a **single keypress**; the master buffers a line and acts on `\n`/`\r`.
+> The master has to work this way — `S <panel> <press> <rel>` takes arguments,
+> so a single-key mode would fire `S` before you could type the thresholds.
+>
+> There is also **no local echo**: nothing appears as you type, and the reply
+> can land between two `[heartbeat]` lines. Keys doing "nothing" in `screen`
+> is normally one of these two, or screen's copy/scrollback mode — a stray
+> trackpad scroll enters it and swallows every keystroke until you press `Esc`.
 
 | cmd | what it does |
 |---|---|
 | `n` | all nine INT line states, by panel position and connector |
+| `N` | INT **external** pull-up (RN1) check — proves the 10k×9 is really there |
 | `r` | which GPIO port register and bit each INT pin lands on |
 | `D` | read the player-ID DIP |
 | `u` | underglow test pattern |
@@ -64,6 +76,38 @@ So a bare master needs nothing but a USB cable.
 ⚠ **The board taps Teensy VIN, not the raw VUSB pad — the on-Teensy VUSB↔VIN
 bridge must stay intact.** Cut it and U3 loses its 5V supply and the underglow
 goes dark with no other symptom.
+
+**`N` — the external pull-up check, and why `n` is not enough.** Run this
+before or after `n`; it is the one that actually tests the board.
+
+`n` reads the INT lines with the Teensy's *internal* pull-ups enabled
+(`pinMode(INT_PINS[i], INPUT_PULLUP)`), so it can only catch a line stuck LOW —
+a bridge or a shorted `C3`–`C11`. It is **blind to the opposite fault**: with
+`RN1` unsoldered every line still reads HIGH, held by the internal pull-up, and
+`n` reports a clean pass. That is not a hypothetical on a hand-assembled board.
+`RN1` is a THT SIP-10 whose **pin 1 is the common feeding all nine resistors**,
+so a single cold joint there removes every external pull-up at once — and the
+10k value is deliberate (`docs/MASTER_PCB.md`: "deliberately 10k not stiff", the
+INT-into-dead-panel case), so silently running on the Teensy's internal pull-up
+instead is a real, invisible deviation.
+
+`N` inverts the bias to settle it. With the internal pull-**down** selected
+(~100k on i.MX RT), `RN1`'s 10k to +3.3VDC still wins the divider —
+3.3 × 100/110 ≈ 3.0 V, a solid HIGH — while a line with no external pull-up is
+dragged to 0 V. `RN1` lands on the Teensy-side node (same net as `C3`–`C11`), so
+the settling RC is 100k × 1nF = 100 µs worst case; the code waits 1 ms.
+
+| result | meaning |
+|---|---|
+| all nine `OK` | `RN1` present and pulling on every line, all nine traces continuous |
+| any line `NO external pull-up` | that line only: `RN1` joint, or an open trace to the Teensy pin |
+| all nine missing | `RN1` pin 1 (the common) is open — **or the Teensy is not seated** |
+
+⚠ **Nothing may be plugged into `J3`–`J11` while `N` runs.** A panel holding its
+open-drain INT low is indistinguishable from a missing pull-up. The command
+detaches the INT interrupts, flips the pin modes, and flushes the edge ring
+before re-attaching them — without that flush the mode changes surface as nine
+phantom presses.
 
 **`n` — INT idle states.** All nine must read HIGH. `RN1` (10k ×9 bussed) pulls
 every line to +3.3VDC, so a LOW line with nothing plugged in is a board fault:
