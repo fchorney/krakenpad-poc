@@ -443,7 +443,8 @@ config, no persistence. `../main.c` still needs its wholesale port.
 |---|---|
 | `R` | responder on/off (**off at boot**; prints its address) |
 | `T` | counters — frames, CRC errors, RX overruns, per-command tallies |
-| `E` | echo `'L'` frames to the LEDs (**off by default**, see below) |
+| `E` | paint incoming `'L'` frames on the LEDs (off at boot; needs 12V) |
+| `A` | drive `INT_OUT` from the FSR thresholds — the real press path |
 | `B` | reboot into BOOTSEL |
 
 It answers frames addressed to this panel's DIP ID or to `0xFF`:
@@ -455,10 +456,18 @@ then pulse INT), `'C'`→`'c'` (thresholds, RAM only). `'L'` is counted.
 switch reads **15**, which is never addressed and looks exactly like a dead bus.
 `T` prints a loud warning if the address is out of range.
 
-⚠ **`E` is off by default and should stay off while judging poll numbers.**
-`led_fill()` is ~750 µs of blocking PIO writes and the master sends `'L'` at
-60 Hz, so echoing every frame stalls the loop enough to delay poll replies and
-make a healthy bus look lossy. Turn it on to prove data arrives, off to measure.
+**`E` paints all 25 pixels** from the 75-byte payload, and is safe to leave on:
+the frame is *buffered* in the RS-485 handler and painted by the main loop on a
+~30 Hz throttle. Painting inline would be ~750 µs of blocking PIO writes against
+a 60 Hz `'L'` rate, which would delay poll replies and make a healthy bus look
+lossy. `led_init()` is lazy and 12V-gated, same as `l`.
+
+**`A` is the end-to-end gameplay test.** It drives `INT_OUT` from the FSR
+thresholds using the *same* hysteresis state the `'F'` reply reports, so
+telemetry and the INT edge can never disagree. Stand on a sensor and the master
+prints `PRESS panel N` — panel ADC → threshold → emulated open-drain → wire →
+master ISR, nothing simulated. Thresholds are live-settable from the master with
+`S <panel> <press> <rel>`, which is the `'C'`→`'c'` path.
 
 ### Three constraints the responder is built around
 
@@ -477,13 +486,28 @@ make a healthy bus look lossy. Turn it on to prove data arrives, off to measure.
    `'I'` — that handler blocks up to 50 ms pulsing INT, thousands of bytes at
    ~42 kB/s. Drop the byte, never the drain. Ring is 2048 to outlast the pulse.
 
+### 🐛 An overrun counter that lied
+
+`T` reported **8.7 million RX overruns** on a bus with 9 CRC errors in 194,786
+frames. Both were true and they were not in conflict: `rs485_init()` enabled the
+UART RX interrupt *permanently*, so with the responder toggled **off** the ISR
+kept filling a ring nothing was draining — it fills in ~46 ms, and every byte
+after that counted as an overrun forever. The number measured how long the
+responder had been off, not anything about the hardware.
+
+Fixed: RX interrupts are now enabled and disabled by the `R` toggle, and the
+counters plus the ring reset on enable so a reading describes *this* run.
+Verified after: **0 overruns, 0 CRC errors in 11,621 frames.**
+
 ### First pass
 
 Master #1 + brain `DE6558A69754442F`, one panel at ID 0 on the `UL` slot.
-Polls answered with live ADC values matching the board's recorded 94–98 resting
-range, **0 CRC errors**, and the master's `I` self-test passed. That clears
-`U1` on the master and `U308` on the panel — both SOIC-8 hot-air joints that had
-had no electrical test until this point.
+**All four command paths are proven:** `'F'`→`'f'` with live ADC matching the
+board's recorded 94–98 resting range, `'L'` painting 25 pixels, `'I'`→`'i'` plus
+the INT pulse (the master's slot↔ID self-test passes), and `'C'`→`'c'` via the
+master's `S` command. **0 CRC errors, 0 overruns.** That also clears `U1` on the
+master and `U308` on the panel — both SOIC-8 hot-air joints with no prior
+electrical test, which mattered after `U3` turned up with bridged pins.
 
 ### 🐛 Found by this: the master reported stale telemetry as live
 

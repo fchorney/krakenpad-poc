@@ -250,6 +250,21 @@ static void led_fill(uint8_t r, uint8_t g, uint8_t b) {
     sleep_us(300);   // WS2815 reset is ~280us, longer than WS2812B's 50us
 }
 
+// Render a 75-byte 'L' payload: 25 RGB triplets, serpentine order (the mapping
+// lives in the master; the panel just paints what it is handed). Called from the
+// main loop on a throttle, never from the RS-485 reply path — 25 blocking PIO
+// writes at 800kHz is ~750us and the master sends 'L' at 60Hz per panel.
+static void led_write_frame(const uint8_t *rgb, int n) {
+    if (n > NUM_LEDS) n = NUM_LEDS;
+    for (int i = 0; i < n; i++) {
+        uint32_t grb = ((uint32_t)rgb[i * 3 + 1] << 16) |   // G
+                       ((uint32_t)rgb[i * 3 + 0] << 8)  |   // R
+                        (uint32_t)rgb[i * 3 + 2];           // B
+        pio_sm_put_blocking(led_pio, led_sm, grb << 8u);
+    }
+    sleep_us(300);
+}
+
 static void led_test(void) {
     if (!g_12v_present) {
         printf("  REFUSED — SENSE_12V is low. The WS2815s have no 12V rail; driving\n"
@@ -414,7 +429,12 @@ static void int_test(void) {
 
 static bool g_rs485_on   = false;
 static bool g_rs485_init = false;
-static bool g_led_echo   = false;   // OFF by default — see rs485_handle()
+static bool g_led_echo   = false;   // 'E'; painting is throttled in the main loop
+static uint8_t  g_led_buf[3 * NUM_LEDS];
+static uint8_t  g_led_len   = 0;
+static bool     g_led_dirty = false;
+static bool g_auto_int   = false;   // 'A'; drive INT_OUT from FSR thresholds
+static bool g_int_asserted = false;
 
 static uint16_t g_press_th[NUM_FSR];
 static uint16_t g_rel_th[NUM_FSR];
@@ -468,20 +488,32 @@ static void rs485_send(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t le
     gpio_put(PIN_RS485_DE, 0);            // back to receive
 }
 
+// One source of truth for press state: the 'F' reply and the auto-INT loop must
+// never disagree about whether a channel is pressed, or the telemetry the master
+// shows and the INT edge it acts on describe different realities.
+static uint8_t fsr_update(uint16_t raw_out[NUM_FSR]) {
+    uint8_t mask = 0;
+    for (int i = 0; i < NUM_FSR; i++) {
+        uint16_t v = fsr_read(i);
+        if (raw_out) raw_out[i] = v;
+        if      (v >= g_press_th[i]) g_pressed[i] = true;
+        else if (v <= g_rel_th[i])   g_pressed[i] = false;
+        if (g_pressed[i]) mask |= (uint8_t)(1u << i);
+    }
+    return mask;
+}
+
 static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t len) {
     uint8_t me = dip_read();
     if (addr != me && addr != RS485_BCAST) { rs_notmine++; return; }
 
     switch (cmd) {
     case 'F': {
-        uint8_t r[9], mask = 0;
+        uint16_t raw[NUM_FSR];
+        uint8_t r[9], mask = fsr_update(raw);
         for (int i = 0; i < NUM_FSR; i++) {
-            uint16_t v = fsr_read(i);
-            r[i * 2]     = (uint8_t)(v & 0xFF);
-            r[i * 2 + 1] = (uint8_t)(v >> 8);
-            if      (v >= g_press_th[i]) g_pressed[i] = true;    // hysteresis
-            else if (v <= g_rel_th[i])   g_pressed[i] = false;
-            if (g_pressed[i]) mask |= (uint8_t)(1u << i);
+            r[i * 2]     = (uint8_t)(raw[i] & 0xFF);
+            r[i * 2 + 1] = (uint8_t)(raw[i] >> 8);
         }
         r[8] = mask;
         rs485_send('f', me, r, 9);
@@ -518,13 +550,15 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         break;
     case 'L':
         rs_led++;
-        // ⚠ OFF by default, and that is deliberate. led_fill() pushes 25 pixels
-        // at 800 kHz — ~750 us of blocking PIO writes. The master sends 'L' at
-        // 60 Hz per panel, so echoing every frame stalls this loop enough to
-        // delay a poll reply and make a healthy bus look lossy. Turn it on with
-        // 'E' to prove data arrives; turn it off before trusting poll numbers.
-        if (g_led_echo && g_12v_present && led_ready && len >= 3)
-            led_fill(pay[0], pay[1], pay[2]);
+        // Buffer only — painting 25 pixels is ~750us of blocking PIO writes and
+        // the master sends 'L' at 60Hz per panel, so doing it here would stall
+        // the reply path and make a healthy bus look lossy. The main loop paints
+        // it on a throttle instead, which is why 'E' is safe to leave on.
+        if (g_led_echo && len >= 3) {
+            memcpy(g_led_buf, pay, len < sizeof(g_led_buf) ? len : sizeof(g_led_buf));
+            g_led_len   = len;
+            g_led_dirty = true;
+        }
         break;
     default:
         break;
@@ -571,7 +605,11 @@ static void rs485_init(void) {
     gpio_put(PIN_RS485_DE, 0);
     irq_set_exclusive_handler(UART0_IRQ, rs485_rx_irq);
     irq_set_enabled(UART0_IRQ, true);
-    uart_set_irq_enables(uart0, true, false);   // RX only; TX is blocking
+    // NOTE: RX interrupts are enabled/disabled by the 'R' toggle, not here. With
+    // them left on while the responder is off, the ISR keeps filling a ring that
+    // nothing drains: it fills in ~46ms and then every byte after that counts as
+    // an overrun forever. That produced 8.7M "overruns" on a bus that was in
+    // fact healthy, which is a counter actively lying about the hardware.
     for (int i = 0; i < NUM_FSR; i++) {
         g_press_th[i] = FSR_PRESS_THRESHOLD;
         g_rel_th[i]   = FSR_RELEASE_THRESHOLD;
@@ -614,7 +652,7 @@ static void help(void) {
            "  v  re-print banner          ?  this help\n"
            "\n  stage 3 (RS-485, needs the master):\n"
            "  R  responder on/off         T  responder counters\n"
-           "  E  echo 'L' frames to LEDs (off by default — it stalls the loop)\n"
+           "  E  echo 'L' frames to LEDs   A  drive INT_OUT from FSR thresholds\n"
            "  B  reboot into BOOTSEL for reflashing\n");
 }
 
@@ -673,6 +711,7 @@ int main(void) {
     banner();
     help();
 
+    absolute_time_t next_paint = get_absolute_time();
     absolute_time_t next_beat = get_absolute_time();
     bool beat = false;
 
@@ -695,6 +734,30 @@ int main(void) {
         // catches bytes, but the ring only drains here, so keep the loop tight.
         if (g_rs485_on) rs485_service();
 
+        // Paint the last 'L' frame, throttled and OFF the reply path. led_init()
+        // is lazy and 12V-gated for the same reason led_test() is: driving WS2815
+        // DIN with their 12V rail dead forward-biases their inputs.
+        if (g_led_dirty && g_12v_present &&
+            absolute_time_diff_us(get_absolute_time(), next_paint) <= 0) {
+            if (!led_ready) led_init();
+            led_write_frame(g_led_buf, g_led_len / 3);
+            g_led_dirty = false;
+            next_paint = delayed_by_ms(get_absolute_time(), 33);   // ~30Hz
+        }
+
+        // Auto-INT: drive the REAL gameplay press path from the FSR thresholds,
+        // using the same hysteresis state the 'F' reply reports, so telemetry and
+        // the INT edge can never disagree. Press any sensor and the master should
+        // print "PRESS panel N" — panel ADC -> threshold -> open-drain -> wire ->
+        // master ISR, the whole path, with nothing simulated.
+        if (g_auto_int) {
+            bool pressed = (fsr_update(NULL) != 0);
+            if (pressed != g_int_asserted) {
+                g_int_asserted = pressed;
+                if (pressed) int_out_assert(); else int_out_release();
+            }
+        }
+
         int c = getchar_timeout_us(g_rs485_on ? 0 : 1000);
         switch (c) {
             case 's': print_status();      break;
@@ -714,11 +777,32 @@ int main(void) {
             case 'R':
                 if (!g_rs485_init) rs485_init();
                 g_rs485_on = !g_rs485_on;
+                if (g_rs485_on) {
+                    // Fresh window: counters describe THIS run, not the ring
+                    // that backed up while the responder was off.
+                    rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
+                    rs_ident  = rs_cfg = rs_notmine = 0;
+                    rs_overruns = 0;
+                    rs_head = rs_tail = 0;
+                }
+                uart_set_irq_enables(uart0, g_rs485_on, false);
                 printf("\n  RS-485 responder %s (address %u). Silent while running —\n"
                        "  press 'T' for counters. See docs/PANEL_BRINGUP.md stage 3.\n",
                        g_rs485_on ? "ON" : "OFF", dip_read());
                 break;
             case 'T': rs485_stats();       break;
+            case 'A':
+                g_auto_int = !g_auto_int;
+                if (!g_auto_int) { int_out_release(); g_int_asserted = false; }
+                printf("\n  auto-INT %s — INT_OUT now follows the FSR thresholds"
+                       " (press %u / release %u).\n%s",
+                       g_auto_int ? "ON" : "off",
+                       g_press_th[0] ? g_press_th[0] : FSR_PRESS_THRESHOLD,
+                       g_rel_th[0]   ? g_rel_th[0]   : FSR_RELEASE_THRESHOLD,
+                       g_auto_int ? "  Stand on a sensor: the master should print"
+                                    " PRESS/RELEASE for this panel.\n"
+                                  : "  INT_OUT released (hi-Z).\n");
+                break;
             case 'B':
                 // Reboot into BOOTSEL so reflashing needs no button. Stage 3 is
                 // an edit/build/flash loop; SW301 is under the panel platform.
@@ -729,8 +813,9 @@ int main(void) {
             case 'E':
                 g_led_echo = !g_led_echo;
                 printf("\n  'L' -> LED echo %s.%s\n", g_led_echo ? "ON" : "off",
-                       g_led_echo ? " ~750us of blocking PIO writes per frame —"
-                                    " turn it off before trusting poll counts." : "");
+                       g_led_echo ? " Painting is throttled to ~30Hz in the main"
+                                    " loop, so it does not touch reply timing."
+                                    " Needs 12V." : "");
                 break;
             case '?': help();              break;
             default: break;

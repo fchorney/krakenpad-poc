@@ -50,9 +50,11 @@ five need no panels and no 12V.
 > The master has to work this way — `S <panel> <press> <rel>` takes arguments,
 > so a single-key mode would fire `S` before you could type the thresholds.
 >
-> There is also **no local echo**: nothing appears as you type, and the reply
-> can land between two `[heartbeat]` lines. Keys doing "nothing" in `screen`
-> is normally one of these two, or screen's copy/scrollback mode — a stray
+> **Local echo was added 2026-09-08** (with backspace), because `S <panel>
+> <press> <rel>` is unusable blind — you cannot spot a typo before Enter, and a
+> dumb serial terminal does not echo for you. Your keystrokes now appear as you
+> type. A reply can still land between two `[heartbeat]` lines. Keys doing
+> "nothing" in `screen` is otherwise screen's copy/scrollback mode — a stray
 > trackpad scroll enters it and swallows every keystroke until you press `Esc`.
 
 | cmd | what it does |

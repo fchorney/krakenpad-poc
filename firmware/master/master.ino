@@ -648,14 +648,22 @@ void pollSerialCommands() {
   static uint8_t len = 0;
   while (Serial.available()) {
     char c = (char)Serial.read();
+    // Local echo. The single-letter commands survive without it, but `S <panel>
+    // <press> <rel>` is unusable blind — you cannot see a typo before pressing
+    // Enter, and a dumb serial terminal does not echo for you. Backspace is
+    // handled too, or a correction silently leaves the wrong bytes in `buf`.
     if (c == '\n' || c == '\r') {
+      Serial.println();
       if (len > 0) {
         buf[len] = '\0';
         handleCommand(buf);
         len = 0;
       }
-    } else if (len < sizeof(buf) - 1) {
+    } else if (c == 8 || c == 127) {          // backspace / delete
+      if (len > 0) { len--; Serial.print("\b \b"); }
+    } else if (c >= 32 && c < 127 && len < sizeof(buf) - 1) {
       buf[len++] = c;
+      Serial.write(c);
     }
   }
 }
