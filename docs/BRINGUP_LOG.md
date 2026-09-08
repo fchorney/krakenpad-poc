@@ -28,7 +28,7 @@ file fills in as they are brought up.
 
 | board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
 |---|---|---|---|---|---|---|
-| **master #1** | 2026-09-08 | ✅ except `u` | ✅ INT | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT path proven end to end with one panel; `r` closed the single-GPIO-port open item |
+| **master #1** | 2026-09-08 | ✅ | ✅ INT | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT path proven end to end with one panel; `r` closed the single-GPIO-port open item |
 
 ## `DE6558A69754442F` — first board
 
@@ -306,6 +306,34 @@ path, and `firmware/panel/c/main.c` is still breadboard-pinned. Nothing will
 answer until that port is done. `0 crc errs` is likewise uninformative: nothing
 replies, and the master cannot hear itself with `DE` tied to `R̅E̅`. It does
 weakly confirm the bus picks up no garbage between transmissions.
+
+### 🔧 Assembly defect found: `U3` had bridged pins
+
+**The first real assembly fault on this board, and it took a new test to see it.**
+`U3` (SN74AHCT1G125, SOT-23-5, hot-air placed) had **shorted pins**. Reflowed and
+the level shifter now translates correctly — `U` passes.
+
+**`u` could never have found this.** It sends real WS2811 frames at ~0.1% average
+duty, so a meter reads ~5 mV whether `U3` works or not; the first reading taken
+was "basically 0, and `u` doesn't change it", which is the *correct* reading of a
+*working* pin through a slow instrument. `U` was written in response, and its
+documented failure mode — "`TP10` stuck at 0 V while `TP9` switches" — is exactly
+what the board was doing.
+
+⚠ **Generalise this to the rest of the hot-air work.** `U3` is SOT-23-5 at 0.95 mm
+pitch; **`U1` (THVD1450, SOIC-8) is the same class of risk and has had no
+electrical test at all**, because RS-485 cannot be self-tested — `U1` pads 2 and 3
+are both on `RS485_DE`, so transmitting kills the local receiver. A bridge there
+stays invisible until a panel can answer. Inspect `U1` under magnification and
+ring out its pins before blaming the protocol at stage 3.
+
+`R4` was confirmed **PRESENT** by the same command — the 10k pull-down that holds
+`U3`'s input LOW before firmware drives the pin, whose absence would put garbage
+on the strip at every boot with no other symptom.
+
+**Stage 1 is now complete on master #1**, as far as a bench allows: `U3`, `R4`,
+`R5` and `J2` are all cleared with no strip attached. The underglow cable and the
+LEDs themselves need the pad and are an install-day check, not a bring-up item.
 
 ### 🐛 Firmware bugs found and fixed
 

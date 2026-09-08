@@ -410,6 +410,62 @@ void underglowFill(uint8_t r, uint8_t g, uint8_t b) {
   delayMicroseconds(300);   // latch
 }
 
+// `u` sends real WS2811 frames, which a handheld DMM CANNOT see: 44 groups x 24
+// bits x 1.25us is ~1.3ms of burst per frame, the line is parked LOW between
+// frames, and the test ends blanked. Average duty across the whole run is ~0.1%,
+// so a meter reads ~5mV and looks like a dead pin. That is a correct pin seen
+// through a slow instrument — the same trap the panel's `i` hit, which is why
+// `i` grew 8-second dwells.
+//
+// `U` is the meter-readable version: steady levels, held long enough to read,
+// plus a check that R4 is actually fitted.
+//
+//   R4 check  pin to INPUT_PULLUP and read. R4 (10k to GND) against the
+//             Teensy's internal ~22k pull-up divides to ~1.0V = LOW. With R4
+//             missing the internal pull-up wins and it reads HIGH. R4 is what
+//             holds U3's input LOW before firmware drives the pin, so a missing
+//             one means garbage on the strip at every boot — silent otherwise.
+//   dwells    UNDERGLOW_PIN driven steady HIGH then steady LOW, 6s each.
+//             Meter TP9 (3.3V side, Teensy->U3 A) and TP10 (5V side, U3 Y).
+//             TP10 tracking TP9 is the level shifter actually translating.
+//
+// The strip's 12V comes from the Wago fan-out, not this board, so with the
+// fan-out unpowered this proves U3 and the wiring and nothing about the LEDs.
+void underglowStaticTest() {
+  Serial.println("# underglow static test — for a MULTIMETER. `u` is for a scope.");
+
+  // --- R4 (10k pull-down) present? ---
+  pinMode(UNDERGLOW_PIN, INPUT_PULLUP);
+  delayMicroseconds(500);
+  bool low = (digitalReadFast(UNDERGLOW_PIN) == LOW);
+  pinMode(UNDERGLOW_PIN, OUTPUT);
+  digitalWriteFast(UNDERGLOW_PIN, LOW);
+  Serial.print("  R4 (10k pull-down): ");
+  Serial.println(low ? "PRESENT — holds U3's input LOW at boot"
+                     : "?? MISSING — nothing defines U3's input before firmware runs");
+
+  // --- steady levels a meter can read ---
+  Serial.println("  Meter TP9 (3.3V side, U3 pin A) and TP10 (5V side, U3 pin Y).");
+  Serial.println("  J2 pin 1 sits behind R5 (330R); with nothing plugged it equals TP10.");
+
+  Serial.println("\n  >>> DRIVING HIGH for 6s — expect TP9 ~3.3V, TP10 ~5V.");
+  digitalWriteFast(UNDERGLOW_PIN, HIGH);
+  delay(6000);
+
+  Serial.println("  >>> DRIVING LOW for 6s — expect TP9 ~0V, TP10 ~0V.");
+  digitalWriteFast(UNDERGLOW_PIN, LOW);
+  delay(6000);
+
+  // A steady HIGH is not a valid WS2811 reset (a long LOW is), so if a strip is
+  // connected it may have latched garbage. The LOW dwell above already reset it;
+  // blank it properly on the way out.
+  underglowFill(0, 0, 0);
+  Serial.println("\n  done — strip blanked, line parked LOW.");
+  Serial.println("  TP10 following TP9 = U3 translating 3.3V -> 5V. TP10 stuck at 0V");
+  Serial.println("  with TP9 switching = U3 dead, unpowered (check +5VDC_USB at TP4),");
+  Serial.println("  or its OE (pin 1) not grounded.");
+}
+
 void underglowTest() {
   // Underglow is WS2811, not WS2815: three INDEPENDENT constant-current sinks,
   // so colour scales current linearly here — the opposite of the panels. Keep
@@ -520,7 +576,8 @@ void printHelp() {
     "  N                          INT external pull-up (RN1) check\r\n"
     "  r                          INT GPIO port/bit layout (single-read check)\r\n"
     "  D                          read the player-ID DIP (SW1)\r\n"
-    "  u                          underglow test pattern\r\n"
+    "  u                          underglow test pattern (scope)\r\n"
+    "  U                          underglow steady levels + R4 check (multimeter)\r\n"
     "  x                          pause/resume LED frames + FSR polling\r\n"
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  t                          toggle telemetry stream\r\n"
@@ -546,6 +603,8 @@ void handleCommand(const char *s) {
     Serial.println("   closed switch = 0, so P1 is all three ON");
   } else if (strcmp(s, "u") == 0) {
     underglowTest();
+  } else if (strcmp(s, "U") == 0) {
+    underglowStaticTest();
   } else if (strcmp(s, "x") == 0) {
     bus_traffic = !bus_traffic;
     Serial.print("# bus traffic ");

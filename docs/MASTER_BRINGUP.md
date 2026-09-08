@@ -61,7 +61,8 @@ five need no panels and no 12V.
 | `N` | INT **external** pull-up (RN1) check — proves the 10k×9 is really there |
 | `r` | which GPIO port register and bit each INT pin lands on |
 | `D` | read the player-ID DIP |
-| `u` | underglow test pattern |
+| `u` | underglow test pattern — **scope only** |
+| `U` | underglow steady levels + `R4` check — **the multimeter one** |
 | `x` | pause/resume LED frames + FSR polling |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
 | `t` | toggle the telemetry stream |
@@ -130,6 +131,45 @@ scattered** — one read, but a table rather than a shift.
 > number — **pin 3 is bit 2, pin 5 is bit 0**. So **player 0 (P1) means all
 > three switches ON**, and a factory-fresh all-OFF switch reads **7**, a
 > reserved code. Netlist-verified; the panel's ID DIP behaves identically.
+
+**`U` — the meter-readable underglow test, and why `u` is not one.**
+
+⚠ **A DMM cannot see `u` at all, and the reading looks like a dead pin.** `u`
+sends five real WS2811 frames — 44 groups × 24 bits × 1.25 µs ≈ 1.3 ms of burst
+each — separated by 600–1200 ms with the line parked LOW, and it ends blanked.
+Average duty across the run is **~0.1%**, so a handheld meter reports **~5 mV**
+whether U3 works or not. That is a correct pin seen through a slow instrument,
+exactly the trap the panel's `i` hit (which is why `i` grew 8-second dwells).
+**`u` is for a scope. Use `U` with a meter.**
+
+`U` does two things a meter can read:
+
+- **`R4` present?** Pin to `INPUT_PULLUP` and read. `R4` (10k to GND) against the
+  Teensy's internal ~22k divides to ~1.0 V = **LOW**; with `R4` missing the
+  internal pull-up wins and it reads **HIGH**. Worth its own check because `R4`
+  holds `U3`'s input LOW *before firmware drives the pin* — a missing one puts
+  garbage on the strip at every boot and has **no other symptom**.
+- **Steady 6 s dwells**, HIGH then LOW, each announced first.
+
+| point | HIGH | LOW |
+|---|---|---|
+| `TP9` — 3.3V side, `U3` pin A | ~3.3 V | ~0 V |
+| `TP10` — 5V side, `U3` pin Y | ~5 V | ~0 V |
+
+**`TP10` following `TP9` is the whole test** — that is `U3` translating
+3.3 V → 5 V, the one job it has. `TP10` stuck at 0 V while `TP9` switches means
+`U3` is dead, unpowered (check `+5VDC_USB` at `TP4`), its OE̅ (pin 1) is not
+grounded — **or its pins are bridged, which is what happened on master #1.**
+`J2` pin 1 sits behind `R5` (330R) and reads the same as `TP10` with nothing
+plugged in.
+
+`U` ends with a blanking frame: a steady HIGH is not a valid WS2811 reset (a long
+LOW is), so a connected strip could latch garbage — the LOW dwell resets it and
+the zeros frame clears it.
+
+**A pass clears the entire master-side chain — `U3`, `R4`, `R5`, `J2` — with no
+strip attached.** Only the cable and the LEDs then need the pad, which makes them
+an install-day check rather than a bring-up item.
 
 **`u` — underglow.** Drives WS2811 data out pin 11 → `U3` (SN74AHCT1G125 at 5V)
 → `R5` 330R → `J2` pin 1. Two things to know:
