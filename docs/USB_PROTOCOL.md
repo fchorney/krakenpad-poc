@@ -79,10 +79,24 @@ already accept (8 kHz HS = 125 µs period, 0–125 µs wait; 4 kHz = 250 µs).
 |-------|---------|------|
 | Panel FSR sample → threshold | ~10–80 µs | at ~100 kHz sampling; keep **detection** averaging light (SNR is huge: rest ~110 vs press ~3900) — reserve 8× averaging for calibration only, off the hot path |
 | Wire prop (~4 ft) | ~5 ns | negligible |
-| RC settle (330 Ω·1 nF) | ~1 µs | |
+| RC settle (330 Ω·1 nF) | ~1 µs | **press edge only** — driven hard LOW by the panel. ⚠ The *release* edge is ~20× slower (~22 µs measured, see below): it rises passively through `RN1`'s 10k, not the 330 Ω |
 | Master edge → glitch-qualify | ~5–20 µs | see below — hidden in USB dead-time, ~0 net |
 | USB poll quantization | 0–125 µs (8k) | inherent, the dominant term |
 | **Device-side total** | **~sub-200 µs typ** | ≥5× under the 1 ms line |
+
+> **Measured on master #1 + one panel, 2026-09-08** (`docs/BRINGUP_LOG.md`):
+> assert and release are **not symmetric**, and only the assert is on the press
+> path. Assert is driven LOW by the RP2040 and settles inside the 330 Ω·1 nF
+> figure above. Release is the pin going hi-Z, after which the line rises
+> *passively* through `RN1`'s 10k into `C3` (1 nF) plus the junction capacitance
+> of `D1` and the panel's `D201` — **~22 µs to VIH, four readings within 2 µs of
+> each other.** Consistent with ~1.8 nF total, i.e. ordinary SMAJ5.0A
+> capacitance; not a fault.
+>
+> **This changes nothing about the press path or the qualify window.** It is
+> recorded so nobody applies the 1 µs row to a release, and so a future
+> release-side timing question starts from a measurement instead of the RC
+> that governs the other edge.
 
 **Master glitch-qualify (the backstop that replaces the non-existent FSR veto):**
 latch the INT edge in the ISR immediately, then confirm the line is *still* LOW

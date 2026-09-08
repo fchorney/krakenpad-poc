@@ -28,7 +28,7 @@ file fills in as they are brought up.
 
 | board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
 |---|---|---|---|---|---|---|
-| **master #1** | 2026-09-08 | ✅ except `u` | 🔄 | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT front end verified both directions; `r` closed the single-GPIO-port open item |
+| **master #1** | 2026-09-08 | ✅ except `u` | ✅ INT | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT path proven end to end with one panel; `r` closed the single-GPIO-port open item |
 
 ## `DE6558A69754442F` — first board
 
@@ -251,6 +251,61 @@ middle, not at an end.
 Reads **0 (P1)** with all three switches ON, exactly as the inverted-DIP note
 predicts. All-OFF reads 7, a reserved code — the deliberate choice, so that an
 unconfigured master does not claim to be P1.
+
+### Stage 2 — INT path end to end, master + one panel
+
+**2026-09-08.** Master #1 with one panel (brain `DE6558A69754442F` + carrier),
+12V on the panel, RS-485 cable fitted, INT cable on the `UL` header (`J11`).
+Panel ran `i` from `firmware/panel/c/bringup/`.
+
+**PASS.** Five 200 ms pulses then one 8 s dwell — exactly what `int_test()`
+emits (a 5-iteration loop, then phase 2). Every `PRESS` had exactly one
+`RELEASE`. **No bounce, no spurious edges, nothing dropped from the ring.**
+
+This is the first time the sole gameplay input path has run over real hardware
+end to end: panel GPIO22 (emulated open-drain) → carrier `R203`/`D201` → `J214`
+→ cable → master `J11` → `D1`/`R6`/`C3` → `RN1` → Teensy pin 23 → ISR → ring.
+
+#### Two numbers worth keeping
+
+**Clock agreement: +7 ppm.** Press-to-press period measured 1 000 007 µs
+(1000009/1000007/1000007/1000006) against an intended 1 000 000. Both ends of
+that interval are *falling* edges, so the edge asymmetry below cancels and this
+is a clean read of the RP2040 crystal against the Teensy's. 7 ppm between two
+independent crystals is excellent. **Affects nothing** — the master timestamps
+every edge off its own `micros()`, so panel/master drift never reaches a
+reported number. Useful only as a free crystal sanity check.
+
+**Assert/release asymmetry: ~22 µs, structural.** Hold measured 200.023 ms
+against 200 ms; removing the 7 ppm leaves ~22 µs of excess, and four readings
+sat within 2 µs of each other, so it is not noise.
+
+- **Assert** — RP2040 drives LOW, hard and fast. This is the press path.
+- **Release** — pin goes hi-Z and the line rises *passively* through `RN1`'s 10k
+  into `C3` (1 nF) plus the junction capacitance of `D1` and `D201`.
+
+10k × 1nF alone predicts ~12 µs to VIH; 22 µs implies ~1.8 nF total, i.e. roughly
+800 pF across the two TVS. That is ordinary for SMAJ5.0A — **consistent with the
+design, not a fault.** No action: presses are prompt, and 22 µs of release
+latency is invisible against a 125 µs USB frame. `docs/USB_PROTOCOL.md`'s latency
+table was corrected, since its "RC settle ~1 µs" row is the *press* figure and is
+~20× optimistic if applied to a release.
+
+⚠ **Only phase 1 is valid for timing.** Phase 2's 8 s dwell measured 8000.333 ms,
+~275 µs long — a **software artifact**, not electrical: `int_test()` has a
+four-line `printf` sitting between `sleep_ms(INT_DWELL_MS)` and
+`int_out_release()`, so the release waits on a USB CDC write. Phase 1 has no
+printf inside its loop, which is why those readings are clean.
+
+#### RS-485 not tested — and it cannot be yet
+
+`bus: 0/51961 poll replies` is **correct, not a fault.**
+`firmware/panel/c/bringup/main.c` has **no RS-485 responder** — it only parks
+`DE` low into receive (`gpio_put(PIN_RS485_DE, 0)`), with no `uart_init` on that
+path, and `firmware/panel/c/main.c` is still breadboard-pinned. Nothing will
+answer until that port is done. `0 crc errs` is likewise uninformative: nothing
+replies, and the master cannot hear itself with `DE` tied to `R̅E̅`. It does
+weakly confirm the bus picks up no garbage between transmissions.
 
 ### 🐛 Firmware bugs found and fixed
 
