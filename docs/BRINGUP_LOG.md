@@ -353,9 +353,18 @@ full-scale constant, however, was **8.7 mA/pixel and is 48% low** — that figur
 came from a strip cut, and the board's JLC-placed `C5446699` is a different bin.
 Corrected in `CLAUDE.md` and `docs/UNDERGLOW.md`.
 
-The pad budget is unaffected: it was built on the datasheet's 15 mA/pixel, which
-12.9 sits under. USB was connected, so the brain ran off VBUS via `U304` and
-these are essentially pure LED figures.
+**⚠ Do not compare 12.9 against the datasheet's 15 mA directly — they are not the
+same quantity.** 12.9 is the PWM-scaled component with quiescent fitted
+*separately*; at full white you add it back: **12.9 + 1.76 = 14.66 mA/pixel,
+within 2% of the datasheet's 15.** So the datasheet figure evidently already
+includes quiescent, and the budget built on it is **confirmed accurate, not
+merely conservative**: 25 × 14.66 = 0.37 A + 60 mA brain = **0.43 A per panel
+against the budgeted 0.44 A**, and **6.28 A whole-pad against 6.34 A**. The
+entire 12V chain — PSU, gauges, fuse, connector ratings — was sized from 15
+mA/pixel and that number now stands measured to ~1%.
+
+USB was connected, so the brain ran off VBUS via `U304` and these are
+essentially pure LED figures.
 
 Incidental: this also explains the **12 V supply's fan spinning up on a press** —
 a 0.21 A step, which is a low threshold but nothing more than that. Nothing on

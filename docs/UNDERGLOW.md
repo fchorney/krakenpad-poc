@@ -215,9 +215,19 @@ Solving both unknowns gives `Ifull = 12.9 mA`, `Iq = 1.76 mA` — and that
 quiescent independently reproduces the documented 1.84 mA/pixel to within 4%,
 so the **model's structure is confirmed and only the constant moved.**
 
-⚠ **The whole-pad budget does NOT move**, because it was always built on the
-datasheet's 15 mA/pixel rather than the strip measurement — and 12.9 is *under*
-that. What this breaks is anything that used 8.7 to predict animation power:
-that under-predicts by half. **Measurement caveat:** USB was connected, so the
+**⚠ Do not compare 12.9 against the datasheet's 15 mA directly — they are not the
+same quantity.** 12.9 is the PWM-scaled component with quiescent fitted
+*separately*; at full white you add it back: **12.9 + 1.76 = 14.66 mA/pixel,
+within 2% of the datasheet's 15.** So the datasheet figure evidently already
+includes quiescent, and the budget built on it is **confirmed accurate, not
+merely conservative**: 25 × 14.66 = 0.37 A + 60 mA brain = **0.43 A per panel
+against the budgeted 0.44 A**, and **6.28 A whole-pad against 6.34 A**. The
+entire 12V chain — PSU, gauges, fuse, connector ratings — was sized from 15
+mA/pixel and that number now stands measured to ~1%.
+
+What the 8.7 figure *does* break is anything that used it to predict animation
+power — that under-predicts by half. Budget and model are different jobs: the
+budget asks "how big must the supply be", the model asks "what does this frame
+actually draw". **Measurement caveat:** USB was connected, so the
 brain ran off VBUS through `U304` and this is essentially pure LED current; add
 the brain's ~60 mA separately for a 12V-only panel.
