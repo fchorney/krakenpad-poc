@@ -380,6 +380,20 @@ current is microamps to milliamps. Two follow-ons: Molex `430300001` covers
 crimps; and **for rev 2, hold the vendor to the insulation OD, not the gauge in
 any unit** — the jacket's own `0.3mm²` was as wrong as the listing's "22 AWG".
 
+> **Pull-test result, 2026-09-08: the Micro-Fit crimps PASS, but only just.**
+> Bench-confirmed by the user on the first shield-lead terminations. That is the
+> predicted outcome for a conductor sitting at the bottom edge of `430300001`'s
+> 20–24 AWG window, and it is **accepted for the prototype pads** — the joint
+> holds, the load is milliamps, and the cable is already bought.
+>
+> ⚠ **It is NOT acceptable for a production run.** "Barely passes" has no margin
+> against assembly handling, and a marginal crimp on a differential pair fails
+> intermittently rather than cleanly. **If these are ever manufactured in
+> quantity, source genuine 22 AWG shielded twisted pair** — specified by measured
+> insulation OD and conductor resistance, not by a printed gauge, since this reel
+> missed its own marking by 38%. Pull-test every crimp on the prototype build
+> rather than the first few.
+
 **CCA was suspected and is ruled out.** A 0.3 mm² CCA conductor measures nearly
 the same 84 Ω/km as a 0.2 mm² copper one, so resistance alone could not separate
 them — but **resistance × mass cancels the cross-section and fingerprints the
