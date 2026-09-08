@@ -7174,7 +7174,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to RS-485 DE"
+		(property "Description" "Probe test point, wired to RS-485 DE"
 			(at 48.26 175.26 0)
 			(hide yes)
 			(show_name no)
@@ -7595,7 +7595,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP failsafe bias insurance (panel review 3.a, 2026-07-20): pull-down RS485- (B) to GND. See R4. PARKED UNWIRED - to be wired DNP by hand."
+		(property "Description" "DNP failsafe bias insurance (panel review 3.a, 2026-07-20): pull-down RS485- (B) to GND. See R1. Wired in the netlist; footprint deliberately unpopulated (DNP) and the 390R parts were not ordered."
 			(at 88.9 173.99 0)
 			(hide yes)
 			(show_name no)
@@ -8270,7 +8270,7 @@
 				)
 			)
 		)
-		(property "Description" "Micro-Fit 3.0 THT right-angle 43650-0300; pin 3 unpopulated keying; pinout must match panel J8/J10 (A=1,B=2)"
+		(property "Description" "Micro-Fit 3.0 THT right-angle 43650-0300; pin 3 = cable shield, tied directly to GND here; pinout must match panel J204/J207 (A=1,B=2)"
 			(at 109.98 170.33 0)
 			(hide yes)
 			(show_name no)
@@ -9313,7 +9313,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to RS-485 B"
+		(property "Description" "Probe test point, wired to RS-485 B"
 			(at 85.09 170.18 0)
 			(hide yes)
 			(show_name no)
@@ -9548,7 +9548,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to +3.3VDC"
+		(property "Description" "Probe test point, wired to +3.3VDC"
 			(at 80.01 40.64 0)
 			(hide yes)
 			(show_name no)
@@ -9816,7 +9816,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to RS-485 DE"
+		(property "Description" "Probe test point, wired to RS-485 DE"
 			(at 48.26 170.18 0)
 			(hide yes)
 			(show_name no)
@@ -9974,7 +9974,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to Underglow DATA 5V"
+		(property "Description" "Probe test point, wired to Underglow DATA 5V"
 			(at 209.55 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -10162,7 +10162,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP failsafe bias insurance (panel review 3.a, 2026-07-20): pull-up RS485+ (A) to +3V3. THVD1450 integrated open/short/idle failsafe makes bias normally unnecessary; populate R4+R5 only if idle-bus noise is ever observed. 390R pair gives ~236mV across 60R differential load at 3.3V. PARKED UNWIRED - to be wired DNP by hand."
+		(property "Description" "DNP failsafe bias insurance (panel review 3.a, 2026-07-20): pull-up RS485+ (A) to +3V3. THVD1450 integrated open/short/idle failsafe makes bias normally unnecessary; populate R1/R2 only if idle-bus noise is ever observed. 390R pair gives ~236mV across 60R differential load at 3.3V. Wired in the netlist; footprint deliberately unpopulated (DNP) and the 390R parts were not ordered."
 			(at 88.9 161.29 0)
 			(hide yes)
 			(show_name no)
@@ -11391,7 +11391,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to RS-485 A"
+		(property "Description" "Probe test point, wired to RS-485 A"
 			(at 85.09 165.1 0)
 			(hide yes)
 			(show_name no)
@@ -12110,7 +12110,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to GND"
+		(property "Description" "Probe test point, wired to GND"
 			(at 73.66 90.17 0)
 			(hide yes)
 			(show_name no)
@@ -13273,7 +13273,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to RS-485 DE"
+		(property "Description" "Probe test point, wired to RS-485 DE"
 			(at 48.26 165.1 0)
 			(hide yes)
 			(show_name no)
@@ -14898,7 +14898,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to Underglow DATA 3.3V"
+		(property "Description" "Probe test point, wired to Underglow DATA 3.3V"
 			(at 175.26 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -15891,7 +15891,7 @@
 				)
 			)
 		)
-		(property "Description" "PARKED UNWIRED - probe test point, connect to +5VDC_USB"
+		(property "Description" "Probe test point, wired to +5VDC_USB"
 			(at 67.31 40.64 0)
 			(hide yes)
 			(show_name no)

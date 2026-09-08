@@ -180,7 +180,7 @@ needed a connector change.
 | Ref(s) | Part | Notes |
 |--------|------|-------|
 | U1 | THVD1450DR (SOIC-8), LCSC C2671361 | same part as panels; VCC +3.3VDC, C1 100nF. Swapped from THVD1429DR 2026-08-18 — identical pinout, see CLAUDE.md |
-| U2 | Teensy 4.0 (PJRC 15583), socketed | 2× PPPC141LFBN-RC 14-pos female headers |
+| U2 | Teensy 4.0 (PJRC 15583), socketed | **2× KH-2.54FH-1X14P-H8.5 14-pos female headers, LCSC C2905420** — what was actually bought (4 for the two boards). Sugatsune PPPC141LFBN-RC was the original spec and is a drop-in equivalent, but is *not* the part on hand |
 | U3 | SN74AHCT1G125DBVR (SOT-23-5) | underglow shifter (single gate, swapped from quad SN74AHCT125N DIP 2026-08-03), VCC +5VDC_USB, C2 100nF; A ← GPIO11, Y → R5 330R → J2.1; OE̅ → GND |
 | D1–D9 | SMAJ5.0A TVS (DO-214AC) | one per INT line, entry-node ESD clamp — see table above |
 | R6–R14 | 330R 0805 | INT series R per line (ESD limit + RC filter into Teensy) |

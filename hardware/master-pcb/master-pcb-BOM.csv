@@ -2,7 +2,7 @@ Qty,Refs,Value,LCSC,MPN,Source,DNP,Description
 2,C1 C2,100nF X7R 50V,C83055,,LCSC,,2 per-instance descriptions
 9,C3 C4 C5 C6 C7 C8 C9 C10 C11,1nF C0G,C1791,,LCSC,,9 per-instance descriptions
 9,D1 D2 D3 D4 D5 D6 D7 D8 D9,TVS 5V,C113952,SMAJ5.0A,LCSC,,9 per-instance descriptions
-1,J1,RS-485 OUT,C503478,0436500300,LCSC,,"Micro-Fit 3.0 THT right-angle 43650-0300; pin 3 unpopulated keying; pinout must match panel J8/J10 (A=1,B=2)"
+1,J1,RS-485 OUT,C503478,0436500300,LCSC,,"Micro-Fit 3.0 THT right-angle 43650-0300; pin 3 = cable shield, tied directly to GND here; pinout must match panel J204/J207 (A=1,B=2)"
 1,J2,UNDERGLOW OUT,C8465,WJ500V-5.08-2P,LCSC,,"KANGNEX WJ500V-5.08-2P (LCSC C8465), 2P 5.08mm top-entry screw terminal: GND + LED-DATA-OUT (5V logic). UI-gated; no sense pin"
 9,J3 J4 J5 J6 J7 J8 J9 J10 J11,B2B-XH-A,C158012,,LCSC,,JST XH B2B-XH-A
 2,R1 R2,390R 1%,,,not stocked,DNP,2 per-instance descriptions

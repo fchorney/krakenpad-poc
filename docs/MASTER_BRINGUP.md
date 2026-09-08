@@ -122,12 +122,15 @@ ordered** — the THVD1450's integrated open/short/idle failsafe makes them
 unnecessary; the footprints exist so bias can be hand-added at the one correct
 bus point if the bench ever disagrees.
 
-> Minor documentation trap, no physical consequence: a text note on `F.Fab`
-> (a documentation layer, not fabricated) still calls the bias pair "R4+R5" and
-> says they are "PARKED UNWIRED". That naming predates the 2026-07-31 master
-> renumber — the bias pair is **R1/R2**, they *are* wired in the netlist, and
-> R4/R5 are now the underglow pull-down and series resistor. Read the BOM, not
-> the note.
+> ~~Minor documentation trap~~ **FIXED 2026-09-08, no physical consequence.**
+> The `Description` fields on R1/R2 used to call the bias pair "R4+R5" and say
+> they were "PARKED UNWIRED" — naming that predated the 2026-07-31 master
+> renumber. The bias pair is **R1/R2**, they *are* wired in the netlist, and
+> **R4/R5 are the underglow pull-down and series resistor, both of which must be
+> populated.** The same "PARKED UNWIRED" text sat on all ten test points, which
+> are likewise wired. Descriptions in `.kicad_sch`/`.kicad_pcb` were corrected
+> and `master-pcb-BOM.csv` regenerated; the edit touched description strings
+> only, no geometry and no nets.
 
 **Unlike the panel, the master has no manual-DE hazard.**
 `Serial2.transmitterEnable(6)` makes the hardware assert and release DE around
