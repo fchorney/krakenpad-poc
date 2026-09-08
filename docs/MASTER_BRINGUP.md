@@ -255,6 +255,27 @@ a bug in the test.
 
 ## Still open on the master
 
+- **Check whether the master has the panel's RS-485 turnaround glitch.** The
+  panel measured **exactly one framing error per transmission** (2522 against
+  2521 replies over 90,756 frames): while it transmits, DE tied to `R̅E̅` disables
+  the THVD1450's receiver, `RO` goes high-impedance, its RX pin floats, and the
+  return transition reads as a false start bit. **The master's Serial2 RX floats
+  for the identical reason during its own transmissions.** It has never been
+  measured, because nothing on the master counts framing errors — `0 crc errs`
+  only says no *frame* was corrupted, and on the panel this glitch corrupted
+  nothing either (it lands in the idle gap after the reply). So the master's
+  clean CRC count is **not** evidence the glitch is absent.
+  - To measure: read `LPUART4->STAT` for `FE`/`PE`/`OR` in the RX path and count
+    them, the way the panel now separates `uart errors` from `turnaround`.
+  - The panel's fix — an internal pull-up holding the line at idle-mark — is
+    **not** directly portable: `pinMode()` cannot add a pull-up without taking
+    the pin off the UART, so it needs a pad-control register write instead.
+  - ⚠ **This is not a board-revision candidate.** A 10 kΩ pull-up on `RO` would
+    fix it in copper, but the glitch is benign and firmware handles it for free
+    on the side that can. Measure before deciding it is worth anything at all.
+  - Full investigation: `docs/PANEL_BRINGUP.md` → stage 3.
+
+
 - **USB HID to the PC is not started.** The master talks to the bench over USB
   serial and to panels over RS-485; the actual gameplay path to the host does
   not exist yet. `docs/USB_PROTOCOL.md` has the design.
