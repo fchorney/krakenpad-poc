@@ -443,12 +443,51 @@ static bool     g_pressed[NUM_FSR];
 static volatile uint8_t  rs_ring[RS_RING];
 static volatile uint16_t rs_head = 0, rs_tail = 0;
 static volatile uint32_t rs_overruns = 0;
+// Forensics for CRC failures. A rate this low (single digits in ~10^5 frames)
+// is not "noise" in any useful sense — it has a cause, and the cheapest way to
+// find it is to keep the actual bytes. The prime suspect on a half-duplex bus is
+// TURNAROUND: when either end drops DE the transceiver's receiver re-enables
+// while the line is still settling, and a false start bit becomes a spurious
+// byte that desyncs the parser mid-frame. If that is what is happening, the
+// failures cluster within a few hundred us of OUR OWN last transmission, and the
+// captured bytes show a frame with one extra byte in front. Scattered failures
+// with no TX correlation mean something else: reflections, or a real bit error.
+#define RS_FAIL_KEEP 4
+typedef struct {
+    uint8_t  raw[16];      // sync + header + as much payload as fits
+    uint8_t  rawlen;       // bytes captured
+    uint8_t  framelen;     // bytes the frame claimed (4 + len + 1)
+    uint8_t  got, want;    // received vs computed CRC
+    uint32_t since_tx_us;  // gap from our last transmission
+} rs_fail_t;
+static rs_fail_t rs_fails[RS_FAIL_KEEP];
+static volatile uint32_t rs_uart_errs = 0;
+static volatile uint32_t rs_turnaround = 0;
+static volatile bool     rs_resync = false;
+static uint8_t   rs_fail_idx = 0;
+static uint32_t  rs_last_tx_us = 0;
+
 static uint32_t rs_frames = 0, rs_crc_errs = 0, rs_polls = 0,
                 rs_led = 0, rs_ident = 0, rs_cfg = 0, rs_notmine = 0;
 
 static void rs485_rx_irq(void) {
     while (uart_is_readable(uart0)) {
-        uint8_t c = (uint8_t)(uart_get_hw(uart0)->dr & 0xFF);
+        // The PL011 reports per-byte errors in the TOP bits of DR. Masking them
+        // off and keeping only the data — which this did at first — throws away
+        // the one signal that says "bytes were lost here". OE in particular means
+        // the hardware FIFO overflowed and the stream now has a hole in it, so
+        // whatever frame is in flight is garbage no matter what its CRC says.
+        uint32_t dr = uart_get_hw(uart0)->dr;
+        if (dr & 0xF00u) {          // FE | PE | BE | OE
+            // Separate the structural artifact from a real fault. Anything
+            // within 200us of our own DE release is the turnaround glitch above;
+            // counting it as an error buries the ones that matter. Both resync —
+            // a hole in the stream invalidates any frame in flight either way.
+            if ((time_us_32() - rs_last_tx_us) < 200u) rs_turnaround++;
+            else                                       rs_uart_errs++;
+            rs_resync = true;
+        }
+        uint8_t c = (uint8_t)(dr & 0xFF);
         uint16_t next = (uint16_t)((rs_head + 1u) % RS_RING);
         // ⚠ MUST keep draining the FIFO even when the ring is full. Returning
         // here with bytes still pending leaves the RX interrupt asserted, so it
@@ -486,6 +525,7 @@ static void rs485_send(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t le
     uart_tx_wait_blocking(uart0);         // BUSY flag, not FIFO-empty — see (3)
     busy_wait_us(12);                     // ~1 char at 1 Mbps of slack
     gpio_put(PIN_RS485_DE, 0);            // back to receive
+    rs_last_tx_us = time_us_32();
 }
 
 // One source of truth for press state: the 'F' reply and the auto-INT loop must
@@ -568,10 +608,16 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
 static void rs485_service(void) {
     static enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
     static uint8_t cmd, addr, len, idx, crc, pay[RS485_MAX_PAY];
+    static uint8_t dbg[16], dbglen = 0;
+
+    if (rs_resync) { rs_resync = false; st = W_SYNC; dbglen = 0; }
 
     while (rs_tail != rs_head) {
         uint8_t c = rs_ring[rs_tail];
         rs_tail = (uint16_t)((rs_tail + 1u) % RS_RING);
+
+        if (st == W_SYNC) { if (c == RS485_SYNC) { dbglen = 0; } }
+        if (dbglen < sizeof(dbg)) dbg[dbglen++] = c;
 
         switch (st) {
         case W_SYNC: if (c == RS485_SYNC) { crc = 0; st = W_CMD; } break;
@@ -588,17 +634,62 @@ static void rs485_service(void) {
             break;
         case W_CRC:
             if (c == crc) { rs_frames++; rs485_handle(cmd, addr, pay, len); }
-            else rs_crc_errs++;
+            else {
+                rs_crc_errs++;
+                rs_fail_t *f = &rs_fails[rs_fail_idx % RS_FAIL_KEEP];
+                rs_fail_idx++;
+                f->rawlen   = dbglen;
+                f->framelen = (uint8_t)(4 + len + 1);
+                f->got = c; f->want = crc;
+                f->since_tx_us = time_us_32() - rs_last_tx_us;
+                memcpy(f->raw, dbg, dbglen);
+            }
             st = W_SYNC;
             break;
         }
     }
 }
 
+static void rs485_dump_fails(void) {
+    printf("\n  CRC failures captured this run: %lu\n", (unsigned long)rs_crc_errs);
+    if (rs_fail_idx == 0) {
+        printf("    none — nothing has failed CRC since the responder was enabled.\n");
+        return;
+    }
+    uint8_t n = rs_fail_idx < RS_FAIL_KEEP ? rs_fail_idx : RS_FAIL_KEEP;
+    for (uint8_t k = 0; k < n; k++) {
+        rs_fail_t *f = &rs_fails[(uint8_t)((rs_fail_idx - 1 - k) % RS_FAIL_KEEP)];
+        printf("    [-%u] crc got %02X want %02X, frame claimed %u bytes,"
+               " %lu us after our own last TX\n",
+               k, f->got, f->want, f->framelen, (unsigned long)f->since_tx_us);
+        printf("         bytes:");
+        for (uint8_t i = 0; i < f->rawlen; i++) printf(" %02X", f->raw[i]);
+        printf("%s\n", f->rawlen >= sizeof(((rs_fail_t *)0)->raw) ? " ..." : "");
+        if (f->since_tx_us < 500)
+            printf("         ^^ within 500us of our own transmission — the signature\n"
+                   "            of BUS TURNAROUND, not of a noisy cable.\n");
+    }
+    printf("\n  A good frame starts 55 <cmd> <addr> <len>. Read the first bytes:\n"
+           "    - an extra byte BEFORE the 55        -> spurious start bit, turnaround\n"
+           "    - 55 present but cmd/len implausible -> parser resynced mid-frame on a\n"
+           "                                            0x55 that was really payload\n"
+           "    - everything plausible, one bit off  -> a real bit error on the wire\n");
+}
+
 static void rs485_init(void) {
     uart_init(uart0, RS485_BAUD);
     gpio_set_function(PIN_RS485_TX, GPIO_FUNC_UART);
     gpio_set_function(PIN_RS485_RX, GPIO_FUNC_UART);
+    // ⚠ Idle-bias the RX pin. While WE transmit, DE (tied to ~RE) disables the
+    // THVD1450's receiver and RO goes high-impedance, so this pin floats. When
+    // DE drops and RO drives again, the transition is seen as a false start bit
+    // and the UART reports a framing error — measured at EXACTLY one per
+    // transmission (2522 errors against 2521 replies over 90,756 frames). It
+    // corrupts nothing, because it lands in the idle gap right after our own
+    // reply, but it is noise in a counter that should mean something. An
+    // internal pull-up holds the line at idle-mark through the Hi-Z window and
+    // removes the glitch at its source, with no board change.
+    gpio_pull_up(PIN_RS485_RX);
     uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
     uart_set_fifo_enabled(uart0, true);
     uart_set_hw_flow(uart0, false, false);
@@ -628,7 +719,12 @@ static void rs485_stats(void) {
                "     all four switches ON and an untouched all-OFF switch is 15.\n");
     printf("  frames ok     : %lu\n", (unsigned long)rs_frames);
     printf("  crc errors    : %lu\n", (unsigned long)rs_crc_errs);
-    printf("  rx overruns   : %lu\n", (unsigned long)rs_overruns);
+    printf("  rx overruns   : %lu   (ring full — main loop starved)\n",
+           (unsigned long)rs_overruns);
+    printf("  uart errors   : %lu   (FIFO overrun / framing — bytes lost on the wire)\n",
+           (unsigned long)rs_uart_errs);
+    printf("  turnaround    : %lu   (glitch within 200us of our own TX — benign)\n",
+           (unsigned long)rs_turnaround);
     printf("  'F' answered  : %lu\n", (unsigned long)rs_polls);
     printf("  'L' received  : %lu   (echo to LEDs: %s)\n",
            (unsigned long)rs_led, g_led_echo ? "ON" : "off");
@@ -652,6 +748,7 @@ static void help(void) {
            "  v  re-print banner          ?  this help\n"
            "\n  stage 3 (RS-485, needs the master):\n"
            "  R  responder on/off         T  responder counters\n"
+           "  X  dump the last CRC failures (raw bytes + TX correlation)\n"
            "  E  echo 'L' frames to LEDs   A  drive INT_OUT from FSR thresholds\n"
            "  B  reboot into BOOTSEL for reflashing\n");
 }
@@ -783,7 +880,24 @@ int main(void) {
                     rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
                     rs_ident  = rs_cfg = rs_notmine = 0;
                     rs_overruns = 0;
+                    rs_uart_errs = 0;
+                    rs_turnaround = 0;
+                    rs_fail_idx = 0;
                     rs_head = rs_tail = 0;
+                    // ⚠ FLUSH THE HARDWARE FIFO. The UART receives whether or
+                    // not its interrupt is enabled, so by the time the responder
+                    // is switched on the 32-byte FIFO holds STALE bytes from an
+                    // arbitrary earlier moment, with OE long since set. Feeding
+                    // those into the ring splices an old fragment onto the live
+                    // stream: the result parses as a structurally perfect frame
+                    // — right sync, right command, plausible payload — that
+                    // fails CRC, because its two halves came from different
+                    // frames. That, not bus noise, was every CRC error seen at
+                    // the bench; steady-state was 0 in 68,257 frames.
+                    while (uart_is_readable(uart0)) (void)uart_get_hw(uart0)->dr;
+                    uart_get_hw(uart0)->rsr = 0x0Fu;   // clear OE/BE/PE/FE
+                    rs_last_tx_us = time_us_32();
+                    rs_resync = true;
                 }
                 uart_set_irq_enables(uart0, g_rs485_on, false);
                 printf("\n  RS-485 responder %s (address %u). Silent while running —\n"
@@ -791,6 +905,7 @@ int main(void) {
                        g_rs485_on ? "ON" : "OFF", dip_read());
                 break;
             case 'T': rs485_stats();       break;
+            case 'X': rs485_dump_fails();  break;
             case 'A':
                 g_auto_int = !g_auto_int;
                 if (!g_auto_int) { int_out_release(); g_int_asserted = false; }

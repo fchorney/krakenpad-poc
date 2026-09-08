@@ -499,6 +499,53 @@ Fixed: RX interrupts are now enabled and disabled by the `R` toggle, and the
 counters plus the ring reset on enable so a reading describes *this* run.
 Verified after: **0 overruns, 0 CRC errors in 11,621 frames.**
 
+### 🔍 Chasing the last CRC errors — and what they actually were
+
+A handful of CRC errors (2, then 9 over ~10⁵ frames) turned out to be **two
+unrelated things, neither of them bus quality.** `X` dumps the raw bytes of the
+last few failures with the gap since our own last transmission, which is what
+separated them.
+
+**1. Spliced frames at enable.** Every captured failure was a *structurally
+perfect* header — `55 4C 00 4B` = sync, `'L'`, addr 0, len 75 — with plausible
+payload, failing CRC. Corruption does not look like that. The UART receives into
+its 32-byte hardware FIFO whether or not the RX interrupt is enabled, so while
+the responder sat toggled off that FIFO held bytes from an arbitrary earlier
+moment. On enable they were fed into the ring **ahead of the live stream**,
+splicing the front of an old frame onto the back of a new one. Fixed by flushing
+the FIFO and clearing `RSR` on enable. The same 15-enable abuse test went from 4
+captured failures to 0.
+
+**2. A turnaround glitch, one per transmission, exactly.** Only visible once the
+ISR stopped masking the PL011's per-byte error bits (`FE|PE|BE|OE` live in the
+top bits of `DR`; `& 0xFF` threw away the only signal that says bytes were
+lost). Measured **2522 errors against 2521 replies over 90,756 frames** — 1:1
+with our own transmissions. Cause: while we transmit, DE (tied to `R̅E̅`) disables
+the THVD1450's receiver and `RO` goes high-impedance, so the RP2040's RX pin
+floats; when `RO` drives again the transition reads as a false start bit.
+
+It corrupted nothing — it lands in the idle gap right after our own reply, which
+is why CRC errors stayed at 0 — but it is noise in a counter that should mean
+something. **Fixed at source with `gpio_pull_up(PIN_RS485_RX)`**, holding the
+line at idle-mark through the Hi-Z window. No board change. Result: **0.**
+
+⚠ **The master very likely has the same benign glitch and no equivalent fix.**
+Its Serial2 RX pin floats during its own transmissions for the same reason, and
+`pinMode()` cannot add a pull-up without taking the pin away from the UART — it
+would need a pad-control register write. It reports 0 CRC errors, so it is not
+corrupting anything; noted rather than fixed. A 10 kΩ pull-up on `RO` at both
+ends would remove it in hardware, but **this does not justify a board revision**
+when firmware handles it for free on the side that can.
+
+The counters now distinguish three things that were previously conflated:
+`rx overruns` (ring full — the main loop was starved), `uart errors` (bytes lost
+on the wire), and `turnaround` (the benign glitch, within 200 µs of our own TX).
+All three resync the parser, because a hole in the stream invalidates whatever
+frame is in flight regardless of what its CRC says.
+
+**Steady state after both fixes: 75,755 frames, 0 CRC errors, 0 overruns,
+0 uart errors, 0 turnaround glitches.**
+
 ### First pass
 
 Master #1 + brain `DE6558A69754442F`, one panel at ID 0 on the `UL` slot.
