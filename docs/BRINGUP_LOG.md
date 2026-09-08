@@ -335,6 +335,33 @@ on the strip at every boot with no other symptom.
 `R5` and `J2` are all cleared with no strip attached. The underglow cable and the
 LEDs themselves need the pad and are an install-day check, not a bring-up item.
 
+### ⚡ First real current measurement of an assembled panel
+
+**2026-09-08**, DMM in series in the **+12 V** leg (never the ground leg — the
+panel's ground is shared with the master through the INT cable, and breaking it
+would offer LED return current a path down a 24 AWG signal conductor).
+
+| state | duty | measured |
+|---|---|---|
+| idle rainbow (master dims by `>>3`) | 12.2% | **0.083 A** |
+| pressed, solid red `{200,0,0}` | 78.4% | **0.296 A** |
+
+Fitting both points gives **`Ifull` = 12.9 mA/pixel** and **`Iq` = 1.76
+mA/pixel**. The quiescent reproduces the documented 1.84 mA/pixel to within 4%
+from an independent measurement, confirming the model's structure; the
+full-scale constant, however, was **8.7 mA/pixel and is 48% low** — that figure
+came from a strip cut, and the board's JLC-placed `C5446699` is a different bin.
+Corrected in `CLAUDE.md` and `docs/UNDERGLOW.md`.
+
+The pad budget is unaffected: it was built on the datasheet's 15 mA/pixel, which
+12.9 sits under. USB was connected, so the brain ran off VBUS via `U304` and
+these are essentially pure LED figures.
+
+Incidental: this also explains the **12 V supply's fan spinning up on a press** —
+a 0.21 A step, which is a low threshold but nothing more than that. Nothing on
+the panel can whine; it has no switching converter at all, by the deliberate
+choice of cascaded linear LDOs over a buck.
+
 ### 🐛 Firmware bugs found and fixed
 
 - **Staircased output on `?` and `r`.** `printHelp()` passes one multi-line

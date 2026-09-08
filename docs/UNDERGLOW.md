@@ -77,7 +77,7 @@ manufacturer's family.
 | Topology | 3 **independent** current sinks, each feeding 3 series dies | 3 dies **in series** in one package, unlit ones shorted out |
 | Pure red vs full white | **red = ⅓ of white** | **red = exactly white** |
 | Does colour choice reduce current? | **yes, linearly** | **no, never — only PWM duty does** |
-| Current model | `I = 18.5mA × (r+g+b)/255` per group | `I = 8.7mA × max(r,g,b)/255` per pixel |
+| Current model | `I = 18.5mA × (r+g+b)/255` per group | `I = 12.9mA × max(r,g,b)/255` per pixel ⚠ **was 8.7mA — see note below** |
 
 **A single global power policy is therefore wrong.** One written on the panels'
 rule over-estimates underglow by up to 3×; one written on the underglow's rule
@@ -199,3 +199,25 @@ must build its mate:
 This supersedes the earlier note that the underglow leads were crimped into a
 12-pin Dupont-style housing with no intermediate connector to reuse. That was
 wrong; there is a reusable connector.
+
+## ⚠ The panel figure was corrected on real hardware, 2026-09-08
+
+The `8.7 mA/pixel` above came from a `HD-12v-WS2815-144L-B-IP30` **strip cut**.
+An assembled panel — JLC-placed `C5446699`, a different manufacturer and bin —
+measures **12.9 mA/pixel**, 48% higher. Two-point fit against a real board:
+
+| state | duty (`max(r,g,b)/255`) | measured |
+|---|---|---|
+| master's idle rainbow (`>>3`) | 31/255 = 12.2% | **0.083 A** |
+| pressed solid red `{200,0,0}` | 200/255 = 78.4% | **0.296 A** |
+
+Solving both unknowns gives `Ifull = 12.9 mA`, `Iq = 1.76 mA` — and that
+quiescent independently reproduces the documented 1.84 mA/pixel to within 4%,
+so the **model's structure is confirmed and only the constant moved.**
+
+⚠ **The whole-pad budget does NOT move**, because it was always built on the
+datasheet's 15 mA/pixel rather than the strip measurement — and 12.9 is *under*
+that. What this breaks is anything that used 8.7 to predict animation power:
+that under-predicts by half. **Measurement caveat:** USB was connected, so the
+brain ran off VBUS through `U304` and this is essentially pure LED current; add
+the brain's ~60 mA separately for a 12V-only panel.
