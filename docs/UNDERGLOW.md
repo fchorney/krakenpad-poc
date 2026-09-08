@@ -83,8 +83,15 @@ manufacturer's family.
 rule over-estimates underglow by up to 3×; one written on the underglow's rule
 under-estimates the panels catastrophically. Model the two separately.
 
+> ⚠ **8.7 and 10.5 are the SAME measurement, not two conflicting ones.** The
+> table below gives the **PWM-scaled component**; `CLAUDE.md` quotes **10.5
+> mA/pixel** for the same strip. The difference is quiescent:
+> **8.7 + 1.84 = 10.54.** Always say which quantity you mean — this ambiguity
+> made the two look contradictory for weeks, and caused the same mistake again
+> on 2026-09-08 when 12.9 was first compared against the datasheet's 15.
+
 The panel `max()` model is not a guess — it is confirmed on four points from the
-2026-08-16 bench run (`hardware/harness/README.md` → "Power budget"):
+2026-08-16 bench run:
 
 | Commanded | `max()` predicts | Measured |
 |---|---|---|
@@ -204,7 +211,19 @@ wrong; there is a reusable connector.
 
 The `8.7 mA/pixel` above came from a `HD-12v-WS2815-144L-B-IP30` **strip cut**.
 An assembled panel — JLC-placed `C5446699`, a different manufacturer and bin —
-measures **12.9 mA/pixel**, 48% higher. Two-point fit against a real board:
+measures **12.9 mA/pixel**. Compare totals rather than constants:
+
+| | strip cut (2026-08-16) | assembled panel (2026-09-08) | datasheet |
+|---|---|---|---|
+| PWM-scaled | 8.7 | **12.9** | — |
+| quiescent | 1.84 | **1.76** | — |
+| **total, full white** | **10.5** | **14.66** | **15** |
+
+The strip ran **30% under datasheet**; the board runs **2% under**. Both were
+measured correctly — they are simply different LEDs from different bins, which
+is the whole reason a strip figure must not be used to model a board.
+
+Two-point fit against the real board:
 
 | state | duty (`max(r,g,b)/255`) | measured |
 |---|---|---|

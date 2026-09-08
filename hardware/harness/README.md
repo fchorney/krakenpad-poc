@@ -127,6 +127,30 @@ only PWM duty reduces current. WS2811 has three independent sinks, so
 global power or animation policy is therefore wrong. Full treatment and both
 current models: `docs/UNDERGLOW.md` → "Current draw".
 
+### ⚠ Per-pixel figures: always say WHICH quantity
+
+Three numbers circulate and they are **not** interchangeable. Quoting one where
+another is meant has now caused the same confusion twice.
+
+| quantity | strip cut (2026-08-16) | assembled panel (2026-09-08) | datasheet |
+|---|---|---|---|
+| PWM-scaled, `I × max(r,g,b)/255` | 8.7 mA | **12.9 mA** | — |
+| quiescent, drawn even when dark | 1.84 mA | **1.76 mA** | — |
+| **total at full white** | **10.5 mA** | **14.66 mA** | **15 mA** |
+
+- The **budget table above uses the datasheet's 15 mA**, a *total*. The assembled
+  panel measures 14.66 — so that budget is **confirmed to ~1% on hardware**
+  (0.43 A/panel vs 0.44 A budgeted; 6.28 A pad vs 6.34 A), not conservative.
+- The **model** for predicting what a frame draws uses the PWM-scaled figure.
+  Use **12.9 mA** for the board; 8.7 was the strip and under-predicts by half.
+- `8.7 + 1.84 = 10.5` and `12.9 + 1.76 = 14.66` — that is why the pairs of
+  numbers in older notes look contradictory when they are not.
+
+⚠ **The raw 2026-08-16 readings were never actually written down here**, despite
+`CLAUDE.md` pointing at this section for them. What survives is the derived
+figures above and the bench firmware, `firmware/panel/c/led_current_test/`. The
+2026-09-08 panel readings, which *are* recorded, are in `docs/BRINGUP_LOG.md`.
+
 ⚠ **There is no current sensing anywhere in the pad.** The master is
 USB-powered and deliberately outside the 12 V path, so every figure here is an
 open-loop model prediction. The trunk's **inline fuse is the only current
