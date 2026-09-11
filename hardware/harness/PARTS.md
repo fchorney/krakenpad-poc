@@ -105,16 +105,32 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 > | 🛒 **still to buy** | **ferrules, 100× 0.34 mm²** (sizes closed 2026-09-01; ~30 on hand against 36 needed) |
 > | ⏸ deferred by decision | printed carrier (dimensions off the real Wago bodies + fuse holder in hand) |
 >
-> **Quantities are for TWO pads throughout** — see the scope banner in
-> `docs/BOM.md`. This is settled and is not to be re-derived.
+> **The build scope is TWO pads** — see the scope banner in `docs/BOM.md`. This
+> is settled and is not to be re-derived.
 
-| Part | For | LCSC | Qty per pad |
+> ⚠ **The table below counts ONE pad; `docs/BOM.md` counts TWO.** Both units
+> appear in this file and mixing them has already caused one live cart shortage
+> (the 2541WV/DS1023 headers, 2026-08-18). **Multiply these figures by 2 before
+> comparing them to `docs/BOM.md`**, which remains the sourcing authority.
+>
+> ⚠ **Two rows were wrong in this column and were corrected 2026-09-11** — the
+> Micro-Fit 2-ckt housing read 12 (the right answer is **15**) and the crimp row
+> read 168, which is the **two-pad** figure, not a per-pad one. Derivation, so
+> neither drifts again: a column harness is **1 feed + 2 jumpers**
+> (`power-column.yml` `qty_per_pad: 3` counts *harnesses*, i.e. columns — not
+> cables), so a pad has **3 feeds + 6 jumpers = 9 cables**. The feed's source end
+> is bare conductor into a Wago lever port, so Micro-Fit ends are
+> **3 × 1 + 6 × 2 = 15**. Crimps then come to **15 × 2 + 18 × 3 = 84**/pad =
+> **168** for two pads, which is exactly what `docs/BOM.md` orders against.
+> **Nothing is short — 50 / 50 / 300 were ordered against 30 / 36 / 168.**
+
+| Part | For | LCSC | Qty **per pad** |
 |------|-----|------|-------------|
 | JST XHP-2 housing | INT, master end | C144401 | 9 |
 | JST SXH-001T-P0.6N contact | INT, master end | C385122 | 18 |
-| Molex 436450200 Micro-Fit 2-ckt receptacle housing | 12V | C114089 | 12 |
+| Molex 436450200 Micro-Fit 2-ckt receptacle housing | 12V | C114089 | **15** (3 column feeds + 6 jumpers × 2 ends) |
 | Molex 436450300 Micro-Fit 3-ckt receptacle housing | RS-485 | C259740 | 18 |
-| Molex 430300001 Micro-Fit crimp, 20–24 AWG | 12V + RS-485 | C259786 | 168 |
+| Molex 430300001 Micro-Fit crimp, 20–24 AWG | 12V + RS-485 | C259786 | **84** (15×2 + 18×3; **168** for two pads) |
 | **JST SMR-03V-B** housing (receptacle, 3-way) | underglow, hand-made fallback | **C157907** | 1 (10 ordered) |
 | 3-pin SM 2.5 LED-strip pigtail pair, 22 AWG | underglow — the actual plan | **ON HAND** | 1 pair |
 | **Wago 221-415**, 5-way lever block | 12V fan-out | ✅ **PURCHASED 2026-08-22** — 10-pack, $14.53 (genuine); not sold in sixes | 3 |
@@ -692,10 +708,15 @@ The `T` prefix is what confirms IEC.
 **RESOLVED 2026-08-16 — the tools on hand cover every crimp in the build.** No
 crimper needs buying; only an extraction tool.
 
-| Tool (already owned) | Use for | Count | Why it fits |
+> ⚠ **Units, corrected 2026-09-11:** the counts below are **for two pads** —
+> 84 Micro-Fit and 18 JST XH crimps per pad. The XH row previously read 18 in a
+> column where the Micro-Fit row was already a two-pad figure; both are now on
+> the same basis. Neither number changes which tool is used.
+
+| Tool (already owned) | Use for | Count (**two pads**) | Why it fits |
 |---|---|---|---|
 | **IWISS SN-28B** | Micro-Fit 3.0 crimps `C259786` | 168 | Terminal 430300001 is 20–24 AWG = **0.2–0.5 mm²**, mid-range for SN-28B's 0.1–1.0 mm². Major SN-28B listings advertise Molex 43030-family compatibility |
-| **Engineer PA-09** | JST XH crimps `SXH-001T-P0.6N` | 18 | 32–20 AWG, dies 1.0/1.4/1.6/1.9 mm — built for exactly this narrow-pitch class |
+| **Engineer PA-09** | JST XH crimps `SXH-001T-P0.6N` | 36 | 32–20 AWG, dies 1.0/1.4/1.6/1.9 mm — built for exactly this narrow-pitch class |
 
 ⚠ **Pull-test the SN-28B on Micro-Fit before committing to 168 crimps.** Its die
 profile targets Dupont/XH barrels, and Micro-Fit's is wider — the wire range
