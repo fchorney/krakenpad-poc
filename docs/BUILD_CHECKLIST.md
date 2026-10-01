@@ -9,6 +9,66 @@ so **19 to go**. 1 master built of **2**, so **1 to go**.
 
 ---
 
+## Solder, flux and cleaning — every board
+
+**Materials on hand (2026-10-01).** All are no-clean or rosin; none is water-soluble.
+
+| | part | notes |
+|---|---|---|
+| Flux | MG Chemicals **8341** No Clean Flux Paste | used up |
+| Flux | Chip Quik **SMD291NL** No Clean Tacky Flux | current — a gel, hard to shift with IPA |
+| Paste | MG Chemicals **Sn42Bi57Ag1** low-temp, T3, no-clean | current |
+| Paste | Chip Quik **Sn63/Pb37** thermally stable, T4, no-clean | next, when the SnBi runs out |
+| Wire | MG Chemicals **4884-227G** Sn63/Pb37, RA (rosin activated) core, 2.2% flux, 0.025" (0.64 mm, 23 AWG) | current — **not no-clean; its residue must be cleaned off** (below) |
+
+- ⛔ **Never mix the bismuth paste and leaded solder on one joint.** Sn–Pb–Bi
+  forms a ~96 °C eutectic, and the joint ends up brittle. Keep each board on one
+  alloy family. To rework a SnBi joint, add SnBi or wick it clean first; never
+  touch it up with the leaded wire. Switch pastes between boards, never partway
+  through one. This matters most on the master, which is reflowed with paste
+  *and* has its through-hole hand-soldered.
+- **The wire's flux is the one residue that must come off.** MG classes the
+  4880–4888 core as **J-STD-004B ROM1**: rosin, *moderate* activity, **0.5–2.0 %
+  halides**, and silver-chromate result "Detection" (halides present). MG's own
+  no-clean Sn63/Pb37 wire (4860–4865) is REL0 with <0.05 %. The datasheet still
+  calls the residue "non-corrosive and non-conductive" (corrosion test pass, SIR
+  >1×10⁹ Ω), but MG's own solder-wire catalogue lists **Cleaning: Required** for
+  this series and "No-clean" for the others. So "leave it" in the bullet below
+  applies only to no-clean flux. Every joint made with this wire gets cleaned.
+  MG doesn't name a solvent for it in either document. IPA dissolves rosin.
+  Sources, read 2026-10-01: `mgchemicals.com/downloads/tds/tds-4880-4888.pdf`
+  (Ver. 4.0, 2025-09-30) and `…/category-data-sheets/CDS-Solder Wires.pdf`
+  (Ver. 1.1, 2023-02-14).
+- **Distilled water does nothing here.** It removes water-soluble (OA) flux only.
+  On no-clean residue a partial wetting can leave white residue.
+- **Use less flux.** No-clean flux is only benign where heat activated it. Flux
+  that spread past the joint and never got hot stays tacky and partly active, and
+  that's most of the sticky film.
+- **Through-hole: rosin-core wire only, no added flux.** An iron heats the joint
+  alone. SMD291NL spread around the pad, wicked down the barrel or tucked under a
+  connector body never reaches activation temperature, so it stays raw gel. IPA
+  can't reach it there, and it keeps seeping back out however much is used.
+  Found on the first panels (2026-10-01): hot-air rework residue came off easily,
+  but the through-hole joints stayed sticky. **SMD291NL is for hot air and
+  reflow only.**
+- **No-clean flux: either clean it completely or leave it.** Fully heated
+  no-clean residue is made to stay on the board. (This doesn't apply to the RA
+  wire. See above.) A half-dissolved smear is worse than either.
+- **Cleaning method:** scrub, then flush with *fresh* solvent while it's still
+  wet and wick it off into a lint-free wipe. Repeat 2–3×. Dirty solvent that
+  evaporates on the board is what leaves the film. IPA handles the rosin wire;
+  SMD291NL needs a real flux remover. Test any remover on a spare board's LED
+  first.
+- **Clean locally around your own joints only.** JLC already washed the panels.
+  Keep liquid away from `SW201`, `SW202`, `SW301` (Omron: "Washing: Not
+  possible"), `J305` and the `J301`–`J304` sockets. On the master, the same goes
+  for `SW1`.
+- **Melamine foam is fine on joints and mask, but never on the WS2815 lenses.**
+  It's an abrasive and will scuff the encapsulant. It also crumbles, so finish
+  with a flush.
+
+---
+
 ## ⛔ First-board-only — do NOT repeat
 
 These were one-time questions about the *design*, and they are closed. Repeating

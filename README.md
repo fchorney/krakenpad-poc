@@ -42,14 +42,15 @@ readily available for this kind of upgrade.
 
 ## Status
 
-Active development, pre-fabrication. Architecture and core electrical decisions
-are settled, prototype hardware has been bench-validated end to end, and **both
-boards — the master controller and the two-board panel — are laid out, routed and
-DRC/ERC clean.** Nothing has been ordered yet. Firmware is at prototype stage:
-the sensor path, the RS-485 bus and USB High Speed are all proven on the bench,
-while the host-facing USB HID layer and flash-backed animation playback are not
-written. See `docs/STATUS.md` for current state, `CLAUDE.md` and `docs/` for
-design notes and specs.
+Prototype boards in hand, bring-up underway. Rev 1 of both boards — the master
+controller and the two-board panel — was fabricated in August 2026, and the
+boards are now being assembled and tested one at a time. The first panel and the
+first master have been brought up: power, flash, sensors, all 25 LEDs, the
+interrupt path and the RS-485 bus all work on the real hardware, panel to master.
+Any board change from here is a rev 2 change. Firmware is still at bring-up
+stage: the host-facing USB HID layer and flash-backed animation playback are not
+written yet. See `docs/BRINGUP_LOG.md` for per-board results, `CLAUDE.md` and
+`docs/` for design notes and specs.
 
 ## AI Disclosure
 
