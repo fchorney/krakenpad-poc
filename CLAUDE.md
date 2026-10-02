@@ -56,6 +56,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >      which are the states where "is it powered?" matters most. If the goal is
 >      *power*, put an LED on `+3.3VDC`. A debug mirror and a power LED answer
 >      different questions; the brain could carry either or both. Not decided.
+>   5. **Test-point labels on both sides of the board** (raised at the bench
+>      2026-10-02). Every test point is a THT pad, so it can be probed from
+>      either side, but only the refdes is on silk, and only on **F.SilkS**. The
+>      brain mounts **F.Cu toward the carrier**, so when the boards are mated the
+>      side you can see has no labels at all. Proposed: label on B.SilkS too, and
+>      label by **signal** (`RUN`, `DE`, `+5V`), not just `TP306`. ⚠ The
+>      footprint **Value** fields can't be used as the source text as they are:
+>      9 carrier test points carry a wrong Value (e.g. `TP201` says `+12VDC` but
+>      is `TERM_SENSE`; `TP202`/`TP204` say `GND` but are `RS485±`), and
+>      `docs/DUAL_PANEL.md` repeats the error. Take the text from the net.
+>   6. **More test points** (raised 2026-10-02, list not final). **VBUS** first:
+>      there is none on the brain, and it is the net behind #3. Pairs naturally
+>      with #3's divider. Suggested, not decided: the **AMS1117-5.0 output
+>      before the `U304` mux**. With USB present the mux selects VBUS, so `U303`
+>      can't be metered from `TP302` (bring-up had to run 12V-only to test it).
+>      Also **`SENSE_12V`**, which was behind the GPIO17 pull-down trap.
+>   7. **Probe hooks in place of the THT pad test points** (raised 2026-10-02,
+>      user still considering). A board constraint to check before choosing:
+>      the brain's F side faces the carrier, so a hook on that side would sit in
+>      the inter-board gap. Hooks there would go on **B**, which also decides
+>      where #5's labels go.
 >   - ~~RS-485 DE pull-down~~ **DROPPED 2026-09-07**: `TP306` measured 35 mV on a
 >     blank board, so the RP2040's internal pull-down does park the THVD1450 in
 >     receive. See `docs/BRINGUP_LOG.md`.

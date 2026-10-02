@@ -336,7 +336,7 @@ hot-plug/USB-attach behaviour, SI asymmetries, and the FSR runs on B.Cu.
 | debug LED | **D202** + **R204** 1k |
 | interface | **J210–J213** 1×8 headers, B.Cu |
 | mechanical | **H201** (86.83, 106.19), **H202** (123.03, 53.86), **H203** (146.03, 108.06) |
-| test points | TP201–TP218 — 12V ×3, LED data 5V, rest GND |
+| test points | TP201–TP218, from the netlist: **+12VDC** TP203, TP205 · **TERM_SENSE** TP201 · **RS485+/−** TP202/TP204 · **+3.3VDC** TP206 · **INT** (`D201` K) TP211 · **LED_DATA_5V** TP214 · **LED chain nodes** LD6/LD12/LD18/LD23 = TP215/TP216/TP217/TP218 · **GND** TP207–TP210, TP212, TP213. ⚠ Nine of these footprints carry a wrong *Value* field (most say `GND`); fab layer only, not printed. Corrected 2026-10-02 |
 
 Protection lives at the ports on the carrier, so a plug or ESD event clamps
 upstream and never crosses the interface.

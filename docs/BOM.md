@@ -194,6 +194,12 @@ JLC places it. Neither is ordered.
 
 Master J1 and J2 share the panel's Micro-Fit and terminal lines above.
 
+⚠ **Some of the master resistors that arrived have no value marking on the body**
+(found at the bench, 2026-10-02). They work, but a hand-assembled board is easier
+to place and check when every resistor carries its code. **Next order (masters
+#3–#5 and any rev 2): check the datasheet's marking line before buying.** Which
+of the three resistor lines above were unmarked is not recorded yet.
+
 **J3–J11 replaced the 9-pos Euroblock 2026-07-26** (INT went to twisted
 pair, signal + dedicated GND). That moved the INT connector off the AliExpress
 order and onto this one. Nine per board, 18 for two pads.
