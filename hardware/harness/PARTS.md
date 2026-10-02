@@ -903,10 +903,16 @@ five-minute inspection, not a BOM line.
 
 ## Identification
 
-Per-panel identification is **two bands of coloured heat-shrink at both cable
-ends**, not conductor color — the chosen RVSP cable comes in one color only.
+Per-panel identification is a **printed label under clear heat-shrink at both
+cable ends** (decided 2026-08-31), not conductor color — the chosen RVSP cable
+comes in one color only. The label reads the panel's **physical position**
+(`UL`/`U`/`UR`/`L`/`C`/`R`/`DL`/`D`/`DR`), the same string as the master's
+J3–J11 silkscreen. 36 labels for two pads; clear shrink is already on hand.
+**Slide the shrink on before crimping.** Full rules: `WIRE_COLORS.md` →
+"Panel identification — printed labels under clear shrink".
 
-**Row + column, six colours, decided 2026-08-17.** Rows top→bottom
+~~**Row + column, six colours, decided 2026-08-17.**~~ **Superseded 2026-08-31
+by the labels above; kept as the documented fallback.** Rows top→bottom
 **red/yellow/green**; columns left→right **blue/white/violet**. So `UL` is
 red+blue, `C` is yellow+white, `DR` is green+violet. The sets are disjoint, so
 the band order does not matter. **This replaced the stock 0=Red … 8=Black map**,

@@ -93,7 +93,7 @@ these totals.
 | Cable | Needed **per pad** | Buy (build scope = **2 pads**) |
 |---|---|---|
 | 12 V columns + trunk, 2C 20 AWG | 5.4 m + ~1 m = **6.4 m** | **20 m** |
-| **RS-485 + INT, 22 AWG 2-core shielded pair (RVSP)** — one reel | 4.2 m + 9.3 m = **13.5 m** | **40 m** |
+| **RS-485 + INT, 22 AWG 2-core shielded pair (RVSP)** — one reel | 4.2 m + 10.65 m = **14.85 m** (INT was 9.3 m before the +15 cm/cable of 2026-10-02) | **40 m** (bought 50 m) |
 
 **RS-485 and INT share one cable as of 2026-08-16.** Both are 2-core shielded
 twisted pair at signal-level current; only the shield termination differs

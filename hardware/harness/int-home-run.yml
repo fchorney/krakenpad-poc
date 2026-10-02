@@ -21,6 +21,12 @@ metadata:
     housing and the panel end a screw terminal, so both ends are serviceable as
     drawn. The breakout was only ever a cable-management convenience, and it is
     purely additive if wanted later -- nothing here changes to accommodate it.
+    +15 CM ON EVERY CABLE -- DECIDED 2026-10-02, at the start of cable
+    building. The stock lengths above ran to a SEPARATE JST connector that sat
+    between the signal lines and the stock MCU, not into the MCU board itself.
+    Ours land directly on master J3-J11, so each run needs to reach further.
+    The user set the allowance at 15 cm per cable; the stock figure is kept
+    beside each new length. Set total 9.3 m -> 10.65 m.
     Caveat: the lengths assume the replacement master mounts where the stock
     Arduino Micro sat. The stock set fits 60 + 30 per row down + a column
     offset of 0 centre / 10 right / 30 left, in cm, which puts the MCU nearest
@@ -113,71 +119,74 @@ cables:
   W_P0:
     category: bundle
     gauge: 22 AWG
-    length: 0.900
+    length: 1.050
     colors: [WH, BK]
     notes: >
-      Master J3 to panel 0 (UL). 90 cm. Markers RED + BLUE.
-      PER-PANEL IDENTIFICATION IS TWO BANDS OF COLORED HEAT-SHRINK AT BOTH ENDS,
-      not conductor color -- the chosen twisted pair comes in one color only.
-      SCHEME CHANGED 2026-08-17: a row/column code replaces the stock SMX
-      0=Red..8=Black map, which needed nine distinguishable colors that are not
-      actually sold. Rows top-to-bottom RED/YELLOW/GREEN, columns left-to-right
-      BLUE/WHITE/VIOLET; each cable end gets one band of each. The sets are
-      disjoint so band order does not matter. UL=red+blue, U=red+white,
-      UR=red+violet, L=yellow+blue, C=yellow+white, R=yellow+violet,
-      DL=green+blue, D=green+white, DR=green+violet. Full scheme in
-      WIRE_COLORS.md. The same convention applies to all nine cables below.
+      Master J3 to panel 0 (UL). 105 cm (stock 90 + 15). Label UL.
+      PER-PANEL IDENTIFICATION IS A PRINTED LABEL UNDER CLEAR HEAT-SHRINK AT
+      BOTH ENDS (decided 2026-08-31), not conductor color -- the chosen twisted
+      pair comes in one color only. The label reads the panel's PHYSICAL
+      POSITION (UL/U/UR/L/C/R/DL/D/DR), the same string as the master's J3-J11
+      silkscreen, never the panel ID. Laser-printed; slide the shrink on BEFORE
+      crimping. Full rules in WIRE_COLORS.md. The same convention applies to all
+      nine cables below.
+      Superseded, kept as the documented fallback in WIRE_COLORS.md: the
+      2026-08-17 two-band row/column color code (rows RED/YELLOW/GREEN, columns
+      BLUE/WHITE/VIOLET), which itself replaced the stock SMX 0=Red..8=Black
+      map. The per-cable notes below used to carry single marker colors left
+      over from that stock map -- already stale before 2026-08-31.
   W_P1:
     category: bundle
     gauge: 22 AWG
-    length: 0.600
+    length: 0.750
     colors: [WH, BK]
-    notes: Master J4 to panel 1 (U). 60 cm -- shortest of the nine. Marker ORANGE.
+    notes: Master J4 to panel 1 (U). 75 cm (stock 60 + 15) -- shortest of the nine. Label U.
   W_P2:
     category: bundle
     gauge: 22 AWG
-    length: 0.700
+    length: 0.850
     colors: [WH, BK]
-    notes: Master J5 to panel 2 (UR). 70 cm. Marker YELLOW.
+    notes: Master J5 to panel 2 (UR). 85 cm (stock 70 + 15). Label UR.
   W_P3:
     category: bundle
     gauge: 22 AWG
-    length: 1.200
+    length: 1.350
     colors: [WH, BK]
-    notes: Master J6 to panel 3 (L). 120 cm. Marker GREEN.
+    notes: Master J6 to panel 3 (L). 135 cm (stock 120 + 15). Label L.
   W_P4:
     category: bundle
     gauge: 22 AWG
-    length: 0.900
+    length: 1.050
     colors: [WH, BK]
-    notes: Master J7 to panel 4 (C). 90 cm. Marker BLUE.
+    notes: Master J7 to panel 4 (C). 105 cm (stock 90 + 15). Label C.
   W_P5:
     category: bundle
     gauge: 22 AWG
-    length: 1.000
+    length: 1.150
     colors: [WH, BK]
-    notes: Master J8 to panel 5 (R). 100 cm. Marker BROWN.
+    notes: Master J8 to panel 5 (R). 115 cm (stock 100 + 15). Label R.
   W_P6:
     category: bundle
     gauge: 22 AWG
-    length: 1.500
+    length: 1.650
     colors: [WH, BK]
     notes: >
-      Master J9 to panel 6 (DL). 150 cm -- longest of the nine. Marker GREY.
-      TOTAL FOR THE SET: 9.3 m of 24 AWG twisted pair before slack, the same
-      total the stock signal lines came to in 18 AWG.
+      Master J9 to panel 6 (DL). 165 cm (stock 150 + 15) -- longest of the nine. Label DL.
+      TOTAL FOR THE SET: 10.65 m of 24 AWG twisted pair before slack (was
+      9.3 m, the same total the stock signal lines came to in 18 AWG, before
+      the +15 cm per cable added 2026-10-02 -- see metadata).
   W_P7:
     category: bundle
     gauge: 22 AWG
-    length: 1.200
+    length: 1.350
     colors: [WH, BK]
-    notes: Master J10 to panel 7 (D). 120 cm. Marker WHITE.
+    notes: Master J10 to panel 7 (D). 135 cm (stock 120 + 15). Label D.
   W_P8:
     category: bundle
     gauge: 22 AWG
-    length: 1.300
+    length: 1.450
     colors: [WH, BK]
-    notes: Master J11 to panel 8 (DR). 130 cm. Marker BLACK.
+    notes: Master J11 to panel 8 (DR). 145 cm (stock 130 + 15). Label DR.
 
 connections:
   - - M0: [1-2]
