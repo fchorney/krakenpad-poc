@@ -22,7 +22,7 @@ file fills in as they are brought up.
 
 | board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | notes |
 |---|---|---|---|---|---|---|
-| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | ✅ bus | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive. Stage 3 2026-10-02 at ID 3 with master #2: `F`, `I`, `S` all clean; `A` with real presses not yet run |
+| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | ✅ | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive. Stage 3 2026-10-02 at ID 3 with master #2: `F`, `I`, `S` clean, `A` + `E` closed loop by eye |
 | `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1 on 10-01, **ID 0 from 10-02**. `i` skipped, INT proven on the bus with master #2 instead |
 
 ### Masters
@@ -200,11 +200,12 @@ Full run under **master #2 → 2026-10-02**. For this board:
 | `S 3 500 400` × 50 (fixed master) | 50/50 acked | ✅ `'C'`→`'c'` path |
 | counters over the fixed-master runs | **0 CRC, 0 uart, 0 turnaround** in 29,466 frames | ✅ |
 
+| `A` + `E`, real presses | panel lit **green** on press (`L`'s press colour) | ✅ FSR → INT → master → `'L'` → LEDs, by eye |
+
 ### Still open for this board
 
-- **`A` with real presses.** `I` proves the INT wire and the `INT_OUT` drive,
-  but the FSR-threshold → INT path has not been exercised on this board at the
-  bus. Board 2 did it with 36 presses.
+- ~~**`A` with real presses.**~~ Done 2026-10-02, closed loop by eye; see
+  master #2 → 2026-10-02. Presses were not counted, unlike board 2's 36.
 
 ---
 
@@ -595,6 +596,15 @@ came from the back-to-back polls that collided. At nine panels that is
 **~14 Hz telemetry per panel**. Not on the gameplay path; to be revisited
 **when all nine panels are on the bus**, where it will be tested with the rest
 of the full-pad timing anyway.
+
+**Closed loop, both panels.** With `A` (auto-INT) and `E` (paint incoming
+`'L'`) on both boards, pressing a panel turned it its master-assigned press
+colour: **ID 0 red, ID 3 green**,
+matching `PANEL_PRESS_COLOR` for `UL` and `L`. That is the whole gameplay round
+trip on real hardware: FSR → panel threshold → `INT_OUT` → wire → master ISR →
+master picks the colour → `'L'` over RS-485 → the panel's WS2815s. It was
+judged by eye; presses were not counted and bus counters were not read
+afterwards, so this run carries no error figure of its own.
 
 **Not established this session:** the panels' counters before the test (1 CRC
 on `…54442F`, 9 uart errors on `…7D462D`) had built up since `R` was pressed
