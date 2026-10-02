@@ -134,6 +134,30 @@ void sendPacket(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) 
   // transmitterEnable handles DE timing; no flush needed before queuing more
 }
 
+// ── Reply window ─────────────────────────────────────────────────────────────
+// After a packet that expects a reply ('F', 'C'), the master must stay silent
+// until the reply is over: both ends tie DE to R̅E̅, so a master frame sent on
+// top of a reply corrupts it on the wire and the master cannot even hear it.
+// Nothing scheduled may transmit before this deadline. Found at the bench
+// 2026-10-02: the LED burst blocks loop() ~7ms in write(), and a schedule
+// computed from the pre-burst millis() fired the next poll immediately behind
+// a 'C', on top of the panel's 'c' ack.
+//
+// 400us covers the longest reply ('f', 14 bytes = 140us at 1 Mbps) plus the
+// panel's turnaround, with margin. It costs nothing at a 5ms poll interval.
+constexpr uint32_t REPLY_WINDOW_US = 400;
+uint32_t bus_quiet_from_us = 0;
+
+void sendRequest(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) {
+  sendPacket(cmd, addr, payload, len);
+  RS485_SERIAL.flush();   // returns at transmit-complete, when DE drops
+  bus_quiet_from_us = micros() + REPLY_WINDOW_US;
+}
+
+bool replyWindowOver() {
+  return (int32_t)(micros() - bus_quiet_from_us) >= 0;
+}
+
 // ── RX parser (panel replies) ────────────────────────────────────────────────
 uint16_t panel_fsr[NUM_PANELS][4] = {};
 uint8_t  panel_pressed_mask[NUM_PANELS] = {};
@@ -251,6 +275,18 @@ void buildSolidFrame(uint8_t *frame, Color c) {
 // state the master is in when it is first powered.
 
 bool bus_traffic = true;   // 'x' gates the LED-frame + poll loop
+
+// A reply-bearing command ('C') must not go out the moment it is typed: it can
+// land tens of microseconds after an 'F' poll, while that panel is still
+// sending its 'f'. The panel's DE and R̅E̅ are tied, so it hears none of the 'C'
+// while it transmits, and the two collide on the wire. Seen at the bench
+// 2026-10-01: the panel captured `55 43 01 05 FF FE` and then the next poll's
+// header as payload, and the master logged CRC errors for the same moments.
+// Instead 'S' queues it here and loop() sends it IN PLACE OF the next poll,
+// so it takes a scheduled slot and the reply window that comes with it.
+bool    cfg_pending = false;
+uint8_t cfg_addr = 0;
+uint8_t cfg_payload[5];
 
 uint8_t readPlayerId() {
   // Closed switch = 0 (closes to GND against the internal pull-up), and the bit
@@ -630,13 +666,18 @@ void handleCommand(const char *s) {
     if (sscanf(s + 1, "%d %d %d", &panel, &press, &rel) == 3 &&
         panel >= 0 && panel < NUM_PANELS &&
         press > 0 && press <= 4095 && rel > 0 && rel < press) {
-      uint8_t payload[5] = {
-        0xFF,  // all channels
-        (uint8_t)(press & 0xFF), (uint8_t)(press >> 8),
-        (uint8_t)(rel & 0xFF),   (uint8_t)(rel >> 8),
-      };
-      sendPacket('C', PANEL_IDS[panel], payload, sizeof(payload));
-      // panel echoes 'c' ack, printed by parseRx
+      if (cfg_pending) {
+        Serial.println("# previous S not sent yet — try again");
+        return;
+      }
+      cfg_payload[0] = 0xFF;  // all channels
+      cfg_payload[1] = (uint8_t)(press & 0xFF);
+      cfg_payload[2] = (uint8_t)(press >> 8);
+      cfg_payload[3] = (uint8_t)(rel & 0xFF);
+      cfg_payload[4] = (uint8_t)(rel >> 8);
+      cfg_addr = PANEL_IDS[panel];
+      cfg_pending = true;
+      // Sent by loop() in the next poll slot; the 'c' ack is printed by parseRx.
     } else {
       Serial.println("# usage: S <panel 0-8> <press 1-4095> <release, below press>");
     }
@@ -799,7 +840,7 @@ void loop() {
   // Per-panel addressed LED frames at 60Hz: solid color if that panel is
   // pressed, dim rainbow chase otherwise.
   uint32_t now_ms = millis();
-  if (bus_traffic && now_ms >= next_frame_ms) {
+  if (bus_traffic && now_ms >= next_frame_ms && replyWindowOver()) {
     next_frame_ms = now_ms + FRAME_INTERVAL_MS;
     for (int i = 0; i < NUM_PANELS; i++) {
       uint8_t frame[NUM_LEDS * 3];
@@ -808,6 +849,7 @@ void loop() {
       sendPacket('L', PANEL_IDS[i], frame, sizeof(frame));
       stat_frames_sent++;
     }
+    now_ms = millis();   // the burst blocks ~7ms; never schedule from before it
   }
 
   // FSR poll on its own clock — telemetry rate is independent of the LED rate.
@@ -817,9 +859,16 @@ void loop() {
   // transmission. 5ms >> the ~150us a full poll-reply round trip takes, so
   // round-robining leaves each panel an unambiguous, collision-free window.
   static uint8_t poll_panel_idx = 0;
-  if (bus_traffic && now_ms >= next_poll_ms) {
-    next_poll_ms = now_ms + POLL_INTERVAL_MS;
-    sendPacket('F', PANEL_IDS[poll_panel_idx], nullptr, 0);
+  // A queued 'C' takes this slot instead and the round-robin resumes next tick.
+  // It is sent even with bus traffic paused, since then nothing can collide.
+  bool poll_due = replyWindowOver() && (!bus_traffic || now_ms >= next_poll_ms);
+  if (cfg_pending && poll_due) {
+    sendRequest('C', cfg_addr, cfg_payload, sizeof(cfg_payload));
+    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    cfg_pending = false;
+  } else if (bus_traffic && poll_due) {
+    sendRequest('F', PANEL_IDS[poll_panel_idx], nullptr, 0);
+    next_poll_ms = millis() + POLL_INTERVAL_MS;
     stat_polls_sent++;
     poll_sent_window[poll_panel_idx]++;
     poll_panel_idx = (poll_panel_idx + 1) % NUM_PANELS;

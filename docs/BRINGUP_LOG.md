@@ -22,15 +22,15 @@ file fills in as they are brought up.
 
 | board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | notes |
 |---|---|---|---|---|---|---|
-| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | — | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive |
-| `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1, terminated. `i` skipped, INT proven on the bus with master #2 instead |
+| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | ✅ bus | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive. Stage 3 2026-10-02 at ID 3 with master #2: `F`, `I`, `S` all clean; `A` with real presses not yet run |
+| `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1 on 10-01, **ID 0 from 10-02**. `i` skipped, INT proven on the bus with master #2 instead |
 
 ### Masters
 
 | board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
 |---|---|---|---|---|---|---|
 | **master #1** | 2026-09-08 | ✅ | ✅ INT | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT path proven end to end with one panel; `r` closed the single-GPIO-port open item |
-| **master #2** | 2026-10-02 | ✅ | ✅ INT | ✅ | `19755070` (new) | all-leaded build: Chip Quik Sn63/Pb37 paste through the printed stencils, no added flux. Bus clean except around `S`, see below |
+| **master #2** | 2026-10-02 | ✅ | ✅ INT | ✅ | `19755070` (new) | all-leaded build: Chip Quik Sn63/Pb37 paste through the printed stencils, no added flux. `S` bus fault found and fixed in master firmware 2026-10-02; first two-panel bus, see below |
 
 ## `DE6558A69754442F` — first board
 
@@ -188,11 +188,23 @@ headroom over a healthy resting channel. No retuning needed. Note that unfitted
 channels read ~12, so "unplugged" and "unpressed" remain electrically
 indistinguishable by design — presence is config, not measurement.
 
+### Stage 3 — on the bus with master #2, 2026-10-02
+
+At **ID 3**, INT on `L` (`J8`), sharing the bus with `DE6558A6977D462D` at ID 0.
+Full run under **master #2 → 2026-10-02**. For this board:
+
+| check | result | verdict |
+|---|---|---|
+| `'F'` polls | answered every poll addressed to ID 3 | ✅ |
+| `I` | ID 3 → `L` (`J8`), 2031 µs low | ✅ ack + INT wire + `INT_OUT` |
+| `S 3 500 400` × 50 (fixed master) | 50/50 acked | ✅ `'C'`→`'c'` path |
+| counters over the fixed-master runs | **0 CRC, 0 uart, 0 turnaround** in 29,466 frames | ✅ |
+
 ### Still open for this board
 
-- **Stage 3** — RS-485. Needs a second panel and the master; cannot be
-  self-tested, since `DE`/`R̅E̅` are tied and transmitting disables the local
-  receiver.
+- **`A` with real presses.** `I` proves the INT wire and the `INT_OUT` drive,
+  but the FSR-threshold → INT path has not been exercised on this board at the
+  bus. Board 2 did it with 36 presses.
 
 ---
 
@@ -503,7 +515,9 @@ firmware running.
 | panel `A` + 36 East presses | 36 PRESS/RELEASE pairs on panel 1, holds 36–306 ms, no orphans | ✅ **INT end to end** |
 | panel `T`, counters reset, 16,669 frames | **0 CRC, 0 overruns, 0 uart errors, 1 turnaround** | ✅ |
 
-### 🔍 Open: `S` disturbs the bus
+### ✅ ~~Open~~ RESOLVED 2026-10-02: `S` disturbs the bus — master firmware
+
+*Original 2026-10-01 write-up kept below; the resolution follows it.*
 
 Every error this session was next to an `S`. With no `S`, the bus ran
 0/0/0 for tens of thousands of frames. With it:
@@ -526,7 +540,69 @@ fault. Every bad frame was caught by CRC, so nothing corrupted got used. Not
 seen on master #1 with board 1 (`S` acked, 0 CRC), which may just be timing
 luck. Not on the gameplay path: `S` is a configuration command.
 
+### 2026-10-02 — two panels on the bus, and the `S` fault fixed
+
+**Setup.** Everything power-cycled. Master #2 with **two** panels on the bus for
+the first time:
+
+| board | DIP ID | INT cable | `I` result |
+|---|---|---|---|
+| `DE6558A6977D462D` | **0** (was 1 on 10-01) | `UL` / `J11` | ✅ fired `UL`, 2030 µs low |
+| `DE6558A69754442F` | **3** | `L` / `J8` | ✅ fired `L`, 2031 µs low |
+
+⚠ At the bench these were called "board 1 = ID 0, board 2 = ID 3". The DIPs
+read the other way round by unique ID. The **cabling matched the DIPs**, so
+nothing was wrong, only the naming. Go by the unique ID.
+
+**Baseline, no `S`:** both panels reporting live FSR values, **0 master CRC
+errors**, and 208 replies to 938 polls in one heartbeat window, which is exactly
+2/9 (every poll to a present panel answered).
+
+**The hypothesis was right, and incomplete.** Reproduced on the unchanged
+firmware with 20 × `S 0 500 400` (500/400 are the panels' existing thresholds,
+so nothing about press behaviour changed):
+
+| | unchanged | `'C'` in a poll slot only | **+ reply window** |
+|---|---|---|---|
+| `'C'` reaching the addressed panel | 20/20 | 20/20, 87/100 | **20/20, 100/100** |
+| `'c'` acks printed by the master | **9/20** | 13/20, 54/100 | **20/20, 100/100** |
+| addressed panel CRC / uart / turnaround | 11 / 192 / 12 | 7 / 0 / 0 | **0 / 0 / 0** |
+| the *other* panel CRC / uart | 2 / 215 | 1 / 9 | **0 / 0** |
+| master CRC | 2 | 0 | **0** |
+
+The 100-command runs alternated between ID 0 and ID 3, 50 each, so both ack
+paths are covered.
+
+- **Unchanged:** every `'C'` arrived intact. What was lost was the **`'c'`
+  ack**, colliding with the master's next transmission, and the collision
+  garbled the bus for the bystander panel too.
+- **Slot only:** master CRC went to 0 but acks still vanished. The master's
+  DE/R̅E̅ are tied, so a reply arriving while it transmits is never heard at all:
+  no CRC error, just nothing. `X` on the panel showed what was on top of it:
+  `55 43 03 05 FF 55 46 01 00 EE`, an `'F'` poll arriving **directly behind**
+  the `'C'` rather than 5 ms later. Cause: `loop()` read `millis()` once, the
+  LED burst blocks ~7 ms in `write()`, and the poll was scheduled from the
+  stale pre-burst time, so the next one fired immediately.
+- **Fix** (master only, no panel change): `'F'` and `'C'` go through
+  `sendRequest()`, which flushes to transmit-complete and then holds the master
+  silent for **400 µs**. The LED burst and the next poll both wait for that,
+  and the clock is re-read after the burst. Written up as a protocol rule in
+  `docs/RS485_PROTOCOL.md` → "Every reply gets a guaranteed window".
+
+**Measured side effect, deferred on purpose:** the poll rate fell from
+~188/s to **~125/s** (replies still 2/9 = every present panel). The old figure
+came from the back-to-back polls that collided. At nine panels that is
+**~14 Hz telemetry per panel**. Not on the gameplay path; to be revisited
+**when all nine panels are on the bus**, where it will be tested with the rest
+of the full-pad timing anyway.
+
+**Not established this session:** the panels' counters before the test (1 CRC
+on `…54442F`, 9 uart errors on `…7D462D`) had built up since `R` was pressed
+earlier, through an unknown amount of traffic. Cause not determined; every
+figure in the table above is a before/after delta.
+
 ### Still open for this board
 
-- **`S` bus disturbance** above: firmware, not hardware.
+- ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
+- **Poll rate ~125/s, ~14 Hz per panel at nine** — revisit with all nine panels.
 - **Underglow with a real strip** (install-day check).

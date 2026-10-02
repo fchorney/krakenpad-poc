@@ -149,6 +149,47 @@ errors sustained. This scales fine to 9 panels (9 × 5ms ≈ 45ms per full
 sweep, still far above what's needed for telemetry) but the pacing
 requirement must be kept in mind if poll timing is ever revisited for speed.
 
+## Every reply gets a guaranteed window (found 2026-10-02, master #2 + two panels)
+
+**Pacing alone was not enough.** A 5 ms poll interval only protects a reply if
+the schedule is honest, and the master's `loop()` was not. Two faults, the
+second hidden behind the first:
+
+1. **`'C'` went out whenever `S` was typed**, at an arbitrary point inside a
+   millisecond, so the next frame/poll tick could fire microseconds later on top
+   of the `'c'` ack.
+2. **The schedule was computed from a stale clock.** `millis()` was read once at
+   the top of `loop()`. The nine-panel `'L'` burst (9 × 80 bytes into Teensy's
+   40-byte TX buffer) blocks inside `write()` for ~7 ms, and the poll after it
+   set `next_poll_ms = now_ms + 5` from the pre-burst time, already in the past,
+   so the next request went straight out behind the previous one.
+
+The rule now, master side (`firmware/master/master.ino`, `sendRequest()`):
+
+- **Any packet that expects a reply (`'F'`, `'C'`) is followed by
+  `REPLY_WINDOW_US` = 400 µs of master silence**, measured from transmit-complete
+  (`flush()` returns when DE drops). The LED burst and the next poll both wait
+  for it. 400 µs covers the longest reply (`'f'`, 14 bytes = 140 µs) plus panel
+  turnaround.
+- **`'C'` takes a poll slot** instead of being sent from the command handler.
+- **The clock is re-read after the LED burst**, and the next poll is scheduled
+  from the time it was actually sent.
+
+`'I'` is unaffected: the self-test pauses all other traffic and waits for the ack.
+
+Measured before/after on the same bench: 9/20 `'c'` acks with 11 panel CRC and
+~400 uart errors across both panels → **120/120 acks, 0 CRC, 0 uart, 0
+turnaround** on both panels. Details: `docs/BRINGUP_LOG.md` → master #2.
+
+⚠ **Measured consequence, deliberately not fixed yet:** the honest schedule polls
+at **~125/s, not the 200/s `POLL_INTERVAL_MS` implies**. The `'L'` burst occupies
+~7 ms of every 16 ms frame period (~45% of the bus), which leaves room for two
+polls per frame period. The old ~188/s was inflated by the very back-to-back
+polls that collided. At 9 panels that is **~14 Hz telemetry per panel**, a
+~72 ms sweep rather than the 45 ms estimated above. Not on the gameplay path
+(presses travel on INT). Interleaving polls into the LED burst is the obvious
+next step, and it is deferred until all nine panels are on the bus.
+
 ## Future idea: slotted broadcast poll (not implemented, thinking point)
 
 Instead of individually addressing each panel's `'F'` poll, the master could
