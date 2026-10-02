@@ -4,8 +4,8 @@
 the right shape for board 1, the wrong shape for boards 3 through 20. This is the
 condensed version: what to do per board, and what not to do again.
 
-**Remaining as of 2026-09-08:** 1 panel built of **20** (2 pads × 9 + 2 spares),
-so **19 to go**. 1 master built of **2**, so **1 to go**.
+**Remaining as of 2026-10-02:** 2 panels built of **20** (2 pads × 9 + 2 spares),
+so **18 to go**. Both masters built.
 
 ---
 
@@ -18,7 +18,7 @@ so **19 to go**. 1 master built of **2**, so **1 to go**.
 | Flux | MG Chemicals **8341** No Clean Flux Paste | used up |
 | Flux | Chip Quik **SMD291NL** No Clean Tacky Flux | current — a gel, hard to shift with IPA |
 | Paste | MG Chemicals **Sn42Bi57Ag1** low-temp, T3, no-clean | current |
-| Paste | Chip Quik **Sn63/Pb37** thermally stable, T4, no-clean | next, when the SnBi runs out |
+| Paste | Chip Quik **Sn63/Pb37** thermally stable, T4, no-clean | in use since master #2 (2026-10-01): worked well through the printed stencil, needed more heat than SnBi, and needed no added flux |
 | Wire | MG Chemicals **4884-227G** Sn63/Pb37, RA (rosin activated) core, 2.2% flux, 0.025" (0.64 mm, 23 AWG) | current — **not no-clean; its residue must be cleaned off** (below) |
 
 - ⛔ **Never mix the bismuth paste and leaded solder on one joint.** Sn–Pb–Bi

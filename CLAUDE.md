@@ -48,6 +48,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >      real VBUS instead of the SDK's blanket `VBUS_DETECT_OVERRIDE`; it drains
 >      the node as a side effect. ⚠ **A plain bleeder is the wrong fix** — against
 >      a 1.5 k pull-up it must be <600 Ω and then burns ~8 mA whenever USB is live.
+>   4. **Brain: an on-board indicator LED** (raised at the bench 2026-10-02). An
+>      unmated brain shows nothing to say it is alive: the only indicator is the
+>      carrier's `D202` debug LED (GPIO16 via the interface, `R204` 1k). Proposed:
+>      mirror the debug LED onto the brain. ⚠ `D202` is **firmware-driven**, so a
+>      copy of it stays dark on a blank board, in BOOTSEL, or under hung firmware,
+>      which are the states where "is it powered?" matters most. If the goal is
+>      *power*, put an LED on `+3.3VDC`. A debug mirror and a power LED answer
+>      different questions; the brain could carry either or both. Not decided.
 >   - ~~RS-485 DE pull-down~~ **DROPPED 2026-09-07**: `TP306` measured 35 mV on a
 >     blank board, so the RP2040's internal pull-down does park the THVD1450 in
 >     receive. See `docs/BRINGUP_LOG.md`.

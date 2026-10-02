@@ -23,12 +23,14 @@ file fills in as they are brought up.
 | board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | notes |
 |---|---|---|---|---|---|---|
 | `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | — | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive |
+| `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1, terminated. `i` skipped, INT proven on the bus with master #2 instead |
 
 ### Masters
 
 | board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
 |---|---|---|---|---|---|---|
 | **master #1** | 2026-09-08 | ✅ | ✅ INT | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT path proven end to end with one panel; `r` closed the single-GPIO-port open item |
+| **master #2** | 2026-10-02 | ✅ | ✅ INT | ✅ | `19755070` (new) | all-leaded build: Chip Quik Sn63/Pb37 paste through the printed stencils, no added flux. Bus clean except around `S`, see below |
 
 ## `DE6558A69754442F` — first board
 
@@ -193,6 +195,59 @@ indistinguishable by design — presence is config, not measurement.
   receiver.
 
 ---
+
+## `DE6558A6977D462D` — second board
+
+**2026-10-02.** First board built from `docs/BUILD_CHECKLIST.md` rather than the
+full bring-up docs, so the first-board-only checks were not repeated. Bring-up
+firmware built Sep 8 2026 15:08:34.
+
+### Stage 0 and 1 — brain alone on USB
+
+| check | result | verdict |
+|---|---|---|
+| blank board on USB | mounted as `RPI-RP2`, no button | ✅ |
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated | ✅ all five internal pull-ups good |
+| `s` → FSR raw | South 16, West 16, North 17, East 16 | ✅ uniform (board 1 read 12) |
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `s` → `SENSE_12V` | `12V PRESENT`, raw 1, 1 edge | ✅ the edge is 12 V arriving after USB |
+| `s` → DIP | 1 (`0b0001`), switches up-up-up-down | ✅ matches what was set |
+| `s` → `TERM_SENSE` | TERMINATED | ✅ matches `SW202` |
+| `d` | each switch flipped one bit and back: bit 3, 2, 1, 0 in switch order 1–4 | ✅ no bridges or opens on GPIO18–21 |
+| FSR, East connected only | rests **97–98**; the three empty channels 15–18 | ✅ inside board 1's 94–98 |
+| `f`, East pressed by hand, 15 s | East 96 → peak **3676**; South/West/North stayed 15–18 throughout | ✅ right channel, no crosstalk. Peak below ~4000 is hand press force |
+| `l` | all 25 lit, red/green/blue/white | ✅ |
+| `p` (run by habit; first-board-only) | `1 1 1` | same as board 1, nothing hangs on it |
+| `i` | **skipped** | INT to be proven end to end with the master at stage 3 |
+| USB pulled, 12 V live | board kept running | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **4.98 V / 3.304 V** | ✅ `U303` and `U302` in regulation (board 1: 4.965 / 3.29) |
+| cold start on 12 V only | board came up | ✅ `U303` starts the board, not just holds it |
+| back to USB: 12 V off, USB in, 12 V on | enumerated; `s` unchanged | ✅ |
+
+Only one FSR was connected for this run, so South, West and North were
+proven as live ADC channels at rest but not with a sensor pressed. The FSR
+connectors themselves (`J201`, `J202`, `J206`) have not carried a sensor yet.
+
+### Stage 3 — on the bus with master #2
+
+See **master #2 → Stage 3** below for the full run. For this board: responder
+at address 1, `I` passes on `U` (`J10`), `S` acks, all four command paths
+answered, and 36 hand presses on East became 36 clean PRESS/RELEASE pairs at
+the master through `A` mode. Counters at steady state: **0 CRC, 0 overruns,
+0 uart errors, 1 turnaround** (at enable).
+
+### Still open for this board
+
+- The three FSR connectors not yet exercised with a sensor (`J201` W, `J202` S,
+  `J206` N).
 
 ## master #1
 
@@ -400,3 +455,78 @@ choice of cascaded linear LDOs over a buck.
   and 3 are both on `RS485_DE` and transmitting disables the local receiver.
 - **`I` will report "no ack" for every ID** until `firmware/panel/c/main.c` is
   ported and implements the panel half of `'I'`. That is a correct result.
+
+## master #2
+
+**SMD 2026-10-01, through-hole and bench 2026-10-02.** Every SMD part is on, both sides, using the **Chip
+Quik Sn63/Pb37 T4** paste through the 3D-printed stencils
+(`hardware/master-pcb/stencil/`). This is the first board on that paste and the
+first use of the stencils. Both worked well. It took more heat than the
+Sn42Bi57Ag1 did on master #1, which is expected: Sn63/Pb37 melts at 183 °C, and
+SnBi is the low-temperature alloy.
+
+**No extra flux was added.** The paste's own flux was enough, and the board
+cleaned up well. That fits what the first panels showed
+(`docs/BUILD_CHECKLIST.md`): the sticky residue came from added tacky flux that
+never got hot enough.
+
+**The whole board is leaded.** The through-hole went on with the Sn63/Pb37
+wire, so there is no SnBi anywhere on it.
+
+**Teensy fitted: serial `19755070`, new**, VUSB↔VIN bridge checked intact. It was
+seated before flashing; a fresh Teensy runs the factory blink, which is harmless
+here (see master #1). **First flash needs the PROGRAM button.** `arduino-cli
+upload` reported "Teensy did not respond to a USB-based request to enter program
+mode", and after the button press the board dropped off USB entirely for a
+while before reappearing on `/dev/cu.usbmodem197550701` with the as-built
+firmware running.
+
+### Stage 1 — board-local checks
+
+| check | result | verdict |
+|---|---|---|
+| `n` | all nine INT lines HIGH (idle) | ✅ no shorted `C3`–`C11` |
+| `N` | all nine external pull-ups present | ✅ every `RN1` joint good |
+| `D` | player ID 1 (P2), switches up-up-down | ✅ matches what was set |
+| `U` → `R4` | PRESENT | ✅ |
+| `U` → `TP10` | **5.166 V** HIGH, **0 V** LOW | ✅ `U3` translating, no bridges; clears `U3`/`R4`/`R5`/`J2` |
+| `u` (scope) | not run | `U` already clears the master-side chain |
+
+### Stage 3 — with panel `DE6558A6977D462D` at ID 1
+
+| check | result | verdict |
+|---|---|---|
+| heartbeat after panel `R` | `U  id 1  FSR=16,16,16,97`, 0 crc errs | ✅ live telemetry on the bus |
+| `I`, first try | ID 1 fired **`UL` (`J11`) — MISMATCH** | ✅ the self-test caught the cable in the wrong header |
+| `I`, cable moved to `J10` | ID 1 → `U` (`J10`), 2025 µs low | ✅ |
+| `S 1 500 400` | panel acks | ✅ but see below |
+| panel `A` + 36 East presses | 36 PRESS/RELEASE pairs on panel 1, holds 36–306 ms, no orphans | ✅ **INT end to end** |
+| panel `T`, counters reset, 16,669 frames | **0 CRC, 0 overruns, 0 uart errors, 1 turnaround** | ✅ |
+
+### 🔍 Open: `S` disturbs the bus
+
+Every error this session was next to an `S`. With no `S`, the bus ran
+0/0/0 for tens of thousands of frames. With it:
+
+- The first run showed **209 uart errors, 11 turnaround** on the panel after one
+  `S`.
+- Five `S` in a row: the panel's `'C' answered` count rose by one each time (all
+  five arrived), but the first three each added **one CRC error**, the third
+  also a burst of **111 uart errors, 11 turnaround**, and the master printed no
+  ack for those three.
+- The one CRC failure `X` captured was `55 43 01 05 FF FE 55 46 03 00`: a valid
+  `'C'` header to address 1, then the next poll frame (`55 'F' 03 00`) starting
+  two payload bytes in.
+
+**Hypothesis, not proven:** the master sends `'C'` from the command handler and
+goes straight back to its poll/LED schedule without leaving a slot for the
+panel's `'c'` reply, so the reply and the next master frame overlap on the
+half-duplex bus. That makes it a **master firmware** timing problem, not a board
+fault. Every bad frame was caught by CRC, so nothing corrupted got used. Not
+seen on master #1 with board 1 (`S` acked, 0 CRC), which may just be timing
+luck. Not on the gameplay path: `S` is a configuration command.
+
+### Still open for this board
+
+- **`S` bus disturbance** above: firmware, not hardware.
+- **Underglow with a real strip** (install-day check).
