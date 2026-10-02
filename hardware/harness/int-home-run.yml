@@ -42,7 +42,7 @@ options:
 connectors:
   M0: &master
     pn: JST B2B-XH-A / XHP-2
-    type: Master J3 (UL)
+    type: Master J11 (UL)
     subtype: JST XH 2-pin, vertical
     pincount: 2
     pinlabels: [INT, GND]
@@ -57,28 +57,28 @@ connectors:
       reports mismatches. See docs/RS485_PROTOCOL.md.
   M1:
     <<: *master
-    type: Master J4 (U)
+    type: Master J10 (U)
   M2:
     <<: *master
-    type: Master J5 (UR)
+    type: Master J9 (UR)
   M3:
     <<: *master
-    type: Master J6 (L)
+    type: Master J8 (L)
   M4:
     <<: *master
     type: Master J7 (C)
   M5:
     <<: *master
-    type: Master J8 (R)
+    type: Master J6 (R)
   M6:
     <<: *master
-    type: Master J9 (DL)
+    type: Master J5 (DL)
   M7:
     <<: *master
-    type: Master J10 (D)
+    type: Master J4 (D)
   M8:
     <<: *master
-    type: Master J11 (DR)
+    type: Master J3 (DR)
 
   P0: &panel
     pn: KANGNEX WJ500V-5.08-2P
@@ -122,7 +122,7 @@ cables:
     length: 1.050
     colors: [WH, BK]
     notes: >
-      Master J3 to panel 0 (UL). 105 cm (stock 90 + 15). Label UL.
+      Master J11 to panel 0 (UL). 105 cm (stock 90 + 15). Label UL.
       PER-PANEL IDENTIFICATION IS A PRINTED LABEL UNDER CLEAR HEAT-SHRINK AT
       BOTH ENDS (decided 2026-08-31), not conductor color -- the chosen twisted
       pair comes in one color only. The label reads the panel's PHYSICAL
@@ -140,19 +140,19 @@ cables:
     gauge: 22 AWG
     length: 0.750
     colors: [WH, BK]
-    notes: Master J4 to panel 1 (U). 75 cm (stock 60 + 15) -- shortest of the nine. Label U.
+    notes: Master J10 to panel 1 (U). 75 cm (stock 60 + 15) -- shortest of the nine. Label U.
   W_P2:
     category: bundle
     gauge: 22 AWG
     length: 0.850
     colors: [WH, BK]
-    notes: Master J5 to panel 2 (UR). 85 cm (stock 70 + 15). Label UR.
+    notes: Master J9 to panel 2 (UR). 85 cm (stock 70 + 15). Label UR.
   W_P3:
     category: bundle
     gauge: 22 AWG
     length: 1.350
     colors: [WH, BK]
-    notes: Master J6 to panel 3 (L). 135 cm (stock 120 + 15). Label L.
+    notes: Master J8 to panel 3 (L). 135 cm (stock 120 + 15). Label L.
   W_P4:
     category: bundle
     gauge: 22 AWG
@@ -164,14 +164,14 @@ cables:
     gauge: 22 AWG
     length: 1.150
     colors: [WH, BK]
-    notes: Master J8 to panel 5 (R). 115 cm (stock 100 + 15). Label R.
+    notes: Master J6 to panel 5 (R). 115 cm (stock 100 + 15). Label R.
   W_P6:
     category: bundle
     gauge: 22 AWG
     length: 1.650
     colors: [WH, BK]
     notes: >
-      Master J9 to panel 6 (DL). 165 cm (stock 150 + 15) -- longest of the nine. Label DL.
+      Master J5 to panel 6 (DL). 165 cm (stock 150 + 15) -- longest of the nine. Label DL.
       TOTAL FOR THE SET: 10.65 m of 24 AWG twisted pair before slack (was
       9.3 m, the same total the stock signal lines came to in 18 AWG, before
       the +15 cm per cable added 2026-10-02 -- see metadata).
@@ -180,13 +180,13 @@ cables:
     gauge: 22 AWG
     length: 1.350
     colors: [WH, BK]
-    notes: Master J10 to panel 7 (D). 135 cm (stock 120 + 15). Label D.
+    notes: Master J4 to panel 7 (D). 135 cm (stock 120 + 15). Label D.
   W_P8:
     category: bundle
     gauge: 22 AWG
     length: 1.450
     colors: [WH, BK]
-    notes: Master J11 to panel 8 (DR). 145 cm (stock 130 + 15). Label DR.
+    notes: Master J3 to panel 8 (DR). 145 cm (stock 130 + 15). Label DR.
 
 connections:
   - - M0: [1-2]
