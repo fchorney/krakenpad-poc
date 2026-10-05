@@ -141,9 +141,34 @@ Sources: [WS2811 datasheet (Worldsemi)](https://cdn-shop.adafruit.com/datasheets
 ## Set-and-forget is native behavior
 
 WS28xx-family LEDs latch their PWM state: write one frame and they hold the
-color indefinitely with the data line quiet. Our default: write on command
+color indefinitely with the data line quiet. ~~Our default: write on command
 only. Animation stays possible for free (send frames more often) but is not
-the design center.
+the design center.~~ **Superseded 2026-10-05:** write-on-command only works if
+the strip is already powered when the command arrives, and a real strip powers
+up at full white. See "Measured on a real strip" below.
+
+## Measured on a real strip, 2026-10-05
+
+The stock underglow (44 groups), master #2. Log:
+`docs/BRINGUP_LOG.md` → master #2 → 2026-10-05.
+
+- **Byte order is BRG, not RGB.** Sending R, G, B lit the strip blue, red,
+  green. The master firmware's `underglowFill` reorders; anything else that
+  drives the strip must too. Measured on one strip only: check the second
+  pad's strips rather than assume.
+- **All 44 groups addressable singly and in order** (`g` chase).
+- **Power-on state is full white**, held until the first frame. That is
+  2.44 A, which the 12 V budget already covers, so the issue is appearance, not
+  power.
+
+**Design consequence: the master must re-send the underglow frame
+periodically, not only on command.** The master runs on USB and the strip on
+12 V; they come up independently, and the master has no 12 V sense. If the
+strip powers up after the master has sent its frame, or is re-plugged, it sits
+at full white until the host happens to send another. Fix: send the current
+frame at boot, then every few hundred ms. A frame is ~1.3 ms, so the cost is
+negligible. A 12 V sense on the master would also solve it, but that is a board
+change.
 
 ## Our design (as built on the master PCB — see `docs/MASTER_PCB.md`)
 

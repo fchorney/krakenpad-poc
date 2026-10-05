@@ -611,8 +611,30 @@ on `…54442F`, 9 uart errors on `…7D462D`) had built up since `R` was pressed
 earlier, through an unknown amount of traffic. Cause not determined; every
 figure in the table above is a before/after delta.
 
+### 2026-10-05 — underglow with a real strip
+
+**Setup.** Master #2 on USB, the stock underglow (44 groups) plugged into
+`J2`, 12 V on the strip, GND tie confirmed in
+place. No panels.
+
+- **`u`: PASS after a byte-order fix.** Sent R, G, B, it lit **blue, red,
+  green**. The strip takes its bytes in **BRG** order. `underglowFill` now
+  reorders, and `u` shows red, green, blue, white, then dark, as printed.
+- **`g` (new, one group at a time): PASS.** All 44 groups lit singly, in
+  order, from the connector end.
+- **The strip powers up at full white** and holds it until the first frame.
+  Seen on a re-plug of the strip connector with 12 V live. Design consequence
+  in `docs/UNDERGLOW.md` → "Measured on a real strip".
+- **First-run glitch, seen once, NOT reproduced.** The very first `u` showed
+  black, a partial red, green, then a rainbow, i.e. bit errors along the
+  strip, not one bad frame. It did not recur over many repeated runs, after a
+  master reset, or after re-plugging the strip. Cause unknown. The bit-bang
+  timing has still never been scoped; if the glitch returns, that is the first
+  suspect.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
 - **Poll rate ~125/s, ~14 Hz per panel at nine** — revisit with all nine panels.
-- **Underglow with a real strip** (install-day check).
+- ~~**Underglow with a real strip**~~ passed 2026-10-05 (above). Only the
+  unreproduced first-run glitch remains, and the bit-bang has never been scoped.

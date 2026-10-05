@@ -447,10 +447,13 @@ void underglowSendByte(uint8_t b) {
   }
 }
 
+// The strip takes its bytes in BRG order, not RGB — measured on the first
+// strip tested 2026-10-05: sending R,G,B lit it blue, red, green. Callers pass
+// r,g,b; the reorder happens here only.
 void underglowFill(uint8_t r, uint8_t g, uint8_t b) {
   noInterrupts();
   for (int i = 0; i < UNDERGLOW_GROUPS; i++) {
-    underglowSendByte(r); underglowSendByte(g); underglowSendByte(b);
+    underglowSendByte(b); underglowSendByte(r); underglowSendByte(g);
   }
   interrupts();
   delayMicroseconds(300);   // latch
@@ -525,6 +528,34 @@ void underglowTest() {
   underglowFill(20, 20, 20); delay(1200);
   underglowFill(0, 0, 0);
   Serial.println("# done. No 12V at the fan-out means no light — check U3's Y pin instead.");
+}
+
+// One group lit, every other group dark. `group` is 0-based; -1 blanks all.
+// Dim white, so the byte order (BRG, see underglowFill) does not matter here.
+void underglowSingle(int group) {
+  noInterrupts();
+  for (int i = 0; i < UNDERGLOW_GROUPS; i++) {
+    uint8_t v = (i == group) ? 20 : 0;
+    underglowSendByte(v); underglowSendByte(v); underglowSendByte(v);
+  }
+  interrupts();
+  delayMicroseconds(300);   // latch
+}
+
+// `g` walks one lit group from the data-in end to the far end. The fill tests
+// (`u`) cannot see a group that passes data on but has a dead output, or two
+// groups swapped in the run; this can. Groups are numbered from 1 at the
+// connector, so the printed number is the one you count on the strip.
+// `g <n>` lights group n alone and holds it, for finding a fault by eye.
+void underglowChase() {
+  Serial.println("# underglow chase: one group at a time, 1 = nearest the connector");
+  for (int i = 0; i < UNDERGLOW_GROUPS; i++) {
+    Serial.print("  group "); Serial.println(i + 1);
+    underglowSingle(i);
+    delay(300);
+  }
+  underglowSingle(-1);
+  Serial.println("# done, strip blanked. A dark group, or two lit at once, is the fault.");
 }
 
 // ── Slot <-> panel-ID self-test (docs/RS485_PROTOCOL.md) ─────────────────────
@@ -624,6 +655,8 @@ void printHelp() {
     "  D                          read the player-ID DIP (SW1)\r\n"
     "  u                          underglow test pattern (scope)\r\n"
     "  U                          underglow steady levels + R4 check (multimeter)\r\n"
+    "  g                          underglow chase, one group at a time\r\n"
+    "  g <n>                      light underglow group n (1-44) alone and hold\r\n"
     "  x                          pause/resume LED frames + FSR polling\r\n"
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  t                          toggle telemetry stream\r\n"
@@ -651,6 +684,17 @@ void handleCommand(const char *s) {
     underglowTest();
   } else if (strcmp(s, "U") == 0) {
     underglowStaticTest();
+  } else if (strcmp(s, "g") == 0) {
+    underglowChase();
+  } else if (s[0] == 'g') {
+    int n;
+    if (sscanf(s + 1, "%d", &n) == 1 && n >= 1 && n <= UNDERGLOW_GROUPS) {
+      underglowSingle(n - 1);
+      Serial.print("# underglow group "); Serial.print(n);
+      Serial.println(" lit alone. Run `g` or `u` to blank it.");
+    } else {
+      Serial.println("# usage: g <group 1-44>");
+    }
   } else if (strcmp(s, "x") == 0) {
     bus_traffic = !bus_traffic;
     Serial.print("# bus traffic ");

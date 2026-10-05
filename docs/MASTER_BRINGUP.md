@@ -65,6 +65,8 @@ five need no panels and no 12V.
 | `D` | read the player-ID DIP |
 | `u` | underglow test pattern — **scope only** |
 | `U` | underglow steady levels + `R4` check — **the multimeter one** |
+| `g` | underglow chase — one group lit at a time, 1 → 44 from the connector, 300 ms each |
+| `g <n>` | light underglow group *n* (1–44) alone and hold it |
 | `x` | pause/resume LED frames + FSR polling |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
 | `t` | toggle the telemetry stream |
