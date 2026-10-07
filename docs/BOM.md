@@ -220,7 +220,7 @@ TVS and 20 transceivers short — that is correct, not an under-order.
 | **C259786** | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 168 | 300 | 4.47 |
 | **C144401** | JST XHP-2 2-pos housing (INT, wire side) | 18 | 50 | — |
 | **C385122** | JST SXH-001T-P0.6N XH crimp, 22–26 AWG | 36 | 100 | — |
-| **C157907** | JST SMR-03V-B 3-pos housing — **underglow hand-made fallback only** | 1 | 10 | 0.77 |
+| **C157907** | JST SMR-03V-B 3-pos housing — **underglow custom-length leads; ordered without contacts, needs `SYM-001T-P0.6` (not yet bought, 2026-10-07)** | 1 | 10 | 0.77 |
 | **C99102** | XT30U-**F** — PSU side of the 12V trunk (recessed sockets) | 2 | 10 | 2.06 |
 | **C99101** | XT30U-**M** — our trunk + the cut stock tail (exposed pins) | 4 | 10 | 2.28 |
 

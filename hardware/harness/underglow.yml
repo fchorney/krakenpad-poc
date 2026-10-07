@@ -48,8 +48,10 @@ connectors:
       "male/female" by housing, not by JST's contact convention -- the exact
       trap that inverted the whole YL side of this project once already. Buy
       the pair, use whichever half mates the strips, keep the other as a spare.
-      A JST SMR-03V-B housing (LCSC C157907) is on hand as a fallback if a
-      pigtail ever has to be made up by hand.
+      A JST SMR-03V-B housing (LCSC C157907) is on hand for custom-length
+      leads, but it was ordered WITHOUT contacts. CORRECTED 2026-10-07: its pin
+      is SYM-001T-P0.6 (male, 28-22 AWG), never checked at order time -- only
+      the 28-30 AWG SMM-003T-P0.5 was. Wanted, not yet bought.
 
   WAGO_12V:
     pn: Wago 221-415 (5-way lever block)

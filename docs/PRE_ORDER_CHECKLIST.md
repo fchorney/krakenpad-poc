@@ -46,7 +46,9 @@ Remaining teardown follow-ups, none of which block the board order:
   strips' moulded plug to mate. **Use a pre-made 3-pin SM 2.5 LED-strip pigtail
   pair (22 AWG, on hand)**, not loose contacts — `SMM-003T-P0.5` is 28–30 AWG
   and cannot crimp our wire. `SMR-03V-B` (LCSC **C157907**) is stocked as a
-  hand-made fallback. Pinout **1 = GND, 2 = DATA, 3 = 12 V**. Cable-side either
+  hand-made fallback. ⚠ **Corrected 2026-10-07:** it was ordered with no
+  contacts — the right pin is `SYM-001T-P0.6` (28–22 AWG), which was never
+  checked. Wanted, not yet bought; see `hardware/harness/PARTS.md`. Pinout **1 = GND, 2 = DATA, 3 = 12 V**. Cable-side either
   way, so it never blocked the board order.
 - ✅ **"PSU stud size" is moot** — the stock PSU is a brick with one JST YL 2-way
   output and no terminal block or ground stud. The 12V star point is physically

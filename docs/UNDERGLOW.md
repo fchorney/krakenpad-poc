@@ -223,7 +223,10 @@ goes with that wiring.
 must build its mate:
 
 - **`SMR-03V-B` housing — LCSC `C157907`**
-- **`SMM-003T-P0.5` pin contact — LCSC `C385123`**, ×3 plus spares
+- ~~**`SMM-003T-P0.5` pin contact — LCSC `C385123`**, ×3 plus spares~~ — wrong
+  pin: rated 28–30 AWG, too fine for 22 AWG. **Corrected 2026-10-07:** the SM
+  male pin is **`SYM-001T-P0.6`** (28–22 AWG). Not yet bought; the build in use
+  is the pre-made pigtail route in `hardware/harness/PARTS.md`.
 
 12 V and GND come from the Wago fan-out; DATA from master J2 pin 1. No
 `YLP-01V` is involved.

@@ -103,6 +103,7 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 > | ✅ purchased | cable (50 m RVSP + 20 m 2C), fuse holders, T8AL250V cartridges, **Wago 221-415 (10-pack, $14.53)** |
 > | 📦 on the LCSC order | all board parts, Micro-Fit/XH housings + crimps, XT30 |
 > | 🛒 **still to buy** | **ferrules, 100× 0.34 mm²** (sizes closed 2026-09-01; ~30 on hand against 36 needed) |
+> | 🛒 wanted, not urgent (2026-10-07) | **JST `SYM-001T-P0.6` SM male pins** for the `SMR-03V-B` housings already on hand, so underglow leads can be made to any length instead of splicing a pre-made pigtail. LCSC part number and stock not yet checked |
 > | ⏸ deferred by decision | printed carrier (dimensions off the real Wago bodies + fuse holder in hand) |
 >
 > **The build scope is TWO pads** — see the scope banner in `docs/BOM.md`. This
@@ -131,7 +132,8 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | Molex 436450200 Micro-Fit 2-ckt receptacle housing | 12V | C114089 | **15** (3 column feeds + 6 jumpers × 2 ends) |
 | Molex 436450300 Micro-Fit 3-ckt receptacle housing | RS-485 | C259740 | 18 |
 | Molex 430300001 Micro-Fit crimp, 20–24 AWG | 12V + RS-485 | C259786 | **84** (15×2 + 18×3; **168** for two pads) |
-| **JST SMR-03V-B** housing (receptacle, 3-way) | underglow, hand-made fallback | **C157907** | 1 (10 ordered) |
+| **JST SMR-03V-B** housing (receptacle, 3-way) | underglow, custom-length leads | **C157907** | 1 (10 ordered) |
+| **JST SYM-001T-P0.6** SM male pin, 28–22 AWG | underglow, in the `SMR-03V-B` | 🛒 **wanted, not urgent** — never ordered, see "Underglow" below | 3 |
 | 3-pin SM 2.5 LED-strip pigtail pair, 22 AWG | underglow — the actual plan | **ON HAND** | 1 pair |
 | **Wago 221-415**, 5-way lever block | 12V fan-out | ✅ **PURCHASED 2026-08-22** — 10-pack, $14.53 (genuine); not sold in sixes | 3 |
 | **XT30U-F** (PSU side) | PSU→fan-out | ✅ **ON THE LCSC ORDER** — **C99102**, 10 @ $2.06 | 1 |
@@ -424,11 +426,21 @@ directly in the clamp is the legitimate no-ferrule option; tinned is not.
 ### Underglow — we DO build the SM 3P side
 
 - **`SMR-03V-B` housing (receptacle, 3-way) — LCSC `C157907`**, 10 ordered
-- **Contacts: BUY A PRE-MADE LED-STRIP PIGTAIL PAIR INSTEAD.** See below.
+- **Contacts: `SYM-001T-P0.6` male pin, 28–22 AWG — NOT YET BOUGHT.**
+  Corrected 2026-10-07. The housings were ordered with no contacts at all:
+  the only male pin checked was `SMM-003T-P0.5` (28–30 AWG); the standard SM male pin `SYM-001T-P0.6` (28–22 AWG) was never looked at, so the housing was ordered with no usable contact.
+  The `SMR` receptacle takes male pins; `SHF-001T-0.8BS` is the *socket* for the
+  `SMP` plug and does not fit it. 22 AWG is the top of the pin's range and is
+  also the underglow design gauge, so this is a fully in-spec route. 20/18 AWG
+  is over range.
+
+~~**Contacts: BUY A PRE-MADE LED-STRIP PIGTAIL PAIR INSTEAD.**~~ Still valid as
+the route actually in use (see below), but no longer the only one.
 
 **⚠ Do not order `SMM-003T-P0.5` (`C385123`) — it is rated 28–30 AWG**, far too
 fine for either the stock 18 AWG conductors or our 22 AWG pigtails. It would not
-crimp our wire even when in stock. `C22362649` (DLL ZH-RT) is not a substitute
+crimp our wire even when in stock. ~~This made the housing a fallback with no
+contact.~~ It only ruled out *that* pin; `SYM-001T-P0.6` was the one to check. `C22362649` (DLL ZH-RT) is not a substitute
 either: **ZH series, 1.5 mm pitch, 26–32 AWG** — wrong family, pitch and gauge.
 
 **That gauge mismatch is informative.** Genuine JST SM tops out near 22 AWG, so
@@ -446,7 +458,10 @@ straight into the Wago lever block (12 V, GND) and the J2 screw terminal
 and DATA onto the on-hand SM 3P pigtail, then **12 V → Wago block, GND → Wago
 block, DATA → 0.34 mm² ferrule → master J2 pin 1**. **No `YLP-01V`/`YLR-01V` is
 involved** — that idea belonged to the superseded keep-the-stock-harness plan.
-The `SMR-03V-B` (`C157907`) stays a hand-made fallback only.
+The `SMR-03V-B` (`C157907`) becomes the custom-length option once
+`SYM-001T-P0.6` pins are bought (wanted 2026-10-07, not urgent). Note the JST SM
+rating is **3 A per contact** against underglow's 2.64 A sizing figure (88%); the
+wire at 22 AWG has far more margin than the contact.
 
 ⚠ **Expect to splice, not just terminate.** LED-strip pigtails ship with roughly
 **15 cm** of tail, which will not reach from the strip connector to the fan-out
