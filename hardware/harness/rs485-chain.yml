@@ -17,6 +17,10 @@ metadata:
     Caveat: this assumes the replacement master mounts where the stock Arduino
     Micro sat. Re-measure the 60 cm master lead if it moves; the eight 45 cm
     panel-to-panel jumpers are unaffected by master position.
+    DRY FIT 2026-10-07: the two finished RS-485 cables routed in the real pad came
+    out, if anything, a little long. Stock lengths KEPT; the +5 cm per cable
+    that was floated is NOT applied. The 60 cm master lead depends on where
+    the master mounts, so check it when the master goes in.
   status: PROPOSED -- this project's own design, written pre-teardown. Provisional until the stock record is complete.
   pn: HARNESS-485-01
   qty_per_pad: 1
