@@ -86,7 +86,10 @@ standoffs, not the 11 mm the original design assumed. See `docs/DUAL_PANEL.md`
 
 All sourced in `docs/BOM.md`; repeated here for mating reference.
 
-> ### Sourcing status, updated 2026-09-01 — **one item left to buy**
+> ### Sourcing status, updated 2026-10-07 — **nothing left to buy**
+>
+> **Closed 2026-10-07: a recount found enough 0.34 mm² on hand** (32 still needed for the 16 unbuilt INT cables, about 10 spare). Nothing to buy. The
+> 2026-09-01 text below is kept for the record.
 >
 > **100× 0.34 mm² ferrules are the only outstanding purchase in the entire
 > project**, and they re-order domestically. Everything else is purchased, in
@@ -102,7 +105,7 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 > | ✅ in hand | Teensy 4.0 ×2, SM 2.5 pigtail, 12 mm standoffs, heat-shrink, zip ties, M3, crimpers (SN-28B, PA-09), Molex extractor |
 > | ✅ purchased | cable (50 m RVSP + 20 m 2C), fuse holders, T8AL250V cartridges, **Wago 221-415 (10-pack, $14.53)** |
 > | 📦 on the LCSC order | all board parts, Micro-Fit/XH housings + crimps, XT30 |
-> | 🛒 **still to buy** | **ferrules, 100× 0.34 mm²** (sizes closed 2026-09-01; ~30 on hand against 36 needed) |
+> | ~~🛒 **still to buy**~~ ✅ in hand | ~~**ferrules, 100× 0.34 mm²** (sizes closed 2026-09-01; ~30 on hand against 36 needed)~~ enough on hand, recounted 2026-10-07 |
 > | 🛒 wanted, not urgent (2026-10-07) | **JST `SYM-001T-P0.6` SM male pins** for the `SMR-03V-B` housings already on hand, so underglow leads can be made to any length instead of splicing a pre-made pigtail. LCSC part number and stock not yet checked |
 > | ⏸ deferred by decision | printed carrier (dimensions off the real Wago bodies + fuse holder in hand) |
 >
@@ -142,7 +145,7 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 | **T8AL250V** glass cartridge, 5×20 mm, time-lag | trunk | ✅ **PURCHASED** (Amazon 10-pack, $6.99) | 1 |
 | Heat-shrink (colours + clear), zip ties, M3 screws | identification, strain relief, carrier | ✅ **ON HAND** | — |
 | M3 female-female standoff, **12 mm** | carrier↔brain spacer | ✅ **ON HAND** — see below | 3/panel |
-| **Wire ferrules** — **0.34 mm² (0.8 mm ID)** ×36 for the INT conductors, **0.5 mm² (1.0 mm ID)** ×4 for J2 | J214 INT, underglow DATA, J2 GND tie | 🛒 **SIZES CLOSED 2026-09-01; BUY 100× 0.34 mm²** — only ~30 on hand against 36 needed, and they are a single-use consumable. 0.5 mm² needs no purchase (~30 on hand, 4 needed). See below | 20/pad |
+| **Wire ferrules** — **0.34 mm² (0.8 mm ID)** ×36 for the INT conductors, **0.5 mm² (1.0 mm ID)** ×4 for J2 | J214 INT, underglow DATA, J2 GND tie | ✅ **SIZES CLOSED 2026-09-01; ENOUGH ON HAND 2026-10-07** (~~BUY 100× 0.34 mm²~~ — recount found about 10 spare after the 32 still needed) — ~~only ~30 on hand against 36 needed,~~ and they are a single-use consumable. 0.5 mm² needs no purchase (~30 on hand, 4 needed). See below | 20/pad |
 | Molex **11-03-0043** extraction tool | Micro-Fit rework | ✅ **BOUGHT** (Newark) | 1 |
 
 ### Standoffs — CLOSED 2026-08-16, nothing to buy
@@ -664,7 +667,7 @@ Design notes for when it happens:
   serviceable without unpacking the compartment.
 - Wago's own `221-500` remains a useful dimensional reference for the pocket.
 
-**The only thing still to buy is 100× 0.34 mm² ferrules** — the Wago blocks,
+~~**The only thing still to buy is 100× 0.34 mm² ferrules**~~ **Nothing left to buy (2026-10-07: enough 0.34 mm² ferrules on hand after a recount)** — the Wago blocks,
 XT30 pairs and fuse holder + T8A cartridge are all purchased. Standoffs and the
 extraction tool are settled. The old "fork/spade lugs, PSU stud size" row is
 **deleted**: there is no PSU stud, and the fan-out replaced the whole idea.
