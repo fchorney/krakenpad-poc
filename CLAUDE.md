@@ -77,6 +77,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >      the brain's F side faces the carrier, so a hook on that side would sit in
 >      the inter-board gap. Hooks there would go on **B**, which also decides
 >      where #5's labels go.
+>   8. **Brain: `J305` (GCT USB4085-GF-A) pins barely protrude** (raised at the
+>      bench 2026-10-15). The signal pins and the shell/ground lugs only just
+>      come through the board. They solder fine, so **rev 1 needs nothing**, but
+>      there is very little to wet a fillet onto. Options: a USB-C part with
+>      longer TH legs, or **SMT signals + TH shell lugs**. ⚠ The latter
+>      reverses an earlier rejection (GCT USB4105 was turned down for its SMT
+>      signal pins), but the written requirement was always "through-hole **or
+>      TH-reinforced**" — the TH lugs take the plug/unplug load, so a hybrid
+>      part meets it. **Bench estimate by eye** (too small to measure with
+>      calipers), board **1.57 mm**: signal pins ~0.1 mm past the holes, the two
+>      rear shell lugs ~0.5 mm, and the **two front lugs do not reach the far
+>      side at all**. Before choosing a rev-2 part, check what board thickness
+>      its datasheet assumes. Not decided.
 >   - ~~RS-485 DE pull-down~~ **DROPPED 2026-09-07**: `TP306` measured 35 mV on a
 >     blank board, so the RP2040's internal pull-down does park the THVD1450 in
 >     receive. See `docs/BRINGUP_LOG.md`.
