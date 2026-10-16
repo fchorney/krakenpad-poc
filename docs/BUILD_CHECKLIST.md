@@ -19,7 +19,18 @@ so **18 to go**. Both masters built.
 | Flux | Chip Quik **SMD291NL** No Clean Tacky Flux | current — a gel, hard to shift with IPA |
 | Paste | MG Chemicals **Sn42Bi57Ag1** low-temp, T3, no-clean | current |
 | Paste | Chip Quik **Sn63/Pb37** thermally stable, T4, no-clean | in use since master #2 (2026-10-01): worked well through the printed stencil, needed more heat than SnBi, and needed no added flux |
-| Wire | MG Chemicals **4884-227G** Sn63/Pb37, RA (rosin activated) core, 2.2% flux, 0.025" (0.64 mm, 23 AWG) | current — **not no-clean; its residue must be cleaned off** (below) |
+| Wire | MG Chemicals **4884-227G** Sn63/Pb37, RA (rosin activated) core, 2.2% flux, 0.025" (0.64 mm, 23 AWG) | used for the masters and all 20 brains — **not no-clean; its residue must be cleaned off** (below) |
+| Wire | MG Chemicals **4865-227G** Sn63/Pb37, **no-clean** core, 0.032" (0.81 mm), ½ lb | **chosen 2026-10-16 for the carriers onward, and the recommended wire for this build** |
+
+**Recommended wire: no-clean Sn63/Pb37, about 0.8 mm.** 63/37 keeps every
+board on one alloy family (see the bismuth rule below), and it's eutectic, so
+there's no pasty stage while a joint cools. Choose no-clean over RA because the
+carriers carry `SW201`/`SW202`, which can't be washed. RA residue has to come off,
+and no-clean residue can stay once it has been fully heated. 0.8 mm suits the
+Micro-Fit pins and the screw terminal's 1.30 mm holes. Lead-free SAC adds heat and
+gains nothing here. **Never use SnBi wire for through-hole** (mixing rule below).
+Mixing RA and no-clean wire on one board is fine, since the alloy is the same;
+just clean the RA joints.
 
 - ⛔ **Never mix the bismuth paste and leaded solder on one joint.** Sn–Pb–Bi
   forms a ~96 °C eutectic, and the joint ends up brittle. Keep each board on one
