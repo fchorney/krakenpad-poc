@@ -32,19 +32,19 @@ master, instead of pairing boards up.
 |---|---|---|---|---|---|---|---|
 | `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | ✅ | ✅ | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive. Stage 3 2026-10-02 at ID 3 with master #2: `F`, `I`, `S` clean, `A` + `E` closed loop by eye |
 | `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1 on 10-01, **ID 0 from 10-02**. `i` skipped, INT proven on the bus with master #2 instead |
-| `DE6558A6977E3A2D` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | third brain. `p` read `0 0 1` at stage 1: a strong pull-up, not a fault (`R314` metered 31 k in circuit). Corrected the stage-1 `0 0 0` "guarantee" |
-| `DE6558A697556A2F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | fourth brain |
-| `DE6558A697545C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | fifth brain. FSR reads **0** unmated and rests at **85** with an FSR (others 10–18 / 94–102): **a negative ADC offset of ~15 counts**, harmless. `ADC_AVDD` good at 3.28 V |
-| `DE6558A69784622D` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | sixth brain; clean |
-| `DE6558A69776582F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | seventh brain; clean. Highest ADC offset so far (rest 108) |
-| `DE6558A697543C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | eighth brain; clean |
+| `DE6558A6977E3A2D` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | third brain. `p` read `0 0 1` at stage 1: a strong pull-up, not a fault (`R314` metered 31 k in circuit). Corrected the stage-1 `0 0 0` "guarantee" |
+| `DE6558A697556A2F` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | fourth brain |
+| `DE6558A697545C2F` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | fifth brain. FSR reads **0** unmated and rests at **85** with an FSR (others 10–18 / 94–102): **a negative ADC offset of ~15 counts**, harmless. `ADC_AVDD` good at 3.28 V |
+| `DE6558A69784622D` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | sixth brain; clean |
+| `DE6558A69776582F` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | seventh brain; clean. Highest ADC offset so far (rest 108) |
+| `DE6558A697543C2F` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | eighth brain; clean |
 
 ### Masters
 
 | board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
 |---|---|---|---|---|---|---|
 | **master #1** | 2026-09-08 | ✅ | ✅ INT | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT path proven end to end with one panel; `r` closed the single-GPIO-port open item |
-| **master #2** | 2026-10-02 | ✅ | ✅ INT | ✅ | `19755070` (new) | all-leaded build: Chip Quik Sn63/Pb37 paste through the printed stencils, no added flux. `S` bus fault found and fixed in master firmware 2026-10-02; first two-panel bus, see below |
+| **master #2** | 2026-10-02 | ✅ | ✅ INT | ✅ | `19755070` (new) | all-leaded build: Chip Quik Sn63/Pb37 paste through the printed stencils, no added flux. `S` bus fault found and fixed in master firmware 2026-10-02; first two-panel bus, see below. **Eight-panel bus and bus updates 2026-10-18** |
 
 ## `DE6558A69754442F` — first board
 
@@ -939,6 +939,41 @@ place. No panels.
   master reset, or after re-plugging the strip. Cause unknown. The bit-bang
   timing has still never been scoped; if the glitch returns, that is the first
   suspect.
+
+### 2026-10-18 — eight panels on one bus, and bus updates
+
+**Setup.** Master #2 on USB. All eight assembled panels, IDs 0–7, running
+bootloader + bring-up app. Power and RS-485 daisy-chained in pad order, ID 8
+absent, so the last panel on the bus is **ID 5 (R)**: its `SW202` on, every
+other off. FSRs on ID 1 N, ID 3 W, ID 5 E, ID 7 S. Stage 3 for brains 3–8 is
+this run. Which board carries which DIP ID was not recorded.
+
+- **The master was running a build from before `687c12f`** (no `H`, no `P`).
+  On that build `I` failed for **ID 0 only**, twice: no ack and no INT pulse,
+  though ID 0 answered every poll. **Reflashed to current; `I` then passed 8/8**,
+  with traffic paused and with it running. Cause not established. A start-up race
+  with the last poll's reply was the first guess; refuted, since it passes
+  with traffic running too.
+- **`I`: 8/8.** Every ID acks and fires exactly its own header, J11…J4, pulse
+  2.02 ms against 2 ms.
+- **`H`: 8/8.** One build tag on all, `term ON` only on ID 5, `12V yes` all.
+- **FSR mapping correct:** rest 94 (ID 1 N), 104 (ID 3 W), 98 (ID 5 E),
+  101 (ID 7 S); unplugged channels read 0–23.
+- **Bus: 0 errors in steady state.** After `z`, ~140 s and ~91,000 frames per
+  panel: `crc 0 uart 0 ovr 0 turn 0` on all eight; master 0 CRC errors,
+  14,426 of 16,231 polls answered, exactly 8/9. In the first 62 s after a bus
+  update, each panel had counted `uart` 7–13 and `turn` 11–17 (and one `crc`
+  on ID 2). Since the steady state is clean, these were a start-up burst.
+  When exactly it happens was not pinned down.
+- **Bus firmware update: works, both power-cut cases recover.** Detail in
+  `docs/FIELD_UPDATE.md` → "Hardware bring-up". Found and fixed: `--panels`
+  selected nothing, because `'U'`/`'A'` were broadcast to panels that were all
+  held.
+- **New: `z` / `'Z'` zeroes every bus counter on the master and all panels**
+  without a reboot. Verified: all eight read 0 straight after, uptime
+  unaffected.
+- The master prints `STOPPED REPLYING` for every panel while traffic is paused
+  with `x`. That is a false alarm (nothing is polled), not yet fixed.
 
 ### Still open for this board
 

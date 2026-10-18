@@ -350,6 +350,9 @@ bool bus_traffic = true;   // 'x' gates the LED-frame + poll loop
 // header as payload, and the master logged CRC errors for the same moments.
 // Instead 'S' queues it here and loop() sends it IN PLACE OF the next poll,
 // so it takes a scheduled slot and the reply window that comes with it.
+// `z`: zero the bus counters here and, by broadcast 'Z', on every panel. Sent
+// in a poll slot like 'C', so it never lands on top of a reply.
+bool    clear_pending = false;
 bool    cfg_pending = false;
 uint8_t cfg_addr = 0;
 uint8_t cfg_payload[5];
@@ -813,6 +816,7 @@ void printHelp() {
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  t                          toggle telemetry stream\r\n"
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
+    "  z                          zero bus counters, master and all panels\r\n"
     "  P                          bus passthrough for tools/panel_update.py (binary)\r\n"
     "  S <panel> <press> <rel>    set FSR thresholds on one panel"));
 }
@@ -872,6 +876,8 @@ void handleCommand(const char *s) {
     for (int i = 0; i < NUM_PANELS; i++) status_got[i] = false;
     status_next = 0;
     Serial.println("# status sweep: asking panels 0-8, one per poll slot");
+  } else if (strcmp(s, "z") == 0 || strcmp(s, "Z") == 0) {
+    clear_pending = true;
   } else if (strcmp(s, "t") == 0 || strcmp(s, "T") == 0) {
     stream_telemetry = !stream_telemetry;
     Serial.print("# telemetry stream ");
@@ -1085,7 +1091,14 @@ void loop() {
   bool poll_due = replyWindowOver() && (!bus_traffic || now_ms >= next_poll_ms);
   // A status sweep likewise takes slots, one panel each, and like 'C' it runs
   // with bus traffic paused too.
-  if (cfg_pending && poll_due) {
+  if (clear_pending && poll_due) {
+    sendRequest('Z', BROADCAST, nullptr, 0, 0);   // broadcast: no reply
+    stat_replies = stat_crc_errs = stat_polls_sent = stat_frames_sent = 0;
+    for (int i = 0; i < NUM_PANELS; i++) poll_sent_window[i] = poll_ok_window[i] = 0;
+    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    clear_pending = false;
+    Serial.println("# counters zeroed: master and every panel ('Z' broadcast)");
+  } else if (cfg_pending && poll_due) {
     sendRequest('C', cfg_addr, cfg_payload, sizeof(cfg_payload), REPLY_C_LEN);
     next_poll_ms = millis() + POLL_INTERVAL_MS;
     cfg_pending = false;

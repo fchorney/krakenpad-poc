@@ -103,10 +103,22 @@ Good enough for v0; re-sync loss just costs one frame.)
 | 16 | 2 | turnaround glitches (saturates) |
 | 18 | 4 | frames received OK |
 
-Counters are since the responder was last switched on. At 27 bytes on the
+Counters are since the responder was last switched on, or since the last `'Z'`. At 27 bytes on the
 wire this is the longest reply, 270 µs; the master's reply window is now sized
 per request (`(5 + reply payload) × 10 µs + 260 µs`), which keeps `'f'` at its
 original 400 µs and gives `'h'` 530 µs.
+
+### `'Z'` — zero counters (master → panels)
+
+- addr = panel ID or broadcast, len 0. Added 2026-10-18. The panel zeroes every
+  counter `'h'` reports, plus the ones its USB console prints (`T`). Uptime,
+  build tag and reset cause are untouched.
+- Addressed: the panel acks with `'z'` (len 0). Broadcast: no reply.
+- The master's `z` command broadcasts it in a poll slot and zeroes its own bus
+  counters at the same moment, so after a change to either side the next `H`
+  and heartbeat describe only the time since. Before this, the only way to
+  zero a panel was to reboot it.
+- The bootloader does not know `'Z'` and ignores it.
 
 ### Firmware update — `'B'` `'Q'` `'U'` `'D'` `'A'` `'X'`
 

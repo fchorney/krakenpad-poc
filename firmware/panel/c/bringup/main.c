@@ -409,6 +409,9 @@ static void int_test(void) {
 //   'H' -> 'h'   status: build tag, uptime, reset cause, state, error counters
 //   'B' -> 'b'   reboot into the bootloader and stay there (bus update); the
 //                ack goes out only when addressed, never to a broadcast
+//   'Z' -> 'z'   zero the error and traffic counters ('H', 'T'); ack only
+//                when addressed. The master broadcasts it, so a fix can be
+//                measured from zero without power-cycling the pad
 //   'L'          LED frame — counted; displayed only if 'E' is on, see below
 //
 // On a pad nobody can type 'R' into nine panels, so the responder, auto-INT and
@@ -604,6 +607,18 @@ static void reboot_into_bootloader(void) {
     while (true) tight_loop_contents();
 }
 
+// The ISR-side counters are written from the main loop here. A store of zero
+// can at worst lose one increment that lands in the same instant; that is
+// harmless for counters whose point is "zero or not".
+static void rs485_clear_counters(void) {
+    rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
+    rs_ident  = rs_cfg = rs_notmine = rs_status = 0;
+    rs_overruns = 0;
+    rs_uart_errs = 0;
+    rs_turnaround = 0;
+    rs_fail_idx = 0;
+}
+
 static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t len) {
     uint8_t me = dip_read();
     if (addr != me && addr != RS485_BCAST) { rs_notmine++; return; }
@@ -670,6 +685,10 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         rs_status++;
         break;
     }
+    case 'Z':
+        rs485_clear_counters();
+        if (addr == me) rs485_send('z', me, NULL, 0);
+        break;
     case FW_CMD_HOLD:
         if (addr == me) rs485_send(FW_CMD_HOLD_ACK, me, NULL, 0);
         reboot_into_bootloader();
@@ -801,12 +820,7 @@ static void rs485_set(bool on) {
     if (on) {
         // Fresh window: counters describe THIS run, not the ring that backed up
         // while the responder was off.
-        rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
-        rs_ident  = rs_cfg = rs_notmine = rs_status = 0;
-        rs_overruns = 0;
-        rs_uart_errs = 0;
-        rs_turnaround = 0;
-        rs_fail_idx = 0;
+        rs485_clear_counters();
         rs_head = rs_tail = 0;
         // ⚠ FLUSH THE HARDWARE FIFO. The UART receives whether or not its
         // interrupt is enabled, so by the time the responder is switched on the
