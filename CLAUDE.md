@@ -114,6 +114,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >      for the cable connectors and for `J305`, and the socketed Teensy.
 >      Wash-safety is per-part datasheet work, not yet done; switches and
 >      unsealed connectors are the usual suspects. Not decided.
+>   10. **Carrier: automatic termination via chain discovery** (raised
+>       2026-10-18, **parked, something to think about only**). Today the user
+>       sets `SW202` on whichever panel is physically last, and nothing on the
+>       boards can verify the chain order: IN and OUT are straight copper, so
+>       every panel looks the same from the master. Idea: a switch in series
+>       between each carrier's RS-485 IN and OUT (A and B), plus a
+>       GPIO-controlled switch in series with `R201` in place of `SW202`. The
+>       master closes segments one at a time, panels appear in physical order,
+>       and it tells the last one to terminate. That would make the
+>       placement check (`docs/MASTER_BRINGUP.md` → "Termination check") a
+>       measurement instead of an assumption. No connector change.
+>       ⚠ A plain 3.3 V analog switch is the wrong part: it only passes
+>       signals within its rails, and RS-485 is specified for −7 to +12 V
+>       common mode. Candidates are fault-protected/wide-range analog switches
+>       or PhotoMOS relays. **Consequences:** a series switch that fails open,
+>       or is open while a panel is unpowered, crashed or in the bootloader,
+>       cuts off every panel downstream, which today's passive pass-through
+>       never does. So it would have to be normally closed (e.g. a form-B
+>       PhotoMOS), and the bootloader must leave it closed. On-resistance and
+>       capacitance add up over eight hops. **User's view (2026-10-18): the
+>       consequences feel like more trouble than they're worth; maybe worth a
+>       deeper look when there is time, not now.** Context: on the bench, the
+>       bus ran with zero errors terminated, unterminated, mid-chain and
+>       doubled (`docs/BRINGUP_LOG.md`, master #2), so the payoff is
+>       convenience and margin, not a working bus. Not decided.
 >   - ~~RS-485 DE pull-down~~ **DROPPED 2026-09-07**: `TP306` measured 35 mV on a
 >     blank board, so the RP2040's internal pull-down does park the THVD1450 in
 >     receive. See `docs/BRINGUP_LOG.md`.
