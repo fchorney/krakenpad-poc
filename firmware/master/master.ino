@@ -198,6 +198,54 @@ extern volatile int ident_ack_id;   // defined with the bench checks below
 // reported as silent then, so the sweep needs no timer of its own.
 int  status_next = -1;              // next index to ask; -1 = no sweep running
 bool status_got[NUM_PANELS] = {};
+bool status_term[NUM_PANELS] = {};  // SW202 position from each 'h'
+
+// RS-485 daisy-chain order, master first (CLAUDE.md -> "Daisy-Chain Order").
+// Documented, not measured: the bus cannot discover its own topology, so a pad
+// cabled in another order gets the wrong expected terminator.
+constexpr uint8_t CHAIN_ORDER[NUM_PANELS] = {0, 3, 6, 7, 4, 1, 2, 5, 8};
+
+// After an 'H' sweep: exactly one panel should be terminated, the last one in
+// chain order that answered (R3 terminates the master end). A WARNING, never an
+// error: on the bench 2026-10-18 the bus ran ~100k frames per panel with zero
+// errors unterminated, terminated mid-chain, at the wrong end, and doubled to
+// 40 ohm (docs/BRINGUP_LOG.md, master #2). Limits: the bit is SW202 pole B
+// only, so a missing R201 or a bad pole A still reads ON; and a panel that is
+// cabled in but silent (unpowered, dead) still passes A/B through, so the real
+// end of the cable may lie beyond the last panel that answered.
+void checkTermination() {
+  int expect = -1, n_term = 0;
+  for (int k = 0; k < NUM_PANELS; k++)
+    if (status_got[CHAIN_ORDER[k]]) expect = CHAIN_ORDER[k];
+  if (expect < 0) return;
+  for (int i = 0; i < NUM_PANELS; i++) n_term += status_got[i] && status_term[i];
+
+  if (n_term == 1 && status_term[expect]) {
+    Serial.print("# termination OK: ");
+    Serial.print(PANEL_NAME[expect]);
+    Serial.print(" (id ");
+    Serial.print(PANEL_IDS[expect]);
+    Serial.println("), the last panel answering in chain order");
+    return;
+  }
+  Serial.print("# termination WARNING: ");
+  if (n_term == 0) {
+    Serial.print("no panel terminated");
+  } else {
+    Serial.print(n_term);
+    Serial.print(n_term == 1 ? " panel terminated:" : " panels terminated:");
+    for (int i = 0; i < NUM_PANELS; i++) {
+      if (!(status_got[i] && status_term[i])) continue;
+      Serial.print(' ');
+      Serial.print(PANEL_NAME[i]);
+    }
+  }
+  Serial.print(". Expected only ");
+  Serial.print(PANEL_NAME[expect]);
+  Serial.print(" (id ");
+  Serial.print(PANEL_IDS[expect]);
+  Serial.println("), the last panel answering in chain order. SW202 on that panel ON, every other off");
+}
 
 void printStatusReply(uint8_t addr, const uint8_t *p) {
   int pidx = panelIndex(addr);
@@ -210,7 +258,10 @@ void printStatusReply(uint8_t addr, const uint8_t *p) {
   uint16_t ovr    = (uint16_t)p[14] | ((uint16_t)p[15] << 8);
   uint16_t turn   = (uint16_t)p[16] | ((uint16_t)p[17] << 8);
   uint32_t frames = (uint32_t)p[18] | ((uint32_t)p[19] << 8) | ((uint32_t)p[20] << 16) | ((uint32_t)p[21] << 24);
-  if (pidx >= 0) status_got[pidx] = true;
+  if (pidx >= 0) {
+    status_got[pidx] = true;
+    status_term[pidx] = st & 0x02;
+  }
 
   char tagbuf[9];
   snprintf(tagbuf, sizeof(tagbuf), "%08lX", (unsigned long)tag);
@@ -873,7 +924,7 @@ void handleCommand(const char *s) {
       Serial.println("# status sweep already running");
       return;
     }
-    for (int i = 0; i < NUM_PANELS; i++) status_got[i] = false;
+    for (int i = 0; i < NUM_PANELS; i++) status_got[i] = status_term[i] = false;
     status_next = 0;
     Serial.println("# status sweep: asking panels 0-8, one per poll slot");
   } else if (strcmp(s, "z") == 0 || strcmp(s, "Z") == 0) {
@@ -1123,6 +1174,7 @@ void loop() {
       Serial.print("# status sweep done: ");
       Serial.print(n);
       Serial.println("/9 panels answered");
+      checkTermination();
       status_next = -1;
     }
     next_poll_ms = millis() + POLL_INTERVAL_MS;

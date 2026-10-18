@@ -975,9 +975,48 @@ this run. Which board carries which DIP ID was not recorded.
 - The master prints `STOPPED REPLYING` for every panel while traffic is paused
   with `x`. That is a false alarm (nothing is polled), not yet fixed.
 
+**Termination experiment, same setup.** The master's `R3` (120 Ω) stayed in
+for every case; only panel `SW202`s changed. Each case: `z`, run, `H`. About
+100,000 frames per panel per case. Panel counters only. Master figures were
+not recorded.
+
+| case | `SW202` on | far end of the chain (ID 5) | panel counters, all eight |
+|---|---|---|---|
+| baseline | ID 5 | terminated | `crc 0 uart 0 ovr 0 turn 0` (~91k frames) |
+| A | none | open | `crc 0 uart 0 ovr 0 turn 0` |
+| B | ID 0 only | open; terminator at the near end of the panel chain | `crc 0 uart 0 ovr 0 turn 0` |
+| C | ID 4 only (mid-chain) | open | `crc 0 uart 0 ovr 0 turn 0` |
+| D | ID 5 and ID 0 | terminated; three 120 Ω in parallel = 40 Ω, below RS-485's 54 Ω | `crc 0 uart 0 ovr 0 turn 0` |
+
+- **On this bench the bus tolerates missing, misplaced and doubled
+  termination with no errors at all.** About 4.2 m of cable at 1 Mbps, panels
+  on the floor rather than in a pad.
+- **So the error counters cannot detect a termination fault**, and nothing
+  else on the boards can see the bus electrically. What the master *can* check
+  is the switch positions `H` already reports, against the documented chain
+  order. That check should **warn, not fail**: a wrong setting did not break
+  the bus here. (A `term` bit reads the switch's pole B only; it cannot see a
+  missing `R201` or a bad pole A.)
+- **This is not evidence of margin.** Zero errors says the receivers decoded
+  every byte, not how close they came. The waveform has not been looked at.
+  Scoping is deferred until the panels are inside a real pad, with the real
+  cable routing and frame: the user's call, since the floor setup is likely
+  quieter than the pad.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
 - **Poll rate ~125/s, ~14 Hz per panel at nine** — revisit with all nine panels.
+- **Scope the RS-485 bus once the panels are in a pad**: edge settling,
+  whether ringing re-crosses ±200 mV, amplitude, idle noise, eye height and
+  width, for the baseline and at least case A of the termination table
+  (above). Probe points: master `TP7`/`TP8` (GND `TP5`), panel `TP202`/`TP204`
+  (GND `TP207`–`TP210`), trigger on master `TP2` (DE).
+- ~~**Termination placement check in the master's `H` sweep**~~ **done
+  2026-10-18**, the same night. Every sweep now ends with `# termination OK`
+  or `# termination WARNING`. Verified by flipping `SW202`s live: R off → "no
+  panel terminated"; R + UL → "2 panels terminated: UL R"; UL only → "1 panel
+  terminated: UL"; R alone → OK. Limits are in the comment on
+  `checkTermination()` in `master.ino`.
 - ~~**Underglow with a real strip**~~ passed 2026-10-05 (above). Only the
   unreproduced first-run glitch remains, and the bit-bang has never been scoped.

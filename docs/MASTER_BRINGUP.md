@@ -257,6 +257,25 @@ master pull-up and RC filter → Teensy pin.
 is ported, `I` will report "no ack" for every ID. That is a correct result, not
 a bug in the test.
 
+## Termination check (end of every `H` sweep)
+
+After an `H` sweep the master compares each panel's `SW202` position against
+the documented chain order (0→3→6→7→4→1→2→5→8). Exactly one panel should be
+terminated: the last one in that order that answered. `R3` terminates the
+master end. It prints `# termination OK: …` or `# termination WARNING: …`,
+naming what is on and what was expected.
+
+It is a warning, never an error: on the bench the bus ran with zero errors
+unterminated, terminated mid-chain, at the wrong end, and doubled to 40 Ω
+(`docs/BRINGUP_LOG.md`, master #2, 2026-10-18). What it cannot see:
+
+- the `term` bit is `SW202` pole B only, so a missing `R201` or a bad pole A
+  still reads ON;
+- a panel that is cabled in but silent still passes A/B through, so the real
+  end of the cable can lie beyond the last panel that answered;
+- the chain order is documented, not measured. A pad cabled in another order
+  gets the wrong expected panel.
+
 ## Still open on the master
 
 - **Check whether the master has the panel's RS-485 turnaround glitch.** The
