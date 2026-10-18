@@ -27,8 +27,16 @@ PATH=/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi/bin:$PATH \
   cmake -S firmware/panel/c/bringup -B firmware/panel/c/bringup/build -DPICO_BOARD=pico
 PATH=/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi/bin:$PATH \
   cmake --build firmware/panel/c/bringup/build -j8
+picotool load firmware/panel/c/bootloader/build/panel_bootloader.uf2
 picotool load -x firmware/panel/c/bringup/build/panel_bringup.uf2
 ```
+
+**As of 2026-10-18 the bring-up image links at `0x10008000` behind the panel
+bootloader** (build it from `firmware/panel/c/bootloader/` the same way), which
+is what lets the master update it over the bus later: `docs/FIELD_UPDATE.md`.
+Load the bootloader first; the app alone does not boot. Boards 1–8 were brought
+up on the old standalone image (`-DPANEL_UNDER_BOOTLOADER=OFF` still builds it)
+and need both loads once to move over.
 
 `picotool load`, never the `RPI-RP2` drag-drop on macOS. `picotool info`
 segfaults on RP2040.
@@ -674,6 +682,18 @@ openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" 
 openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" \
   -c "program firmware/panel/c/bringup/build/panel_bringup.elf verify reset exit"
 ```
+
+That was run with the standalone image of the time. **Since 2026-10-18 the
+bring-up image sits behind the bootloader**, so an SWD restore from blank is two
+`program` steps, bootloader first:
+
+```sh
+openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" \
+  -c "program firmware/panel/c/bootloader/build/panel_bootloader.elf verify" \
+  -c "program firmware/panel/c/bringup/build/panel_bringup.elf verify reset exit"
+```
+
+Not run yet in this form.
 
 The board cannot be stranded by this: blank flash drops into USB BOOTSEL.
 Not repeated per board, because it adds only OpenOCD's flash algorithm and

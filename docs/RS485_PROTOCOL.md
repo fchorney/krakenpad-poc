@@ -108,6 +108,13 @@ wire this is the longest reply, 270 µs; the master's reply window is now sized
 per request (`(5 + reply payload) × 10 µs + 260 µs`), which keeps `'f'` at its
 original 400 µs and gives `'h'` 530 µs.
 
+### Firmware update — `'B'` `'Q'` `'U'` `'D'` `'A'` `'X'`
+
+Added 2026-10-18 and specified in `docs/FIELD_UPDATE.md`. Only `'B'` reaches a
+running application: it reboots the panel into its bootloader. The rest are
+answered by the bootloader alone. Same framing. Broadcasts never get a reply,
+and the only replies are `'b'` and `'q'`, to addressed requests.
+
 ## Slot ↔ panel-ID self-test
 
 Two independent things claim to say which panel is which: the **physical slot**

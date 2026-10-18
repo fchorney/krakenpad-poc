@@ -116,6 +116,9 @@ firmware/
   panel/
     main.py          # MicroPython prototype (initial breadboard bring-up)
     c/               # C/Pico SDK firmware (final target) — main.c, CMakeLists.txt, ws2812.pio
+      bringup/       # bring-up firmware (docs/PANEL_BRINGUP.md)
+      bootloader/    # bus-update bootloader + host_test/ (docs/FIELD_UPDATE.md)
+      common/        # flash layout + app linker script shared by both
 hardware/
   master-pcb/    # Master MCU board (complete, not ordered — docs/MASTER_PCB.md)
   dual-panel/    # THE panel design: carrier + brain, one project, one .kicad_pcb

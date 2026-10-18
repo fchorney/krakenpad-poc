@@ -9,6 +9,17 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 add_executable(panel_bringup main.c)
+target_include_directories(panel_bringup PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../common)
+
+# Linked at 0x10008000 to run under ../bootloader, which is what makes bus
+# updates possible (docs/FIELD_UPDATE.md). Such an image does NOT boot on its
+# own: load panel_bootloader.uf2 first. -DPANEL_UNDER_BOOTLOADER=OFF builds the
+# old standalone image at 0x10000000.
+option(PANEL_UNDER_BOOTLOADER "Link at the application offset, behind panel_bootloader" ON)
+if (PANEL_UNDER_BOOTLOADER)
+    pico_set_linker_script(panel_bringup ${CMAKE_CURRENT_LIST_DIR}/../common/memmap_app.ld)
+    target_compile_definitions(panel_bringup PRIVATE PANEL_UNDER_BOOTLOADER=1)
+endif()
 
 # Shared with the main panel firmware — one copy of the PIO program.
 pico_generate_pio_header(panel_bringup ${CMAKE_CURRENT_LIST_DIR}/../ws2812.pio)
@@ -22,6 +33,7 @@ target_link_libraries(panel_bringup
     hardware_sync
     hardware_uart
     hardware_irq
+    hardware_watchdog
 )
 
 # W25Q32JV is 4MB. The SDK's default board header assumes 2MB, which would put

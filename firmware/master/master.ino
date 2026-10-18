@@ -709,6 +709,92 @@ void identifySelfTest() {
   Serial.println("# self-test done");
 }
 
+// ── Passthrough (panel firmware updates) ─────────────────────────────────────
+// `P` turns the master into a dumb bridge for tools/panel_update.py: frames in
+// the docs/RS485_PROTOCOL.md format arriving on USB are checked and sent to the
+// bus unchanged, and every CRC-valid frame heard on the bus goes back to USB
+// unchanged. The master's own traffic (LED frames, polls) and all text output
+// stop, so the USB stream is pure frames. The update logic lives on the host.
+//
+// cmd 0x00 frames are for the master itself and never reach the bus:
+//   addr 0  leave passthrough        addr 1  ping, echoed back to the host
+// It also leaves after PT_IDLE_MS with nothing from the host, so a crashed
+// host tool cannot leave the pad dark. docs/FIELD_UPDATE.md has the rest.
+constexpr uint32_t PT_IDLE_MS = 30000;
+bool     passthrough = false;
+uint32_t pt_last_host_ms = 0;
+
+struct FrameParser {
+  enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
+  uint8_t cmd = 0, addr = 0, len = 0, idx = 0, crc = 0;
+  uint8_t pay[PKT_MAX_PAYLOAD];
+
+  // True when `c` completes a CRC-valid frame (fields above then hold it).
+  bool feed(uint8_t c) {
+    switch (st) {
+      case W_SYNC: if (c == PKT_SYNC) { crc = 0; st = W_CMD; } break;
+      case W_CMD:  cmd = c;  crc = crc8Update(crc, c); st = W_ADDR; break;
+      case W_ADDR: addr = c; crc = crc8Update(crc, c); st = W_LEN;  break;
+      case W_LEN:
+        len = c; crc = crc8Update(crc, c); idx = 0;
+        st = (len > PKT_MAX_PAYLOAD) ? W_SYNC : (len ? W_PAY : W_CRC);
+        break;
+      case W_PAY:
+        pay[idx++] = c; crc = crc8Update(crc, c);
+        if (idx == len) st = W_CRC;
+        break;
+      case W_CRC:
+        st = W_SYNC;
+        return c == crc;
+    }
+    return false;
+  }
+};
+FrameParser pt_host, pt_bus;
+
+void ptWriteHost(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) {
+  uint8_t crc = 0;
+  crc = crc8Update(crc, cmd);
+  crc = crc8Update(crc, addr);
+  crc = crc8Update(crc, len);
+  for (int i = 0; i < len; i++) crc = crc8Update(crc, payload[i]);
+  uint8_t hdr[4] = {PKT_SYNC, cmd, addr, len};
+  Serial.write(hdr, 4);
+  if (len) Serial.write(payload, len);
+  Serial.write(crc);
+  Serial.send_now();   // replies are latency-sensitive; don't wait for a full packet
+}
+
+void passthroughExit(const char *why) {
+  RS485_SERIAL.flush();
+  passthrough = false;
+  pt_host = FrameParser();
+  pt_bus = FrameParser();
+  Serial.print("\r\n# passthrough OFF (");
+  Serial.print(why);
+  Serial.println(")");
+}
+
+void passthroughService() {
+  while (RS485_SERIAL.available()) {
+    if (pt_bus.feed((uint8_t)RS485_SERIAL.read()))
+      ptWriteHost(pt_bus.cmd, pt_bus.addr, pt_bus.pay, pt_bus.len);
+  }
+  // A full RS485_SERIAL TX buffer makes sendPacket() block, which stops this
+  // loop reading USB, which back-pressures the host. That is the flow control.
+  while (Serial.available()) {
+    pt_last_host_ms = millis();
+    if (!pt_host.feed((uint8_t)Serial.read())) continue;
+    if (pt_host.cmd == 0x00) {
+      if (pt_host.addr == 0x00) { passthroughExit("host"); return; }
+      if (pt_host.addr == 0x01) ptWriteHost(0x00, 0x01, nullptr, 0);
+      continue;
+    }
+    sendPacket(pt_host.cmd, pt_host.addr, pt_host.pay, pt_host.len);
+  }
+  if (millis() - pt_last_host_ms > PT_IDLE_MS) passthroughExit("30 s idle");
+}
+
 // ── USB serial commands ──────────────────────────────────────────────────────
 // Newline-terminated. The board-local ones (?, n, r, D, u, x) need no panels.
 void printHelp() {
@@ -727,6 +813,7 @@ void printHelp() {
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  t                          toggle telemetry stream\r\n"
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
+    "  P                          bus passthrough for tools/panel_update.py (binary)\r\n"
     "  S <panel> <press> <rel>    set FSR thresholds on one panel"));
 }
 
@@ -768,6 +855,15 @@ void handleCommand(const char *s) {
     Serial.println(bus_traffic ? "RESUMED" : "PAUSED");
   } else if (strcmp(s, "I") == 0) {
     identifySelfTest();
+  } else if (strcmp(s, "P") == 0) {
+    Serial.println("# passthrough ON: binary frames until the host exits or 30 s idle");
+    Serial.send_now();
+    RS485_SERIAL.flush();
+    while (RS485_SERIAL.available()) RS485_SERIAL.read();   // nothing stale reaches the host
+    pt_host = FrameParser();
+    pt_bus = FrameParser();
+    pt_last_host_ms = millis();
+    passthrough = true;
   } else if (strcmp(s, "H") == 0 || strcmp(s, "h") == 0) {
     if (status_next >= 0) {
       Serial.println("# status sweep already running");
@@ -818,6 +914,7 @@ void pollSerialCommands() {
         buf[len] = '\0';
         handleCommand(buf);
         len = 0;
+        if (passthrough) return;   // whatever follows `P` is binary, not text
       }
     } else if (c == 8 || c == 127) {          // backspace / delete
       if (len > 0) { len--; Serial.print("\b \b"); }
@@ -920,6 +1017,11 @@ void loop() {
   static uint32_t next_frame_ms = 0;
   static uint32_t next_poll_ms = 0;
   static uint32_t next_stream_ms = 0;
+
+  if (passthrough) {
+    passthroughService();
+    return;
+  }
 
   parseRx();
   pollSerialCommands();

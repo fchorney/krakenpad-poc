@@ -27,6 +27,8 @@
 #include "pico/bootrom.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 #include "hardware/structs/watchdog.h"
+#include "hardware/watchdog.h"
+#include "fw_layout.h"
 #include "ws2812.pio.h"
 
 // ── As-built pin map (docs/DUAL_PANEL.md → "RP2040 (U306) GPIO map") ─────────
@@ -405,6 +407,8 @@ static void int_test(void) {
 //   'I' -> 'i'   ack FIRST, then pull INT low for payload[0] ms
 //   'C' -> 'c'   set thresholds (RAM only), echo what was applied
 //   'H' -> 'h'   status: build tag, uptime, reset cause, state, error counters
+//   'B' -> 'b'   reboot into the bootloader and stay there (bus update); the
+//                ack goes out only when addressed, never to a broadcast
 //   'L'          LED frame — counted; displayed only if 'E' is on, see below
 //
 // On a pad nobody can type 'R' into nine panels, so the responder, auto-INT and
@@ -590,6 +594,16 @@ static uint8_t fsr_update(uint16_t raw_out[NUM_FSR]) {
     return mask;
 }
 
+// Reboot and ask the bootloader to stay resident: watchdog scratch[0] survives
+// the watchdog reset, and the bootloader clears it once read.
+static void reboot_into_bootloader(void) {
+    int_out_release();
+    gpio_put(PIN_RS485_DE, 0);
+    watchdog_hw->scratch[0] = FW_HOLD_MAGIC;
+    watchdog_reboot(0, 0, 10);
+    while (true) tight_loop_contents();
+}
+
 static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t len) {
     uint8_t me = dip_read();
     if (addr != me && addr != RS485_BCAST) { rs_notmine++; return; }
@@ -656,6 +670,10 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         rs_status++;
         break;
     }
+    case FW_CMD_HOLD:
+        if (addr == me) rs485_send(FW_CMD_HOLD_ACK, me, NULL, 0);
+        reboot_into_bootloader();
+        break;
     case 'L':
         rs_led++;
         // Buffer only — painting 25 pixels is ~750us of blocking PIO writes and
@@ -878,7 +896,8 @@ static void help(void) {
            "  R  responder on/off         T  responder counters\n"
            "  X  dump the last CRC failures (raw bytes + TX correlation)\n"
            "  E  echo 'L' frames to LEDs   A  drive INT_OUT from FSR thresholds\n"
-           "  B  reboot into BOOTSEL for reflashing\n");
+           "  B  reboot into BOOTSEL for reflashing\n"
+           "  U  reboot into the panel bootloader and hold (bus update)\n");
 }
 
 // ── Stage 1 self-test ───────────────────────────────────────────────────────
@@ -888,6 +907,12 @@ static void banner(void) {
     printf("========================================================\n");
     printf("  build tag     : %08lX   (the master's 'H' status shows the same)\n",
            (unsigned long)g_build_tag);
+#if PANEL_UNDER_BOOTLOADER
+    printf("  image         : at 0x%08X, behind panel_bootloader (bus-updatable)\n",
+           XIP_BASE + FW_APP_OFFSET);
+#else
+    printf("  image         : standalone at 0x%08X, no bootloader\n", XIP_BASE);
+#endif
     printf("  last reset    :%s%s%s%s%s%s\n",
            (g_reset_flags & RST_POR)      ? " power-on"        : "",
            (g_reset_flags & RST_RUN)      ? " RUN-pin"         : "",
@@ -1046,6 +1071,16 @@ int main(void) {
                        g_led_echo ? " Painting is throttled to ~30Hz in the main"
                                     " loop, so it does not touch reply timing."
                                     " Needs 12V." : "");
+                break;
+            case 'U':
+#if PANEL_UNDER_BOOTLOADER
+                printf("\n  rebooting into the panel bootloader; it holds until the\n"
+                       "  master sends 'X' or installs an image. D202 blinks at 2 Hz.\n");
+                sleep_ms(120);
+                reboot_into_bootloader();
+#else
+                printf("\n  standalone build (PANEL_UNDER_BOOTLOADER=OFF): no bootloader.\n");
+#endif
                 break;
             case '?': help();              break;
             default: break;

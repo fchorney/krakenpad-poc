@@ -70,6 +70,7 @@ five need no panels and no 12V.
 | `x` | pause/resume LED frames + FSR polling |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
 | `t` | toggle the telemetry stream. Lines are `T <id> <S> <W> <N> <E> <mask> <live>`; `live` is 0 once a panel has been silent for `PANEL_TIMEOUT_MS` (added 2026-10-18; `tools/fsr_monitor.py` reads both the old 7-field form and this one) |
+| `P` | bus passthrough for `tools/panel_update.py`: USB carries raw frames until the host exits or 30 s idle. Not for typing into; see `docs/FIELD_UPDATE.md` |
 | `H` | status sweep: one `'H'` per poll slot to IDs 0–8, one line per panel (build tag, uptime, last reset cause, 12V/termination/auto-INT/echo/INT state, frame and error counters), `NO REPLY` for a silent one |
 | `S <panel> <press> <rel>` | set FSR thresholds on one panel |
 
