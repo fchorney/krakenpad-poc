@@ -8,11 +8,13 @@ of the update runs here. Protocol and design: docs/FIELD_UPDATE.md.
               bootloader, and any panel booting meanwhile catches it in its
               200 ms listen window
   2. survey   'Q' each panel: who is present, what each one has installed
-  3. begin    broadcast 'U' (length + CRC-32); each panel erases its staging slot
+  3. begin    'U' (length + CRC-32) to each target by address; each erases its
+              staging slot. Never broadcast: every panel is held, and a held
+              panel acts on any broadcast, so --panels would select nothing
   4. stream   broadcast every 'D' block once
   5. gap-fill 'Q' each panel, re-send what it reports missing, until all are
               staged and CRC-verified
-  6. commit   broadcast 'A'; each panel copies staging into its app region and
+  6. commit   'A' to each target; each copies staging into its app region and
               verifies it
   7. run      broadcast 'X'; every panel starts the new application
 
@@ -176,7 +178,10 @@ class PanelStatus:
     def describe(self) -> str:
         app = f"app {self.app_crc:08X} ({self.app_len} B)" if self.app_len else \
               ("app loaded over USB/SWD" if self.app_sane else "NO RUNNABLE APP")
-        return f"{ST_NAMES.get(self.state, self.state)}, {app}, bootloader {self.boot_tag:08X}"
+        # Pending = an install was cut off. The bootloader redoes the copy at
+        # every boot until it verifies, so a held panel should never show it.
+        pend = ", INSTALL PENDING" if self.pending else ""
+        return f"{ST_NAMES.get(self.state, self.state)}, {app}{pend}, bootloader {self.boot_tag:08X}"
 
 
 class PanelUpdater:
@@ -252,11 +257,16 @@ class PanelUpdater:
             self.broadcast("X", times=3)
             return
 
+        # 'U' and 'A' go to each target by address, never broadcast: 'B' holds
+        # every panel on the bus, and a held panel acts on any broadcast. 'D'
+        # can stay broadcast because a panel that got no 'U' is not receiving
+        # and drops it.
         self.log(f"updating panel(s) {targets}")
-        self.broadcast("U", struct.pack("<II", len(self.image), self.crc))
+        begin = struct.pack("<II", len(self.image), self.crc)
+        for pid in targets:
+            self.bus.send(ord("U"), pid, begin)
         self.wait_state(targets, {ST_RECEIVING}, timeout=30,
-                        resend=lambda pid, st: self.bus.send(ord("U"), pid,
-                                                             struct.pack("<II", len(self.image), self.crc)))
+                        resend=lambda pid, st: self.bus.send(ord("U"), pid, begin))
 
         t0 = time.time()
         for i in range(self.blocks):
@@ -293,7 +303,8 @@ class PanelUpdater:
         # panel. They stay reachable and the update can simply be re-run.
         commit = struct.pack("<I", self.crc)
         self.committed = True
-        self.broadcast("A", commit)
+        for pid in targets:
+            self.bus.send(ord("A"), pid, commit)
         done = self.wait_state(targets, {ST_INSTALLED}, timeout=30,
                                resend=lambda pid, st: self.bus.send(ord("A"), pid, commit)
                                if st.state == ST_STAGED else None)

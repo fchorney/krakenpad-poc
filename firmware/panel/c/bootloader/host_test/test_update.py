@@ -13,6 +13,7 @@ Scenarios:
   3. a standalone image (linked at 0x10000000) -> tool refuses it
   4. power cut mid-install (record pending, app region garbage) -> the next
      boot redoes the copy and runs the app without any bus traffic
+  5. --panels 1 with a new image, all three held -> only panel 1 changes
 
 Usage: python3 test_update.py APP.bin STANDALONE.bin
   APP.bin         bring-up build, linked at 0x10008000 (the default)
@@ -210,6 +211,42 @@ def scenario_update(sim, tmp, image_path, image, label, expect_update, drop_rate
         check("already runs this image" in out, "tool saw nothing to do")
 
 
+def scenario_subset(sim, tmp, image):
+    # Panels 0-2 already run `image` from scenarios 1-2, and it is still in
+    # their staging slots. A different image sent with --panels 1 must land on
+    # panel 1 only, though 'B' holds all three.
+    #
+    # The app-region checks alone cannot catch a broadcast 'U': the simulator
+    # loses blocks, the tool gap-fills only its targets, so a non-target never
+    # finishes staging here, though on hardware (no losses) it does and
+    # installs. Its staging slot is the deterministic tell: 'U' erases it.
+    print("\n5. --panels 1 updates panel 1 and nobody else")
+    other = image + b"\x00" * 64
+    other_path = os.path.join(tmp, "other.bin")
+    open(other_path, "wb").write(other)
+    fm = FakeMaster(sim, tmp, [0, 1, 2], hold=True)
+    tool = run_tool(fm.port, other_path, "--panels", "1")
+    fm.run()
+    out = tool.communicate(timeout=30)[0].decode()
+    time.sleep(0.3)
+    fm.stop()
+    print("    " + out.strip().replace("\n", "\n    "))
+    check(tool.returncode == 0, f"tool exit code {tool.returncode}")
+    check(fm.unsolicited == [], f"no unsolicited replies on the bus {fm.unsolicited[:3]}")
+    check(fm.ran_app == {0, 1, 2}, f"all three panels started the app ({sorted(fm.ran_app)})")
+    for pid, want in ((0, image), (1, other), (2, image)):
+        path = os.path.join(tmp, f"p{pid}.bin")
+        ok, f = read_ctrl(path)
+        tag = "new" if want is other else "old"
+        check(flash_crc(path, APP_OFFSET, len(want)) == zlib.crc32(want),
+              f"panel {pid} app region holds the {tag} image")
+        check(ok and f[1] == 0 and f[4] == len(want) and f[5] == zlib.crc32(want),
+              f"panel {pid} boot record: {tag} image")
+        if want is image:
+            check(flash_crc(path, STAGE_OFFSET, len(image)) == zlib.crc32(image),
+                  f"panel {pid} staging slot untouched")
+
+
 def main():
     if len(sys.argv) != 3:
         sys.exit(__doc__)
@@ -224,6 +261,7 @@ def main():
                         expect_update=True, drop_rate=0.03)
         scenario_update(sim, tmp, app_path, image,
                         "2. same image again", expect_update=False, drop_rate=0.0)
+        scenario_subset(sim, tmp, image)
 
         print("\n3. standalone image is refused")
         r = subprocess.run([sys.executable, TOOL, standalone_path, "--port", "/dev/null"],

@@ -222,12 +222,24 @@ flash is a RAM array that only clears bits, and the UART is stdin/stdout. It
 runs `tools/panel_update.py` against three simulated panels through a fake
 master that drops 3% of `'D'` frames. Checks: the update lands on every panel
 (app region CRC, boot record), no panel ever speaks unaddressed, a second run
-finds nothing to do, a standalone image is refused, and an install cut off by
-power loss is redone at the next boot.
+finds nothing to do, a standalone image is refused, an install cut off by
+power loss is redone at the next boot, and `--panels 1` leaves panels 0 and 2
+untouched down to their staging slots.
 
 **First run 2026-10-18: all pass.** To confirm the test can fail, the bootloader
 was broken on purpose by removing the page buffer's reset to `0xFF`. The update
 then aborted on a CRC failure, the test failed, and the change was reverted.
+
+**`--panels` did not select anything until 2026-10-18.** The tool broadcast
+`'U'` and `'A'`, and `'B'` holds every panel, so every panel on the bus took the
+update. Found on the bench: `--panels 0` installed the image on all eight
+boards. `'U'` and `'A'` now go to each target by address; `'D'` stays broadcast,
+since a panel that got no `'U'` is not receiving and drops it. The host test
+missed this. The simulator loses blocks even with the drop rate at zero (about
+60 of 885 on an unpaced stream, and as many when paced to 1 Mbps), and the tool
+gap-fills only its targets, so a non-target never finished staging and never
+installed. Scenario 5 now checks each non-target's staging slot, which `'U'`
+erases. It fails against the old tool and passes against the fix.
 
 What it cannot show: bus timing, the real UART and IRQ, real flash timing, the
 SDK's runtime coming up after the hand-off, and the master's USB behaviour.
@@ -241,9 +253,26 @@ Those need hardware.
    SDK runtime was seen coming up after the bootloader's hand-off.
 2. ✅ **Done 2026-10-18**, same board. `U` on its console: `D202` blinks 2 Hz.
    `X` from the master, or a power cycle without `'B'`, brings the app back.
-3. Master #2 on the bus, then `tools/panel_update.py` with `--panels <id>`
-   against that one panel, then two, then all nine.
-4. Pull 12V mid-commit once to see the resume work for real.
+3. ✅ **Done 2026-10-18**, master #2 and eight panels (ID 8 not built). The
+   first `--panels 0` run installed on **all eight**, which is how the
+   `--panels` bug below was found. After the fix, `--panels 7` changed panel 7
+   only (the other seven stayed on the old CRC) and a full run updated the
+   rest. 884 blocks stream in 0.7 s with no gap-fill; a 400 KB image takes 4.6 s.
+4. ✅ **Done 2026-10-18**, panel 7, both power-cut cases:
+   - **12V cut during the staging erase** (by accident: D202 is solid then
+     too). The tool timed out waiting for `receiving`, aborted before commit
+     and sent `'X'`. Panel 7 came back on its old app, untouched.
+   - **12V cut during the commit.** A 56 KB copy is too short to hit by hand,
+     so the image was zero-padded to 400 KB (the app region holds 480 KB; the
+     padding sits past the program and never runs). 12V was pulled right after
+     `committing`. The tool aborted with `no installed from panel(s) [7]`. On
+     re-power **D202 was solid for a few seconds, then the app booted**, and
+     the next survey showed panel 7 on the new CRC.
+
+   ⚠ **D202 solid does not mean "installing".** The bootloader holds it solid
+   while erasing, staged, installing and installed; it blinks fast while
+   receiving and slowly while idle. To cut power mid-commit, go by the tool's
+   `committing` line.
 
 ## What changed from the 2026-07-27 spec
 
