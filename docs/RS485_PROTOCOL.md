@@ -80,6 +80,34 @@ Good enough for v0; re-sync loss just costs one frame.)
 
 - addr = panel ID, len 0
 
+### `'H'` — status request (master → one panel)
+
+- addr = panel ID, len 0. Added 2026-10-18 so a pad with no USB cable to any
+  panel can still see each one's health through the master.
+- Panel replies immediately with `'h'`. The master sends it in a poll slot,
+  like `'C'`, so it gets a reply window.
+
+### `'h'` — status (panel → master, reply only)
+
+- addr = panel ID, len 22. All multi-byte fields little-endian.
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 4 | build tag: FNV-1a of the firmware's build timestamp. Same image, same tag |
+| 4 | 4 | uptime, seconds |
+| 8 | 1 | last reset cause: bit0 power-on, bit1 RUN pin, bit2 PSM restart (debugger), bit3 watchdog timeout, bit4 watchdog forced |
+| 9 | 1 | state: bit0 12V present, bit1 terminated, bit2 auto-INT on, bit3 LED echo on, bit4 INT asserted |
+| 10 | 2 | CRC errors (saturates at 0xFFFF) |
+| 12 | 2 | UART errors (saturates) |
+| 14 | 2 | RX ring overruns (saturates) |
+| 16 | 2 | turnaround glitches (saturates) |
+| 18 | 4 | frames received OK |
+
+Counters are since the responder was last switched on. At 27 bytes on the
+wire this is the longest reply, 270 µs; the master's reply window is now sized
+per request (`(5 + reply payload) × 10 µs + 260 µs`), which keeps `'f'` at its
+original 400 µs and gives `'h'` 530 µs.
+
 ## Slot ↔ panel-ID self-test
 
 Two independent things claim to say which panel is which: the **physical slot**
@@ -166,12 +194,13 @@ second hidden behind the first:
 
 The rule now, master side (`firmware/master/master.ino`, `sendRequest()`):
 
-- **Any packet that expects a reply (`'F'`, `'C'`) is followed by
-  `REPLY_WINDOW_US` = 400 µs of master silence**, measured from transmit-complete
-  (`flush()` returns when DE drops). The LED burst and the next poll both wait
-  for it. 400 µs covers the longest reply (`'f'`, 14 bytes = 140 µs) plus panel
-  turnaround.
-- **`'C'` takes a poll slot** instead of being sent from the command handler.
+- **Any packet that expects a reply (`'F'`, `'C'`, `'H'`) is followed by a
+  window of master silence**, measured from transmit-complete (`flush()` returns
+  when DE drops). The LED burst and the next poll both wait for it. It was a
+  flat 400 µs, covering `'f'` (14 bytes = 140 µs) plus panel turnaround; since
+  2026-10-18 it is sized per request as `(5 + reply payload) × 10 µs + 260 µs`,
+  which is still 400 µs for `'f'` and 530 µs for the 27-byte `'h'`.
+- **`'C'` and `'H'` take a poll slot** instead of being sent from the command handler.
 - **The clock is re-read after the LED burst**, and the next poll is scheduled
   from the time it was actually sent.
 

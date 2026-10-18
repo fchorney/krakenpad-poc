@@ -10,10 +10,16 @@ which forwards them to the addressed panel over RS-485 (cmd 'C'); the panel
 applies them to its live hysteresis logic and acks. RAM only — reboot
 restores defaults.
 
+Two lines per panel: four bars (South, West, North, East, the bring-up
+firmware's channel order), then thresholds and the last 'H' status reply. A
+panel the master has not heard from within its timeout is drawn OFFLINE rather
+than showing the last values it sent.
+
 Keys:
-  0 / 1   focus panel 0 / 1 (+/-/[/] act on whichever panel is focused)
+  0 - 8   focus a panel (+/-/[/] act on whichever panel is focused)
   + / -   press threshold up/down
   ] / [   release threshold up/down
+  h       status sweep: every panel's build, uptime, reset cause, error counters
   q       quit
 
 Usage: python3 tools/fsr_monitor.py [port]
@@ -22,6 +28,7 @@ Usage: python3 tools/fsr_monitor.py [port]
 import glob
 import re
 import select
+import shutil
 import sys
 import termios
 import time
@@ -29,12 +36,17 @@ import tty
 
 import serial
 
-NUM_PANELS = 2
+NUM_PANELS = 9
 ADC_MAX = 4095
 STEP = 50
-BAR_WIDTH = 56
+BAR_WIDTH = 14
+
+# Panel ID -> position, as silkscreened on the master and printed on the cables.
+PANEL_NAME = ["UL", "U", "UR", "L", "C", "R", "DL", "D", "DR"]
+FSR_NAME = ["S", "W", "N", "E"]
 
 ACK_RE = re.compile(r"panel (\d+) ack thresholds: press=(\d+) release=(\d+)")
+STATUS_RE = re.compile(r"^# status \S+\s+id (\d+)\s+(.*)$")
 
 
 def find_port() -> str:
@@ -72,9 +84,12 @@ def main() -> None:
     port = find_port()
     press_thr = [500] * NUM_PANELS  # firmware boot defaults
     rel_thr = [400] * NUM_PANELS
-    ack = ["(defaults, nothing sent yet)"] * NUM_PANELS
+    ack = ["defaults"] * NUM_PANELS
+    status = ["press h for status"] * NUM_PANELS
     vals = [[0, 0, 0, 0] for _ in range(NUM_PANELS)]
     mask = [0] * NUM_PANELS
+    online = [False] * NUM_PANELS
+    sweep_note = ""
     focus = 0
 
     ser = serial.Serial(port, 115200, timeout=0)
@@ -84,13 +99,13 @@ def main() -> None:
     def send_thresholds(panel: int) -> None:
         ser.write(f"S {panel} {press_thr[panel]} {rel_thr[panel]}\n".encode())
 
-    lines_per_panel = 5  # header + 4 bars
-    redraw_lines = NUM_PANELS * lines_per_panel
+    lines_per_panel = 2  # bars + thresholds/status
+    redraw_lines = NUM_PANELS * lines_per_panel + 1  # + sweep line
 
     try:
         time.sleep(0.3)
         ser.write(b"t\n")  # telemetry stream on
-        print(f"listening on {port} — 0/1 focus panel, +/- press thr, ]/[ release thr, q quits")
+        print(f"listening on {port} — 0-8 focus, +/- press thr, ]/[ release thr, h status, q quits")
         print("bar markers: │ press threshold   ┊ release threshold\n")
         print("\n" * redraw_lines, end="")
 
@@ -104,8 +119,10 @@ def main() -> None:
                 key = sys.stdin.read(1)
                 if key == "q":
                     break
-                elif key in ("0", "1"):
+                elif key.isdigit() and int(key) < NUM_PANELS:
                     focus = int(key)
+                elif key == "h":
+                    ser.write(b"H\n")
                 elif key == "+" or key == "=":
                     press_thr[focus] = min(press_thr[focus] + STEP, ADC_MAX)
                     send_thresholds(focus)
@@ -126,17 +143,27 @@ def main() -> None:
                     line = raw.decode(errors="replace").strip()
                     if line.startswith("T "):
                         parts = line.split()
-                        if len(parts) == 7:
+                        # 8 fields from current master firmware (last = live
+                        # flag); 7 from older builds, which cannot say.
+                        if len(parts) in (7, 8):
                             p = int(parts[1])
                             if 0 <= p < NUM_PANELS:
                                 vals[p] = [int(v) for v in parts[2:6]]
                                 mask[p] = int(parts[6])
+                                online[p] = len(parts) == 7 or parts[7] == "1"
                     elif line.startswith("#"):
                         m = ACK_RE.search(line)
                         if m:
                             p = int(m.group(1))
                             if 0 <= p < NUM_PANELS:
-                                ack[p] = f"press={m.group(2)} release={m.group(3)}"
+                                ack[p] = f"{m.group(2)}/{m.group(3)}"
+                        m = STATUS_RE.match(line)
+                        if m:
+                            p = int(m.group(1))
+                            if 0 <= p < NUM_PANELS:
+                                status[p] = m.group(2)
+                        if line.startswith("# status sweep"):
+                            sweep_note = line[2:]
 
             now = time.time()
             if now - last_draw < 0.03:
@@ -145,17 +172,22 @@ def main() -> None:
 
             sys.stdout.write(f"\033[{redraw_lines}A")
             for p in range(NUM_PANELS):
-                marker = "  <-- focused" if p == focus else ""
-                sys.stdout.write(
-                    f"\r\033[KPanel {p}{marker}   press>{press_thr[p]}  release<{rel_thr[p]}   last ack: {ack[p]}\n"
-                )
-                for ch in range(4):
-                    v = vals[p][ch]
-                    pressed = bool(mask[p] & (1 << ch))
-                    label = "PRESSED" if pressed else "       "
-                    sys.stdout.write(
-                        f"\r\033[K  FSR {ch}  {v:4d}  {bar(v, pressed, press_thr[p], rel_thr[p])} {label}\n"
+                marker = ">" if p == focus else " "
+                head = f"{marker}{PANEL_NAME[p]:<2} {p}"
+                if online[p]:
+                    bars = "  ".join(
+                        f"{FSR_NAME[ch]} {vals[p][ch]:4d} "
+                        f"{bar(vals[p][ch], bool(mask[p] & (1 << ch)), press_thr[p], rel_thr[p])}"
+                        for ch in range(4)
                     )
+                else:
+                    bars = "\033[90mOFFLINE — no reply from this panel\033[0m"
+                sys.stdout.write(f"\r\033[K{head}  {bars}\n")
+                # A wrapped line breaks the cursor-up redraw, so clip to width.
+                cols = shutil.get_terminal_size().columns - 1
+                info = f"       thr {press_thr[p]}/{rel_thr[p]} (ack {ack[p]})  {status[p]}"
+                sys.stdout.write(f"\r\033[K{info[:cols]}\n")
+            sys.stdout.write(f"\r\033[K{sweep_note[:cols]}\n")
             sys.stdout.flush()
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_tty)

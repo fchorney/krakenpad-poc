@@ -25,6 +25,8 @@
 #include "hardware/uart.h"
 #include "hardware/irq.h"
 #include "pico/bootrom.h"
+#include "hardware/structs/vreg_and_chip_reset.h"
+#include "hardware/structs/watchdog.h"
 #include "ws2812.pio.h"
 
 // ── As-built pin map (docs/DUAL_PANEL.md → "RP2040 (U306) GPIO map") ─────────
@@ -402,7 +404,12 @@ static void int_test(void) {
 //   'F' -> 'f'   4 x uint16 LE raw ADC, then a pressed bitmask
 //   'I' -> 'i'   ack FIRST, then pull INT low for payload[0] ms
 //   'C' -> 'c'   set thresholds (RAM only), echo what was applied
+//   'H' -> 'h'   status: build tag, uptime, reset cause, state, error counters
 //   'L'          LED frame — counted; displayed only if 'E' is on, see below
+//
+// On a pad nobody can type 'R' into nine panels, so the responder, auto-INT and
+// LED echo switch themselves on once 12V arrives with the DIP on a panel ID
+// (0-8). See bus_auto_start().
 //
 // ⚠ THREE things this code must not do. Two of them already bit this project.
 //
@@ -468,7 +475,47 @@ static uint8_t   rs_fail_idx = 0;
 static uint32_t  rs_last_tx_us = 0;
 
 static uint32_t rs_frames = 0, rs_crc_errs = 0, rs_polls = 0,
-                rs_led = 0, rs_ident = 0, rs_cfg = 0, rs_notmine = 0;
+                rs_led = 0, rs_ident = 0, rs_cfg = 0, rs_notmine = 0, rs_status = 0;
+
+// ── Status reply ('h') ──────────────────────────────────────────────────────
+// What the master needs to see a panel it has no USB cable to. Captured at
+// boot because the reset-cause registers describe the LAST reset only.
+#define RST_POR        (1u << 0)   // power-on / brown-out
+#define RST_RUN        (1u << 1)   // RUN pin
+#define RST_PSM        (1u << 2)   // PSM restart — what a debugger reset leaves
+#define RST_WD_TIMER   (1u << 3)   // watchdog expired
+#define RST_WD_FORCE   (1u << 4)   // watchdog forced (picotool / software reboot)
+static uint8_t  g_reset_flags = 0;
+static uint32_t g_build_tag   = 0;
+
+static void capture_reset_cause(void) {
+    uint32_t cr = vreg_and_chip_reset_hw->chip_reset;
+    uint32_t wd = watchdog_hw->reason;
+    if (cr & VREG_AND_CHIP_RESET_CHIP_RESET_HAD_POR_BITS)         g_reset_flags |= RST_POR;
+    if (cr & VREG_AND_CHIP_RESET_CHIP_RESET_HAD_RUN_BITS)         g_reset_flags |= RST_RUN;
+    if (cr & VREG_AND_CHIP_RESET_CHIP_RESET_HAD_PSM_RESTART_BITS) g_reset_flags |= RST_PSM;
+    if (wd & WATCHDOG_REASON_TIMER_BITS)                          g_reset_flags |= RST_WD_TIMER;
+    if (wd & WATCHDOG_REASON_FORCE_BITS)                          g_reset_flags |= RST_WD_FORCE;
+}
+
+// Same image -> same tag, so nine status lines show at a glance whether every
+// panel runs the same build. FNV-1a of the build timestamp; the banner prints it.
+static void compute_build_tag(void) {
+    const char *s = __DATE__ " " __TIME__;
+    uint32_t h = 2166136261u;
+    while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; }
+    g_build_tag = h;
+}
+
+static void put_u16_sat(uint8_t *p, uint32_t v) {
+    if (v > 0xFFFF) v = 0xFFFF;
+    p[0] = (uint8_t)v; p[1] = (uint8_t)(v >> 8);
+}
+
+static void put_u32(uint8_t *p, uint32_t v) {
+    p[0] = (uint8_t)v; p[1] = (uint8_t)(v >> 8);
+    p[2] = (uint8_t)(v >> 16); p[3] = (uint8_t)(v >> 24);
+}
 
 static void rs485_rx_irq(void) {
     while (uart_is_readable(uart0)) {
@@ -588,6 +635,27 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         }
         rs_cfg++;
         break;
+    case 'H': {
+        // 22 bytes, layout in docs/RS485_PROTOCOL.md. Counters saturate at
+        // 0xFFFF; any of them that far off zero is the finding, not the value.
+        uint8_t r[22];
+        put_u32(&r[0], g_build_tag);
+        put_u32(&r[4], to_ms_since_boot(get_absolute_time()) / 1000u);
+        r[8] = g_reset_flags;
+        r[9] = (uint8_t)((g_12v_present            ? 1u << 0 : 0) |
+                         (!gpio_get(PIN_TERM_SENSE) ? 1u << 1 : 0) |
+                         (g_auto_int               ? 1u << 2 : 0) |
+                         (g_led_echo               ? 1u << 3 : 0) |
+                         (g_int_asserted           ? 1u << 4 : 0));
+        put_u16_sat(&r[10], rs_crc_errs);
+        put_u16_sat(&r[12], rs_uart_errs);
+        put_u16_sat(&r[14], rs_overruns);
+        put_u16_sat(&r[16], rs_turnaround);
+        put_u32(&r[18], rs_frames);
+        rs485_send('h', me, r, sizeof(r));
+        rs_status++;
+        break;
+    }
     case 'L':
         rs_led++;
         // Buffer only — painting 25 pixels is ~750us of blocking PIO writes and
@@ -709,6 +777,63 @@ static void rs485_init(void) {
     g_rs485_init = true;
 }
 
+static void rs485_set(bool on) {
+    if (!g_rs485_init) rs485_init();
+    g_rs485_on = on;
+    if (on) {
+        // Fresh window: counters describe THIS run, not the ring that backed up
+        // while the responder was off.
+        rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
+        rs_ident  = rs_cfg = rs_notmine = rs_status = 0;
+        rs_overruns = 0;
+        rs_uart_errs = 0;
+        rs_turnaround = 0;
+        rs_fail_idx = 0;
+        rs_head = rs_tail = 0;
+        // ⚠ FLUSH THE HARDWARE FIFO. The UART receives whether or not its
+        // interrupt is enabled, so by the time the responder is switched on the
+        // 32-byte FIFO holds STALE bytes from an arbitrary earlier moment, with
+        // OE long since set. Feeding those into the ring splices an old fragment
+        // onto the live stream: the result parses as a structurally perfect
+        // frame — right sync, right command, plausible payload — that fails CRC,
+        // because its two halves came from different frames. That, not bus
+        // noise, was every CRC error seen at the bench; steady-state was 0 in
+        // 68,257 frames.
+        while (uart_is_readable(uart0)) (void)uart_get_hw(uart0)->dr;
+        uart_get_hw(uart0)->rsr = 0x0Fu;   // clear OE/BE/PE/FE
+        rs_last_tx_us = time_us_32();
+        rs_resync = true;
+    }
+    uart_set_irq_enables(uart0, on, false);
+}
+
+static void auto_int_set(bool on) {
+    g_auto_int = on;
+    if (!on) { int_out_release(); g_int_asserted = false; }
+}
+
+// Bus mode, once per boot. In an assembled pad no panel has a terminal, so
+// waiting for 'R'/'A'/'E' means no panel ever answers the master. Gated on:
+//   - 12V present: a standalone brain on USB (stage 1) never starts it, and on
+//     the bench (USB first, then 12V) it starts when 12V lands.
+//   - DIP on a panel ID 0-8: a factory all-OFF switch reads 15 and stays a
+//     plain bench board, as do the 9-13 diagnostic codes.
+// Safe with no master: the responder transmits only when addressed. Any hand
+// toggle of R/A/E sets g_bus_auto_done first, so it never fights the bench.
+static bool g_bus_auto_done = false;
+
+static void bus_auto_start(void) {
+    if (g_bus_auto_done || !g_12v_present) return;
+    g_bus_auto_done = true;
+    uint8_t me = dip_read();
+    if (me > 8) return;
+    rs485_set(true);
+    auto_int_set(true);
+    g_led_echo = true;
+    printf("\n  12V + panel ID %u: bus mode ON (responder, auto-INT, LED echo).\n"
+           "  R / A / E still toggle each one by hand.\n", me);
+}
+
 static void rs485_stats(void) {
     uint8_t me = dip_read();
     printf("\n  RS-485 responder: %s\n", g_rs485_on ? "ON" : "off");
@@ -730,6 +855,7 @@ static void rs485_stats(void) {
            (unsigned long)rs_led, g_led_echo ? "ON" : "off");
     printf("  'I' answered  : %lu\n", (unsigned long)rs_ident);
     printf("  'C' answered  : %lu\n", (unsigned long)rs_cfg);
+    printf("  'H' answered  : %lu\n", (unsigned long)rs_status);
     printf("  not for me    : %lu   (other panels' traffic — normal on a shared bus)\n",
            (unsigned long)rs_notmine);
     if (rs_frames == 0 && rs_crc_errs == 0)
@@ -747,6 +873,8 @@ static void help(void) {
            "  p  SENSE_12V pull probe     w  flash write + capacity test\n"
            "  v  re-print banner          ?  this help\n"
            "\n  stage 3 (RS-485, needs the master):\n"
+           "  (bus mode: R, A and E switch on by themselves once 12V is present\n"
+           "   with the DIP on a panel ID 0-8)\n"
            "  R  responder on/off         T  responder counters\n"
            "  X  dump the last CRC failures (raw bytes + TX correlation)\n"
            "  E  echo 'L' frames to LEDs   A  drive INT_OUT from FSR thresholds\n"
@@ -758,6 +886,15 @@ static void banner(void) {
     printf("\n========================================================\n");
     printf(" dual-panel bring-up  (built %s %s)\n", __DATE__, __TIME__);
     printf("========================================================\n");
+    printf("  build tag     : %08lX   (the master's 'H' status shows the same)\n",
+           (unsigned long)g_build_tag);
+    printf("  last reset    :%s%s%s%s%s%s\n",
+           (g_reset_flags & RST_POR)      ? " power-on"        : "",
+           (g_reset_flags & RST_RUN)      ? " RUN-pin"         : "",
+           (g_reset_flags & RST_PSM)      ? " debugger/PSM"    : "",
+           (g_reset_flags & RST_WD_TIMER) ? " watchdog-timeout" : "",
+           (g_reset_flags & RST_WD_FORCE) ? " watchdog-forced" : "",
+           g_reset_flags ? "" : " none flagged");
     printf("  sysclk        : %lu Hz\n", (unsigned long)clock_get_hz(clk_sys));
     report_flash_id();
     printf("  SENSE_12V     : %s\n", sense_12v_raw() ? "HIGH" : "LOW");
@@ -772,6 +909,8 @@ static void banner(void) {
 }
 
 int main(void) {
+    capture_reset_cause();
+    compute_build_tag();
     stdio_init_all();
 
     // SENSE_12V: pulls OFF, deliberately and first. See sense_pull_probe().
@@ -829,6 +968,7 @@ int main(void) {
         // ⚠ Do NOT block for a millisecond while the responder is live: at
         // 1 Mbps that is 100 byte times against a 32-byte FIFO. The IRQ still
         // catches bytes, but the ring only drains here, so keep the loop tight.
+        bus_auto_start();
         if (g_rs485_on) rs485_service();
 
         // Paint the last 'L' frame, throttled and OFF the reply path. led_init()
@@ -872,34 +1012,8 @@ int main(void) {
                 printf("  debug LED blinked 3x (carrier D202).\n");
                 break;
             case 'R':
-                if (!g_rs485_init) rs485_init();
-                g_rs485_on = !g_rs485_on;
-                if (g_rs485_on) {
-                    // Fresh window: counters describe THIS run, not the ring
-                    // that backed up while the responder was off.
-                    rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
-                    rs_ident  = rs_cfg = rs_notmine = 0;
-                    rs_overruns = 0;
-                    rs_uart_errs = 0;
-                    rs_turnaround = 0;
-                    rs_fail_idx = 0;
-                    rs_head = rs_tail = 0;
-                    // ⚠ FLUSH THE HARDWARE FIFO. The UART receives whether or
-                    // not its interrupt is enabled, so by the time the responder
-                    // is switched on the 32-byte FIFO holds STALE bytes from an
-                    // arbitrary earlier moment, with OE long since set. Feeding
-                    // those into the ring splices an old fragment onto the live
-                    // stream: the result parses as a structurally perfect frame
-                    // — right sync, right command, plausible payload — that
-                    // fails CRC, because its two halves came from different
-                    // frames. That, not bus noise, was every CRC error seen at
-                    // the bench; steady-state was 0 in 68,257 frames.
-                    while (uart_is_readable(uart0)) (void)uart_get_hw(uart0)->dr;
-                    uart_get_hw(uart0)->rsr = 0x0Fu;   // clear OE/BE/PE/FE
-                    rs_last_tx_us = time_us_32();
-                    rs_resync = true;
-                }
-                uart_set_irq_enables(uart0, g_rs485_on, false);
+                g_bus_auto_done = true;     // a hand toggle overrides auto-start
+                rs485_set(!g_rs485_on);
                 printf("\n  RS-485 responder %s (address %u). Silent while running —\n"
                        "  press 'T' for counters. See docs/PANEL_BRINGUP.md stage 3.\n",
                        g_rs485_on ? "ON" : "OFF", dip_read());
@@ -907,8 +1021,8 @@ int main(void) {
             case 'T': rs485_stats();       break;
             case 'X': rs485_dump_fails();  break;
             case 'A':
-                g_auto_int = !g_auto_int;
-                if (!g_auto_int) { int_out_release(); g_int_asserted = false; }
+                g_bus_auto_done = true;
+                auto_int_set(!g_auto_int);
                 printf("\n  auto-INT %s — INT_OUT now follows the FSR thresholds"
                        " (press %u / release %u).\n%s",
                        g_auto_int ? "ON" : "off",
@@ -926,6 +1040,7 @@ int main(void) {
                 reset_usb_boot(0, 0);
                 break;
             case 'E':
+                g_bus_auto_done = true;
                 g_led_echo = !g_led_echo;
                 printf("\n  'L' -> LED echo %s.%s\n", g_led_echo ? "ON" : "off",
                        g_led_echo ? " Painting is throttled to ~30Hz in the main"

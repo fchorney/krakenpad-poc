@@ -143,15 +143,21 @@ void sendPacket(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) 
 // computed from the pre-burst millis() fired the next poll immediately behind
 // a 'C', on top of the panel's 'c' ack.
 //
-// 400us covers the longest reply ('f', 14 bytes = 140us at 1 Mbps) plus the
-// panel's turnaround, with margin. It costs nothing at a 5ms poll interval.
-constexpr uint32_t REPLY_WINDOW_US = 400;
+// The window is sized per request from the reply it expects: 10us per byte at
+// 1 Mbps for the whole frame (5 bytes of framing + payload), plus a fixed
+// margin for the panel's turnaround. For 'f' (14 bytes) that is the original
+// 400us; 'h' (27 bytes) gets 530us.
+constexpr uint32_t REPLY_MARGIN_US = 260;
+constexpr uint8_t  REPLY_F_LEN = 9;    // 'f' payload
+constexpr uint8_t  REPLY_C_LEN = 5;    // 'c' payload
+constexpr uint8_t  REPLY_H_LEN = 22;   // 'h' payload
 uint32_t bus_quiet_from_us = 0;
 
-void sendRequest(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) {
+void sendRequest(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len,
+                 uint8_t reply_len) {
   sendPacket(cmd, addr, payload, len);
   RS485_SERIAL.flush();   // returns at transmit-complete, when DE drops
-  bus_quiet_from_us = micros() + REPLY_WINDOW_US;
+  bus_quiet_from_us = micros() + (5u + reply_len) * 10u + REPLY_MARGIN_US;
 }
 
 bool replyWindowOver() {
@@ -186,6 +192,64 @@ uint32_t last_reply_ms[NUM_PANELS] = {};
 bool     panel_online[NUM_PANELS]  = {};
 
 extern volatile int ident_ack_id;   // defined with the bench checks below
+
+// 'H' status sweep: one request per poll slot, IDs 0-8, started by `H`.
+// A panel that has not answered by the time the next slot comes round is
+// reported as silent then, so the sweep needs no timer of its own.
+int  status_next = -1;              // next index to ask; -1 = no sweep running
+bool status_got[NUM_PANELS] = {};
+
+void printStatusReply(uint8_t addr, const uint8_t *p) {
+  int pidx = panelIndex(addr);
+  uint32_t tag    = (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
+  uint32_t up_s   = (uint32_t)p[4] | ((uint32_t)p[5] << 8) | ((uint32_t)p[6] << 16) | ((uint32_t)p[7] << 24);
+  uint8_t  rst    = p[8];
+  uint8_t  st     = p[9];
+  uint16_t crc    = (uint16_t)p[10] | ((uint16_t)p[11] << 8);
+  uint16_t uart   = (uint16_t)p[12] | ((uint16_t)p[13] << 8);
+  uint16_t ovr    = (uint16_t)p[14] | ((uint16_t)p[15] << 8);
+  uint16_t turn   = (uint16_t)p[16] | ((uint16_t)p[17] << 8);
+  uint32_t frames = (uint32_t)p[18] | ((uint32_t)p[19] << 8) | ((uint32_t)p[20] << 16) | ((uint32_t)p[21] << 24);
+  if (pidx >= 0) status_got[pidx] = true;
+
+  char tagbuf[9];
+  snprintf(tagbuf, sizeof(tagbuf), "%08lX", (unsigned long)tag);
+  Serial.print("# status ");
+  Serial.print(pidx >= 0 ? PANEL_NAME[pidx] : "?");
+  Serial.print("\t id ");
+  Serial.print(addr);
+  Serial.print("  build ");
+  Serial.print(tagbuf);
+  Serial.print("  up ");
+  Serial.print(up_s);
+  Serial.print("s  reset");
+  if (rst & 0x01) Serial.print(" power-on");
+  if (rst & 0x02) Serial.print(" RUN-pin");
+  if (rst & 0x04) Serial.print(" debugger/PSM");
+  if (rst & 0x08) Serial.print(" watchdog-timeout");
+  if (rst & 0x10) Serial.print(" watchdog-forced");
+  if (!rst)       Serial.print(" none-flagged");
+  Serial.print("  12V ");
+  Serial.print((st & 0x01) ? "yes" : "NO");
+  Serial.print("  term ");
+  Serial.print((st & 0x02) ? "ON" : "off");
+  Serial.print("  autoINT ");
+  Serial.print((st & 0x04) ? "on" : "OFF");
+  Serial.print("  echo ");
+  Serial.print((st & 0x08) ? "on" : "OFF");
+  Serial.print("  INT ");
+  Serial.print((st & 0x10) ? "asserted" : "idle");
+  Serial.print("  | frames ");
+  Serial.print(frames);
+  Serial.print(" crc ");
+  Serial.print(crc);
+  Serial.print(" uart ");
+  Serial.print(uart);
+  Serial.print(" ovr ");
+  Serial.print(ovr);
+  Serial.print(" turn ");
+  Serial.println(turn);
+}
 
 void parseRx() {
   static enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
@@ -224,6 +288,8 @@ void parseRx() {
           poll_ok_window[pidx]++;
           poll_ok_total[pidx]++;
           last_reply_ms[pidx] = millis();
+        } else if (cmd == 'h' && len == REPLY_H_LEN) {
+          printStatusReply(addr, pay);
         } else if (cmd == 'i' && len == 0) {
           ident_ack_id = addr;
         } else if (cmd == 'c' && len == 5) {
@@ -660,6 +726,7 @@ void printHelp() {
     "  x                          pause/resume LED frames + FSR polling\r\n"
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  t                          toggle telemetry stream\r\n"
+    "  H                          status of every panel (build, uptime, reset, errors)\r\n"
     "  S <panel> <press> <rel>    set FSR thresholds on one panel"));
 }
 
@@ -701,6 +768,14 @@ void handleCommand(const char *s) {
     Serial.println(bus_traffic ? "RESUMED" : "PAUSED");
   } else if (strcmp(s, "I") == 0) {
     identifySelfTest();
+  } else if (strcmp(s, "H") == 0 || strcmp(s, "h") == 0) {
+    if (status_next >= 0) {
+      Serial.println("# status sweep already running");
+      return;
+    }
+    for (int i = 0; i < NUM_PANELS; i++) status_got[i] = false;
+    status_next = 0;
+    Serial.println("# status sweep: asking panels 0-8, one per poll slot");
   } else if (strcmp(s, "t") == 0 || strcmp(s, "T") == 0) {
     stream_telemetry = !stream_telemetry;
     Serial.print("# telemetry stream ");
@@ -906,12 +981,38 @@ void loop() {
   // A queued 'C' takes this slot instead and the round-robin resumes next tick.
   // It is sent even with bus traffic paused, since then nothing can collide.
   bool poll_due = replyWindowOver() && (!bus_traffic || now_ms >= next_poll_ms);
+  // A status sweep likewise takes slots, one panel each, and like 'C' it runs
+  // with bus traffic paused too.
   if (cfg_pending && poll_due) {
-    sendRequest('C', cfg_addr, cfg_payload, sizeof(cfg_payload));
+    sendRequest('C', cfg_addr, cfg_payload, sizeof(cfg_payload), REPLY_C_LEN);
     next_poll_ms = millis() + POLL_INTERVAL_MS;
     cfg_pending = false;
+  } else if (status_next >= 0 && poll_due) {
+    // The previous panel's reply window has closed by now (poll_due waits for
+    // it), so silence from it is final, once whatever arrived since the top of
+    // loop() has been parsed.
+    parseRx();
+    if (status_next > 0 && !status_got[status_next - 1]) {
+      Serial.print("# status ");
+      Serial.print(PANEL_NAME[status_next - 1]);
+      Serial.print("\t id ");
+      Serial.print(PANEL_IDS[status_next - 1]);
+      Serial.println("  NO REPLY -- absent, unpowered, wrong DIP ID, or old firmware without 'H'");
+    }
+    if (status_next < NUM_PANELS) {
+      sendRequest('H', PANEL_IDS[status_next], nullptr, 0, REPLY_H_LEN);
+      status_next++;
+    } else {
+      int n = 0;
+      for (int i = 0; i < NUM_PANELS; i++) n += status_got[i];
+      Serial.print("# status sweep done: ");
+      Serial.print(n);
+      Serial.println("/9 panels answered");
+      status_next = -1;
+    }
+    next_poll_ms = millis() + POLL_INTERVAL_MS;
   } else if (bus_traffic && poll_due) {
-    sendRequest('F', PANEL_IDS[poll_panel_idx], nullptr, 0);
+    sendRequest('F', PANEL_IDS[poll_panel_idx], nullptr, 0, REPLY_F_LEN);
     next_poll_ms = millis() + POLL_INTERVAL_MS;
     stat_polls_sent++;
     poll_sent_window[poll_panel_idx]++;
@@ -928,7 +1029,12 @@ void loop() {
         Serial.print(panel_fsr[i][c]);
         Serial.print(' ');
       }
-      Serial.println(panel_pressed_mask[i]);
+      Serial.print(panel_pressed_mask[i]);
+      // Last field: 1 if the panel replied within PANEL_TIMEOUT_MS, so a reader
+      // can tell live values from the last ones a vanished panel sent.
+      bool live = poll_ok_total[i] && (now_ms - last_reply_ms[i]) < PANEL_TIMEOUT_MS;
+      Serial.print(' ');
+      Serial.println(live ? 1 : 0);
     }
   }
 

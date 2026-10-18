@@ -457,15 +457,36 @@ config, no persistence. `../main.c` still needs its wholesale port.
 
 | cmd | what it does |
 |---|---|
-| `R` | responder on/off (**off at boot**; prints its address) |
+| `R` | responder on/off (prints its address; see bus mode below) |
 | `T` | counters — frames, CRC errors, RX overruns, per-command tallies |
-| `E` | paint incoming `'L'` frames on the LEDs (off at boot; needs 12V) |
+| `E` | paint incoming `'L'` frames on the LEDs (needs 12V) |
 | `A` | drive `INT_OUT` from the FSR thresholds — the real press path |
 | `B` | reboot into BOOTSEL |
 
 It answers frames addressed to this panel's DIP ID or to `0xFF`:
 `'F'`→`'f'` (4 × uint16 LE raw ADC + pressed bitmask), `'I'`→`'i'` (ack **first**,
-then pulse INT), `'C'`→`'c'` (thresholds, RAM only). `'L'` is counted.
+then pulse INT), `'C'`→`'c'` (thresholds, RAM only), `'H'`→`'h'` (status).
+`'L'` is counted.
+
+**Bus mode (added 2026-10-18).** `R`, `A` and `E` used to be off at boot, so
+every panel needed a terminal before it would answer the master, and a full pad
+has nine panels and no spare USB ports. They now **switch on by themselves,
+once, when 12V is present and the DIP reads a panel ID 0–8**:
+
+- A standalone brain on USB (stage 1) has no 12V and never starts it.
+- On the bench, USB first and then 12V, it starts when 12V lands, and the
+  terminal prints `bus mode ON`.
+- An all-OFF switch (15) or a diagnostic code (9–13) stays a plain bench board.
+- Typing `R`, `A` or `E` before or after takes over; auto-start never fires
+  after a hand toggle.
+
+It is safe with no master attached, because the responder only transmits
+when addressed. In a pad, the master is the only window onto the panels:
+`H` on the master asks every panel for its build tag (also in the banner, so
+mismatched images stand out), uptime, last reset cause, live state and error
+counters, and `tools/fsr_monitor.py` shows all nine panels' FSRs and the
+latest status. Only plug into a single panel when the master's view cannot
+explain a fault, and plug USB in **before** 12V (VBUS back-drive).
 
 ⚠ **Set the DIP to a panel ID first.** The master only ever addresses 0–8, and
 **closed reads 0** — so ID 0 is all four switches ON and an untouched all-OFF
