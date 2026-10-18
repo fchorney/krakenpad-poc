@@ -27,9 +27,14 @@ PATH=/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi/bin:$PATH \
   cmake -S firmware/panel/c/bringup -B firmware/panel/c/bringup/build -DPICO_BOARD=pico
 PATH=/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi/bin:$PATH \
   cmake --build firmware/panel/c/bringup/build -j8
+picotool reboot -f -u && sleep 3     # skip on a blank board
 picotool load firmware/panel/c/bootloader/build/panel_bootloader.uf2
-picotool load -x firmware/panel/c/bringup/build/panel_bringup.uf2
+picotool load firmware/panel/c/bringup/build/panel_bringup.uf2
+picotool reboot
 ```
+
+No `-x` on the app, and no `-f` on the loads. Why, and the traps, are in
+`docs/FIELD_UPDATE.md` → "Getting a panel onto it".
 
 **As of 2026-10-18 the bring-up image links at `0x10008000` behind the panel
 bootloader** (build it from `firmware/panel/c/bootloader/` the same way), which

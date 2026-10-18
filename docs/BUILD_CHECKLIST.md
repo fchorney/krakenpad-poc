@@ -113,17 +113,22 @@ Micro-Fit 3 ×2 · `J205` `J208` Micro-Fit 2 ×2 · `J209` SWD 1×3 · `J210`–
 ### 2. Flash
 
 ```
-picotool load -f firmware/panel/c/bootloader/build/panel_bootloader.uf2
-picotool load -f -x firmware/panel/c/bringup/build/panel_bringup.uf2
+picotool reboot -f -u && sleep 3     # skip on a blank board
+picotool load firmware/panel/c/bootloader/build/panel_bootloader.uf2
+picotool load firmware/panel/c/bringup/build/panel_bringup.uf2
+picotool reboot
 ```
 
 **Bootloader first, as of 2026-10-18.** The bring-up image now links at
 `0x10008000` behind the panel bootloader, so it can be updated over the bus
 afterwards (`docs/FIELD_UPDATE.md`). On its own it does not boot.
 
-Blank boards enter BOOTSEL on their own. Already-flashed boards reflash over USB
-with `-f`, or `B` from the firmware — **the button is never needed after the
-first time**, and once the bootloader is on, further updates go over the bus.
+Blank boards enter BOOTSEL on their own. Already-flashed boards get there with
+`reboot -f -u`, or `B` from the firmware. **The button is never needed**, and
+once the bootloader is on, further updates go over the bus. ⚠ **No `-f` on the
+loads and no `-x` on the app.** `load -f` on the bootloader can leave a board
+reachable only by button or SWD; `docs/FIELD_UPDATE.md` → "Getting a panel onto
+it" explains why.
 
 ⚠ Panel builds need the toolchain override until the Homebrew formula is removed:
 `-DPICO_TOOLCHAIN_PATH=/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi`

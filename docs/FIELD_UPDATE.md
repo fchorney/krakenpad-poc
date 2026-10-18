@@ -1,7 +1,8 @@
 # Field update — flashing panels over RS-485
 
-**Status (2026-10-18): implemented, passes an end-to-end host test, NOT YET RUN
-ON HARDWARE.** The pieces:
+**Status (2026-10-18): implemented and passes an end-to-end host test. On
+hardware, the USB load, the hand-off to the app and the `U` hold work on one
+board. A bus update has NOT been run yet.** The pieces:
 
 | piece | where |
 |---|---|
@@ -159,16 +160,44 @@ which would install fine and then never run.
 
 ## Getting a panel onto it — once, over USB
 
-This is the last time each board needs a cable. On a board in BOOTSEL:
+This is the last time each board needs a cable. A blank board is already in
+BOOTSEL, so skip the first line. A board running an application goes there from
+software, so the BOOTSEL button is never needed:
 
 ```sh
+picotool reboot -f -u && sleep 3
 picotool load firmware/panel/c/bootloader/build/panel_bootloader.uf2
-picotool load -x firmware/panel/c/bringup/build/panel_bringup.uf2
+picotool load firmware/panel/c/bringup/build/panel_bringup.uf2
+picotool reboot
 ```
+
+Check that the banner prints `image : at 0x10008000, behind panel_bootloader`.
+The build tag on the banner is the same on every board flashed from the same
+files. First done 2026-10-18 on `DE6558A6977D462D`, where `U` then held it in the
+bootloader as described above.
 
 **Bootloader first.** Loading only the app leaves the old image's start at
 `0x10000000` with its tail overwritten by the new app, which crashes. If a
-board does that, load the bootloader and it recovers. Building:
+board does that and is still in BOOTSEL, load the bootloader and it recovers.
+If it has left BOOTSEL, use SWD (`docs/PANEL_BRINGUP.md` → SWD).
+
+Three traps, all hit or found on 2026-10-18:
+
+- **Without the pause, the bootloader load finds no board.** After `reboot -f -u`
+  the board takes a moment to re-enumerate as BOOTSEL. It printed
+  `No accessible RP-series devices in BOOTSEL mode were found`, and the next
+  command loaded the app on its own. If the first load prints that, stop and run
+  it again before you load the app.
+- **No `-x` on the app.** It writes the flash and then fails with
+  `Cannot execute as file does not contain a valid RP2 executable image`,
+  because the app is not a standalone image. Use `picotool reboot` instead.
+- **Never use `load -f` for the bootloader.** `-f` reboots the board into
+  application mode after the load. On a board that still has the old standalone
+  image, the bootloader then finds the middle of that image at `0x10008000`,
+  rejects it and holds. The bootloader has no USB, so from then on only the
+  BOOTSEL button or SWD can reach the board.
+
+Building:
 
 ```sh
 export PICO_SDK_PATH=~/pico-sdk
@@ -206,10 +235,12 @@ Those need hardware.
 
 ## Hardware bring-up, not yet run
 
-1. Load the bootloader and the new bring-up image on one panel. It should boot
-   to the banner, which now prints `image : at 0x10008000`.
-2. `U` on its console: `D202` blinks 2 Hz. `X` from the master, or a power cycle
-   without `'B'`, brings the app back.
+1. ✅ **Done 2026-10-18** (`DE6558A6977D462D`, build tag `09447A32`). Load the
+   bootloader and the new bring-up image on one panel. It should boot to the
+   banner, which now prints `image : at 0x10008000`. This is the first time the
+   SDK runtime was seen coming up after the bootloader's hand-off.
+2. ✅ **Done 2026-10-18**, same board. `U` on its console: `D202` blinks 2 Hz.
+   `X` from the master, or a power cycle without `'B'`, brings the app back.
 3. Master #2 on the bus, then `tools/panel_update.py` with `--panels <id>`
    against that one panel, then two, then all nine.
 4. Pull 12V mid-commit once to see the resume work for real.
