@@ -90,6 +90,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >      rear shell lugs ~0.5 mm, and the **two front lugs do not reach the far
 >      side at all**. Before choosing a rev-2 part, check what board thickness
 >      its datasheet assumes. Not decided.
+>   9. **Both boards: SMD wherever possible, and wash-safe parts** (raised
+>      2026-10-18, after hand-fitting the TH parts on eight panels). Prefer SMD
+>      and look for SMD replacements for TH parts where one makes sense. Prefer
+>      parts that tolerate an IPA wash. Going fully SMD would mostly make the
+>      wash question disappear, because JLC's assembly line and its cleaning
+>      step would then handle every part. The TH parts in rev 1, from the PCB
+>      files (2026-10-18):
+>      - **Carrier:** `J201`–`J203`, `J206` JST PH (FSR); `J204`/`J207` and
+>        `J205`/`J208` Micro-Fit 3.0, horizontal; `J209` SWD header;
+>        `J210`–`J213` 1×8 headers (brain interface); `J214` screw terminal
+>        (INT); `SW201` ID DIP; `SW202` termination slide switch; 30 test
+>        points.
+>      - **Brain:** `J301`–`J304` 1×8 sockets (brain interface); `J305` USB-C.
+>      - **Master:** `J1` Micro-Fit 3.0; `J2` screw terminal; `J3`–`J11` JST
+>        XH; `RN1` SIP-10 resistor network; `SW1` player-ID DIP; `U2` Teensy
+>        socket; 10 test points.
+>
+>      Overlaps with other candidates: #5–#7 (test points as SMD pads or
+>      hooks), #8 (`J305`), and the brain interface, which is the largest
+>      group of joints (64 per panel). Some of these exist as TH on purpose,
+>      so each swap re-opens a recorded choice: the mechanical-load reasoning
+>      for the cable connectors and for `J305`, and the socketed Teensy.
+>      Wash-safety is per-part datasheet work, not yet done; switches and
+>      unsealed connectors are the usual suspects. Not decided.
 >   - ~~RS-485 DE pull-down~~ **DROPPED 2026-09-07**: `TP306` measured 35 mV on a
 >     blank board, so the RP2040's internal pull-down does park the THVD1450 in
 >     receive. See `docs/BRINGUP_LOG.md`.
