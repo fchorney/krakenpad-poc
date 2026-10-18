@@ -18,22 +18,26 @@ module was fitted at the time.
 Twenty brains and twenty carriers were fabricated, and five master boards; this
 file fills in as they are brought up.
 
+**SWD (`tools/swd_check.py`, 2026-10-18):** all eight assembled boards pass —
+DPIDR `0x0bc12477`, both cores, CHIP_ID `0x20002927` on every one. The
+SWD-only erase-and-recover test was run once, on `462D`.
+
 **Plan from 2026-10-18:** boards go through stages 0–2 one at a time. Stage 3
 waits until nine are done, then runs once as a full nine-panel bus with the
 master, instead of pairing boards up.
 
 ## Summary
 
-| board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | notes |
-|---|---|---|---|---|---|---|
-| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | ✅ | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive. Stage 3 2026-10-02 at ID 3 with master #2: `F`, `I`, `S` clean, `A` + `E` closed loop by eye |
-| `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1 on 10-01, **ID 0 from 10-02**. `i` skipped, INT proven on the bus with master #2 instead |
-| `DE6558A6977E3A2D` | 2026-10-18 | ✅ | ✅ | ✅ | | third brain. `p` read `0 0 1` at stage 1: a strong pull-up, not a fault (`R314` metered 31 k in circuit). Corrected the stage-1 `0 0 0` "guarantee" |
-| `DE6558A697556A2F` | 2026-10-18 | ✅ | ✅ | ✅ | | fourth brain |
-| `DE6558A697545C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | fifth brain. FSR reads **0** unmated and rests at **85** with an FSR (others 10–18 / 94–102): **a negative ADC offset of ~15 counts**, harmless. `ADC_AVDD` good at 3.28 V |
-| `DE6558A69784622D` | 2026-10-18 | ✅ | ✅ | ✅ | | sixth brain; clean |
-| `DE6558A69776582F` | 2026-10-18 | ✅ | ✅ | ✅ | | seventh brain; clean. Highest ADC offset so far (rest 108) |
-| `DE6558A697543C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | eighth brain; clean |
+| board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | SWD | notes |
+|---|---|---|---|---|---|---|---|
+| `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | ✅ | ✅ | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive. Stage 3 2026-10-02 at ID 3 with master #2: `F`, `I`, `S` clean, `A` + `E` closed loop by eye |
+| `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1 on 10-01, **ID 0 from 10-02**. `i` skipped, INT proven on the bus with master #2 instead |
+| `DE6558A6977E3A2D` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | third brain. `p` read `0 0 1` at stage 1: a strong pull-up, not a fault (`R314` metered 31 k in circuit). Corrected the stage-1 `0 0 0` "guarantee" |
+| `DE6558A697556A2F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | fourth brain |
+| `DE6558A697545C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | fifth brain. FSR reads **0** unmated and rests at **85** with an FSR (others 10–18 / 94–102): **a negative ADC offset of ~15 counts**, harmless. `ADC_AVDD` good at 3.28 V |
+| `DE6558A69784622D` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | sixth brain; clean |
+| `DE6558A69776582F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | seventh brain; clean. Highest ADC offset so far (rest 108) |
+| `DE6558A697543C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | ✅ | eighth brain; clean |
 
 ### Masters
 
@@ -269,6 +273,28 @@ at address 1, `I` passes on `U` (`J10`), `S` acks, all four command paths
 answered, and 36 hand presses on East became 36 clean PRESS/RELEASE pairs at
 the master through `A` mode. Counters at steady state: **0 CRC, 0 overruns,
 0 uart errors, 1 turnaround** (at enable).
+
+### SWD — 2026-10-18, first board through `J209`
+
+First time the SWD path (`J209` → `J212`/`J303` → `U306` pins 24/25) has been
+exercised on any board. Probe: Pico 1 running debugprobe v2.3.1. Procedure in
+`docs/PANEL_BRINGUP.md` → "SWD — `J209`".
+
+| check | result | verdict |
+|---|---|---|
+| `tools/swd_check.py` → DPIDR | `0x0bc12477` | ✅ RP2040 SW-DP |
+| `tools/swd_check.py` → cores | core0 + core1 examined | ✅ multidrop selection works |
+| `tools/swd_check.py` → CHIP_ID | `0x20002927`, revision field 2 | ✅ |
+| SWD-only erase, `flash erase_sector 0 0 last` | `RPI-RP2` appeared on USB | ✅ boot area really blank |
+| SWD-only reprogram, `program … verify reset` | 57,344 bytes, **Verified OK**; 1 Hz heartbeat on `D202` resumed | ✅ the image SWD wrote boots |
+
+The recovery test is **once per method, not per board**: it adds OpenOCD's flash
+algorithm and `U307`, and stage 1's `w` already proves `U307` on every board.
+
+`D202` stayed lit between the erase and the reprogram. Likely explanation, not
+confirmed: the probe's reset line (GP1) is not wired, so OpenOCD's `reset` is a
+core reset requested over SWD, which leaves the GPIO block, and so GPIO16's last
+driven level, alone. The bootrom never touches GPIO16. Harmless.
 
 ### Still open for this board
 

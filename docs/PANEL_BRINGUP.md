@@ -41,6 +41,7 @@ segfaults on RP2040.
 | **1** | brain alone, USB | flash, rails, `SENSE_12V` reads absent, pull configuration |
 | **2** | + carrier + 12V, USB kept | power mux, DIP, termination, FSR mapping, INT, LEDs |
 | **3** | 2 panels + master | RS-485 — needs peers, cannot be self-tested |
+| **SWD** | + debugprobe Pico on `J209` | the SWD path to `U306`, any time after stage 2. See "SWD — `J209`" |
 
 The staging is not arbitrary: each stage is the largest set of checks that the
 *previous* stage's hardware makes trustworthy.
@@ -604,6 +605,74 @@ via `SW202`.
 
 ---
 
+## SWD — `J209`
+
+`J209` is the firmware-independent recovery path: it reaches the RP2040 when
+USB, BOOTSEL or the flash contents cannot be trusted. Nothing else in bring-up
+touches it, so it gets its own check. Added 2026-10-18; first run on
+`DE6558A6977D462D`.
+
+**Probe:** a spare Pico 1 running **debugprobe v2.3.1** (`debugprobe_on_pico.uf2`
+from the `raspberrypi/debugprobe` release; a Pico 2 needs
+`debugprobe_on_pico2.uf2`). It enumerates as CMSIS-DAP v2, `2e8a:000c`. OpenOCD
+is the Raspberry Pi fork, 0.11.0-g8e3c38f, which carries `target/rp2040.cfg`.
+
+**Wiring** (Pico side from debugprobe's `board_pico_config.h`; `J209` side from
+the netlist):
+
+| Pico | `J209` | net |
+|---|---|---|
+| GP2 (pin 4) | pin 3 | `SWCLK` → `U306` pin 24 |
+| GP3 (pin 5) | pin 1 (square pad) | `SWDIO` → `U306` pin 25 |
+| GND (pin 3) | pin 2 | GND |
+
+The panel is powered on its own: USB, or 12V with USB connected first (VBUS
+back-drive). **Do not wire the Pico's 3V3 or VSYS to the panel.** GP1 (target
+reset) is left unconnected; `J209` does not carry `RUN`.
+
+### Every board
+
+```sh
+python3 tools/swd_check.py
+```
+
+It checks the result against fixed RP2040 values, not against whatever the probe
+returns: DPIDR `0x0bc12477`, both cores examined, SYSINFO `CHIP_ID` part `0x0002`
+and manufacturer `0x927`. It halts the cores only for the read and resumes them,
+so the bring-up firmware keeps running. On failure it prints the OpenOCD log and
+exits 1; `-v` always prints it, and `--speed 1000` drops the clock from 5 MHz.
+With no target attached it fails all three lines with `DAP init failed`.
+
+### Once — recovery over SWD alone ✅ done 2026-10-18 on `462D`
+
+```sh
+# blank the boot area: RPI-RP2 should then appear on USB
+openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" \
+  -c "init; reset halt; flash erase_sector 0 0 last; reset; exit"
+# restore it: expect "Verified OK", then the 1 Hz D202 heartbeat
+openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" \
+  -c "program firmware/panel/c/bringup/build/panel_bringup.elf verify reset exit"
+```
+
+The board cannot be stranded by this: blank flash drops into USB BOOTSEL.
+Not repeated per board, because it adds only OpenOCD's flash algorithm and
+`U307`, and stage 1's `w` already proves `U307` everywhere.
+
+⚠ **This OpenOCD sees 2 MB of a 4 MB flash.** Its `target/rp2040.cfg` hard-codes
+`set _FLASHSIZE 0x200000` (the log prints `2097152 bytes … in 512 sectors`), so
+SWD can neither erase nor write above `0x200000`, and `erase_sector 0 0 last`
+silently leaves the top half alone. Everything in the `docs/ANIMATIONS.md` layout
+so far ends at `0x17FFFF`, so nothing needs it today. Anything placed in the
+reserved region above `0x200000` needs a project copy of `rp2040.cfg` with
+`_FLASHSIZE 0x400000`. Setting the variable on the command line does not work,
+because the stock file assigns it unconditionally.
+
+The "B0" in OpenOCD's `RP2040 B0 Flash Probe` line appears to be a fixed string
+in this version's driver, not a reading from the chip; `CHIP_ID` is the
+silicon's own answer.
+
+---
+
 ## Per-board record
 
 The banner prints the RP2040's unique board ID, read out of `U307`. Use it to
@@ -612,7 +681,7 @@ the one with the odd FSR channel" is a question that gets asked later.
 
 Minimum to record per board: JEDEC ID, `w` result (both lines), `p` at stage 1
 and at stage 2, the mux hot-swap result, DIP sweep, FSR channel mapping, LED
-count.
+count, `tools/swd_check.py` result.
 
 `p` is recorded for the record, not scrutinised (2026-10-18). Only two of its
 lines carry meaning: **`pulls off`** (the operating state, should track 12V) and
