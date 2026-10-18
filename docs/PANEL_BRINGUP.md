@@ -160,27 +160,42 @@ configurations so the margin on *this* silicon becomes a recorded fact rather
 than the arithmetic above. Run it at stage 1 and again at stage 2 with 12V live —
 **that second reading is the only one that tests the risk.**
 
-**Stage 1 must print `0 0 0`** (measured on the first board, 2026-09-07; an
-earlier version of this doc predicted `0 0 1`, which was an arithmetic slip).
-With no 12V the `+12VDC` net floats — standalone it reaches the brain only
-through `J303` pins 1/6 — so the pin sees just `R314`'s 33 k to GND, and the
-internal pull-up cannot beat it:
+**Stage 1 normally prints `0 0 0`, but `0 0 1` is NOT a fault** (corrected
+2026-10-18 on the third brain, `DE6558A6977E3A2D`, which read `0 0 1` with a
+good `R314`). With no 12V the `+12VDC` net floats (standalone, it reaches the
+brain only through `J303` pins 1/6), so the pin sees just `R314`'s 33 k to GND
+against the internal pull-up:
 
-| internal pull-up | pin voltage, no 12V | vs VIH = 2.145 V |
+| internal pull-up | pin voltage, no 12V | vs VIL = 1.155 V / VIH = 2.145 V |
 |---|---|---|
-| 50 kΩ (strong end) | 3.3 × 33/83 = **1.31 V** | reads 0 |
+| 50 kΩ (strong end) | 3.3 × 33/83 = **1.31 V** | **undefined band**, reads either way |
+| ~61 kΩ | 1.155 V | boundary |
 | 80 kΩ (weak end) | 3.3 × 33/113 = **0.96 V** | reads 0 |
 
-Both ends of the spec land far below VIH, so **`0` in the pull-up column is
-guaranteed rather than board-specific** — and therefore says nothing about how
-strong this chip's pulls are. It is not a weak result to be explained away, but
-it is not predictive either: the pull-down risk is settled at stage 2 and nowhere
-else. (Same answer on a mated board with 12V merely switched off: `R313`∥`R314`
-= 24.8 k gives 1.09 V.)
+> ~~Both ends of the spec land far below VIH, so `0` in the pull-up column is
+> guaranteed rather than board-specific.~~ **Wrong:** that compared only against
+> VIH. Between VIL and VIH the input can read either way, so a strong-end
+> pull-up can legitimately read `1`. Board 1 (weak pull-up) read `0 0 0`; the
+> third brain read `0 0 1`.
+>
+> ~~On a mated board with 12V merely switched off, `R313`∥`R314` = 24.8 k gives
+> 1.09 V at the strong end, just under VIL, so that case should read 0.~~
+> **Wrong, and caught the same day:** it assumed a disconnected 12V net sits at
+> 0 V. It floats, since nothing on it conducts near zero volts, so `R313` leads
+> nowhere and a mated board with 12V unplugged *is* the standalone case. The
+> third brain read `0 0 1` there too.
 
-The stage-1 line that *is* load-bearing is **`pulls off : 0`** — the negative
-half of the 12V-sense test. It rules out a solder bridge to +3.3V and a
-mis-stuffed `R313`/`R314`.
+**The pull-up column is not pass/fail at stage 1.** An open `R314` also gives
+`1`, so a `1` there means **meter `R314` with USB unplugged**: about 31–33 k in
+circuit is good (it is in parallel with the paths through `D303` and `R313`),
+open is a bad joint.
+
+**`pulls off : 0` is the line to check, but it is weaker than it looks.** It
+rules out a solder bridge to +3.3V. It does **not** prove `R314` is present,
+because a floating pin usually reads 0 as well. **No logic reading at any stage
+proves `R314`; only the ohmmeter does.** (~~`R314` is proven at stage 2, when
+`SENSE_12V` falls cleanly as 12V is removed~~: once 12V is gone, the pin
+falls through an open `R314` too, just as it floats low standalone.)
 
 Whatever `p` reports, **do not relax the rule**. A board that happens to read
 high through its pull-down has a weak pull-down, not margin.
@@ -598,6 +613,12 @@ the one with the odd FSR channel" is a question that gets asked later.
 Minimum to record per board: JEDEC ID, `w` result (both lines), `p` at stage 1
 and at stage 2, the mux hot-swap result, DIP sweep, FSR channel mapping, LED
 count.
+
+`p` is recorded for the record, not scrutinised (2026-10-18). Only two of its
+lines carry meaning: **`pulls off`** (the operating state, should track 12V) and
+**`pull-down` at stage 2 with 12V live** (would this die trip the reset-default
+trap; a `0` there is worth a note). The pull-up column and the stage-1
+pull-down are informational only. Don't investigate them.
 
 **The logs live in `docs/BRINGUP_LOG.md`** — a summary table plus a detail
 section per board, rather than one file each, so twenty boards stay greppable and

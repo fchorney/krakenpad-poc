@@ -18,12 +18,22 @@ module was fitted at the time.
 Twenty brains and twenty carriers were fabricated, and five master boards; this
 file fills in as they are brought up.
 
+**Plan from 2026-10-18:** boards go through stages 0–2 one at a time. Stage 3
+waits until nine are done, then runs once as a full nine-panel bus with the
+master, instead of pairing boards up.
+
 ## Summary
 
 | board ID | assembled | stage 0 | stage 1 | stage 2 | stage 3 | notes |
 |---|---|---|---|---|---|---|
 | `DE6558A69754442F` | 2026-09-07 | ✅ | ✅ | ✅ | ✅ | first board powered; found the `INT_OUT` pull-down bug and the VBUS back-drive. Stage 3 2026-10-02 at ID 3 with master #2: `F`, `I`, `S` clean, `A` + `E` closed loop by eye |
 | `DE6558A6977D462D` | 2026-10-02 | ✅ | ✅ | ✅ | ✅ | second board; clean first time. ID 1 on 10-01, **ID 0 from 10-02**. `i` skipped, INT proven on the bus with master #2 instead |
+| `DE6558A6977E3A2D` | 2026-10-18 | ✅ | ✅ | ✅ | | third brain. `p` read `0 0 1` at stage 1: a strong pull-up, not a fault (`R314` metered 31 k in circuit). Corrected the stage-1 `0 0 0` "guarantee" |
+| `DE6558A697556A2F` | 2026-10-18 | ✅ | ✅ | ✅ | | fourth brain |
+| `DE6558A697545C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | fifth brain. FSR reads **0** unmated and rests at **85** with an FSR (others 10–18 / 94–102): **a negative ADC offset of ~15 counts**, harmless. `ADC_AVDD` good at 3.28 V |
+| `DE6558A69784622D` | 2026-10-18 | ✅ | ✅ | ✅ | | sixth brain; clean |
+| `DE6558A69776582F` | 2026-10-18 | ✅ | ✅ | ✅ | | seventh brain; clean. Highest ADC offset so far (rest 108) |
+| `DE6558A697543C2F` | 2026-10-18 | ✅ | ✅ | ✅ | | eighth brain; clean |
 
 ### Masters
 
@@ -69,19 +79,22 @@ SENSE_12V     : LOW
 | `w` write/verify | **PASS** | `U307` programs and reads back |
 | `w` capacity | **PASS — no aliasing, full 4 MB** | a 2 MB die substituted for the 4 MB part is ruled out; the animation slots in upper flash are real |
 | `p` | `0 0 0` | expected — see below |
-| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | negative half of the 12V-sense test: no bridge to +3.3V, `R313`/`R314` not mis-stuffed |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | negative half of the 12V-sense test: no bridge to +3.3V. ~~`R313`/`R314` not mis-stuffed~~: a floating pin also reads 0, so this can't prove `R314` (corrected 2026-10-18) |
 | `s` → DIP | `15` (`0b1111`) | internal pull-ups on GPIO18–21 all working — there are no board pull-ups on these nets |
 | `s` → `TERM_SENSE` | not terminated | GPIO10 internal pull-up working |
 | `s` → FSR raw | South 12, West 12, North 12, East 12 | four live ADC channels, ~10 mV, well under the 187 float threshold. **Uniform across all four**, and stable rather than drifting — evidence `R311/R312/R315/R316` are stuffed |
 | `i` asserted (dwell) | **9.6 mV** | drives a clean low; ~29 Ω on-resistance against the 10 k |
 | `i` released (dwell) | **2.7 V** before fix → **3.29 V** after | ⚠ **found a firmware bug**, now fixed and re-verified — see below |
 
-**`p` = `0 0 0` is correct and guaranteed, not board-specific.** With no 12V the
-`+12VDC` net floats, so GPIO17 sees only `R314`'s 33 k to GND; the internal
-pull-up (50–80 kΩ) yields 0.96–1.31 V, far below VIH = 2.145 V at either end of
-spec. It therefore says nothing about this chip's pull strength. **The pull-down
-risk is settled at stage 2 and nowhere else.** An earlier version of
-`PANEL_BRINGUP.md` predicted `0 0 1`; that was an arithmetic slip, now fixed.
+**`p` = `0 0 0` is correct here, but it is NOT guaranteed** (corrected
+2026-10-18, see `DE6558A6977E3A2D`). With no 12V the `+12VDC` net floats, so
+GPIO17 sees only `R314`'s 33 k to GND; the internal pull-up (50–80 kΩ) yields
+0.96–1.31 V. ~~That is far below VIH = 2.145 V at either end of spec, so `0` is
+guaranteed.~~ **Wrong: it ignored VIL = 1.155 V.** Any pull-up under ~61 kΩ puts
+the pin in the undefined band between VIL and VIH, where it can read either way.
+This board's pull-up was at the weak end, so it read 0; the third brain read
+`0 0 1` with a good `R314`. **The pull-down risk is settled at stage 2 and
+nowhere else.**
 
 **`i` needs a pull-up to mean anything.** Metered bare, GPIO22 at `J302` pin 6
 read **0.4 mV released, 0.2 mV asserted** — both zero, because standalone nothing
@@ -261,6 +274,275 @@ the master through `A` mode. Counters at steady state: **0 CRC, 0 overruns,
 
 - The three FSR connectors not yet exercised with a sensor (`J201` W, `J202` S,
   `J206` N).
+
+## `DE6558A6977E3A2D` — third brain
+
+**2026-10-18.** Brain alone; carrier not yet mated. Bring-up firmware built
+Sep 8 2026 15:08:34 (matches source, tree clean).
+
+### Stage 0 — blank, in BOOTSEL
+
+| point | signal | reading | |
+|---|---|---|---|
+| — | enumerate | mounted as `RPI-RP2`, no button | ✅ |
+| `TP302` | +5VDC | **5.258 V** | ✅ |
+| `TP301` | +3.3VDC | **3.292 V** | ✅ |
+| `TP303` | `RUN` | **3.289 V** | ✅ |
+
+### Stage 1 — bring-up firmware over USB
+
+| check | result | verdict |
+|---|---|---|
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated | ✅ all five internal pull-ups good |
+| `s` → FSR raw | South 10, West 10, North 11, East 10 | ✅ uniform |
+| `p` | **`0 0 1`**, identical over 10 repeats | ✅ strong pull-up, not a fault — see below |
+
+**`p` = `0 0 1` looked like an open `R314` and is not.** `R314` is fitted,
+marked `333`, and metered **~31 k in circuit** with USB unplugged (33 k in
+parallel with the paths through `D303` and `R313`). The earlier claim that
+stage 1 *must* read `0 0 0` compared the pin only against VIH and ignored
+VIL = 1.155 V. A pull-up under ~61 kΩ puts the pin at 1.16–1.31 V, inside the
+undefined band, and this die reads 1 there. So this pull-up is at the strong end
+of 50–80 kΩ, where board 1's was at the weak end.
+
+Two consequences, both recorded in `PANEL_BRINGUP.md`:
+- **The stage-1 pull-up column is not pass/fail.** It reads `1` with a strong
+  pull-up *and* with an open `R314`, so on its own it can't tell them apart.
+- **`pulls off : 0` does not prove `R314` either.** A floating pin usually reads 0
+  too. **Only the ohmmeter proves `R314`.** (An earlier version of this note said
+  stage 2's falling edge proves it; it doesn't, because the pin falls with an
+  open `R314` too.)
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `s` → `SENSE_12V` | `12V PRESENT`, raw 1 | ✅ |
+| 12 V unplugged, USB kept | `12V ABSENT`, raw 0, edge count +1 | ✅ falling edge clean |
+| `s` → DIP | 15 (`0b1111`), all switches off | ✅ matches what was set |
+| `s` → `TERM_SENSE` | TERMINATED | ✅ matches `SW202` |
+| `d` | each switch flipped its own bit and back | ✅ |
+| FSR, East connected only | rests **~96**, press peak **~3600** by hand | ✅ inside board 1's 94–98. South/West/North stayed at rest during the press, no crosstalk |
+| `l` | all 25 lit | ✅ |
+| `p`, 12 V live | **`1 1 1`** | same as boards 1 and 2: pull-down >63.5 kΩ, the weak end. **The strong pull-up does not imply a strong pull-down** |
+| `p`, mated, 12 V unplugged | `0 0 1` | expected: the disconnected 12V net floats, so this is the standalone case |
+| USB pulled, 12 V live | board kept running | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **5.034 V / 3.293 V** | ✅ `U303` and `U302` in regulation (board 1: 4.965 / 3.29, board 2: 4.98 / 3.304) |
+| cold start on 12 V only | board came up | ✅ |
+| back to USB: 12 V off, USB in, 12 V on | reconnected | ✅ |
+
+### Still open for this board
+
+- Stage 3 (RS-485, needs the master and a second panel).
+- `i` not run; INT to be proven on the bus at stage 3, as for board 2.
+- South, West and North FSR connectors not yet exercised with a sensor.
+
+## `DE6558A697556A2F` — fourth brain
+
+**2026-10-18.** Same bring-up build (Sep 8 2026 15:08:34).
+
+### Stage 0 and 1 — brain alone on USB
+
+| check | result | verdict |
+|---|---|---|
+| blank board on USB | mounted as `RPI-RP2`, no button | ✅ |
+| `TP302` / `TP301` / `TP303` | **5.257 / 3.297 / 3.294 V** | ✅ |
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated | ✅ all five internal pull-ups good |
+| `s` → FSR raw | South 17, West 18, North 18, East 17 | ✅ uniform |
+| `p` | `0 0 1` | record only |
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `SENSE_12V` | absent ↔ present both directions | ✅ |
+| `p`, 12 V live | `1 1 1` | record only |
+| `d` | each switch flipped its own bit and back | ✅ |
+| FSR, East | rests **~102**, press peak **~3800** | ✅ rest a little above boards 1–3 (94–98), still far under the 500 press threshold. South/West/North stayed at rest, no crosstalk |
+| `l` | all 25 lit | ✅ |
+| USB pulled, 12 V live | board kept running, no reset | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **5.011 V / 3.298 V** | ✅ |
+| cold start on 12 V only | board came up | ✅ |
+| back to USB: 12 V off, USB in, 12 V on | reconnected | ✅ |
+
+### Still open for this board
+
+- Stage 3 (nine-panel bus).
+- South, West and North FSR connectors not yet exercised with a sensor.
+
+## `DE6558A697545C2F` — fifth brain
+
+**2026-10-18.** Same bring-up build (Sep 8 2026 15:08:34).
+
+### Stage 0 and 1 — brain alone on USB
+
+| check | result | verdict |
+|---|---|---|
+| blank board on USB | mounted as `RPI-RP2`, no button | ✅ |
+| `TP302` / `TP301` / `TP303` | **5.257 / 3.312 / 3.308 V** | ✅ `TP301` highest so far (others 3.29–3.297), inside AP7361C tolerance |
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated | ✅ all five internal pull-ups good |
+| `s` → FSR raw | **South 0, West 0, North 0, East 0**, steady over 9 reads (one stray South = 1) | ⚠ every earlier board read 10–18 |
+| `p` | `0 0 1` | record only |
+
+**All four FSR channels read 0 at rest.** Because it hits all four channels at once,
+the shared ADC supply was suspected first: `ADC_AVDD` is fed by `R308` 200 Ω from
++3.3VDC into `C318` 2.2 µF. **Metered 3.28 V on the `ADC_AVDD` side of `R308`**
+against a 3.312 V rail, ~30 mV across 200 Ω (~150 µA, ordinary ADC draw), so the
+supply is good. Leading explanation: **a negative ADC offset on this die**, so a
+grounded input clips at 0 where others read 10–18. Not yet proven; stage 2 with
+a real FSR is the test.
+
+**Confirmed at stage 2: it is offset.** With an FSR, East rests at **85** and
+presses to **~3800**. The other boards rest at 94–102, so this die reads about
+**15 counts low**, the same size as the 10–18 the others show unmated with no
+sensor, now clipped to 0 here. A full-scale press is unaffected. The 500/400
+press/release thresholds sit well clear either way. Per-channel calibration in
+flash config would absorb it.
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `SENSE_12V` | absent ↔ present both directions | ✅ |
+| `p`, 12 V live | `1 1 1` | record only |
+| `d` | every switch correct | ✅ |
+| FSR, East | rests **~85**, press peak **~3800**; South/West/North stayed at rest, no crosstalk | ✅ low rest is the ADC offset above |
+| `l` | all 25 lit | ✅ |
+| USB pulled, 12 V live | board kept running, no reset | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **5.006 V / 3.313 V** | ✅ |
+| cold start on 12 V only | board came up | ✅ |
+| back to USB: 12 V off, USB in, 12 V on | reconnected | ✅ |
+
+### Still open for this board
+
+- Stage 3 (nine-panel bus).
+- South, West and North FSR connectors not yet exercised with a sensor.
+
+## `DE6558A69784622D` — sixth brain
+
+**2026-10-18.** Same bring-up build (Sep 8 2026 15:08:34).
+
+### Stage 0 and 1 — brain alone on USB
+
+| check | result | verdict |
+|---|---|---|
+| blank board on USB | mounted as `RPI-RP2`, no button | ✅ |
+| `TP302` / `TP301` / `TP303` | **5.257 / 3.297 / 3.295 V** | ✅ |
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated | ✅ all five internal pull-ups good |
+| `s` → FSR raw | South 11, West 12, North 12, East 11 | ✅ uniform |
+| `p` | `0 0 1` | record only |
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `SENSE_12V` | absent ↔ present both directions | ✅ |
+| `s` → `TERM_SENSE` | matches `SW202` | ✅ |
+| `p`, 12 V live | `1 1 1` | record only |
+| `d` | every switch correct | ✅ |
+| FSR, East | rests **~98**, press peak **~3800**; South/West/North stayed at rest, no crosstalk | ✅ |
+| `l` | all 25 lit | ✅ |
+| USB pulled, 12 V live | board kept running, no reset | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **5.033 V / 3.299 V** | ✅ |
+| cold start on 12 V only | board came up | ✅ |
+| back to USB: 12 V off, USB in, 12 V on | reconnected | ✅ |
+
+### Still open for this board
+
+- Stage 3 (nine-panel bus).
+- South, West and North FSR connectors not yet exercised with a sensor.
+
+## `DE6558A69776582F` — seventh brain
+
+**2026-10-18.** Same bring-up build (Sep 8 2026 15:08:34).
+
+### Stage 0 and 1 — brain alone on USB
+
+| check | result | verdict |
+|---|---|---|
+| blank board on USB | mounted as `RPI-RP2`, no button | ✅ |
+| `TP302` / `TP301` / `TP303` | **5.257 / 3.301 / 3.298 V** | ✅ |
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated | ✅ all five internal pull-ups good |
+| `s` → FSR raw | South 21, West 23, North 21, East 21 | ✅ uniform; highest unmated offset so far (range now 0–23 across seven dies) |
+| `p` | `0 0 1` | record only |
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `SENSE_12V` | absent ↔ present both directions | ✅ |
+| `s` → `TERM_SENSE` | matches `SW202` | ✅ |
+| `p`, 12 V live | `1 1 1` | record only |
+| `d` | every switch correct | ✅ |
+| FSR, East | rests **~108**, press peak **~3850**; South/West/North stayed at rest, no crosstalk | ✅ highest rest so far, matching the highest unmated offset. `5C2F` (offset 0) rests at 85 |
+| `l` | all 25 lit | ✅ |
+| USB pulled, 12 V live | board kept running, no reset | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **5.043 V / 3.303 V** | ✅ |
+| cold start on 12 V only | board came up | ✅ |
+| back to USB: 12 V off, USB in, 12 V on | reconnected | ✅ |
+
+### Still open for this board
+
+- Stage 3 (nine-panel bus).
+- South, West and North FSR connectors not yet exercised with a sensor.
+
+## `DE6558A697543C2F` — eighth brain
+
+**2026-10-18.** Same bring-up build (Sep 8 2026 15:08:34).
+
+### Stage 0 and 1 — brain alone on USB
+
+| check | result | verdict |
+|---|---|---|
+| blank board on USB | mounted as `RPI-RP2`, no button | ✅ |
+| `TP302` / `TP301` / `TP303` | **5.256 / 3.294 / 3.291 V** | ✅ |
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated | ✅ all five internal pull-ups good |
+| `s` → FSR raw | South 16, West 15, North 14, East 14 | ✅ uniform |
+| `p` | `0 0 1` | record only |
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `SENSE_12V` | absent ↔ present both directions | ✅ |
+| `s` → `TERM_SENSE` | matches `SW202` | ✅ |
+| `p`, 12 V live | `1 1 1` | record only |
+| `d` | every switch correct | ✅ |
+| FSR, East | rests **~100**, press peak **~3850**; South/West/North stayed at rest, no crosstalk | ✅ |
+| `l` | all 25 lit | ✅ |
+| USB pulled, 12 V live | board kept running, no reset | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **5.040 V / 3.296 V** | ✅ |
+| cold start on 12 V only | board came up | ✅ |
+| back to USB: 12 V off, USB in, 12 V on | reconnected | ✅ |
+
+### Still open for this board
+
+- Stage 3 (nine-panel bus).
+- South, West and North FSR connectors not yet exercised with a sensor.
 
 ## master #1
 
