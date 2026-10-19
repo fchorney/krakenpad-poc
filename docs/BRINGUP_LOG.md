@@ -1142,6 +1142,31 @@ ID 3 W, ID 5 E, ID 7 S (rest 93–104; empty channels 0–23, ID 8 has none).
 
   The eight-panel run's ID-0-only `I` failure (above) fits the same cause.
 
+### 2026-10-19 — panel LED stutter: a timestamp wrap, fixed
+
+**Symptom (user):** now and then a whole panel blinked rapidly, as if its frame
+rate dropped or its on/off duty changed, then went back to normal. It hit
+random panels with nobody on the pad. The bus counters stayed at 0 throughout.
+
+**Cause, from the code:** `core1_main()` read `now_ms` at the top of each pass,
+before `rs485_service()` stamped an incoming `'L'` frame with a fresh
+`to_ms_since_boot()`. If the millisecond tick fell between the two reads, the
+frame was one tick newer than `now_ms`. The unsigned age check in `render()`
+then wrapped to ~4×10⁹ and painted the fresh frame dark until the next frame or
+16 ms refresh. The master sends a frame every 16 ms and each panel counts
+milliseconds on its own crystal. So a panel's frame arrival time relative to
+its own tick only drifted slowly, and while it sat near the tick, consecutive
+frames were blanked. That made it episodic, and different on every panel.
+
+**Fix:** a signed age check, `(int32_t)(now_ms - g_led_frame_ms) <
+LED_FALLBACK_MS`, as the mode timer already used. Pushed to all nine by bus
+update (image CRC `28E13C35`, build tag **`E7D4BF9B`**); `H` 9/9, 0 errors.
+**User, after watching for a few minutes: no stutter since, and the animation
+looks noticeably smoother.** That fits the same cause: single blanked frames
+were probably happening at a low rate all along, below the threshold of
+looking like a stutter. This rests on the code reading and the before/after
+observation; the wrap itself was never caught on an instrument.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
