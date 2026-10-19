@@ -1,6 +1,7 @@
 # Build output
 firmware/panel/c/build/
 firmware/panel/c/**/build/
+firmware/master/build/
 
 # Python
 __pycache__/

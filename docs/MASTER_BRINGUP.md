@@ -10,13 +10,20 @@ port layout) works with **zero panels connected**, so the bench commands live in
 the real firmware rather than a second sketch.
 
 ```sh
-arduino-cli compile --fqbn teensy:avr:teensy40 firmware/master
-arduino-cli upload  --fqbn teensy:avr:teensy40 -p usb:100000 firmware/master
+firmware/master/build.sh            # compile
+firmware/master/build.sh upload     # compile + upload
 ```
 
-`upload` needs `-p`. Use the `teensy` protocol port (`usb:…`) from
-`arduino-cli board list`, not the `/dev/cu.usbmodem…` serial port; the number
-can change with the USB socket it is plugged into.
+**Since 2026-10-19 the master builds through `build.sh`**, which compiles
+against a patched copy of the Teensy core so the PC sees the pad as a joystick
+(`docs/USB_PROTOCOL.md` → "Input state report"). A plain `arduino-cli
+compile --fqbn teensy:avr:teensy40 firmware/master` still builds, with a
+warning, but sends no pad input to the PC.
+
+`upload` finds the port with `arduino-cli board list`, or takes it as the
+second argument. Upload by hand needs `-p` with the `teensy` protocol port
+(`usb:…`), not the `/dev/cu.usbmodem…` serial port; the number can change
+with the USB socket it is plugged into.
 
 ## The port — what changed, and the trap in it
 

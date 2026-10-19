@@ -99,9 +99,102 @@ inline void pushEdge(uint8_t panel, uint8_t pin) {
   ring_pressed[ring_head] = pressed;
   ring_head = next;
 }
+
+// ── USB pad input (docs/USB_PROTOCOL.md → "Input state report") ─────────────
+// Report ID 1: panel bitmask (bit n = panel n), then a sequence number that
+// steps on every state change, so the host can see a transition it missed.
+// Sent from interrupt context, never from loop(): an LED burst blocks loop()
+// ~7ms. The INT edge ISR qualifies and sends at once; a 1 kHz timer retries a
+// send that found the queue full, repeats the report as a heartbeat, and
+// corrects the mask if a line ever disagrees with it for two ticks. All three
+// paths run at one NVIC priority so none preempts another.
+// Needs the KrakenPad USB type: build with firmware/master/build.sh.
+#if defined(USB_KRAKENPAD)
+constexpr uint32_t INT_QUALIFY_NS   = 10000;   // edge must still hold 10 us later
+constexpr uint32_t HID_HEARTBEAT_US = 10000;
+constexpr uint8_t  HID_IRQ_PRIORITY = 128;     // Teensy default for GPIO and USB
+
+extern "C" volatile uint8_t usb_configuration;   // core usb.c; not in a header for this type
+
+IntervalTimer hidTimer;
+volatile uint16_t hid_mask = 0;        // qualified press state
+volatile uint16_t hid_sent = 0xFFFF;   // never a real mask: forces the first report
+volatile uint8_t  hid_seq = 0;
+volatile uint32_t hid_last_us = 0;
+volatile bool     hid_hold = false;    // 'I' self-test pulses are not presses
+volatile uint32_t hid_reports = 0, hid_busy = 0, hid_glitches = 0, hid_resyncs = 0;
+
+void hidSend() {
+  uint16_t m = hid_mask;
+  uint8_t seq = (m != hid_sent) ? (uint8_t)(hid_seq + 1) : hid_seq;
+  uint8_t report[JOYSTICK_SIZE] = {1, (uint8_t)m, (uint8_t)(m >> 8), seq};
+  if (usb_joystick_try_send(report) == 0) {
+    hid_seq = seq;
+    hid_sent = m;
+    hid_last_us = micros();
+    hid_reports++;
+  } else {
+    hid_busy++;
+  }
+}
+
+inline void hidEdge(uint8_t panel) {
+  if (hid_hold) return;
+  delayNanoseconds(INT_QUALIFY_NS);
+  uint16_t bit = 1u << panel;
+  bool low = digitalReadFast(INT_PINS[panel]) == LOW;
+  uint16_t m = low ? (hid_mask | bit) : (hid_mask & ~bit);
+  if (m == hid_mask) { hid_glitches++; return; }
+  hid_mask = m;
+  hidSend();
+}
+
+void hidTick() {
+  static uint16_t disagree = 0;   // lines that differed from the mask last tick
+  if (!hid_hold) {
+    uint16_t lines = 0;
+    for (int i = 0; i < NUM_PANELS; i++)
+      if (digitalReadFast(INT_PINS[i]) == LOW) lines |= 1u << i;
+    uint16_t diff = lines ^ hid_mask;
+    uint16_t fix = diff & disagree;
+    disagree = diff;
+    if (fix) { hid_mask ^= fix; hid_resyncs++; }
+  }
+  if (hid_mask != hid_sent || (micros() - hid_last_us) >= HID_HEARTBEAT_US) hidSend();
+}
+
+void hidBegin() {
+  hidTimer.priority(HID_IRQ_PRIORITY);
+  hidTimer.begin(hidTick, 1000);
+}
+
+void hidReport() {
+  Serial.print("# USB pad input: mask 0x");
+  Serial.print(hid_mask, HEX);
+  Serial.print("  seq ");
+  Serial.print(hid_seq);
+  Serial.print("  reports ");
+  Serial.print(hid_reports);
+  Serial.print("  queue-full ");
+  Serial.print(hid_busy);
+  Serial.print("  glitches ");
+  Serial.print(hid_glitches);
+  Serial.print("  resyncs ");
+  Serial.print(hid_resyncs);
+  Serial.print("  USB ");
+  Serial.println(usb_configuration ? "configured" : "NOT configured");
+}
+#else
+#warning "Built without the KrakenPad USB type: no pad input reaches the PC. Use firmware/master/build.sh."
+volatile bool hid_hold = false;
+inline void hidEdge(uint8_t) {}
+void hidBegin() {}
+void hidReport() { Serial.println("# no USB pad input in this build (use firmware/master/build.sh)"); }
+#endif
+
 // attachInterrupt needs a plain function pointer per pin — no capture, so one
 // trampoline per panel rather than a single parameterized handler.
-#define INT_TRAMPOLINE(n) void intLineIsr##n() { pushEdge(n, INT_PINS[n]); }
+#define INT_TRAMPOLINE(n) void intLineIsr##n() { pushEdge(n, INT_PINS[n]); hidEdge(n); }
 INT_TRAMPOLINE(0) INT_TRAMPOLINE(1) INT_TRAMPOLINE(2)
 INT_TRAMPOLINE(3) INT_TRAMPOLINE(4) INT_TRAMPOLINE(5)
 INT_TRAMPOLINE(6) INT_TRAMPOLINE(7) INT_TRAMPOLINE(8)
@@ -467,6 +560,7 @@ void reportIntPullups() {
   Serial.println("INT external pull-up (RN1) check.");
   Serial.println("Nothing may be plugged into J3-J11 — a held INT reads as a missing pull-up.");
 
+  hid_hold = true;   // a pin with no pull-up reads LOW here: not a press
   for (int i = 0; i < NUM_PANELS; i++)
     detachInterrupt(digitalPinToInterrupt(INT_PINS[i]));
 
@@ -486,6 +580,7 @@ void reportIntPullups() {
   interrupts();
   for (int i = 0; i < NUM_PANELS; i++)
     attachInterrupt(digitalPinToInterrupt(INT_PINS[i]), INT_ISR[i], CHANGE);
+  hid_hold = false;
 
   int missing = 0;
   for (int i = 0; i < NUM_PANELS; i++) {
@@ -686,9 +781,8 @@ void underglowChase() {
 }
 
 // ── Slot <-> panel-ID self-test (docs/RS485_PROTOCOL.md) ─────────────────────
-// The master half of 'I'. The panel half is not implemented yet, so until the
-// panel firmware is ported this reports "no ack" for every ID — which is a
-// correct result, not a failure of this code.
+// The master half of 'I'. The bring-up and gameplay panel firmwares both
+// answer it.
 volatile int  ident_ack_id = -1;
 
 void identifySelfTest() {
@@ -713,6 +807,7 @@ void identifySelfTest() {
 
   bool was = bus_traffic;
   bus_traffic = false;   // no LED frames or polls competing for the bus
+  hid_hold = true;       // the pulses must not reach the PC as presses
   Serial.println("# slot <-> panel-ID self-test");
 
   for (int id = 0; id < NUM_PANELS; id++) {
@@ -767,6 +862,7 @@ void identifySelfTest() {
     Serial.println();
   }
   bus_traffic = was;
+  hid_hold = false;      // the 1 kHz tick re-reads the lines within 2 ms
   Serial.println("# self-test done");
 }
 
@@ -872,6 +968,7 @@ void printHelp() {
     "  g <n>                      light underglow group n (1-44) alone and hold\r\n"
     "  x                          pause/resume LED frames + FSR polling\r\n"
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
+    "  j                          USB pad input: mask, sequence, counters\r\n"
     "  t                          toggle telemetry stream\r\n"
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
     "  z                          zero bus counters, master and all panels\r\n"
@@ -918,6 +1015,8 @@ void handleCommand(const char *s) {
     Serial.println(bus_traffic ? "RESUMED" : "PAUSED");
   } else if (strcmp(s, "I") == 0) {
     identifySelfTest();
+  } else if (strcmp(s, "j") == 0 || strcmp(s, "J") == 0) {
+    hidReport();
   } else if (strcmp(s, "P") == 0) {
     Serial.println("# passthrough ON: binary frames until the host exits or 30 s idle");
     Serial.send_now();
@@ -1078,6 +1177,7 @@ void setup() {
 
   for (int i = 0; i < NUM_PANELS; i++)
     attachInterrupt(digitalPinToInterrupt(INT_PINS[i]), INT_ISR[i], CHANGE);
+  hidBegin();
 
   Serial.print("player ID (SW1): ");
   Serial.print(readPlayerId());

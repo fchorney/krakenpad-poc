@@ -9,8 +9,9 @@ descriptor; no software expecting an SMX pad will (or should) talk to us.
 
 | Property | Value |
 |----------|-------|
-| VID/PID | Teensyduino default (0x16C0 + USB-Type-dependent PID) during development. Plan: register a real PID under pid.codes' shared VID 0x1209 (see below) once eligible. |
+| VID/PID | Teensyduino default (0x16C0 + USB-Type-dependent PID) during development. **As built 2026-10-19: 0x16C0:0x0487**, borrowed from Teensyduino's Serial + Keyboard + Mouse + Joystick type, which keeps `arduino-cli upload` and the Teensy auto-reboot working. ⚠ Our interface set differs from the one Windows may have cached for that PID; if Windows ever shows the pad wrongly, remove the cached device first. Plan: register a real PID under pid.codes' shared VID 0x1209 (see below) once eligible. |
 | Product string | "KrakenPad" — **working name, not final**, may still change |
+| Interfaces (as built 2026-10-19) | 0–1 CDC serial (the bench console, unchanged), 2 HID joystick (pad input). Command/data reports are not built yet |
 | Transport | USB HID, 64-byte packets |
 | USB speed | High Speed 480 Mbps (Teensy 4.x native) |
 | Input polling | 1000Hz baseline; 2000Hz+ target (HS microframes allow up to 8000Hz) |
@@ -58,6 +59,55 @@ one command in flight, response carries FINISHED flag) is simple and proven —
 - **Adapt:** sent on every state change (from the INT lines — no bus-cycle
   latency) plus heartbeat. Add a monotonic 8-bit sequence number so the host
   can detect missed transitions between polls.
+
+**As built 2026-10-19** (`firmware/master/master.ino` → "USB pad input"; the
+descriptor is in `firmware/master/core-patch/`):
+
+| Byte | Content |
+|------|---------|
+| 0 | Report ID **1** |
+| 1 | panels 0–7 (bit n = panel n, 1 = pressed) |
+| 2 | bit 0 = panel 8; bits 1–7 constant 0 |
+| 3 | sequence number |
+
+- **Descriptor:** Generic Desktop / **Joystick**, one application collection;
+  9 buttons (Button 1 = panel 0 … Button 9 = panel 8), 7 padding bits, then
+  the sequence number on vendor page 0xFF00 so games ignore it. Any OS or
+  game that takes a generic joystick sees nine buttons.
+- **No axes, on purpose.** A declared axis that never moves can read as held
+  at one end in some games. If a host turns out to need axes, put them in a
+  separate report that is never sent.
+- **Report ID 1** leaves room for the command and data reports in the same
+  interface, as stock does.
+- **Sequence:** steps by one on every press-state change; heartbeats repeat it.
+  A step of more than one means the host missed a transition.
+- **Heartbeat:** the current state is resent every **10 ms** with no change.
+  **DECIDED 2026-10-19: keep 10 ms** (stock is roughly 100 ms). It only bounds
+  how soon a host that opens the pad late learns the current state; presses
+  never wait for it. Revisit if it turns out to matter. Measured idle rate
+  91–95 reports/s: the 1 kHz timer makes each period 10–11 ms.
+- **Change reports are not rate-limited:** each one is queued from the INT ISR
+  at once (4-deep queue), so the ceiling is the host poll, 8000/s at High
+  Speed. The busy-case rate has not been measured.
+- **Endpoint:** interrupt IN, 4 bytes, `bInterval = 1`: **125 µs (8 kHz) at
+  High Speed**, 1 ms at Full Speed. Host-side rate not measured yet.
+- **Bench 2026-10-19:** presses from the eight-panel bench arrive correctly on
+  a Mac, checked with `j` and `tools/hid_monitor.py`.
+- **Sent from interrupt context, never from `loop()`**, because an LED burst
+  blocks `loop()` for ~7 ms. The INT edge ISR qualifies the edge and queues
+  the report at once. A 1 kHz timer retries a report that found the queue
+  full, sends the heartbeat, and corrects the mask if a line disagrees with it
+  for two consecutive ticks (counted as a resync; it should stay 0).
+- **Qualify window: 10 µs.** The edge ISR waits 10 µs and re-reads the line;
+  if the level no longer differs from the reported state, the edge is counted
+  as a glitch and nothing is sent.
+- **Held off** during the master's `I` self-test and `N` pull-up check, whose
+  INT activity is not presses.
+- **Build:** Teensyduino cannot take a custom descriptor without changing its
+  core, so `firmware/master/build.sh` compiles against a patched copy of the
+  installed core (Teensyduino 1.62.0). A plain `arduino-cli compile` still
+  builds, but warns, and the PC gets no pad input.
+- Bench check: `j` on the master console; `tools/hid_monitor.py` on the PC.
 
 #### The INT lines are the **sole, authoritative** press path
 
@@ -160,7 +210,7 @@ USB**, not the qualify window.
 
 ## Open questions
 
-- Exact report IDs / descriptor layout (decide during HID implementation)
+- ~~Exact report IDs / descriptor layout~~ input report decided and built 2026-10-19 (above); the command and data reports are still open
 - Whether FSR streaming uses the data report or a dedicated input-style report
 - Config split: which fields live master-side vs panel-side (see PANEL_CONFIG.md)
 - 2000Hz+ polling: HS bInterval choice (0.5ms vs 0.25ms vs 0.125ms) after

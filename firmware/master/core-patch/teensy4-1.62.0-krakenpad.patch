@@ -1,0 +1,126 @@
+diff -u a/usb_desc.c b/usb_desc.c
+--- a/usb_desc.c
++++ b/usb_desc.c
+@@ -292,7 +292,36 @@
+ #endif
+ 
+ #ifdef JOYSTICK_INTERFACE
+-#if JOYSTICK_SIZE == 12
++#if defined(USB_KRAKENPAD)
++// KrakenPad pad input, report ID 1: panels 0-8 as buttons 1-9, then a
++// vendor-page sequence number that games ignore. No axes on purpose: a
++// declared axis that never moves reads as held at one end in some games.
++static uint8_t joystick_report_desc[] = {
++        0x05, 0x01,                     // Usage Page (Generic Desktop)
++        0x09, 0x04,                     // Usage (Joystick)
++        0xA1, 0x01,                     // Collection (Application)
++        0x85, 0x01,                     //   Report ID (1)
++        0x05, 0x09,                     //   Usage Page (Button)
++        0x19, 0x01,                     //   Usage Minimum (Button #1)
++        0x29, 0x09,                     //   Usage Maximum (Button #9)
++        0x15, 0x00,                     //   Logical Minimum (0)
++        0x25, 0x01,                     //   Logical Maximum (1)
++        0x75, 0x01,                     //   Report Size (1)
++        0x95, 0x09,                     //   Report Count (9)
++        0x81, 0x02,                     //   Input (Data, Variable, Absolute)
++        0x75, 0x07,                     //   Report Size (7)
++        0x95, 0x01,                     //   Report Count (1)
++        0x81, 0x03,                     //   Input (Constant): padding
++        0x06, 0x00, 0xFF,               //   Usage Page (Vendor Defined 0xFF00)
++        0x09, 0x01,                     //   Usage (0x01): sequence number
++        0x15, 0x00,                     //   Logical Minimum (0)
++        0x26, 0xFF, 0x00,               //   Logical Maximum (255)
++        0x75, 0x08,                     //   Report Size (8)
++        0x95, 0x01,                     //   Report Count (1)
++        0x81, 0x02,                     //   Input (Data, Variable, Absolute)
++        0xC0                            // End Collection
++};
++#elif JOYSTICK_SIZE == 12
+ static uint8_t joystick_report_desc[] = {
+         0x05, 0x01,                     // Usage Page (Generic Desktop)
+         0x09, 0x04,                     // Usage (Joystick)
+diff -u a/usb_desc.h b/usb_desc.h
+--- a/usb_desc.h
++++ b/usb_desc.h
+@@ -324,6 +324,42 @@
+   #define ENDPOINT6_CONFIG      ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
+   #define ENDPOINT7_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
+ 
++#elif defined(USB_KRAKENPAD)
++  // KrakenPad master: CDC serial (bench console) + a 9-button joystick whose
++  // report is the panel bitmask. Not a menu type: firmware/master/build.sh
++  // builds against a patched copy of this core with -DUSB_KRAKENPAD.
++  // PID borrowed from USB_SERIAL_HID for development (docs/USB_PROTOCOL.md).
++  #define VENDOR_ID		0x16C0
++  #define PRODUCT_ID		0x0487
++  #define DEVICE_CLASS		0xEF
++  #define DEVICE_SUBCLASS	0x02
++  #define DEVICE_PROTOCOL	0x01
++  #define MANUFACTURER_NAME	{'T','e','e','n','s','y','d','u','i','n','o'}
++  #define MANUFACTURER_NAME_LEN	11
++  #define PRODUCT_NAME		{'K','r','a','k','e','n','P','a','d'}
++  #define PRODUCT_NAME_LEN	9
++  #define EP0_SIZE		64
++  #define NUM_ENDPOINTS		4
++  #define NUM_INTERFACE		3
++  #define CDC_IAD_DESCRIPTOR	1
++  #define CDC_STATUS_INTERFACE	0
++  #define CDC_DATA_INTERFACE	1	// Serial
++  #define CDC_ACM_ENDPOINT	2
++  #define CDC_RX_ENDPOINT       3
++  #define CDC_TX_ENDPOINT       3
++  #define CDC_ACM_SIZE          16
++  #define CDC_RX_SIZE_480       512
++  #define CDC_TX_SIZE_480       512
++  #define CDC_RX_SIZE_12        64
++  #define CDC_TX_SIZE_12        64
++  #define JOYSTICK_INTERFACE    2	// Pad input
++  #define JOYSTICK_ENDPOINT     4
++  #define JOYSTICK_SIZE         4	// report ID, 9 buttons + 7 pad bits, sequence
++  #define JOYSTICK_INTERVAL     1	// 125 us at High Speed, 1 ms at Full Speed
++  #define ENDPOINT2_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
++  #define ENDPOINT3_CONFIG	ENDPOINT_RECEIVE_BULK + ENDPOINT_TRANSMIT_BULK
++  #define ENDPOINT4_CONFIG      ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
++
+ #elif defined(USB_TOUCHSCREEN)
+   #define VENDOR_ID		0x16C0
+   #define PRODUCT_ID		0x04D3
+diff -u a/usb_joystick.c b/usb_joystick.c
+--- a/usb_joystick.c
++++ b/usb_joystick.c
+@@ -107,4 +107,24 @@
+ }
+ 
+ 
++// Non-blocking send for callers in interrupt context: queue the report if a
++// transmit slot is free, otherwise return -1 at once so the caller retries.
++// Callers must not preempt each other (run them at one NVIC priority).
++int usb_joystick_try_send(const void *report)
++{
++	if (!usb_configuration) return -1;
++	uint32_t head = tx_head;
++	transfer_t *xfer = tx_transfer + head;
++	if (usb_transfer_status(xfer) & 0x80) return -1;
++	delayNanoseconds(30); // as usb_joystick_send()
++	uint8_t *buffer = txbuffer + head * TX_BUFSIZE;
++	memcpy(buffer, report, JOYSTICK_SIZE);
++	usb_prepare_transfer(xfer, buffer, JOYSTICK_SIZE, 0);
++	arm_dcache_flush_delete(buffer, TX_BUFSIZE);
++	usb_transmit(JOYSTICK_ENDPOINT, xfer);
++	if (++head >= TX_NUM) head = 0;
++	tx_head = head;
++	return 0;
++}
++
+ #endif // JOYSTICK_INTERFACE
+diff -u a/usb_joystick.h b/usb_joystick.h
+--- a/usb_joystick.h
++++ b/usb_joystick.h
+@@ -43,6 +43,7 @@
+ #endif
+ void usb_joystick_configure(void);
+ int usb_joystick_send(void);
++int usb_joystick_try_send(const void *report);
+ extern uint32_t usb_joystick_data[(JOYSTICK_SIZE+3)/4];
+ extern volatile uint8_t usb_configuration;
+ #ifdef __cplusplus

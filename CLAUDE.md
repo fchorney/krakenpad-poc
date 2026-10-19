@@ -160,7 +160,7 @@ Key improvements over stock SMX hardware:
 ```
 firmware/
   master/
-    master.ino       # Master MCU firmware (Teensy 4.x) — RS-485 + INT working; USB HID to PC not started
+    master.ino       # Master MCU firmware (Teensy 4.x) — RS-485 + INT + USB pad input (joystick); build with build.sh
     usb_speed_test/  # USB HS bench-test sketch (see USB Polling Rate note)
   panel/
     main.py          # MicroPython prototype (initial breadboard bring-up)
