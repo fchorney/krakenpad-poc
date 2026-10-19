@@ -257,6 +257,16 @@ bool replyWindowOver() {
   return (int32_t)(micros() - bus_quiet_from_us) >= 0;
 }
 
+// For anything that transmits outside loop()'s schedule (console commands).
+// Pausing bus_traffic stops new traffic but not what is already on the wire: a
+// queued LED burst, or the reply to the last poll. Found at the bench
+// 2026-10-19: 'I' sent straight after a poll landed on the 'f' reply, and the
+// self-test lost IDs in 6 of 10 runs with traffic running, 0 of 10 paused.
+void waitBusQuiet() {
+  RS485_SERIAL.flush();                // our own TX out, DE dropped
+  while (!replyWindowOver()) {}        // any reply that was owed has finished
+}
+
 // ── RX parser (panel replies) ────────────────────────────────────────────────
 uint16_t panel_fsr[NUM_PANELS][4] = {};
 uint8_t  panel_pressed_mask[NUM_PANELS] = {};
@@ -807,6 +817,8 @@ void identifySelfTest() {
 
   bool was = bus_traffic;
   bus_traffic = false;   // no LED frames or polls competing for the bus
+  waitBusQuiet();        // ...including whatever is already on the wire
+  parseRx();             // and consume that last reply before acks are awaited
   hid_hold = true;       // the pulses must not reach the PC as presses
   Serial.println("# slot <-> panel-ID self-test");
 
@@ -1020,7 +1032,7 @@ void handleCommand(const char *s) {
   } else if (strcmp(s, "P") == 0) {
     Serial.println("# passthrough ON: binary frames until the host exits or 30 s idle");
     Serial.send_now();
-    RS485_SERIAL.flush();
+    waitBusQuiet();
     while (RS485_SERIAL.available()) RS485_SERIAL.read();   // nothing stale reaches the host
     pt_host = FrameParser();
     pt_bus = FrameParser();
