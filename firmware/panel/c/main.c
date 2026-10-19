@@ -535,7 +535,11 @@ static void render(uint32_t now_ms) {
         }
         break;
     default:
-        if (g_led_frame_seen && (now_ms - g_led_frame_ms) < LED_FALLBACK_MS)
+        // Signed: now_ms is read before rs485_service() stamps a new frame, so
+        // a frame can be up to a tick "newer" than now. Unsigned, that wrapped
+        // to ~4e9 and blanked fresh frames: whole-panel blinking in episodes,
+        // as the master and panel clocks drifted through phase (2026-10-19).
+        if (g_led_frame_seen && (int32_t)(now_ms - g_led_frame_ms) < LED_FALLBACK_MS)
             for (int i = 0; i < NUM_LEDS; i++)
                 led_words[i] = grb_word(g_led_frame[i * 3], g_led_frame[i * 3 + 1],
                                         g_led_frame[i * 3 + 2]);
