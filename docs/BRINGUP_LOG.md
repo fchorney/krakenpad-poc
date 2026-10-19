@@ -38,6 +38,7 @@ master, instead of pairing boards up.
 | `DE6558A69784622D` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | sixth brain; clean |
 | `DE6558A69776582F` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | seventh brain; clean. Highest ADC offset so far (rest 108) |
 | `DE6558A697543C2F` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | eighth brain; clean |
+| `DE6558A6977B342D` | 2026-10-18 | ✅ | ✅ | ✅ | ✅ | ✅ | ninth brain. First board flashed after the bootloader split: loading the bring-up image alone left it in BOOTSEL (see detail) |
 
 ### Masters
 
@@ -570,6 +571,85 @@ flash config would absorb it.
 - Stage 3 (nine-panel bus).
 - South, West and North FSR connectors not yet exercised with a sensor.
 
+## `DE6558A6977B342D` — ninth brain
+
+**2026-10-18.** Same bring-up build (Oct 18 2026 17:22:58, tag `6117B7E5`),
+loaded behind `panel_bootloader`.
+
+### Stage 0 and 1 — brain alone on USB
+
+| check | result | verdict |
+|---|---|---|
+| blank board on USB | mounted as `RPI-RP2`, no button | ✅ |
+| `TP302` / `TP301` / `TP303` | **5.251 / 3.311 / 3.308 V** | ✅ |
+| `v` sysclk | 125 MHz | ✅ |
+| `v` flash JEDEC | `EF 40 16` | ✅ genuine W25Q32JV |
+| `w` | write/verify **PASS**, capacity **PASS — no aliasing, full 4 MB** | ✅ |
+| `s` → `SENSE_12V` | `12V ABSENT`, raw 0, 0 edges | ✅ |
+| `s` → DIP / `TERM_SENSE` | 15 / not terminated (mated to an unpowered carrier for SWD) | ✅ |
+| `s` → FSR raw | 12 / 12 / 12 / 12 | ✅ uniform |
+| `p` | `0 0 1` | record only |
+
+### Bench-method mistake: bring-up image loaded without the bootloader
+
+Not a board fault. The bring-up image was loaded on its own (UF2 drag-and-drop,
+then `picotool load`), skipping the `panel_bootloader` step in
+`docs/PANEL_BRINGUP.md`. Since 2026-10-18 that image links at `0x10008000`, so
+flash offset 0 stayed erased and the board returned to BOOTSEL on every reset,
+warm or cold. Boards 1–8 were brought up before the split, so this was the first
+board to hit it.
+
+How it looked, so it is recognisable next time:
+
+- `picotool verify` of the bring-up UF2 **passes**. It only checks the addresses
+  the UF2 covers (`0x10008000`–`0x10015e00`), not offset 0.
+- `picotool save -r 0x10000000 0x10000100` reads all `FF`.
+- Over SWD, the boot ROM's copy of boot2 at `0x20041F00` is all `FF`, and the
+  core sits in the ROM's USB loop (`pc 0x000020e0`).
+- `QSPI_SS` at `U307` pin 1 reads 3.3 V in BOOTSEL, and `SW301` reads the same
+  in-circuit resistance (~37 kΩ) as a good board. Neither is a fault.
+
+⚠ `U307` pin voltages in BOOTSEL only compare like for like if both boards got
+there the same way. After a failed flash boot the ROM leaves CLK, IO2 and IO3
+high (pins 6, 3, 7 read 3.3 V); a board held in BOOTSEL by `SW301` never tried
+flash, so the same pins read ~0 V.
+
+Fix: `picotool load panel_bootloader.uf2`, then reboot. It booted first time.
+
+**SWD:** `tools/swd_check.py` passed during the diagnosis: DPIDR `0x0bc12477`,
+both cores, CHIP_ID `0x20002927`.
+
+### Stage 2 — carrier mated, USB then 12 V
+
+| check | result | verdict |
+|---|---|---|
+| `SENSE_12V` | absent ↔ present both directions | ✅ |
+| `s` → `TERM_SENSE` | matches `SW202` | ✅ |
+| `p`, 12 V live | `1 1 1` | record only |
+| `d` | every switch correct | ✅ |
+| FSR, North | rests **~95**, press peak **~3800**; South/West/East stayed at rest, no crosstalk | ✅ |
+| `l` | all 25 lit | ✅ |
+| USB pulled, 12 V live | board kept running, no reset | ✅ `U304` handover |
+| `TP302` / `TP301`, 12 V only | **5.025 V / 3.313 V** | ✅ |
+| cold start on 12 V only | board came up | ✅ |
+| back to USB: 12 V off, USB in, 12 V on | reconnected | ✅ |
+
+### Gameplay firmware
+
+Loaded over USB with `picotool` after stage 2, behind the existing
+`panel_bootloader`: build Oct 18 2026 18:36:20, tag **`83E9B178`**, image at
+`0x10008000`. First boot: DIP 8, 12 V present, terminated, bus on, INT enabled,
+FSR rest South 13 / West 13 / North 97 / East 12 (North has a sensor fitted).
+
+### Stage 3
+
+Passed in the first nine-panel bus run, as ID 8 (DR, end of chain, `SW202`
+on). See master #2 → "2026-10-19 — nine panels on one bus".
+
+### Still open for this board
+
+- South, West and East FSR connectors not yet exercised with a sensor.
+
 ## master #1
 
 **2026-09-08.** First master assembled. Bare JLC fab (OSP, 4-layer), every part
@@ -1019,6 +1099,48 @@ and would have collided with the real panel 5.
 
 Method note: `arduino-cli upload` needs `-p` with the Teensy's `usb:…` port;
 the command in this doc's header was missing it (fixed).
+
+### 2026-10-19 — nine panels on one bus
+
+**Setup.** Master #2 on USB, all nine panels on gameplay firmware, chained in
+pad order with `SW202` on only at ID 8 (DR, brain `342D`). FSR sensors on ID 1 N,
+ID 3 W, ID 5 E, ID 7 S (rest 93–104; empty channels 0–23, ID 8 has none).
+
+- **`H`: 9/9.** Build `83E9B178` on all nine, `12V yes` on all, `term ON`
+  only on ID 8, and the master's check reports `termination OK: DR (id 8)`.
+- **Steady state: 0 errors.** After `z`, ~120 s and ~97,000 frames per panel:
+  `crc 0 uart 0 ovr 0 turn 0` on all nine; master **15,911 / 15,911 polls
+  answered** (9/9, against 8/9 with eight panels), 0 CRC errors.
+- **`I` was intermittent, and the master firmware was the cause. FIXED
+  2026-10-19.** An ID sometimes got no ack and no pulse: ID 1 in one run, ID 0
+  in another, then IDs 0 and 3 together. Whenever an ID acked, it fired exactly
+  its own header (J11…J3, 2.02–2.04 ms), so **the slot ↔ ID mapping is correct
+  for all nine.**
+
+  | condition (10 runs each, `z` before, `H` after) | runs with a failed ID | panel counters |
+  |---|---|---|
+  | traffic running, old master | 6 (mostly ID 0; once IDs 0, 1, 3) | every panel `crc` 1–5, `uart` 3–15 |
+  | traffic paused with `x` first, old master | 0 | all 0 |
+  | **traffic running, fixed master (30 runs)** | **0** | **all 0** (~22,000 frames each) |
+
+  **Cause:** `identifySelfTest()` cleared `bus_traffic` and sent the first
+  `'I'` at once. That stops *new* traffic, but not what is already on the
+  wire: the reply to the last `'F'` poll. The first `'I'` landed on it. **Fix:**
+  `waitBusQuiet()` flushes TX and waits out the reply window before `I` starts.
+  `P` (passthrough) had the same gap and now uses it too. Every other command
+  already went through `loop()`'s `poll_due`. Bus update re-checked afterwards
+  with `tools/panel_update.py`: 9/9 found, all nine back on `83E9B178` with 0
+  errors. Without `--force` it skipped IDs 0–7, but **re-installed the same image
+  on ID 8**: an app loaded over USB leaves the bootloader with no app CRC on
+  record (`app loaded over USB/SWD`), so it counts as needing an update.
+
+  **Unconfirmed:** why a later ID could fail in the same run (IDs 1 and 3 after
+  ID 0). One possibility is that the collision's garbage gives a panel's parser
+  a plausible length byte, so it reads the next `'I'` packets as payload. The
+  panel parser has no inter-byte timeout to recover from that. This was not
+  tested; the later-ID failures stopped along with the ID 0 ones.
+
+  The eight-panel run's ID-0-only `I` failure (above) fits the same cause.
 
 ### Still open for this board
 
