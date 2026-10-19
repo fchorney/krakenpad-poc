@@ -81,8 +81,8 @@ Two things worth knowing about this interface:
 ## RP2040 (U306) GPIO map — netlist-verified
 
 **This differs from the retired `panel-pcb` map. Firmware must use these.**
-The prototype firmware in `firmware/panel/` predates both boards and uses
-breadboard pin numbers; it is not a reference for either.
+`firmware/panel/c/main.c` and `bringup/main.c` both use this map (main.c
+since 2026-10-18; its breadboard version is in git history).
 
 | pad | function | net |
 |---|---|---|

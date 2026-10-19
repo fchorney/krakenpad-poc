@@ -11,8 +11,12 @@ the real firmware rather than a second sketch.
 
 ```sh
 arduino-cli compile --fqbn teensy:avr:teensy40 firmware/master
-arduino-cli upload  --fqbn teensy:avr:teensy40 firmware/master
+arduino-cli upload  --fqbn teensy:avr:teensy40 -p usb:100000 firmware/master
 ```
+
+`upload` needs `-p`. Use the `teensy` protocol port (`usb:…`) from
+`arduino-cli board list`, not the `/dev/cu.usbmodem…` serial port; the number
+can change with the USB socket it is plugged into.
 
 ## The port — what changed, and the trap in it
 
@@ -302,7 +306,6 @@ unterminated, terminated mid-chain, at the wrong end, and doubled to 40 Ω
 - **USB HID to the PC is not started.** The master talks to the bench over USB
   serial and to panels over RS-485; the actual gameplay path to the host does
   not exist yet. `docs/USB_PROTOCOL.md` has the design.
-- **The panel firmware is still breadboard-pinned.** `firmware/panel/c/main.c`
-  needs the same wholesale port this sketch just got — and it has the same
-  shape of trap, since the prototype's LED/INT/DE pins are all reused for other
-  things on the real board.
+- ~~**The panel firmware is still breadboard-pinned.**~~ Ported 2026-10-18:
+  `firmware/panel/c/main.c` was rebuilt on the bring-up firmware's as-built
+  map, so it doesn't inherit any of the prototype's LED/INT/DE pins.

@@ -96,7 +96,7 @@ Good enough for v0; re-sync loss just costs one frame.)
 | 0 | 4 | build tag: FNV-1a of the firmware's build timestamp. Same image, same tag |
 | 4 | 4 | uptime, seconds |
 | 8 | 1 | last reset cause: bit0 power-on, bit1 RUN pin, bit2 PSM restart (debugger), bit3 watchdog timeout, bit4 watchdog forced |
-| 9 | 1 | state: bit0 12V present, bit1 terminated, bit2 auto-INT on, bit3 LED echo on, bit4 INT asserted |
+| 9 | 1 | state: bit0 12V present, bit1 terminated, bit2 auto-INT on, bit3 LED echo on, bit4 INT asserted, bits5–6 LED mode (gameplay firmware: 0 normal, 1 ID, 2 sensor test; always 0 on the bring-up build) |
 | 10 | 2 | CRC errors (saturates at 0xFFFF) |
 | 12 | 2 | UART errors (saturates) |
 | 14 | 2 | RX ring overruns (saturates) |
@@ -119,6 +119,23 @@ original 400 µs and gives `'h'` 530 µs.
   and heartbeat describe only the time since. Before this, the only way to
   zero a panel was to reboot it.
 - The bootloader does not know `'Z'` and ignores it.
+
+### `'M'` — LED mode (master → panels)
+
+- addr = panel ID or broadcast, len 1 or 2: `mode u8`, then `seconds u8`
+  (0 or absent = until changed). Added 2026-10-18; gameplay firmware only, the
+  bring-up build ignores it.
+- Modes: **0 normal** (paint `'L'` frames), **1 ID** (white image of the
+  panel's own position, from its DIP), **2 sensor test** (each edge lit in its
+  own colour, brightness following pressure). Spec in `docs/PANEL_CONFIG.md` →
+  "LED modes".
+- A timed mode returns to the panel's base mode when it runs out. `'L'` frames
+  keep arriving and are buffered, but don't show until the panel is back in
+  normal mode.
+- Addressed: the panel acks with `'m'` echoing the payload. Broadcast: no reply.
+- The master's `m <mode> [secs]` broadcasts it in a poll slot, like `z`.
+- Only the LEDs change. INT, `'F'` telemetry and every other command work as
+  usual in all three modes.
 
 ### Firmware update — `'B'` `'Q'` `'U'` `'D'` `'A'` `'X'`
 
@@ -282,8 +299,9 @@ hardware RS-485 runs on the master's **Serial2** (GPIO7 RX / GPIO8 TX, DE on
 
 **As of 2026-09-03 the master half no longer uses this map** —
 `firmware/master/master.ino` was ported to the as-built board (Serial2, DE on 6,
-nine INT lines on 15–23). The table above now describes `firmware/panel/` only,
-which is still breadboard-pinned pending its own port.
+nine INT lines on 15–23). **As of 2026-10-18 the panel half doesn't either:**
+`firmware/panel/c/main.c` was rebuilt on the bring-up firmware's as-built map.
+The table is kept as a record of the breadboard rig.
 
 Panel ID is read once at boot from GPIO6 (internal pull-down): floating = panel
 0, jumpered to the Pico's own 3V3 OUT = panel 1. Bench-test stand-in for the

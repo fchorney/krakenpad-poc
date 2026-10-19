@@ -466,7 +466,8 @@ power.
 **Implemented.** The bring-up firmware carries a minimal responder for
 `docs/RS485_PROTOCOL.md` — enough to make the master's bus and its slot↔ID
 self-test real. It is **not** the gameplay firmware: no animations, no flash
-config, no persistence. `../main.c` still needs its wholesale port.
+config, no persistence. The gameplay firmware is `../main.c`, ported to this
+map 2026-10-18.
 
 | cmd | what it does |
 |---|---|

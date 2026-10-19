@@ -180,8 +180,9 @@ review/          # r/PrintedCircuitBoard image package (tools/gen_review_images.
 tools/           # BOM/census/fab/bench scripts
 ```
 
-**Both firmware trees use breadboard pin numbers and match neither board.** The
-as-built RP2040 GPIO map is in `docs/DUAL_PANEL.md`; the Teensy map is in
+**Both firmware trees use the as-built pin maps** (master since 2026-09-03,
+panel `main.c` since 2026-10-18; their breadboard versions are in git history).
+The RP2040 GPIO map is in `docs/DUAL_PANEL.md`; the Teensy map is in
 `docs/MASTER_PCB.md`.
 
 **The single-board panel (`hardware/panel-pcb`) was retired 2026-08-04** when the

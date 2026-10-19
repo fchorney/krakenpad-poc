@@ -1,440 +1,705 @@
+// Panel gameplay firmware — dual-panel rev 1 (carrier 2xx + brain 3xx).
+//
+// Built on the bring-up firmware's as-built HAL (bringup/main.c, which stays the
+// bench tool). The breadboard version of this file used the prototype pin map
+// and is in git history before 2026-10-18.
+//
+//   Core 0  FSR sampling loop: hysteresis + persistence -> INT_OUT. Nothing else
+//           runs here, so the press path never waits behind the bus or the LEDs.
+//   Core 1  RS-485 responder, LED rendering (PIO fed by DMA, so a paint never
+//           blocks a reply), SENSE_12V filter, USB console.
+//
+// LED modes (docs/PANEL_CONFIG.md → "LED modes"):
+//   normal   paint the master's 'L' frames; dark if none for LED_FALLBACK_MS
+//   ID       white image of this panel's position from the DIP, X if not 0-8.
+//            Shown for ID_BOOT_MS once 12V first arrives, and on master 'M'.
+//   test     each edge lights its own colour, brightness tracking pressure.
+//            DIP 10 runs it standalone; master 'M' runs it on bus panels.
+//
+// Runs behind panel_bootloader (linked at 0x10008000, docs/FIELD_UPDATE.md).
+// As-built pin map: docs/DUAL_PANEL.md. Bus protocol: docs/RS485_PROTOCOL.md.
+
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
+#include "pico/bootrom.h"
 #include "hardware/adc.h"
+#include "hardware/dma.h"
 #include "hardware/pio.h"
-#include "hardware/clocks.h"
 #include "hardware/uart.h"
 #include "hardware/irq.h"
+#include "hardware/watchdog.h"
+#include "hardware/structs/vreg_and_chip_reset.h"
+#include "hardware/structs/watchdog.h"
+#include "fw_layout.h"
 #include "ws2812.pio.h"
 
-// ── Pin assignments ───────────────────────────────────────────────────────────
-#define DEBUG_PRESS_PIN 3  // push-pull, HIGH on press — drives debug LED only
-#define LED_PIN     4
-#define INT_PIN     5      // open-drain to master: sink LOW on press, high-Z idle
-#define PANEL_ID_PIN 6     // internal pull-down: floating = panel 0, jumper to 3V3 OUT = panel 1
+// ── As-built pin map (docs/DUAL_PANEL.md → "RP2040 (U306) GPIO map") ─────────
+#define PIN_RS485_TX    0
+#define PIN_RS485_RX    1
+#define PIN_RS485_DE    4    // DE + ~RE tied; HIGH = transmit
+#define PIN_TERM_SENSE  10   // LOW = terminated (SW202)
+#define PIN_LED_DATA    11   // → U301 shifter → carrier
+#define PIN_DEBUG_LED   16   // carrier D202
+#define PIN_SENSE_12V   17   // divider, DIGITAL. Pulls must be OFF.
+#define PIN_DIP_ID3     18   // GPIO18 is bit 3, GPIO21 bit 0
+#define PIN_DIP_ID2     19
+#define PIN_DIP_ID1     20
+#define PIN_DIP_ID0     21
+#define PIN_INT_OUT     22   // emulated open-drain, sole gameplay press path
 
-// ── RS-485 (see docs/RS485_PROTOCOL.md) ─────────────────────────────────────
-#define RS485_UART      uart0
-#define RS485_BAUD      1000000
-#define RS485_TX_PIN    0
-#define RS485_RX_PIN    1
-#define RS485_DE_PIN    2       // DE + ~RE tied: HIGH = transmit, LOW = receive
-#define PKT_SYNC        0x55
-#define PKT_MAX_PAYLOAD 80
-#define LED_FRAME_LEN   75      // 25 LEDs × RGB
-#define LED_FALLBACK_MS 100     // no remote frame for this long -> local animation
-#define NUM_LEDS    25
-#define NUM_FSR     4
+#define NUM_FSR   4
+#define NUM_LEDS  25
 
-// ADC returns 12-bit values (0–4095), unlike MicroPython's read_u16() (0–65535).
-// MicroPython threshold of 8000/65535 * 4095 ≈ 500 here.
-// Hysteresis: press and release use different thresholds so ADC noise near the
-// press point can't chatter the state (was producing ~0.3ms phantom presses).
-// These are boot defaults; runtime values live in g_press_thr/g_rel_thr and are
-// settable over RS-485 (cmd 'C'). RAM only for now — flash config comes later.
-#define FSR_PRESS_THRESHOLD   500
-#define FSR_RELEASE_THRESHOLD 400
-#define FSR_FLOAT_THRESHOLD   187  // resting avg above this = floating/disconnected
-// Persistence filter: a state change must hold for this many consecutive samples
-// before it's committed (~0.1ms at the ~100kHz loop rate).
-#define FSR_PERSISTENCE     10
-// Discard the first ADC conversion after each mux switch to absorb sample-cap
-// charge injection (~15 counts of crosstalk from a pressed adjacent channel).
-// Halves the sample rate. Set to 0 when the ADC nodes have ~10nF caps to GND —
-// the caps fix the same problem in hardware.
-#define ADC_DUMMY_READ      0
+// Channel i = ADC i = GPIO 26+i, named by the panel edge it lands on.
+enum { FSR_SOUTH = 0, FSR_WEST = 1, FSR_NORTH = 2, FSR_EAST = 3 };
+static const uint  FSR_GPIO[NUM_FSR] = {26, 27, 28, 29};
+static const char *FSR_NAME[NUM_FSR] = {"South", "West", "North", "East"};
 
-static const uint FSR_GPIO[NUM_FSR] = {26, 27, 28, 29};
+// ── Tunables ────────────────────────────────────────────────────────────────
+#define FSR_PRESS_THRESHOLD    500   // boot defaults; 'C' changes them (RAM only)
+#define FSR_RELEASE_THRESHOLD  400
+// A state change must hold for this many consecutive samples (~0.1 ms at the
+// ~100 kHz loop rate) before it is committed.
+#define FSR_PERSISTENCE        10
 
-// ── LED patterns ─────────────────────────────────────────────────────────────
+#define LED_FALLBACK_MS   100   // no 'L' for this long -> normal mode goes dark
+#define LED_REFRESH_MS    16
+#define ID_BOOT_MS        3000
+#define ID_WHITE          96
+
+// Test mode: off at or below this, linear to full at 4095. Deliberately NOT the
+// press threshold, which the user can move. Board 1 rests at 94-98, so this sits
+// just above the noise floor and may flicker on a noisy channel; once tare
+// exists this becomes "0-5 counts above tare is off".
+#define TEST_FLOOR        100
+
+#define SENSE_RISE_STABLE_MS   30   // slow to trust the rail, fast to give up on it
+#define SENSE_FALL_STABLE_MS   2
+
+// ── LED images ──────────────────────────────────────────────────────────────
+// Indices are wire (serpentine) order, 0-based. Physical layout, as indices:
 //
-// Physical layout (serpentine wiring):
-// 00--01--02--03
-// --06--05--04--
-// 07--08--09--10
-// --13--12--11--
-// 14--15--16--17
-// --20--19--18--
-// 21--22--23--24
+//    0   1   2   3
+//      6   5   4
+//    7   8   9  10
+//     13  12  11
+//   14  15  16  17
+//     20  19  18
+//   21  22  23  24
+//
+// Indexed by panel ID: 0 UL, 1 U, 2 UR, 3 L, 4 C, 5 R, 6 DL, 7 D, 8 DR.
+#define IMG_END 0xFF
+static const uint8_t ID_IMAGE[9][6] = {
+    { 0,  1,  6,  7, IMG_END},          // UL
+    { 1,  2,  5, IMG_END},              // U
+    { 2,  3,  4, 10, IMG_END},          // UR
+    { 7, 13, 14, IMG_END},              // L
+    { 8,  9, 12, 15, 16, IMG_END},      // C
+    {10, 11, 17, IMG_END},              // R
+    {14, 20, 21, 22, IMG_END},          // DL
+    {19, 22, 23, IMG_END},              // D
+    {17, 18, 23, 24, IMG_END},          // DR
+};
+// DIP is not a panel ID: both diagonals.
+static const uint8_t X_IMAGE[] = {0, 3, 4, 6, 8, 9, 12, 15, 16, 18, 20, 21, 24, IMG_END};
 
-static const uint8_t PATTERN_SERPENTINE[NUM_LEDS] = {
-    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+// Test mode: each edge reuses the ID image of the panel on that side.
+static const uint8_t *const EDGE_IMAGE[NUM_FSR] = {
+    [FSR_SOUTH] = ID_IMAGE[7],
+    [FSR_WEST]  = ID_IMAGE[3],
+    [FSR_NORTH] = ID_IMAGE[1],
+    [FSR_EAST]  = ID_IMAGE[5],
+};
+static const uint8_t EDGE_RGB[NUM_FSR][3] = {
+    [FSR_SOUTH] = {0, 1, 0},   // green
+    [FSR_WEST]  = {1, 0, 0},   // red
+    [FSR_NORTH] = {0, 0, 1},   // blue
+    [FSR_EAST]  = {1, 1, 0},   // yellow
 };
 
-// Left-to-right, top-to-bottom physical order (odd rows wired R→L so reversed here)
-static const uint8_t PATTERN_READING[NUM_LEDS] = {
-     0,  1,  2,  3,   // row 0 — L→R
-     6,  5,  4,       // row 1 — wired R→L
-     7,  8,  9, 10,   // row 2 — L→R
-    13, 12, 11,       // row 3 — wired R→L
-    14, 15, 16, 17,   // row 4 — L→R
-    20, 19, 18,       // row 5 — wired R→L
-    21, 22, 23, 24,   // row 6 — L→R
-};
+enum { MODE_NORMAL = 0, MODE_ID = 1, MODE_TEST = 2, MODE_COUNT };
+static const char *MODE_NAME[MODE_COUNT] = {"normal", "ID", "test"};
 
-// Panel identity: read once at boot from PANEL_ID_PIN (internal pull-down).
-// Bench-test stand-in for the final PCB's 4-position DIP switch (0-8).
-static uint8_t g_panel_id = 0;
+// ── Shared state ────────────────────────────────────────────────────────────
+// Core 0 writes: raw values, mask, INT state. Core 1 writes: thresholds, the
+// INT enable/hold flags and identify requests. Each field has one writer.
+static volatile uint16_t g_fsr_raw[NUM_FSR];
+static volatile uint8_t  g_pressed_mask = 0;
+static volatile bool     g_int_asserted = false;
+static volatile uint16_t g_press_th[NUM_FSR];
+static volatile uint16_t g_rel_th[NUM_FSR];
+static volatile bool     g_int_enable = false;  // set when bus mode starts
+static volatile bool     g_int_hold   = false;  // force released (reboot path)
+static volatile uint8_t  g_ident_req_ms = 0;    // core 1 sets, core 0 clears
 
-// ── Shared state (Core 0 writes, Core 1 reads) ───────────────────────────────
-static volatile bool     g_pressed          = false;
-static volatile uint16_t g_fsr_vals[NUM_FSR] = {0};
-static volatile bool     g_active_fsrs[NUM_FSR] = {false};
-static bool              g_fsr_pressed[NUM_FSR] = {false};  // per-channel hysteresis state (Core 0 only)
-static uint8_t           g_fsr_streak[NUM_FSR]  = {0};      // consecutive samples disagreeing with current state
-static volatile uint8_t  g_pressed_mask = 0;                // bit i = channel i pressed (Core 0 writes)
-// Runtime thresholds (Core 1 writes on config command, Core 0 reads)
-static volatile uint16_t g_press_thr[NUM_FSR] =
-    {FSR_PRESS_THRESHOLD, FSR_PRESS_THRESHOLD, FSR_PRESS_THRESHOLD, FSR_PRESS_THRESHOLD};
-static volatile uint16_t g_rel_thr[NUM_FSR] =
-    {FSR_RELEASE_THRESHOLD, FSR_RELEASE_THRESHOLD, FSR_RELEASE_THRESHOLD, FSR_RELEASE_THRESHOLD};
+static uint8_t g_dip = 15;   // read once at boot
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-// WS2812B expects GRB order; pack into upper 24 bits for the PIO TX FIFO.
-static inline uint32_t rgb_to_grb_word(uint8_t r, uint8_t g, uint8_t b) {
-    return ((uint32_t)g << 24) | ((uint32_t)r << 16) | ((uint32_t)b << 8);
+// ── INT_OUT: emulated open-drain ────────────────────────────────────────────
+// Assert = drive LOW; release = input (hi-Z), the master's pull-up does the
+// rest. Never drive HIGH. gpio_disable_pulls() is mandatory: pads reset with
+// the pull-DOWN on, which fights the master's 10k (docs/PANEL_BRINGUP.md).
+static void int_out_init(void) {
+    gpio_init(PIN_INT_OUT);
+    gpio_disable_pulls(PIN_INT_OUT);
+    gpio_put(PIN_INT_OUT, 0);
+    gpio_set_dir(PIN_INT_OUT, GPIO_IN);
 }
 
-static void hsv_to_rgb(float h, float s, float v, uint8_t *r, uint8_t *g, uint8_t *b) {
-    if (s == 0.0f) { *r = *g = *b = (uint8_t)(v * 255); return; }
-    int   i  = (int)(h / 60.0f) % 6;
-    float f  = h / 60.0f - (int)(h / 60.0f);
-    float p  = v * (1 - s);
-    float q  = v * (1 - s * f);
-    float t  = v * (1 - s * (1 - f));
-    float rv, gv, bv;
-    switch (i) {
-        case 0: rv=v; gv=t; bv=p; break;
-        case 1: rv=q; gv=v; bv=p; break;
-        case 2: rv=p; gv=v; bv=t; break;
-        case 3: rv=p; gv=q; bv=v; break;
-        case 4: rv=t; gv=p; bv=v; break;
-        default: rv=v; gv=p; bv=q; break;
+// Closed (ON) switch reads 0, so ID 0 is all four ON and all-OFF reads 15.
+static uint8_t dip_read(void) {
+    return (uint8_t)((gpio_get(PIN_DIP_ID3) << 3) |
+                     (gpio_get(PIN_DIP_ID2) << 2) |
+                     (gpio_get(PIN_DIP_ID1) << 1) |
+                      gpio_get(PIN_DIP_ID0));
+}
+
+// ── Core 0: FSR sampling + INT ──────────────────────────────────────────────
+static void fsr_loop(void) {
+    bool     pressed[NUM_FSR] = {false};
+    uint8_t  streak[NUM_FSR]  = {0};
+    uint32_t ident_start = 0, ident_len = 0;
+
+    while (true) {
+        uint8_t mask = 0;
+        for (int i = 0; i < NUM_FSR; i++) {
+            adc_select_input(i);
+            uint16_t v = adc_read() & 0x0FFF;
+            g_fsr_raw[i] = v;
+            bool want = pressed[i];
+            if (pressed[i]) { if (v <= g_rel_th[i])  want = false; }
+            else            { if (v >= g_press_th[i]) want = true;  }
+            if (want != pressed[i]) {
+                if (++streak[i] >= FSR_PERSISTENCE) { pressed[i] = want; streak[i] = 0; }
+            } else {
+                streak[i] = 0;
+            }
+            if (pressed[i]) mask |= (uint8_t)(1u << i);
+        }
+        g_pressed_mask = mask;
+
+        uint32_t now = time_us_32();
+        uint8_t req = g_ident_req_ms;
+        if (req) { ident_start = now; ident_len = req * 1000u; g_ident_req_ms = 0; }
+        bool ident = ident_len && (now - ident_start) < ident_len;
+        if (!ident) ident_len = 0;
+
+        bool assert_int = g_int_enable && !g_int_hold && (mask || ident);
+        if (assert_int != g_int_asserted) {
+            gpio_set_dir(PIN_INT_OUT, assert_int ? GPIO_OUT : GPIO_IN);
+            g_int_asserted = assert_int;
+        }
     }
-    *r = (uint8_t)(rv * 255);
-    *g = (uint8_t)(gv * 255);
-    *b = (uint8_t)(bv * 255);
 }
 
-// ── RS-485: framing + RX (see docs/RS485_PROTOCOL.md) ───────────────────────
+// ── Status / build identity ─────────────────────────────────────────────────
+#define RST_POR        (1u << 0)
+#define RST_RUN        (1u << 1)
+#define RST_PSM        (1u << 2)
+#define RST_WD_TIMER   (1u << 3)
+#define RST_WD_FORCE   (1u << 4)
+static uint8_t  g_reset_flags = 0;
+static uint32_t g_build_tag   = 0;
+
+static void capture_reset_cause(void) {
+    uint32_t cr = vreg_and_chip_reset_hw->chip_reset;
+    uint32_t wd = watchdog_hw->reason;
+    if (cr & VREG_AND_CHIP_RESET_CHIP_RESET_HAD_POR_BITS)         g_reset_flags |= RST_POR;
+    if (cr & VREG_AND_CHIP_RESET_CHIP_RESET_HAD_RUN_BITS)         g_reset_flags |= RST_RUN;
+    if (cr & VREG_AND_CHIP_RESET_CHIP_RESET_HAD_PSM_RESTART_BITS) g_reset_flags |= RST_PSM;
+    if (wd & WATCHDOG_REASON_TIMER_BITS)                          g_reset_flags |= RST_WD_TIMER;
+    if (wd & WATCHDOG_REASON_FORCE_BITS)                          g_reset_flags |= RST_WD_FORCE;
+}
+
+// Same image -> same tag; the master's 'H' shows it per panel.
+static void compute_build_tag(void) {
+    const char *s = __DATE__ " " __TIME__;
+    uint32_t h = 2166136261u;
+    while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; }
+    g_build_tag = h;
+}
+
+static void put_u16_sat(uint8_t *p, uint32_t v) {
+    if (v > 0xFFFF) v = 0xFFFF;
+    p[0] = (uint8_t)v; p[1] = (uint8_t)(v >> 8);
+}
+
+static void put_u32(uint8_t *p, uint32_t v) {
+    p[0] = (uint8_t)v; p[1] = (uint8_t)(v >> 8);
+    p[2] = (uint8_t)(v >> 16); p[3] = (uint8_t)(v >> 24);
+}
+
+// ── Everything below runs on core 1 ─────────────────────────────────────────
+
+// ── SENSE_12V filter (polled from the core 1 loop) ──────────────────────────
+static bool g_12v_present = false;
+
+static void sense_12v_poll(uint32_t now_ms) {
+    static bool     pending = false;
+    static uint32_t since   = 0;
+    bool raw = gpio_get(PIN_SENSE_12V);
+    if (raw == g_12v_present) { pending = false; return; }
+    if (!pending) { pending = true; since = now_ms; return; }
+    uint32_t need = raw ? SENSE_RISE_STABLE_MS : SENSE_FALL_STABLE_MS;
+    if (now_ms - since >= need) { g_12v_present = raw; pending = false; }
+}
+
+// ── LEDs: PIO fed by DMA ────────────────────────────────────────────────────
+// A blocking paint is ~750 us of PIO writes, during which a poll would be
+// answered late and collide with the master's next frame. DMA makes a paint
+// cost nothing on this core. Gated on SENSE_12V: driving WS2815 DIN with their
+// 12V rail dead forward-biases their inputs.
+static PIO      led_pio = pio0;
+static uint     led_sm;
+static int      led_dma = -1;
+static uint32_t led_words[NUM_LEDS];
+static uint32_t led_last_start_us = 0;
+
+// 25 words x 30 us on the wire, then WS2815 reset (~280 us) before the next.
+#define LED_FRAME_GAP_US  (NUM_LEDS * 30u + 300u + 150u)
+
+static void led_init(void) {
+    uint offset = pio_add_program(led_pio, &ws2812_program);
+    led_sm = pio_claim_unused_sm(led_pio, true);
+    ws2812_program_init(led_pio, led_sm, offset, PIN_LED_DATA, 800000.0f, false);
+
+    led_dma = dma_claim_unused_channel(true);
+    dma_channel_config c = dma_channel_get_default_config(led_dma);
+    channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+    channel_config_set_read_increment(&c, true);
+    channel_config_set_write_increment(&c, false);
+    channel_config_set_dreq(&c, pio_get_dreq(led_pio, led_sm, true));
+    dma_channel_configure(led_dma, &c, &led_pio->txf[led_sm], led_words, NUM_LEDS, false);
+}
+
+static bool led_free(void) {
+    return led_dma >= 0 && !dma_channel_is_busy(led_dma) &&
+           (time_us_32() - led_last_start_us) >= LED_FRAME_GAP_US;
+}
+
+static inline uint32_t grb_word(uint8_t r, uint8_t g, uint8_t b) {
+    return (((uint32_t)g << 16) | ((uint32_t)r << 8) | b) << 8u;
+}
+
+static void led_start(void) {
+    led_last_start_us = time_us_32();
+    dma_channel_transfer_from_buffer_now(led_dma, led_words, NUM_LEDS);
+}
+
+static void draw_image(const uint8_t *img, uint8_t r, uint8_t g, uint8_t b) {
+    for (; *img != IMG_END; img++) led_words[*img] = grb_word(r, g, b);
+}
+
+// ── RS-485 responder ────────────────────────────────────────────────────────
+// Same framing, commands and rules as bringup/main.c, whose comments carry the
+// reasoning: never printf on the reply path, RX is IRQ-driven and the ISR
+// always drains the FIFO, DE drops on BUSY plus a character of slack.
+#define RS485_BAUD      1000000u
+#define RS485_SYNC      0x55
+#define RS485_BCAST     0xFF
+#define RS485_MAX_PAY   80
+#define RS_RING         2048
+
+static bool g_rs485_on = false;
+
+static volatile uint8_t  rs_ring[RS_RING];
+static volatile uint16_t rs_head = 0, rs_tail = 0;
+static volatile uint32_t rs_overruns = 0, rs_uart_errs = 0, rs_turnaround = 0;
+static volatile bool     rs_resync = false;
+static uint32_t rs_last_tx_us = 0;
+static uint32_t rs_frames = 0, rs_crc_errs = 0, rs_polls = 0, rs_led = 0;
+
+// LED mode state
+static uint8_t  g_mode        = MODE_NORMAL;
+static uint8_t  g_base_mode   = MODE_NORMAL;   // what a timed mode returns to
+static uint32_t g_mode_end_ms = 0;             // 0 = until changed
+static bool     g_boot_id_done = false;
+static uint8_t  g_led_frame[3 * NUM_LEDS];
+static uint32_t g_led_frame_ms = 0;
+static bool     g_led_frame_seen = false;
+static bool     g_led_dirty = false;
+
+static void set_mode(uint8_t mode, uint32_t duration_ms) {
+    g_mode = mode;
+    g_mode_end_ms = duration_ms ? to_ms_since_boot(get_absolute_time()) + duration_ms : 0;
+    if (g_mode_end_ms == 0 && duration_ms) g_mode_end_ms = 1;
+    g_led_dirty = true;
+}
+
+static void rs485_rx_irq(void) {
+    while (uart_is_readable(uart0)) {
+        uint32_t dr = uart_get_hw(uart0)->dr;
+        if (dr & 0xF00u) {          // FE | PE | BE | OE
+            if ((time_us_32() - rs_last_tx_us) < 200u) rs_turnaround++;
+            else                                       rs_uart_errs++;
+            rs_resync = true;
+        }
+        uint16_t next = (uint16_t)((rs_head + 1u) % RS_RING);
+        if (next == rs_tail) { rs_overruns++; continue; }   // drop the byte, never the drain
+        rs_ring[rs_head] = (uint8_t)(dr & 0xFF);
+        rs_head = next;
+    }
+}
+
 static uint8_t crc8_update(uint8_t crc, uint8_t b) {
     crc ^= b;
     for (int i = 0; i < 8; i++)
-        crc = (crc & 0x80) ? (uint8_t)((crc << 1) ^ 0x07) : (uint8_t)(crc << 1);
+        crc = (crc & 0x80u) ? (uint8_t)((crc << 1) ^ 0x07u) : (uint8_t)(crc << 1);
     return crc;
 }
 
-// RX ring buffer: UART IRQ produces, Core 1 loop consumes
-static volatile uint8_t  rs_rx_buf[256];
-static volatile uint16_t rs_rx_head = 0, rs_rx_tail = 0;
-
-static void on_uart_rx(void) {
-    while (uart_is_readable(RS485_UART)) {
-        uint8_t c = uart_getc(RS485_UART);
-        uint16_t next = (rs_rx_head + 1) & 0xFF;
-        if (next != rs_rx_tail) {
-            rs_rx_buf[rs_rx_head] = c;
-            rs_rx_head = next;
-        }
-    }
-}
-
-static void rs485_send(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) {
-    uint8_t pkt[5 + PKT_MAX_PAYLOAD];
-    pkt[0] = PKT_SYNC;
-    pkt[1] = cmd;
-    pkt[2] = addr;
-    pkt[3] = len;
-    memcpy(&pkt[4], payload, len);
+static void rs485_send(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t len) {
+    uint8_t hdr[4] = { RS485_SYNC, cmd, addr, len };
     uint8_t crc = 0;
-    for (int i = 1; i < 4 + len; i++) crc = crc8_update(crc, pkt[i]);
-    pkt[4 + len] = crc;
+    crc = crc8_update(crc, cmd);
+    crc = crc8_update(crc, addr);
+    crc = crc8_update(crc, len);
+    for (uint8_t i = 0; i < len; i++) crc = crc8_update(crc, pay[i]);
 
-    gpio_put(RS485_DE_PIN, 1);
-    uart_write_blocking(RS485_UART, pkt, 5 + (size_t)len);
-    uart_tx_wait_blocking(RS485_UART);  // TX complete (not FIFO-empty) before dropping DE
-    gpio_put(RS485_DE_PIN, 0);
+    gpio_put(PIN_RS485_DE, 1);
+    busy_wait_us(2);
+    uart_write_blocking(uart0, hdr, 4);
+    if (len) uart_write_blocking(uart0, pay, len);
+    uart_write_blocking(uart0, &crc, 1);
+    uart_tx_wait_blocking(uart0);
+    busy_wait_us(12);
+    gpio_put(PIN_RS485_DE, 0);
+    rs_last_tx_us = time_us_32();
 }
 
-// Remote LED frame state (Core 1 only)
-static uint8_t  remote_frame[LED_FRAME_LEN];
-static bool     remote_dirty  = false;
-static bool     remote_seen   = false;
-static uint32_t last_remote_ms = 0;
-static uint32_t stat_led_frames = 0, stat_polls = 0, stat_crc_errs = 0;
+static void rs485_clear_counters(void) {
+    rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
+    rs_overruns = rs_uart_errs = rs_turnaround = 0;
+}
 
-static void handle_packet(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) {
-    if (cmd == 'L' && (addr == 0xFF || addr == g_panel_id) && len == LED_FRAME_LEN) {
-        memcpy(remote_frame, payload, LED_FRAME_LEN);
-        remote_dirty   = true;
-        remote_seen    = true;
-        last_remote_ms = to_ms_since_boot(get_absolute_time());
-        stat_led_frames++;
-    } else if (cmd == 'C' && addr == g_panel_id && len == 5) {
-        // Set thresholds: [channel | 0xFF=all][press u16 LE][release u16 LE]
-        uint8_t  ch    = payload[0];
-        uint16_t press = (uint16_t)payload[1] | ((uint16_t)payload[2] << 8);
-        uint16_t rel   = (uint16_t)payload[3] | ((uint16_t)payload[4] << 8);
+static void reboot_into_bootloader(void) {
+    g_int_hold = true;
+    busy_wait_us(100);                  // core 0 releases INT within one pass
+    gpio_put(PIN_RS485_DE, 0);
+    watchdog_hw->scratch[0] = FW_HOLD_MAGIC;
+    watchdog_reboot(0, 0, 10);
+    while (true) tight_loop_contents();
+}
+
+static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t len) {
+    uint8_t me = g_dip;
+    if (addr != me && addr != RS485_BCAST) return;
+
+    switch (cmd) {
+    case 'F': {
+        uint8_t r[9];
         for (int i = 0; i < NUM_FSR; i++) {
-            if (ch == 0xFF || ch == i) {
-                g_press_thr[i] = press;
-                g_rel_thr[i]   = rel;
-            }
+            uint16_t v = g_fsr_raw[i];
+            r[i * 2]     = (uint8_t)(v & 0xFF);
+            r[i * 2 + 1] = (uint8_t)(v >> 8);
         }
-        rs485_send('c', g_panel_id, payload, len);  // ack: echo back what was applied
-    } else if (cmd == 'F' && addr == g_panel_id && len == 0) {
-        uint8_t reply[9];
-        for (int i = 0; i < NUM_FSR; i++) {
-            uint16_t v = g_fsr_vals[i];
-            reply[2 * i]     = (uint8_t)(v & 0xFF);
-            reply[2 * i + 1] = (uint8_t)(v >> 8);
+        r[8] = g_pressed_mask;
+        rs485_send('f', me, r, 9);
+        rs_polls++;
+        break;
+    }
+    case 'I': {
+        uint8_t ms = len ? pay[0] : 2;
+        if (ms < 1)  ms = 1;
+        if (ms > 50) ms = 50;
+        // Ack first, then the pulse, which core 0 times without blocking us.
+        rs485_send('i', me, NULL, 0);
+        busy_wait_us(50);
+        g_ident_req_ms = ms;
+        break;
+    }
+    case 'C':
+        if (len >= 5) {
+            uint8_t  ch = pay[0];
+            uint16_t p  = (uint16_t)(pay[1] | (pay[2] << 8));
+            uint16_t rl = (uint16_t)(pay[3] | (pay[4] << 8));
+            for (int i = 0; i < NUM_FSR; i++)
+                if (ch == 0xFF || ch == i) { g_press_th[i] = p; g_rel_th[i] = rl; }
+            rs485_send('c', me, pay, len);
         }
-        reply[8] = g_pressed_mask;
-        rs485_send('f', g_panel_id, reply, sizeof(reply));
-        stat_polls++;
+        break;
+    case 'H': {
+        uint8_t r[22];
+        put_u32(&r[0], g_build_tag);
+        put_u32(&r[4], to_ms_since_boot(get_absolute_time()) / 1000u);
+        r[8] = g_reset_flags;
+        r[9] = (uint8_t)((g_12v_present              ? 1u << 0 : 0) |
+                         (!gpio_get(PIN_TERM_SENSE)   ? 1u << 1 : 0) |
+                         (g_int_enable                ? 1u << 2 : 0) |
+                         (g_mode == MODE_NORMAL       ? 1u << 3 : 0) |
+                         (g_int_asserted              ? 1u << 4 : 0) |
+                         ((g_mode & 0x3u) << 5));
+        put_u16_sat(&r[10], rs_crc_errs);
+        put_u16_sat(&r[12], rs_uart_errs);
+        put_u16_sat(&r[14], rs_overruns);
+        put_u16_sat(&r[16], rs_turnaround);
+        put_u32(&r[18], rs_frames);
+        rs485_send('h', me, r, sizeof(r));
+        break;
+    }
+    case 'Z':
+        rs485_clear_counters();
+        if (addr == me) rs485_send('z', me, NULL, 0);
+        break;
+    case 'M':
+        // [mode][seconds, 0 = until changed]
+        if (len >= 1 && pay[0] < MODE_COUNT) {
+            set_mode(pay[0], len >= 2 ? pay[1] * 1000u : 0);
+            if (addr == me) rs485_send('m', me, pay, len);
+        }
+        break;
+    case FW_CMD_HOLD:
+        if (addr == me) rs485_send(FW_CMD_HOLD_ACK, me, NULL, 0);
+        reboot_into_bootloader();
+        break;
+    case 'L':
+        rs_led++;
+        if (len == sizeof(g_led_frame)) {
+            memcpy(g_led_frame, pay, len);
+            g_led_frame_ms = to_ms_since_boot(get_absolute_time());
+            g_led_frame_seen = true;
+            g_led_dirty = true;
+        }
+        break;
+    default:
+        break;
     }
 }
 
-static void parse_rx(void) {
+static void rs485_service(void) {
     static enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
-    static uint8_t cmd, addr, len, idx;
-    static uint8_t pay[PKT_MAX_PAYLOAD];
+    static uint8_t cmd, addr, len, idx, crc, pay[RS485_MAX_PAY];
 
-    while (rs_rx_tail != rs_rx_head) {
-        uint8_t c = rs_rx_buf[rs_rx_tail];
-        rs_rx_tail = (rs_rx_tail + 1) & 0xFF;
+    if (rs_resync) { rs_resync = false; st = W_SYNC; }
+
+    while (rs_tail != rs_head) {
+        uint8_t c = rs_ring[rs_tail];
+        rs_tail = (uint16_t)((rs_tail + 1u) % RS_RING);
         switch (st) {
-            case W_SYNC: if (c == PKT_SYNC) st = W_CMD; break;
-            case W_CMD:  cmd = c; st = W_ADDR; break;
-            case W_ADDR: addr = c; st = W_LEN; break;
-            case W_LEN:
-                len = c; idx = 0;
-                if (len > PKT_MAX_PAYLOAD) { st = W_SYNC; break; }
-                st = (len > 0) ? W_PAY : W_CRC;
-                break;
-            case W_PAY:
-                pay[idx++] = c;
-                if (idx == len) st = W_CRC;
-                break;
-            case W_CRC: {
-                uint8_t crc = 0;
-                crc = crc8_update(crc, cmd);
-                crc = crc8_update(crc, addr);
-                crc = crc8_update(crc, len);
-                for (int i = 0; i < len; i++) crc = crc8_update(crc, pay[i]);
-                if (crc == c) handle_packet(cmd, addr, pay, len);
-                else          stat_crc_errs++;
-                st = W_SYNC;
-                break;
-            }
+        case W_SYNC: if (c == RS485_SYNC) { crc = 0; st = W_CMD; } break;
+        case W_CMD:  cmd  = c; crc = crc8_update(crc, c); st = W_ADDR; break;
+        case W_ADDR: addr = c; crc = crc8_update(crc, c); st = W_LEN;  break;
+        case W_LEN:
+            len = c; crc = crc8_update(crc, c); idx = 0;
+            if (len > RS485_MAX_PAY) { rs_crc_errs++; st = W_SYNC; }
+            else st = len ? W_PAY : W_CRC;
+            break;
+        case W_PAY:
+            pay[idx++] = c; crc = crc8_update(crc, c);
+            if (idx >= len) st = W_CRC;
+            break;
+        case W_CRC:
+            if (c == crc) { rs_frames++; rs485_handle(cmd, addr, pay, len); }
+            else rs_crc_errs++;
+            st = W_SYNC;
+            break;
         }
     }
 }
 
-// ── Core 1: RS-485 comms + LED loop ──────────────────────────────────────────
-static uint32_t pixel_buf[NUM_LEDS];
-
-static void write_pixels(PIO pio, uint sm) {
-    for (int i = 0; i < NUM_LEDS; i++)
-        pio_sm_put_blocking(pio, sm, pixel_buf[i]);
-    sleep_us(60);  // WS2812B latch: >50µs low
+// Must run on core 1 so the UART IRQ is routed here, not to the sampling loop.
+static void rs485_start(void) {
+    uart_init(uart0, RS485_BAUD);
+    gpio_set_function(PIN_RS485_TX, GPIO_FUNC_UART);
+    gpio_set_function(PIN_RS485_RX, GPIO_FUNC_UART);
+    gpio_pull_up(PIN_RS485_RX);         // idle-mark through our own DE window
+    uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
+    uart_set_fifo_enabled(uart0, true);
+    uart_set_hw_flow(uart0, false, false);
+    gpio_put(PIN_RS485_DE, 0);
+    while (uart_is_readable(uart0)) (void)uart_get_hw(uart0)->dr;   // stale FIFO
+    uart_get_hw(uart0)->rsr = 0x0Fu;
+    rs_head = rs_tail = 0;
+    rs_last_tx_us = time_us_32();
+    irq_set_exclusive_handler(UART0_IRQ, rs485_rx_irq);
+    irq_set_enabled(UART0_IRQ, true);
+    uart_set_irq_enables(uart0, true, false);
+    g_rs485_on = true;
 }
 
-static void core1_entry(void) {
-    PIO  pio    = pio0;
-    uint offset = pio_add_program(pio, &ws2812_program);
-    uint sm     = pio_claim_unused_sm(pio, true);
-    ws2812_program_init(pio, sm, offset, LED_PIN, 800000.0f, false);
+// ── Rendering ───────────────────────────────────────────────────────────────
+static void render(uint32_t now_ms) {
+    memset(led_words, 0, sizeof(led_words));
+    switch (g_mode) {
+    case MODE_ID:
+        draw_image(g_dip <= 8 ? ID_IMAGE[g_dip] : X_IMAGE, ID_WHITE, ID_WHITE, ID_WHITE);
+        break;
+    case MODE_TEST:
+        for (int i = 0; i < NUM_FSR; i++) {
+            uint16_t v = g_fsr_raw[i];
+            if (v <= TEST_FLOOR) continue;
+            uint8_t lvl = (uint8_t)((uint32_t)(v - TEST_FLOOR) * 255u / (4095u - TEST_FLOOR));
+            draw_image(EDGE_IMAGE[i], EDGE_RGB[i][0] * lvl, EDGE_RGB[i][1] * lvl,
+                       EDGE_RGB[i][2] * lvl);
+        }
+        break;
+    default:
+        if (g_led_frame_seen && (now_ms - g_led_frame_ms) < LED_FALLBACK_MS)
+            for (int i = 0; i < NUM_LEDS; i++)
+                led_words[i] = grb_word(g_led_frame[i * 3], g_led_frame[i * 3 + 1],
+                                        g_led_frame[i * 3 + 2]);
+        break;
+    }
+}
 
-    // RS-485 UART with IRQ-driven RX (keeps the FIFO drained even while the
-    // blocking LED write is in progress)
-    uart_init(RS485_UART, RS485_BAUD);
-    gpio_set_function(RS485_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(RS485_RX_PIN, GPIO_FUNC_UART);
-    gpio_init(RS485_DE_PIN);
-    gpio_set_dir(RS485_DE_PIN, GPIO_OUT);
-    gpio_put(RS485_DE_PIN, 0);  // receive mode
-    irq_set_exclusive_handler(UART0_IRQ, on_uart_rx);
-    irq_set_enabled(UART0_IRQ, true);
-    uart_set_irq_enables(RS485_UART, true, false);
+// ── USB console (bench only; printf here delays replies, see bringup) ───────
+static void banner(void) {
+    printf("\n========================================================\n");
+    printf(" dual-panel gameplay firmware  (built %s %s)\n", __DATE__, __TIME__);
+    printf("========================================================\n");
+    printf("  build tag : %08lX\n", (unsigned long)g_build_tag);
+#if PANEL_UNDER_BOOTLOADER
+    printf("  image     : at 0x%08X, behind panel_bootloader\n", XIP_BASE + FW_APP_OFFSET);
+#else
+    printf("  image     : standalone at 0x%08X, no bootloader\n", XIP_BASE);
+#endif
+    printf("  DIP       : %u (%s)\n", g_dip,
+           g_dip <= 8 ? "panel ID" : g_dip == 10 ? "sensor pressure test" : "not a panel ID");
+    printf("  '?' for commands\n");
+}
 
-    const uint8_t *patterns[2] = {PATTERN_SERPENTINE, PATTERN_READING};
-    int pattern_idx  = 0;
-    int chase_pos    = 0;
-    int cycle_count  = 0;
-    int frame        = 0;
-    uint32_t last_anim_ms = 0;
-    const int TAIL_LEN          = 5;
-    const int CHASE_FRAME_HOLD  = 2;
-    const int CYCLES_PER_PATTERN = 2;
+static void help(void) {
+    printf("\n  s  status            v  banner\n"
+           "  n  LED mode: normal   i  LED mode: ID   t  LED mode: test\n"
+           "  B  reboot into BOOTSEL\n"
+           "  U  reboot into the panel bootloader and hold\n");
+}
+
+static void status(void) {
+    printf("\n  12V %s, DIP %u, %s, bus %s, INT %s%s, LED mode %s\n",
+           g_12v_present ? "present" : "ABSENT", g_dip,
+           !gpio_get(PIN_TERM_SENSE) ? "terminated" : "not terminated",
+           g_rs485_on ? "on" : "off", g_int_enable ? "enabled" : "off",
+           g_int_asserted ? " (asserted)" : "", MODE_NAME[g_mode]);
+    printf("  FSR       :");
+    for (int i = 0; i < NUM_FSR; i++)
+        printf(" %s=%4u%s", FSR_NAME[i], g_fsr_raw[i],
+               (g_pressed_mask >> i) & 1 ? "*" : "");
+    printf("   (press %u / release %u)\n", g_press_th[0], g_rel_th[0]);
+    printf("  bus       : %lu frames, %lu crc, %lu uart, %lu overrun, %lu turnaround,"
+           " %lu 'F', %lu 'L'\n",
+           (unsigned long)rs_frames, (unsigned long)rs_crc_errs,
+           (unsigned long)rs_uart_errs, (unsigned long)rs_overruns,
+           (unsigned long)rs_turnaround, (unsigned long)rs_polls, (unsigned long)rs_led);
+}
+
+static void console_poll(void) {
+    static bool was_connected = false;
+    bool connected = stdio_usb_connected();
+    if (connected && !was_connected) banner();
+    was_connected = connected;
+    if (!connected) return;
+
+    int c = getchar_timeout_us(0);
+    switch (c) {
+    case 's': status(); break;
+    case 'v': banner(); break;
+    case 'n': set_mode(MODE_NORMAL, 0); printf("\n  LED mode normal\n"); break;
+    case 'i': set_mode(MODE_ID, 0);     printf("\n  LED mode ID\n");     break;
+    case 't': set_mode(MODE_TEST, 0);   printf("\n  LED mode test\n");   break;
+    case 'B':
+        printf("\n  rebooting into BOOTSEL\n");
+        sleep_ms(120);
+        g_int_hold = true;
+        reset_usb_boot(0, 0);
+        break;
+    case 'U':
+#if PANEL_UNDER_BOOTLOADER
+        printf("\n  rebooting into the panel bootloader (holds until 'X' or an image)\n");
+        sleep_ms(120);
+        reboot_into_bootloader();
+#else
+        printf("\n  standalone build: no bootloader\n");
+#endif
+        break;
+    case '?': help(); break;
+    default: break;
+    }
+}
+
+// ── Core 1 main loop ────────────────────────────────────────────────────────
+static void core1_main(void) {
+    bool     bus_started = false;
+    uint32_t next_refresh_ms = 0, next_console_ms = 0;
 
     while (true) {
-        parse_rx();
+        uint32_t now_ms = to_ms_since_boot(get_absolute_time());
+        sense_12v_poll(now_ms);
 
-        uint32_t now = to_ms_since_boot(get_absolute_time());
-        bool remote_live = remote_seen && (now - last_remote_ms) < LED_FALLBACK_MS;
-
-        if (remote_live) {
-            // Master owns the LEDs: display each frame as it arrives
-            if (remote_dirty) {
-                remote_dirty = false;
-                for (int i = 0; i < NUM_LEDS; i++)
-                    pixel_buf[i] = rgb_to_grb_word(remote_frame[3 * i],
-                                                   remote_frame[3 * i + 1],
-                                                   remote_frame[3 * i + 2]);
-                write_pixels(pio, sm);
-            }
-            sleep_us(100);
-            continue;
-        }
-
-        // No remote frames: local animation at ~60Hz
-        if (now - last_anim_ms < 16) {
-            sleep_us(100);
-            continue;
-        }
-        last_anim_ms = now;
-
-        if (g_pressed) {
-            uint16_t max_val = 0;
-            for (int i = 0; i < NUM_FSR; i++) {
-                if (g_active_fsrs[i] && g_fsr_vals[i] > max_val)
-                    max_val = g_fsr_vals[i];
-            }
-            float pressure  = max_val / 4095.0f;
-            float hue       = 240.0f - pressure * 240.0f;
-            float brightness = 0.15f + pressure * 0.65f;
-            uint8_t r, g, b;
-            hsv_to_rgb(hue, 1.0f, brightness, &r, &g, &b);
-            uint32_t word = rgb_to_grb_word(r, g, b);
-            for (int i = 0; i < NUM_LEDS; i++) pixel_buf[i] = word;
-        } else {
-            memset(pixel_buf, 0, sizeof(pixel_buf));
-            const uint8_t *pattern = patterns[pattern_idx];
-            for (int tail = 0; tail < TAIL_LEN; tail++) {
-                int     idx  = (chase_pos - tail + NUM_LEDS) % NUM_LEDS;
-                uint8_t led  = pattern[idx];
-                uint8_t brt  = (uint8_t)((TAIL_LEN - tail) * 30 / TAIL_LEN);
-                pixel_buf[led] = rgb_to_grb_word(0, 0, brt);
-            }
-            if (frame % CHASE_FRAME_HOLD == 0) {
-                chase_pos = (chase_pos + 1) % NUM_LEDS;
-                if (chase_pos == 0) {
-                    if (++cycle_count >= CYCLES_PER_PATTERN) {
-                        cycle_count = 0;
-                        pattern_idx = (pattern_idx + 1) % 2;
-                    }
-                }
+        // Once 12V arrives: show the ID image, and start bus mode if the DIP
+        // is a panel ID. DIP 10 runs the sensor test standalone instead.
+        if (g_12v_present && !bus_started) {
+            bus_started = true;
+            if (g_dip <= 8) {
+                rs485_start();
+                g_int_enable = true;
+            } else if (g_dip == 10) {
+                g_base_mode = MODE_TEST;
             }
         }
+        if (g_rs485_on) rs485_service();
 
-        write_pixels(pio, sm);
-        frame++;
+        if (g_12v_present && led_dma < 0) led_init();
+        if (g_12v_present && !g_boot_id_done) {
+            g_boot_id_done = true;
+            set_mode(MODE_ID, ID_BOOT_MS);
+        }
+        if (g_mode_end_ms && (int32_t)(now_ms - g_mode_end_ms) >= 0)
+            set_mode(g_base_mode, 0);
+
+        // Debug LED: dark in normal play, press indicator in the DIP-10 test
+        // (docs/PANEL_CONFIG.md, decided 2026-07-11).
+        gpio_put(PIN_DEBUG_LED, g_dip == 10 && g_pressed_mask);
+
+        if (g_12v_present && led_free() &&
+            (g_led_dirty || (int32_t)(now_ms - next_refresh_ms) >= 0)) {
+            g_led_dirty = false;
+            next_refresh_ms = now_ms + LED_REFRESH_MS;
+            render(now_ms);
+            led_start();
+        }
+
+        if ((int32_t)(now_ms - next_console_ms) >= 0) {
+            next_console_ms = now_ms + 20;
+            console_poll();
+        }
     }
 }
 
-// ── Core 0: FSR sampling + INT line ──────────────────────────────────────────
 int main(void) {
-    stdio_init_all();
+    capture_reset_cause();
+    compute_build_tag();
 
-    gpio_init(DEBUG_PRESS_PIN);
-    gpio_set_dir(DEBUG_PRESS_PIN, GPIO_OUT);
-    gpio_put(DEBUG_PRESS_PIN, 0);
+    // SENSE_12V: pulls OFF, first. The reset-default pull-down can make 12V
+    // read as absent (docs/PANEL_BRINGUP.md).
+    gpio_init(PIN_SENSE_12V);
+    gpio_set_dir(PIN_SENSE_12V, GPIO_IN);
+    gpio_disable_pulls(PIN_SENSE_12V);
 
-    // Open-drain INT: output register held at 0, direction toggles instead.
-    // Output mode sinks the line LOW (pressed); input mode is high-Z and the
-    // master's pull-up takes it HIGH (idle). Pulls disabled so the RP2040
-    // doesn't fight the master's 10k pull-up.
-    gpio_init(INT_PIN);
-    gpio_disable_pulls(INT_PIN);
-    gpio_put(INT_PIN, 0);
-    gpio_set_dir(INT_PIN, GPIO_IN);
+    // No external pull-ups on these nets.
+    const uint pu[] = {PIN_TERM_SENSE, PIN_DIP_ID0, PIN_DIP_ID1, PIN_DIP_ID2, PIN_DIP_ID3};
+    for (uint i = 0; i < count_of(pu); i++) {
+        gpio_init(pu[i]); gpio_set_dir(pu[i], GPIO_IN); gpio_pull_up(pu[i]);
+    }
 
-    // Panel ID: internal pull-down, floating = panel 0, jumper to 3V3 OUT = panel 1
-    gpio_init(PANEL_ID_PIN);
-    gpio_set_dir(PANEL_ID_PIN, GPIO_IN);
-    gpio_pull_down(PANEL_ID_PIN);
-    sleep_us(10);  // let the pull settle before sampling
-    g_panel_id = gpio_get(PANEL_ID_PIN) ? 1 : 0;
+    gpio_init(PIN_DEBUG_LED); gpio_set_dir(PIN_DEBUG_LED, GPIO_OUT);
+    gpio_put(PIN_DEBUG_LED, 0);
+    gpio_init(PIN_RS485_DE); gpio_set_dir(PIN_RS485_DE, GPIO_OUT);
+    gpio_put(PIN_RS485_DE, 0);
+    int_out_init();
 
     adc_init();
-    for (int i = 0; i < NUM_FSR; i++)
-        adc_gpio_init(FSR_GPIO[i]);
-
-    // Wait up to 3s for USB serial connection before continuing
-    uint32_t t0 = time_us_32();
-    while (!stdio_usb_connected() && (time_us_32() - t0) < 3000000)
-        tight_loop_contents();
-
-    printf("Panel firmware (C/Pico SDK 2.x)\n");
-    printf("Panel ID: %d (GPIO%d %s)\n", g_panel_id, PANEL_ID_PIN,
-           g_panel_id ? "tied to 3V3" : "floating/grounded");
-    printf("ADC range: 12-bit (0-4095). Press > %d, release < %d\n",
-           FSR_PRESS_THRESHOLD, FSR_RELEASE_THRESHOLD);
-
-    // Detect active FSR channels
-    printf("Detecting active FSR channels...\n");
+    for (int i = 0; i < NUM_FSR; i++) adc_gpio_init(FSR_GPIO[i]);
     for (int i = 0; i < NUM_FSR; i++) {
-        adc_select_input(i);
-        uint32_t sum = 0;
-        for (int s = 0; s < 50; s++) sum += adc_read();
-        uint32_t avg = sum / 50;
-        g_active_fsrs[i] = (avg < FSR_FLOAT_THRESHOLD);
-        printf("  FSR %d (GPIO%d): resting avg = %4lu -> %s\n",
-               i, (int)FSR_GPIO[i], avg,
-               g_active_fsrs[i] ? "active" : "not connected");
+        g_press_th[i] = FSR_PRESS_THRESHOLD;
+        g_rel_th[i]   = FSR_RELEASE_THRESHOLD;
     }
 
-    multicore_launch_core1(core1_entry);
+    sleep_us(100);   // let the DIP pull-ups settle
+    g_dip = dip_read();
 
-    // Sampling loop — prints achieved rate once per second
-    uint32_t loop_count = 0;
-    uint64_t report_at  = time_us_64() + 1000000;
-
-    while (true) {
-        bool any_pressed = false;
-        uint8_t mask = 0;
-        for (int i = 0; i < NUM_FSR; i++) {
-            if (!g_active_fsrs[i]) continue;
-            adc_select_input(i);
-#if ADC_DUMMY_READ
-            (void)adc_read();  // absorb mux charge injection; keep the second read
-#endif
-            uint16_t v = adc_read();
-            g_fsr_vals[i] = v;
-            bool want = g_fsr_pressed[i];
-            if (g_fsr_pressed[i]) {
-                if (v < g_rel_thr[i]) want = false;
-            } else {
-                if (v > g_press_thr[i]) want = true;
-            }
-            if (want != g_fsr_pressed[i]) {
-                if (++g_fsr_streak[i] >= FSR_PERSISTENCE) {
-                    g_fsr_pressed[i] = want;
-                    g_fsr_streak[i] = 0;
-                }
-            } else {
-                g_fsr_streak[i] = 0;
-            }
-            if (g_fsr_pressed[i]) { any_pressed = true; mask |= (uint8_t)(1u << i); }
-        }
-        g_pressed = any_pressed;
-        g_pressed_mask = mask;
-        gpio_put(DEBUG_PRESS_PIN, any_pressed ? 1 : 0);
-        gpio_set_dir(INT_PIN, any_pressed ? GPIO_OUT : GPIO_IN);
-        loop_count++;
-
-        uint64_t now = time_us_64();
-        if (now >= report_at) {
-            printf("[%5lu Hz]  FSR: %4d %4d %4d %4d  %s | bus: %lu led, %lu polls, %lu crc err\n",
-                   loop_count,
-                   g_fsr_vals[0], g_fsr_vals[1], g_fsr_vals[2], g_fsr_vals[3],
-                   g_pressed ? "PRESSED" : "idle",
-                   stat_led_frames, stat_polls, stat_crc_errs);
-            loop_count = 0;
-            report_at  = now + 1000000;
-        }
-    }
+    stdio_init_all();
+    multicore_launch_core1(core1_main);
+    fsr_loop();
 }

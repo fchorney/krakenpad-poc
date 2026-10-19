@@ -290,6 +290,9 @@ void printStatusReply(uint8_t addr, const uint8_t *p) {
   Serial.print((st & 0x08) ? "on" : "OFF");
   Serial.print("  INT ");
   Serial.print((st & 0x10) ? "asserted" : "idle");
+  // Bits 5-6: LED mode on the gameplay firmware; always 0 on the bring-up build.
+  if (((st >> 5) & 0x03) == 1) Serial.print("  LEDs ID");
+  if (((st >> 5) & 0x03) == 2) Serial.print("  LEDs test");
   Serial.print("  | frames ");
   Serial.print(frames);
   Serial.print(" crc ");
@@ -404,6 +407,10 @@ bool bus_traffic = true;   // 'x' gates the LED-frame + poll loop
 // `z`: zero the bus counters here and, by broadcast 'Z', on every panel. Sent
 // in a poll slot like 'C', so it never lands on top of a reply.
 bool    clear_pending = false;
+// `m`: panel LED mode by broadcast 'M' (0 normal, 1 ID, 2 sensor test), sent
+// in a poll slot like `z`.
+bool    mode_pending = false;
+uint8_t mode_payload[2];
 bool    cfg_pending = false;
 uint8_t cfg_addr = 0;
 uint8_t cfg_payload[5];
@@ -868,6 +875,7 @@ void printHelp() {
     "  t                          toggle telemetry stream\r\n"
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
     "  z                          zero bus counters, master and all panels\r\n"
+    "  m <mode> [secs]            panel LEDs: 0 normal, 1 ID, 2 sensor test\r\n"
     "  P                          bus passthrough for tools/panel_update.py (binary)\r\n"
     "  S <panel> <press> <rel>    set FSR thresholds on one panel"));
 }
@@ -929,6 +937,16 @@ void handleCommand(const char *s) {
     Serial.println("# status sweep: asking panels 0-8, one per poll slot");
   } else if (strcmp(s, "z") == 0 || strcmp(s, "Z") == 0) {
     clear_pending = true;
+  } else if (s[0] == 'm') {
+    int mode, secs = 0;
+    int n = sscanf(s + 1, "%d %d", &mode, &secs);
+    if (n >= 1 && mode >= 0 && mode <= 2 && secs >= 0 && secs <= 255) {
+      mode_payload[0] = (uint8_t)mode;
+      mode_payload[1] = (uint8_t)secs;
+      mode_pending = true;
+    } else {
+      Serial.println("# usage: m <0 normal | 1 ID | 2 test> [seconds, 0 = until changed]");
+    }
   } else if (strcmp(s, "t") == 0 || strcmp(s, "T") == 0) {
     stream_telemetry = !stream_telemetry;
     Serial.print("# telemetry stream ");
@@ -1149,6 +1167,15 @@ void loop() {
     next_poll_ms = millis() + POLL_INTERVAL_MS;
     clear_pending = false;
     Serial.println("# counters zeroed: master and every panel ('Z' broadcast)");
+  } else if (mode_pending && poll_due) {
+    sendRequest('M', BROADCAST, mode_payload, sizeof(mode_payload), 0);   // no reply
+    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    mode_pending = false;
+    static const char *const MODE_NAMES[] = {"normal", "ID", "sensor test"};
+    Serial.print("# panel LED mode -> ");
+    Serial.print(MODE_NAMES[mode_payload[0]]);
+    if (mode_payload[1]) { Serial.print(" for "); Serial.print(mode_payload[1]); Serial.print(" s"); }
+    Serial.println(" ('M' broadcast; the bring-up build ignores it)");
   } else if (cfg_pending && poll_due) {
     sendRequest('C', cfg_addr, cfg_payload, sizeof(cfg_payload), REPLY_C_LEN);
     next_poll_ms = millis() + POLL_INTERVAL_MS;

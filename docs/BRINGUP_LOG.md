@@ -1003,6 +1003,23 @@ not recorded.
   cable routing and frame: the user's call, since the floor setup is likely
   quieter than the pad.
 
+### 2026-10-19 — gameplay firmware on all eight panels
+
+The rewritten `firmware/panel/c/main.c` (ID and sensor-test LED modes, bus
+command `'M'`) went to all eight panels by bus update, and the master got the
+matching `m` command. **The user reports the boot ID image appears on each
+panel and the LED modes (`m 1` ID, `m 2` test) work.**
+
+Also reported: **`H` error counts 0 on every panel, and presses still reach
+the master** through the new core-0 filter. **DIP 10 standalone test mode
+works with no master** (panel 7's board, then set back to 7). The DIP is read
+once at boot, so a change takes a power cycle. Bench slip worth noting: DIP 10
+is OFF ON OFF ON left to right (ON = 0, leftmost = bit 3); ON OFF ON OFF is 5
+and would have collided with the real panel 5.
+
+Method note: `arduino-cli upload` needs `-p` with the Teensy's `usb:…` port;
+the command in this doc's header was missing it (fixed).
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

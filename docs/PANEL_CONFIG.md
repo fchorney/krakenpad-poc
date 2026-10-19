@@ -64,6 +64,44 @@ panel's ID slot (modes 9+ don't carry an ID), so gating it to the existing
 diagnostic modes is the coherent option. If mid-rig debugging ever wants it during
 normal operation, that's a flash-config flag / bus command, not a DIP mode.
 
+## LED modes (gameplay firmware, decided 2026-10-18)
+
+Three modes, all rendered **on the panel**. The panel samples its FSRs at
+~100 kHz, while bus telemetry reaches the master at only ~14 Hz per panel, so a
+pressure display drawn by the master would visibly lag. Master command:
+`'M'` (`docs/RS485_PROTOCOL.md`); master console: `m <mode> [secs]`.
+
+| Mode | What the LEDs show |
+|---|---|
+| 0 normal | The master's `'L'` frames. Dark if none for 100 ms (local animations come later) |
+| 1 ID | White image of the panel's position, read from its DIP. **X if the DIP is not 0–8.** Shown for **3 s when 12V first arrives**, and whenever the master asks |
+| 2 sensor test | Each edge lights its own colour, brightness tracking pressure. DIP 10 runs it standalone (no bus, no INT); `'M'` runs it on bus panels |
+
+Pixel sets use **wire (serpentine) order, 1-based** — the numbering as stated
+when this was decided. Firmware stores them 0-based.
+
+| Panel | Pixels | | Panel | Pixels | | Panel | Pixels |
+|---|---|---|---|---|---|---|---|
+| UL (0) | 1 2 7 8 | | U (1) | 2 3 6 | | UR (2) | 3 4 5 11 |
+| L (3) | 8 14 15 | | C (4) | 9 10 13 16 17 | | R (5) | 11 12 18 |
+| DL (6) | 15 21 22 23 | | D (7) | 20 23 24 | | DR (8) | 18 19 24 25 |
+| X | 1 4 5 7 9 10 13 16 17 19 21 22 25 | | | | | | |
+
+UL, U, UR and C were given; the other five follow by symmetry. **Seen on all
+eight panels 2026-10-19 and accepted by the user** (stage 3 bench, panels 0–7).
+They have not been compared against stock.
+
+**Sensor test:** each edge uses the ID image of the panel on that side:
+**North = U, blue; East = R, yellow; South = D, green; West = L, red.** No two
+sets overlap, so nothing needs blending. Brightness is off at or below
+**100 counts** and linear from there to full at 4095. That floor is **NOT the
+press threshold**, on purpose, because the user can change the press threshold.
+Board 1 rests at 94–98, so 100 sits right at the noise floor and may need
+raising. Once tare exists, this becomes "0–5 counts above tare is off".
+
+This reverses `docs/USB_PROTOCOL.md`'s 2026-07 call to drop stock's `'t'` panel
+test mode from firmware and draw it host-side.
+
 ## Per-channel FSR flags
 
 Two independent bits per channel — they answer different questions:
@@ -119,6 +157,13 @@ them apart. So:
   RAM only for now; flash persistence is the remaining open item.
 
 ## Boot-time float detection (firmware behavior, not config)
+
+> **DROPPED 2026-10-18 from the gameplay firmware.** The breadboard firmware
+> *disabled* any channel resting above the threshold at boot, so a foot on a
+> sensor at power-up would disable that sensor until the next reboot. On the
+> as-built carrier the pull-down is always populated, so a floating input can
+> only come from an assembly fault, and that is bring-up's job (`s` warns about
+> it). Original reasoning kept below.
 
 The prototype firmware averages 50 samples per channel at boot; a resting average
 *above* ~187 counts means the pin is floating (no pull-down attached at all — the

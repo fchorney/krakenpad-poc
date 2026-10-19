@@ -397,7 +397,7 @@ static void int_test(void) {
 // ── RS-485 responder (stage 3) ──────────────────────────────────────────────
 // A minimal peer for docs/RS485_PROTOCOL.md — enough to make the master's bus
 // and its slot<->ID self-test real. NOT the gameplay firmware: no animations,
-// no flash config, no persistence. ../main.c still needs its wholesale port.
+// no flash config, no persistence. That is ../main.c (ported 2026-10-18).
 //
 // Frame, both directions: 0x55 | cmd | addr | len | payload[len] | crc8
 // CRC-8 poly 0x07 init 0x00, over cmd..payload.

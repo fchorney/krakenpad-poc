@@ -130,7 +130,7 @@ USB**, not the qualify window.
 | Stock | Problem | Ours |
 |-------|---------|------|
 | `'4'`/`'2'`/`'3'` LED triple | legacy split (16-LED grid + v4 inner 3×3 bolt-on), 0.6666 color scaling, 30 FPS cap | **one full-frame command**: 9 panels × 25 LEDs × RGB = 675 bytes, fragmented (~12 packets). No color scaling (panel gamma/brightness policy lives panel-side). Rate cap = LED refresh target (60Hz+), newest-frame-wins like stock |
-| `'t'` panel test mode | firmware-side pressure lighting demo | drop from firmware — host tool renders pressure lighting from telemetry it already gets (`tools/fsr_monitor.py` is the prototype of this) |
+| `'t'` panel test mode | firmware-side pressure lighting demo | ~~drop from firmware — host tool renders pressure lighting from telemetry it already gets (`tools/fsr_monitor.py` is the prototype of this)~~ **Reversed 2026-10-18: kept, rendered on the panel** (`'M'` mode 2, `docs/PANEL_CONFIG.md` → "LED modes"). The host route would be limited to the ~14 Hz per-panel telemetry rate |
 
 ### Drop
 
