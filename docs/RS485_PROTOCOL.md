@@ -42,8 +42,9 @@ happened to parse as a large `len` swallowed the next real packets as its
 payload. Recovery waits for the next idle gap, so inside the master's
 back-to-back `'L'` burst it comes at the end of the burst. The threshold sits
 above the 320 µs the 32-byte RX FIFO takes to fill, so interrupt latency alone
-can't fake a gap without also overrunning the FIFO. The master's parser and the
-bootloader's don't have this yet.
+can't fake a gap without also overrunning the FIFO. The panel bootloader has
+the same timeout since 2026-10-20 (it does not count it). The master's parser
+does not have it yet.
 
 ## Commands
 

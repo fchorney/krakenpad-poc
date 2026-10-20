@@ -13,7 +13,7 @@ target_include_directories(panel_bringup PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../co
 
 # Linked at 0x10008000 to run under ../bootloader, which is what makes bus
 # updates possible (docs/FIELD_UPDATE.md). Such an image does NOT boot on its
-# own: load panel_bootloader.uf2 first. -DPANEL_UNDER_BOOTLOADER=OFF builds the
+# own: load bootloader/build/panel_boot_usb.uf2 first. -DPANEL_UNDER_BOOTLOADER=OFF builds the
 # old standalone image at 0x10000000.
 option(PANEL_UNDER_BOOTLOADER "Link at the application offset, behind panel_bootloader" ON)
 if (PANEL_UNDER_BOOTLOADER)

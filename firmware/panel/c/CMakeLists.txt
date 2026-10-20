@@ -12,7 +12,7 @@ add_executable(panel_firmware main.c)
 target_include_directories(panel_firmware PRIVATE ${CMAKE_CURRENT_LIST_DIR}/common)
 
 # Linked at 0x10008000 to run under bootloader/, like the bring-up build: load
-# panel_bootloader.uf2 first, or update over the bus (docs/FIELD_UPDATE.md).
+# bootloader/build/panel_boot_usb.uf2 first, or update over the bus (docs/FIELD_UPDATE.md).
 # -DPANEL_UNDER_BOOTLOADER=OFF builds a standalone image at 0x10000000.
 option(PANEL_UNDER_BOOTLOADER "Link at the application offset, behind panel_bootloader" ON)
 if (PANEL_UNDER_BOOTLOADER)

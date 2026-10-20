@@ -59,6 +59,7 @@ uint64_t time_us_64(void) {
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000000u + (uint64_t)ts.tv_nsec / 1000u;
 }
+uint32_t time_us_32(void) { return (uint32_t)time_us_64(); }
 void busy_wait_us(uint32_t us) { (void)us; }
 absolute_time_t get_absolute_time(void) { return time_us_64(); }
 uint32_t to_ms_since_boot(absolute_time_t t) { return (uint32_t)(t / 1000u); }
@@ -96,6 +97,8 @@ void host_run_app(void) {
 }
 
 // The RX interrupt, as a thread: same ring, same drop-the-byte-when-full rule.
+// Bytes go in without the inter-byte gap flag: pipe timing says nothing about
+// the bus, so the timeout is not exercised here.
 static void *reader(void *arg) {
     (void)arg;
     uint8_t buf[512];

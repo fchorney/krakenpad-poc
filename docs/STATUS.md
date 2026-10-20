@@ -31,7 +31,9 @@ models).
 - **RS-485 bus, nine panels:** 0 errors in steady state; `I` slot ↔ ID self-test
   9/9; parser recovers from a broken packet (`b` test, 2026-10-20); `H` status from every panel; termination placement check after each `H`.
 - **Bus firmware update** to all nine at once (`tools/panel_update.py`),
-  including recovery from a 12 V cut mid-update.
+  including recovery from a 12 V cut mid-update. **The bootloader updates over
+  the bus too** (`tools/panel_boot_update.py`, 2026-10-20): all nine migrated to
+  stage 0 + A/B slots, bootloader tag `C5234B1B`.
 - **Panel LED modes:** master `'L'` frames, the ID image, and the on-panel sensor
   test, switchable from the master with `m`. LED stutter fixed 2026-10-19.
 - **Underglow:** all 44 groups addressable from bench commands (byte order BRG).
@@ -42,7 +44,7 @@ models).
 |---|---|---|
 | **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I C H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader | Config in flash (thresholds are **RAM only**); local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; `populated`/`enabled` flags; DIP diagnostic codes 9, 11, 12, 13 |
 | **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check | **USB command and data reports** (live FSR telemetry and config over HID); underglow periodic re-send and host strip command; poll interleaving (telemetry is ~14 Hz/panel) |
-| **Host tools** (`tools/`) | `panel_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py` | A config / SDK application (planned home for the update logic) |
+| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py` | A config / SDK application (planned home for the update logic) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 `docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. A future idea, not scheduled:
@@ -52,8 +54,13 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 - **Connect USB before 12 V** on any panel. A powered brain back-drives its VBUS,
   so a host won't attach (rev-2 candidate #3).
-- **The master's and the bootloader's RS-485 parsers have no inter-byte
-  timeout.** The panel app's got one on 2026-10-20 (`docs/BRINGUP_LOG.md`).
+- **The master's RS-485 parser has no inter-byte timeout.** The panel app and
+  bootloader got one on 2026-10-20 (`docs/BRINGUP_LOG.md`).
+- **Bootloader-over-bus, seven checks not yet run on a board** (V1–V7 in
+  `docs/FIELD_UPDATE.md` → "Validation"): the USB image, both BOOTSEL
+  fallbacks, SWD restore, power cuts mid-update and mid-conversion, a cold
+  12 V boot. V1–V4 go with the first new board's bring-up
+  (`docs/BUILD_CHECKLIST.md` step 2); V7 is the next pad power cycle.
 - **Master turnaround glitch:** whether the master's RX sees the same false start
   bit the panel did has never been measured (`docs/MASTER_BRINGUP.md`).
 - **Not yet measured:** the joystick in a real game (ITGmania), the host-side

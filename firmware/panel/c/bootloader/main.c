@@ -1,8 +1,11 @@
 // Panel bootloader — dual-panel rev 1.
 //
-// Owns the first 32 KB of flash and receives new application images over the
-// RS-485 bus. Design and protocol: docs/FIELD_UPDATE.md. Flash map and command
-// letters: ../common/fw_layout.h.
+// Receives new application images over the RS-485 bus. Design and protocol:
+// docs/FIELD_UPDATE.md. Flash map and command letters: ../common/fw_layout.h.
+//
+// Built twice, once per bootloader slot (FW_SLOT 0 = A at 0x10001000, 1 = B at
+// 0x10200000); stage0.c picks which one runs. Without FW_SLOT (the host test)
+// it is the old single bootloader.
 //
 // Boot sequence:
 //   1. If the boot-control record says an install was interrupted, redo it.
@@ -32,6 +35,7 @@
 #include "hardware/structs/nvic.h"
 #include "hardware/structs/systick.h"
 #include "fw_layout.h"
+#include "boot_slots.h"
 
 // ── As-built pins (docs/DUAL_PANEL.md) ──────────────────────────────────────
 #define PIN_RS485_TX    0
@@ -50,24 +54,36 @@
 #define RS485_MAX_PAY   80
 
 #define BOOT_LISTEN_US  200000u
+// A gap this long mid-packet abandons the packet, as in the gameplay firmware
+// (docs/RS485_PROTOCOL.md → "Framing"): longer than the 32-byte RX FIFO takes
+// to fill, shorter than any gap the master leaves between packets.
+#define RS485_GAP_US    500u
+#define RING_GAP_FLAG   0x100u           // ring entry: idle gap before this byte
 
 // ── RX ring ─────────────────────────────────────────────────────────────────
 // 32 KB is ~330 ms of a saturated 1 Mbps bus. Nothing the bootloader does
 // while frames it needs are arriving takes longer than one page program
 // (3 ms worst case); the long operations discard the ring afterwards anyway.
 #define RING_SIZE 32768u
-static volatile uint8_t  ring[RING_SIZE];
+static volatile uint16_t ring[RING_SIZE];
 static volatile uint32_t ring_head = 0, ring_tail = 0;
 static volatile bool     ring_resync = false;
+static uint32_t          ring_last_rx_us = 0;   // ISR only
 
 static void rx_irq(void) {
+    // Timed per IRQ, not per byte: one drain of a contiguous stream is never
+    // more than a FIFO-fill apart from the last, well under RS485_GAP_US.
+    uint32_t now = time_us_32();
+    uint16_t flag = (now - ring_last_rx_us) > RS485_GAP_US ? RING_GAP_FLAG : 0;
+    ring_last_rx_us = now;
     while (uart_is_readable(uart0)) {
         uint32_t dr = uart_get_hw(uart0)->dr;
         if (dr & 0xF00u) ring_resync = true;          // FE | PE | BE | OE
         uint32_t next = (ring_head + 1u) % RING_SIZE;
         if (next == ring_tail) continue;              // drop the byte, never the drain
-        ring[ring_head] = (uint8_t)dr;
+        ring[ring_head] = (uint16_t)((dr & 0xFFu) | flag);
         ring_head = next;
+        flag = 0;
     }
 }
 
@@ -123,13 +139,21 @@ static uint8_t dip_read(void) {
                      (gpio_get(PIN_DIP_ID1) << 1) |  gpio_get(PIN_DIP_ID0));
 }
 
-static uint32_t g_boot_tag;   // FNV-1a of this bootloader's build timestamp
+static uint32_t g_boot_tag;
 
+// From this slot's header: the CRC-32 of the slot A and slot B builds, the
+// same in both slots, so the host can check it against the files it sent. The host test
+// build has no slot and keeps the old FNV-1a of the build timestamp.
 static void compute_boot_tag(void) {
+#ifdef FW_SLOT
+    const fw_slot_hdr_t *h = fw_slot_hdr(flash_ptr(0), FW_SLOT);
+    g_boot_tag = fw_slot_hdr_ok(h) ? h->tag : 0;
+#else
     const char *s = __DATE__ " " __TIME__;
     uint32_t h = 2166136261u;
     while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; }
     g_boot_tag = h;
+#endif
 }
 
 // ── Boot-control record ─────────────────────────────────────────────────────
@@ -233,6 +257,7 @@ static void bus_init(void) {
     uart_set_fifo_enabled(uart0, true);
     uart_set_hw_flow(uart0, false, false);
     while (uart_is_readable(uart0)) (void)uart_get_hw(uart0)->dr;
+    ring_last_rx_us = time_us_32();
     irq_set_exclusive_handler(UART0_IRQ, rx_irq);
     irq_set_enabled(UART0_IRQ, true);
     uart_set_irq_enables(uart0, true, false);
@@ -356,7 +381,12 @@ static void reply_query(uint8_t me) {
             if (!(up_bitmap[i >> 3] & (1u << (i & 7u)))) put_u16(&r[16 + 2 * n_list++], i);
     }
     r[0] = g_state;
-    r[1] = (uint8_t)((app_vectors_sane() ? 1u : 0) | (g_ctrl.pending ? 2u : 0));
+#ifdef FW_SLOT
+    const uint8_t from_b = FW_SLOT ? 4u : 0;
+#else
+    const uint8_t from_b = 0;
+#endif
+    r[1] = (uint8_t)((app_vectors_sane() ? 1u : 0) | (g_ctrl.pending ? 2u : 0) | from_b);
     put_u16(&r[2], missing > 0xFFFF ? 0xFFFF : missing);
     put_u32(&r[4], g_ctrl.app_len);
     put_u32(&r[8], g_ctrl.app_crc);
@@ -403,8 +433,10 @@ static void bus_service(void) {
 
     if (ring_resync) { ring_resync = false; st = W_SYNC; }
     while (ring_tail != ring_head) {
-        uint8_t c = ring[ring_tail];
+        uint16_t e = ring[ring_tail];
+        uint8_t  c = (uint8_t)e;
         ring_tail = (ring_tail + 1u) % RING_SIZE;
+        if ((e & RING_GAP_FLAG) && st != W_SYNC) st = W_SYNC;   // packet cut off
         switch (st) {
         case W_SYNC: if (c == RS485_SYNC) { crc = 0; st = W_CMD; } break;
         case W_CMD:  cmd  = c; crc = crc8_update(crc, c); st = W_ADDR; break;

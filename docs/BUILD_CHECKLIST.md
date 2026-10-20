@@ -114,10 +114,16 @@ Micro-Fit 3 ×2 · `J205` `J208` Micro-Fit 2 ×2 · `J209` SWD 1×3 · `J210`–
 
 ```
 picotool reboot -f -u && sleep 3     # skip on a blank board
-picotool load firmware/panel/c/bootloader/build/panel_bootloader.uf2
+picotool load firmware/panel/c/bootloader/build/panel_boot_usb.uf2   # stage 0 + bootloader slot A
 picotool load firmware/panel/c/bringup/build/panel_bringup.uf2
 picotool reboot
 ```
+
+⚠ `panel_boot_usb.uf2` replaced `panel_bootloader.uf2` on 2026-10-20 and has
+not been loaded over USB yet (the nine built panels were migrated over the
+bus). **First new board: do the bootloader checks V1–V4 while it is on USB**
+(`docs/FIELD_UPDATE.md` → "Validation" → "Still to do"). V1 is this step;
+check that `'Q'` reports the bootloader tag printed by the bootloader build.
 
 **Bootloader first, as of 2026-10-18.** The bring-up image now links at
 `0x10008000` behind the panel bootloader, so it can be updated over the bus

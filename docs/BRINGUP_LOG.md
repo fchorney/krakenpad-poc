@@ -1289,9 +1289,45 @@ later-ID failures. Those stopped with the master's `waitBusQuiet()` fix before
 this existed. What it shows is that the parser now recovers from that kind of
 garbage within one gap.
 
-**Same gap elsewhere, not changed:** the master's RX parser and the panel
-bootloader's parser have no inter-byte timeout either. The bootloader is only
-reachable per board (USB or SWD); a bus update installs the app only.
+**Same gap elsewhere:** the master's RX parser has no inter-byte timeout
+either (not changed). ~~The panel bootloader's parser, which only USB or SWD
+could reach~~: fixed the same day, by updating the bootloader over the bus
+(next entry).
+
+### 2026-10-20 — bootloader updated over the bus, all nine panels
+
+**What:** stage 0 + two bootloader slots, installed by an updater app sent with
+the ordinary bus update (`docs/FIELD_UPDATE.md` → "Updating the bootloader over
+the bus"). Run with `tools/panel_boot_update.py`, which installs the updater,
+waits for `'Q'` to report the new tag, then reinstalls the gameplay app
+(`E87EF0CB`). Panels had the old single bootloader, tag `0A447BC5`.
+
+**Before hardware:** the power-cut host test passed (every flash write cut short
+in turn, four tear patterns each; never a hang), and failed on two deliberately
+wrong write orders. A stage 0 CRC guard in the build fails if stage 0 ever
+changes, checked against a modified stage 0.
+
+**On panel 0 (UL) alone, USB unplugged:**
+
+| run | result |
+|---|---|
+| migrate (old → tag `5226AC3A`) | ✅ new tag; the new bootloader then installed the app |
+| A/B update to a rebuild (tag `C5234B1B`) | ✅ slot B then slot A written; `'q'` shows slot A |
+| fallback: test build wipes slot A's header | ✅ `'q'` reports **slot B**; slot B installed an app over the bus |
+| normal update after that | ✅ slot A rewritten, back on slot A |
+
+**Panels 1–8 in one run:** ✅ all eight report `C5234B1B`, app reinstalled.
+After a minute of traffic, `H` 9/9 with `crc 0 uart 0 ovr 0 turn 0 tmo 0`, and
+the `b` parser test 9/9.
+
+**Not tested yet:** the BOOTSEL safety net (a board whose boot2 CRC fails), a
+real power cut during an update, `picotool` loading `panel_boot_usb.uf2`, a
+cold 12 V power-up through stage 0 (every boot so far was a watchdog reboot),
+and an SWD restore with `panel_boot_usb.bin`.
+
+**Tag change:** the first rebuild changed only slot B's binary (the `'q'` slot
+bit) while the tag was the CRC of slot A alone, so the tag would not have
+changed. Caught before it was used; the tag now covers both slot builds.
 
 ### Still open for this board
 

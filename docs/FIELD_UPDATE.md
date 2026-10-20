@@ -2,7 +2,9 @@
 
 **Status: implemented and in use.** Proven on hardware 2026-10-18 (eight panels,
 including both power-cut cases) and used since to deliver every gameplay build
-to all nine panels. The golden copy is reserved but not implemented. The pieces:
+to all nine panels. **Since 2026-10-20 the bootloader itself updates over the
+bus too** ("Updating the bootloader over the bus", below; all nine panels
+migrated). The golden copy is reserved but not implemented. The pieces:
 
 | piece | where |
 |---|---|
@@ -33,13 +35,15 @@ verified copy, so the pad never ends up half old and half new.
 ## Flash map
 
 ```
-0x000000 – 0x006FFF   28 KB  bootloader (boot2 + code; copied to RAM at boot)
+0x000000 – 0x000FFF    4 KB  stage 0: boot2 + bootloader slot selector (since 2026-10-20)
+0x001000 – 0x006FFF   24 KB  bootloader slot A (copied to RAM at boot)
 0x007000 – 0x007FFF    4 KB  boot-control record
 0x008000 – 0x07FFFF  480 KB  application
 0x080000 – 0x0FFFFF  512 KB  released animation slot
 0x100000 – 0x17FFFF  512 KB  pressed animation slot
 0x180000 – 0x1FFFFF  512 KB  staging (incoming image)
-0x200000 – 0x27FFFF  512 KB  golden copy — reserved, not implemented
+0x200000 – 0x205FFF   24 KB  bootloader slot B (since 2026-10-20)
+0x206000 – 0x27FFFF          golden copy — reserved, not implemented
 0x280000 – 0x3FFFFF          reserved
 ```
 
@@ -50,12 +54,14 @@ The application is the SDK's normal layout moved to `0x10008000`: its own
 and bring-up builds both link this way by default; `-DPANEL_UNDER_BOOTLOADER=OFF` builds
 the old standalone image.
 
-The bootloader build fails if it grows past 28 KB, because it would run into
-the boot-control record. It is 12.5 KB today.
+A bootloader build fails to link if it outgrows its slot (23.75 KB, the slot
+less its header page). It is 12.4 KB today. Before 2026-10-20 a single
+bootloader sat at `0x000000` with 28 KB; the boot updater migrates a board
+from that layout.
 
 ⚠ OpenOCD 0.11 treats the flash as 2 MB (`docs/PANEL_BRINGUP.md` → SWD), which
-covers the bootloader, the app and staging. The golden region and everything
-above `0x200000` are out of its reach.
+covers stage 0, slot A, the app and staging. Slot B, the golden region and
+everything above `0x200000` are out of its reach.
 
 ## Boot sequence
 
@@ -95,11 +101,11 @@ addressed `'Q'` or `'B'`.
 | offset | size | field |
 |---|---|---|
 | 0 | 1 | state: 0 idle, 2 receiving, 3 staged, 4 CRC fail, 5 refused, 6 installed, 7 copy fail |
-| 1 | 1 | bit0 app vectors plausible, bit1 install pending |
+| 1 | 1 | bit0 app vectors plausible, bit1 install pending, bit2 bootloader running from slot B (since 2026-10-20) |
 | 2 | 2 | blocks still missing |
 | 4 | 4 | installed app length (0 = loaded over USB/SWD, unknown) |
 | 8 | 4 | installed app CRC-32 |
-| 12 | 4 | bootloader build tag |
+| 12 | 4 | bootloader tag: CRC-32 of the slot A build followed by the slot B build, read from the running slot's header (since 2026-10-20; before that, FNV-1a of the build time) |
 | 16 | 2 × n | first missing block indices, n ≤ 16 |
 
 CRC-32 is the standard zlib one, so the host's `zlib.crc32()` matches. The
@@ -166,7 +172,7 @@ software, so the BOOTSEL button is never needed:
 
 ```sh
 picotool reboot -f -u && sleep 3
-picotool load firmware/panel/c/bootloader/build/panel_bootloader.uf2
+picotool load firmware/panel/c/bootloader/build/panel_boot_usb.uf2   # stage 0 + bootloader slot A
 picotool load firmware/panel/c/bringup/build/panel_bringup.uf2
 picotool reboot
 ```
@@ -211,11 +217,190 @@ The app only hears `'B'` when its responder is on, which in the bring-up
 firmware means bus mode: 12V present and the DIP on 0–8. On the bench, `U` on
 the panel's USB console reboots it into the bootloader too.
 
+## Updating the bootloader over the bus
+
+**DECIDED 2026-10-20: a fixed stage 0 plus two bootloader slots (A/B), installed
+the first time by an updater app sent over the bus.** Status: **in use since
+2026-10-20**: host-tested with every write cut short (below), then all nine
+panels migrated over the bus ("Validation"). The BOOTSEL safety net and a real
+power cut are not yet tested on a board.
+
+The bus update above only ever writes the app region, so until now a new
+bootloader meant a USB cable or SWD on every panel. The goal is to update it
+over the bus, so that **a power cut at any point leaves the board either
+booting or in USB BOOTSEL**, never hung.
+
+### The safety net it builds on
+
+The RP2040 boot ROM checks a CRC-32 over the first 256 bytes of flash (boot2)
+before running anything from flash. If the check fails, it enters USB BOOTSEL
+instead (RP2040 datasheet, "Bootrom" → boot sequence). A board in BOOTSEL is
+recovered with `picotool` over USB, without SWD or the button. So a write
+sequence is safe as long as it never leaves **a valid boot2 in front of
+incomplete code**. That rule shapes everything below. The fallback itself is
+to be confirmed on a board (see "Validation").
+
+### Layout
+
+```
+0x000000 – 0x000FFF    4 KB  stage 0: boot2 + slot selector. Written once, never again
+0x001000 – 0x006FFF   24 KB  bootloader slot A (header in its last 256 bytes, 0x006F00)
+0x007000 – 0x007FFF    4 KB  boot-control record (unchanged)
+   …                         app, animation slots, staging (unchanged)
+0x200000 – 0x205FFF   24 KB  bootloader slot B (header at 0x205F00), from the golden region
+```
+
+- **Stage 0** reads both slot headers, takes the valid one with the higher
+  sequence number, checks its image CRC-32 and vector table, and jumps to it the
+  way boot2 would. If that slot fails, it tries the other. If neither is valid
+  it calls the boot ROM's `reset_usb_boot()`, so the board comes up in BOOTSEL.
+- **A slot header** (magic, sequence, image length, image CRC-32, header CRC) is
+  written **only after the image verifies**. A slot cut off mid-write has no
+  valid header, and stage 0 ignores it.
+- **Each slot holds the same bootloader built for its own address.** The
+  bootloader is `copy_to_ram`, whose start-up code runs from flash at its link
+  address, so slot A and slot B are two builds of the same source.
+- Slot B is above 2 MB, out of OpenOCD 0.11's reach (`docs/PANEL_BRINGUP.md` →
+  SWD). SWD and USB recovery write stage 0 + slot A only, which boots on its own.
+
+### The updater app
+
+A normal application (linked at `0x10008000`) with stage 0 and both slot builds
+embedded. It goes out with the ordinary bus update, runs once, and then reboots
+into the bootloader with the hold flag set, so the panel waits in the
+bootloader for the next bus update. The host checks the result with `'Q'`: the
+bootloader build tag it reports must equal the new build's.
+
+**On a panel with the old layout** (a single bootloader at `0x000000`):
+
+1. Write slot B and its header, and verify. The old bootloader is untouched, so
+   a power cut here just boots the old one, which runs the updater again.
+2. Erase sector 0. From here a power cut gives BOOTSEL: boot2 is gone.
+3. Program stage 0's pages above boot2, verify them, then program the boot2 page
+   last and verify the whole sector. A cut while programming boot2 leaves a
+   failing boot2 CRC, which is BOOTSEL again.
+4. Stage 0 now boots slot B. Write slot A with a higher sequence number.
+
+Steps 2–3 are the only window where a cut needs a USB cable: one 4 KB erase and
+16 page programs.
+
+**On a panel with the new layout**, only slots are written, never sector 0. The
+updater writes the slot stage 0 is *not* booting, with a higher sequence
+number, then the other one, so both end up holding the new build. A cut at any
+point leaves at least one valid slot.
+
+The updater refuses to touch sector 0 if it holds a stage 0 that differs from
+its own. Stage 0 is meant never to change; changing it is a separate decision.
+
+### Files and use
+
+| piece | where |
+|---|---|
+| layout, slot header | `firmware/panel/c/common/fw_layout.h` |
+| slot checks shared by stage 0, updater and test | `firmware/panel/c/common/boot_slots.h` |
+| stage 0 | `firmware/panel/c/bootloader/stage0.c`, `stage0.ld` |
+| write order | `firmware/panel/c/bootloader/boot_install.c` |
+| updater app | `firmware/panel/c/bootloader/updater.c` |
+| USB/SWD image (stage 0 + slot A) | `firmware/panel/c/bootloader/pack_boot.py` → `panel_boot_usb.uf2` / `.bin` |
+| host tool | `tools/panel_boot_update.py` |
+| power-cut test | `firmware/panel/c/bootloader/host_test/test_boot_install.c` |
+
+One build of `firmware/panel/c/bootloader` makes all of it. Then, one panel
+first:
+
+```sh
+python3 tools/panel_boot_update.py --app firmware/panel/c/build/panel_firmware.bin --panels 0
+```
+
+It installs the updater, waits until `'Q'` reports the new tag (the CRC-32 of
+`panel_bootloader_a.bin` followed by `panel_bootloader_b.bin`), then reinstalls
+the app.
+
+The new bootloader also has the bus parser's inter-byte timeout
+(`docs/RS485_PROTOCOL.md` → "Framing"); the old one does not.
+
+### Limits
+
+- **A new bootloader that boots but can't receive updates** can't be fixed
+  over the bus. Stage 0 only falls back on a failed CRC, not on bad behaviour.
+  Mitigation: host test, then USB on one panel, then the bus on that one panel,
+  then the rest.
+- The interface between bootloader and app (app at `0x10008000`, the
+  boot-control record at `0x7000`, the vector-table hand-off, `'q'`) must stay
+  compatible across bootloader versions.
+
+### Validation
+
+**Done 2026-10-20** (master #2, nine panels, gameplay app `E87EF0CB` reinstalled
+after each run; detail in `docs/BRINGUP_LOG.md`):
+
+1. ✅ Host test: every flash write cut short in turn (below).
+2. ✅ Panel 0 (UL) alone, over the bus: **migrated** from the old bootloader
+   (`0A447BC5`) to tag `5226AC3A`; the new bootloader then installed the app.
+3. ✅ Panel 0, **A/B update** on the new layout: a rebuilt bootloader (tag
+   `C5234B1B`) written to B, then A.
+4. ✅ Panel 0, **fallback to slot B**: the test build `panel_boot_test_fallback`
+   wiped slot A's header; stage 0 booted slot B (`'q'` bit 2), which installed
+   an app over the bus. The normal updater then rewrote A.
+5. ✅ Panels 1–8 migrated in one run: all report `C5234B1B`. Then `H` 9/9 with
+   0 errors, and the `b` parser test 9/9.
+
+**Still to do.** Most of these suit one brain on USB at bring-up; the build
+checklist points the first new board here. Record results in
+`docs/BRINGUP_LOG.md` and tick them off here.
+
+| # | test | where | pass |
+|---|---|---|---|
+| V1 | `picotool load panel_boot_usb.uf2` on a blank board, then the bring-up app | new board, USB | loads, including the UF2's sector above 2 MB; `'Q'` reports the tag the bootloader build printed |
+| V2 | **Stage 0's own fallback:** erase slot A's header sector (`0x10006000`–`0x10007000`) on a board with no slot B (any board loaded by V1), reset | new board, USB | enumerates as BOOTSEL: stage 0 found no valid slot and called the boot ROM. Then reload V1 |
+| V3 | **The boot ROM safety net:** load a copy of the USB image with one byte of boot2 flipped, reset | new board, USB | enumerates as BOOTSEL (boot2 CRC fails). Then reload V1 |
+| V4 | SWD restore: `program panel_boot_usb.bin 0x10000000` then the app (`docs/PANEL_BRINGUP.md`) | new board, probe | boots, `'Q'` answers |
+| V5 | **Power cut during a bootloader update** (A/B slots) | one board on the bus, USB unplugged | after 12 V returns: boots, or BOOTSEL; never a dead board. Re-running the update finishes it |
+| V6 | Power cut during **conversion** from the old layout | one board, old bootloader loaded first | as V5 |
+| V7 | Cold 12 V power-up of the pad through stage 0 | the whole pad, any time | `H` 9/9 after power-up |
+
+Notes:
+- V2 and V3 test the two different ways a board falls back to BOOTSEL. V2 uses
+  code we wrote and that has never run on hardware (stage 0 → ROM
+  `reset_usb_boot`). V3 is the boot ROM check that the whole design depends on.
+  Check the erase syntax against `picotool help erase` for the version
+  installed: its range form is `erase -r <from> <to>`.
+- V5 and V6: a whole bootloader write takes well under a second, so cutting
+  power at the right moment by hand is luck. A test build of the updater that
+  pauses before each step would make it repeatable. That build doesn't exist
+  yet.
+- V6 needs the old single bootloader, which is no longer built: build
+  `firmware/panel/c/bootloader` at commit `5fe3ddc` and load its
+  `panel_bootloader.uf2` over USB first.
+- Doing V2/V3 on a built panel instead works too, but needs its USB cable,
+  which on a panel in the pad means the top off.
+
 ## Host test
 
 ```sh
 python3 firmware/panel/c/bootloader/host_test/test_update.py APP.bin STANDALONE.bin
 ```
+
+The bootloader-update write order has its own test (2026-10-20), against the
+built images and a copy of an old single bootloader:
+
+```sh
+cd firmware/panel/c/bootloader
+cc -std=c11 -Wall -Wextra -Werror -O2 -I ../common -I . -o /tmp/test_boot_install \
+  host_test/test_boot_install.c boot_install.c
+/tmp/test_boot_install build/stage0.bin build/panel_bootloader_a.bin \
+  build/panel_bootloader_b.bin OLD_BOOTLOADER.bin build/panel_boot_usb.bin
+```
+
+It cuts power at every flash operation in turn (each sector erase or page
+program, four tear patterns each) and decides what the boot ROM and stage 0
+would do next. It fails on anything but BOOTSEL (boot2 CRC fails) or a
+complete bootloader booting, then resumes the updater and checks both slots
+hold the new build. **First run 2026-10-20: all pass.** Migrating an old board
+is 131 operations: 228 cuts boot the old bootloader, 228 a slot, 68 BOOTSEL.
+Updating a migrated board is 114: all 456 cuts boot a slot. To confirm it can
+fail: writing boot2 first gives `HANG`, and writing stage 0 before slot B
+leaves boards that cannot recover. Both were caught.
 
 It compiles the real `bootloader/main.c` for the Mac against stub SDK headers:
 flash is a RAM array that only clears bits, and the UART is stdin/stdout. It

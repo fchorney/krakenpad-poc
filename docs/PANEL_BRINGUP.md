@@ -25,7 +25,7 @@ PATH=/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi/bin:$PATH \
 PATH=/Applications/ArmGNUToolchain/15.2.rel1/arm-none-eabi/bin:$PATH \
   cmake --build firmware/panel/c/bringup/build -j8
 picotool reboot -f -u && sleep 3     # skip on a blank board
-picotool load firmware/panel/c/bootloader/build/panel_bootloader.uf2
+picotool load firmware/panel/c/bootloader/build/panel_boot_usb.uf2   # stage 0 + bootloader slot A
 picotool load firmware/panel/c/bringup/build/panel_bringup.uf2
 picotool reboot
 ```
@@ -691,11 +691,13 @@ openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" 
 
 That was run with the standalone image of the time. **Since 2026-10-18 the
 bring-up image sits behind the bootloader**, so an SWD restore from blank is two
-`program` steps, bootloader first:
+`program` steps, bootloader first. Since 2026-10-20 "the bootloader" is stage 0
+plus slot A, packed as one binary for flash `0x000000` (`docs/FIELD_UPDATE.md`
+→ "Updating the bootloader over the bus"):
 
 ```sh
 openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" \
-  -c "program firmware/panel/c/bootloader/build/panel_bootloader.elf verify" \
+  -c "program firmware/panel/c/bootloader/build/panel_boot_usb.bin 0x10000000 verify" \
   -c "program firmware/panel/c/bringup/build/panel_bringup.elf verify reset exit"
 ```
 

@@ -1,7 +1,8 @@
-# Fails the build if the bootloader image would overlap the boot-control
-# record (FW_CTRL_OFFSET in ../common/fw_layout.h).
+# Fails the build if an image is over the space it has in flash
+# (../common/fw_layout.h).
 file(SIZE ${BIN} size)
+get_filename_component(name ${BIN} NAME)
 if(size GREATER LIMIT)
-    message(FATAL_ERROR "panel_bootloader.bin is ${size} bytes, over the ${LIMIT}-byte limit")
+    message(FATAL_ERROR "${name} is ${size} bytes, over the ${LIMIT}-byte limit")
 endif()
-message(STATUS "panel_bootloader.bin: ${size} of ${LIMIT} bytes")
+message(STATUS "${name}: ${size} of ${LIMIT} bytes")

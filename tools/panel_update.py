@@ -24,7 +24,8 @@ firmware it already had.
 
 The image must be the .bin of an application linked at 0x10008000 (the
 bring-up build does this by default); the tool refuses anything else. Panels
-need panel_bootloader, loaded once over USB.
+need the bootloader, loaded once over USB (panel_boot_usb.uf2); after that it
+updates over the bus too (tools/panel_boot_update.py).
 
 Usage: python3 tools/panel_update.py IMAGE.bin [--port P] [--panels 0-8] [--force]
 """
@@ -171,6 +172,7 @@ class PanelStatus:
         self.state = payload[0]
         self.app_sane = bool(payload[1] & 1)
         self.pending = bool(payload[1] & 2)
+        self.slot_b = bool(payload[1] & 4)          # bootloader running from slot B
         self.missing_count = payload[2] | payload[3] << 8
         self.app_len, self.app_crc, self.boot_tag = struct.unpack_from("<III", payload, 4)
         self.missing = list(struct.unpack_from(f"<{(len(payload) - 16) // 2}H", payload, 16))
@@ -181,7 +183,8 @@ class PanelStatus:
         # Pending = an install was cut off. The bootloader redoes the copy at
         # every boot until it verifies, so a held panel should never show it.
         pend = ", INSTALL PENDING" if self.pending else ""
-        return f"{ST_NAMES.get(self.state, self.state)}, {app}{pend}, bootloader {self.boot_tag:08X}"
+        slot = " (slot B)" if self.slot_b else ""
+        return f"{ST_NAMES.get(self.state, self.state)}, {app}{pend}, bootloader {self.boot_tag:08X}{slot}"
 
 
 class PanelUpdater:

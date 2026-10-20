@@ -149,9 +149,10 @@ The slots sit in the panel flash map defined by the bus-update bootloader
 0x100000 – 0x17FFFF   512 KB  pressed animation slot
 ```
 
-The rest of the 4 MB holds the bootloader (`0x000000`), the application
-(`0x008000`, 480 KB), the update staging area (`0x180000`) and a reserved golden
-copy (`0x200000`). Config has no region assigned yet.
+The rest of the 4 MB holds stage 0 and bootloader slot A (`0x000000`), the
+application (`0x008000`, 480 KB), the update staging area (`0x180000`),
+bootloader slot B (`0x200000`) and a reserved golden copy after it. Config has
+no region assigned yet.
 
 Sector size (minimum erase unit): **4 KB**. Both slot boundaries are
 sector-aligned. 512 KB per slot holds ~113 seconds at 60fps, far more than any
