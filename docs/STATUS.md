@@ -79,6 +79,27 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 7. Underglow: periodic re-send, then the host command. (Deferred by the user on
    2026-10-08: noted, not to be built yet.)
 
+## Long-run tests (planned, none run yet)
+
+Recorded 2026-10-20 from the user's memory of an earlier chat; the full list
+from that chat was lost. Duration, conditions and pass criteria are **TODO**
+for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
+~120 s steady-state bus check (2026-10-19).
+
+1. **Full-white soak, all nine panels: first run done 2026-10-20.** Master
+   console `w` toggles it. Boards only slightly warm; **~3.4 A measured**
+   (two meters), ~12% under the model; `H` steady state at full white 0
+   errors on all nine (`docs/BRINGUP_LOG.md`). Bus errors after a 12 V power-up
+   are panels booting into live traffic: random panels each time, none with
+   traffic paused, and they stop once every panel is up. Still to do: a
+   re-run **under the trunk fuse**, which isn't fitted yet.
+2. **Thermal.** Includes `U303` at real load, which so far has only been checked
+   as "barely warm" on 12 V alone, on one board (`docs/DUAL_PANEL.md`).
+3. **Overnight bus soak.** Watch the `H` error counters and the master's
+   poll-answered count.
+4. Some of the open items above may also have been on the list: cable pulls and
+   power cycles during play, and polling plus LED frames under load.
+
 ## Where things are
 
 | Need | Doc |

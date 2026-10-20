@@ -160,6 +160,10 @@ another is meant has now caused the same confusion twice.
 - The **budget table above uses the datasheet's 15 mA**, a *total*. The assembled
   panel measures 14.66 — so that budget is **confirmed to ~1% on hardware**
   (0.43 A/panel vs 0.44 A budgeted; 6.28 A pad vs 6.34 A), not conservative.
+  **Nine panels together measured lower, 2026-10-20:** ~3.4 A at full white
+  (~0.38 A/panel), against 3.87 A from that one panel's figure. The budget
+  still holds as an upper bound; the per-panel number varies by ~12% between
+  boards. Details: `docs/BRINGUP_LOG.md` → "2026-10-20 — full-white soak".
 - The **model** for predicting what a frame draws uses the PWM-scaled figure.
   Use **12.9 mA** for the board; 8.7 was the strip and under-predicts by half.
 - `8.7 + 1.84 = 10.5` and `12.9 + 1.76 = 14.66` — that is why the pairs of

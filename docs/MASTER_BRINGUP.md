@@ -88,6 +88,7 @@ five need no panels and no 12V.
 | `H` | status sweep: one `'H'` per poll slot to IDs 0–8, one line per panel (build tag, uptime, last reset cause, 12V/termination/auto-INT/echo/INT state, frame and error counters), `NO REPLY` for a silent one |
 | `z` | zero bus counters, on the master and (by broadcast `'Z'`) on every panel |
 | `m <mode> [secs]` | panel LED mode by broadcast `'M'`: 0 normal, 1 ID, 2 sensor test |
+| `w` | toggle full white (255,255,255) on every LED of every panel, presses ignored: the full-white soak. Panels must be in mode 0 and bus traffic running |
 | `S <panel> <press> <rel>` | set FSR thresholds on one panel (RAM only) |
 
 ## Stage 1 — master alone, USB only

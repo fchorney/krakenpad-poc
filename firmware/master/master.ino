@@ -498,6 +498,10 @@ void buildSolidFrame(uint8_t *frame, Color c) {
 // state the master is in when it is first powered.
 
 bool bus_traffic = true;   // 'x' gates the LED-frame + poll loop
+// `w`: every LED on every panel at full white (255,255,255), presses ignored,
+// for the full-white soak. Load is ~0.44 A per panel at 12 V; nine panels
+// ~4 A (hardware/harness/README.md -> "Power budget").
+bool white_soak = false;
 
 // A reply-bearing command ('C') must not go out the moment it is typed: it can
 // land tens of microseconds after an 'F' poll, while that panel is still
@@ -985,6 +989,7 @@ void printHelp() {
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
     "  z                          zero bus counters, master and all panels\r\n"
     "  m <mode> [secs]            panel LEDs: 0 normal, 1 ID, 2 sensor test\r\n"
+    "  w                          toggle full white on all panels (soak test)\r\n"
     "  P                          bus passthrough for tools/panel_update.py (binary)\r\n"
     "  S <panel> <press> <rel>    set FSR thresholds on one panel"));
 }
@@ -1025,6 +1030,12 @@ void handleCommand(const char *s) {
     bus_traffic = !bus_traffic;
     Serial.print("# bus traffic ");
     Serial.println(bus_traffic ? "RESUMED" : "PAUSED");
+  } else if (strcmp(s, "w") == 0 || strcmp(s, "W") == 0) {
+    white_soak = !white_soak;
+    Serial.print("# full white ");
+    Serial.print(white_soak ? "ON" : "OFF");
+    if (white_soak && !bus_traffic) Serial.print(" (bus traffic is paused: `x` to resume)");
+    Serial.println();
   } else if (strcmp(s, "I") == 0) {
     identifySelfTest();
   } else if (strcmp(s, "j") == 0 || strcmp(s, "J") == 0) {
@@ -1246,13 +1257,14 @@ void loop() {
   digitalWriteFast(LED_PIN, any_pressed ? HIGH : LOW);
 
   // Per-panel addressed LED frames at 60Hz: solid color if that panel is
-  // pressed, dim rainbow chase otherwise.
+  // pressed, dim rainbow chase otherwise. `w` overrides both with full white.
   uint32_t now_ms = millis();
   if (bus_traffic && now_ms >= next_frame_ms && replyWindowOver()) {
     next_frame_ms = now_ms + FRAME_INTERVAL_MS;
     for (int i = 0; i < NUM_PANELS; i++) {
       uint8_t frame[NUM_LEDS * 3];
-      if (panel_pressed[i]) buildSolidFrame(frame, PANEL_PRESS_COLOR[i]);
+      if (white_soak)            buildSolidFrame(frame, Color{255, 255, 255});
+      else if (panel_pressed[i]) buildSolidFrame(frame, PANEL_PRESS_COLOR[i]);
       else                  buildIdleFrame(frame, now_ms);
       sendPacket('L', PANEL_IDS[i], frame, sizeof(frame));
       stat_frames_sent++;

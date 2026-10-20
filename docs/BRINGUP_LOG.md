@@ -1169,6 +1169,93 @@ were probably happening at a low rate all along, below the threshold of
 looking like a stutter. This rests on the code reading and the before/after
 observation; the wrap itself was never caught on an instrument.
 
+### 2026-10-20 — full-white soak
+
+New master console command `w` (full white on all nine panels, presses
+ignored) uploaded and **working on the bench**. Nine panels, no trunk fuse
+fitted. Purpose: run the panels at full LED current for a while and confirm
+they all still work afterwards. `U303` (AMS1117-5.0) doesn't carry the LED
+current (WS2815 runs on 12 V), so its temperature in this test mostly reflects
+the LEDs heating the board.
+
+- **Thermal (by touch):** boards "a tiny bit warm, not hot in any way".
+- **Trunk current, measured** with two different multimeters in series, spot
+  readings (the user's AstroAI DM6000AR is rated 10 s on the 10 A input, then
+  15 min off):
+
+  | LEDs | measured | model |
+  |---|---|---|
+  | idle rainbow (master default, ~1/8 brightness) | **~0.97 A** | — |
+  | **full white, all nine (`w`)** | **~3.4 A** (~0.38 A/panel) | 3.87 A (9 × 0.43 A, from the 2026-09-08 panel) |
+
+  **Full white reads ~12% under the model.** The model's per-pixel figure
+  (14.66 mA) came from one assembled panel; the 2026-08-16 strip cut gave
+  10.5 mA, so LED-to-LED spread this size is already on record. Not
+  investigated. Rail voltage during the readings was not recorded.
+
+- **Soak ~1 hour**, ambient ~20 °C. No brain had USB attached, so every
+  brain's logic load was on the 12 V trunk.
+- **`H` afterwards: 9/9 answer**, build `E7D4BF9B`, `12V yes`, `term ON` only
+  on DR. But all nine read `up 262s reset power-on`: the 12 V was unplugged
+  and replugged several times for the current readings, and `H` wasn't taken
+  before that. **So `H` covers only the ~4 minutes after the last power-up, not
+  the soak.** (Frame counts fit that: ~210,000 at the ~808 frames/s from
+  2026-10-19 is ~260 s.)
+
+  | panel | crc | uart | turn |
+  |---|---|---|---|
+  | U (id 1) | 1 | 106 | 13 |
+  | UR (id 2) | 0 | 22 | 12 |
+  | C (id 4) | 1 | 60 | 14 |
+  | R (id 5) | 1 | 82 | 15 |
+  | UL, L, DL, D, DR | 0 | 0 | 0 |
+
+  `ovr` 0 everywhere. **Not yet known** whether these came from the power-up
+  (all nine booting while the master was already sending) or keep happening
+  in steady state at full white. The 2026-10-19 nine-panel run, not at full
+  white, read 0 everywhere after `z`.
+- **Re-check: `z`, full white held, `H` at `up 1120s`: 0 errors on all nine**
+  (`crc`/`uart`/`ovr`/`turn` all 0, ~551,000 frames each). So **steady state at
+  full white is clean**, and the earlier errors came from around the power-up.
+  Which part of the power-up (panels booting into live traffic, or the
+  replugging itself) wasn't isolated. Why only U, UR, C and R picked them up is
+  also open; a deliberate power-up with `z` just before would show whether it
+  repeats on the same four.
+- **Deliberate 12 V power cycle**, traffic running, `H` at `up 39s`:
+
+  | panel | crc | uart | turn |
+  |---|---|---|---|
+  | UL (id 0) | 0 | 74 | 11 |
+  | U (id 1) | 0 | 90 | 13 |
+  | C (id 4) | 0 | 31 | 19 |
+  | the other six | 0 | 0 | 0 |
+
+  **A different set from the first time** (then U, UR, C, R). So it isn't tied
+  to particular boards; any panel can pick up errors at power-up, and they stop
+  once everything is up. `turn` counts a UART error within 200 µs of the
+  panel's own transmit, `uart` any other (`rs485_rx_irq()` in
+  `firmware/panel/c/main.c`). The user waited "a few minutes" before `H` but
+  the panels report 39 s of uptime; the user confirmed the wait was shorter
+  than it felt, so the 12 V did not drop again.
+
+  **Inferred, not tested:** panels power up at slightly different moments, and
+  a brain's transceiver may briefly drive the bus while its RP2040 boots and
+  before firmware sets DE. That would garble traffic for panels already
+  running. The other candidate is simply panels booting into live traffic
+  mid-byte. To tell them apart: pause traffic with `x`, power-cycle, wait,
+  resume with `x`, wait, `H`. Errors with traffic paused would point at
+  booting transceivers. Bearing on this: the DE pull-down was dropped
+  (2026-09-07) on a *static* reading, `TP306` 35 mV on a blank board. DE during
+  the power ramp itself has never been looked at.
+- **That test, run once:** traffic paused with `x`, 12 V power-cycled, traffic
+  resumed, `H` at `up 36s`: **0 errors on all nine.** So the power-up errors
+  need live traffic: **they are panels booting into the middle of the master's
+  frames**, and each recovers once it re-syncs. No sign of a booting
+  transceiver disturbing the bus, at the counters' resolution (a scope would
+  see more). One run only. Harmless for play, since press input goes over the
+  INT wires; worth remembering for the "panel power cycle during play"
+  robustness test.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
