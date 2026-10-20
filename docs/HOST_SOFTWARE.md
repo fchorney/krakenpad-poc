@@ -49,11 +49,98 @@ Once the user calls rev 1's software and firmware finished, each element moves
 to its own repo. Until then the SDK is **not published to crates.io**; deadsync
 uses it as a local path dependency when it gets there.
 
+**DECIDED 2026-10-20: names and layout.** KrakenPad stays the name for now.
+
+```
+software/             Cargo workspace (separate from firmware/ and hardware/)
+  sdk/                crate krakenpad: the SDK's Rust API (deadsync, our apps)
+  sdk-c/              crate krakenpad-c: the C interface; builds libkrakenpad
+                      (static + shared) and a generated krakenpad.h
+  apps/config/        krakenpad-config
+  apps/editor/        krakenpad-editor
+```
+
+- Two SDK crates so the Rust API never bends to C's limits and every `unsafe`
+  line sits in the small `krakenpad-c`.
+- C names are prefixed `krakenpad_` (types `Krakenpad…`): C has no namespaces,
+  and a short prefix risks clashing inside a codebase the size of ITGmania's.
+- **Updates live in the config app** (a tab or a "check for updates" dialog),
+  not a separate app. Command-line tools for power users may follow if people
+  want them.
+
+**DECIDED 2026-10-20: how the SDK delivers data.** The stock SDK is a template,
+not a spec; this was chosen against the alternatives below.
+
+- The SDK runs its own background thread reading HID. **It never runs game code
+  on that thread.**
+- **Current state** (connection, latest FSR values, config) is a snapshot the
+  game copies out whenever it wants, from any thread.
+- **Events that must not be missed** (connect/disconnect, config write done or
+  failed, update progress, and later timestamped presses) go into one queue,
+  which the game reads in any of three ways:
+  - **B, poll:** drain it once per frame. Costs about one atomic read when empty.
+  - **C, blocking wait:** `wait_event(timeout)` on a thread the game owns, which
+    sleeps until something arrives. This is how a game keeps SDK work entirely
+    off its main loop, e.g. its input thread.
+  - **D, wake-up signal:** the SDK calls one tiny game-supplied function that
+    only says "something is ready" (to post into an engine's own event loop);
+    the game then pulls as in B.
+- **Not offered, for now:** A, full callbacks with data on the SDK's thread (the
+  stock SDK's model). They move the hand-off into every game and need rules like
+  "return fast, don't call stop from inside"; they can be added if someone asks.
+  E, Rust async streams: deadsync doesn't need them (below).
+- **One context manages every pad**, as the stock SDK does, but **up to four**,
+  keyed by the master's player-ID DIP (P1–P4; 4–7 reserved). Every snapshot and
+  event names its pad.
+- Gameplay presses keep arriving through the standard joystick HID that games
+  already read. The SDK adds telemetry, config, updates, and later the
+  timestamped input stream (`docs/TIMESTAMPED_INPUT.md`).
+
+Defaults that came with it: opaque handles with open/close and a pad list;
+every C function returns a status code (`krakenpad_error_string()` for text);
+structs are filled into caller-provided memory, so the SDK never hands back
+memory to free; `krakenpad_version()` and a size field leading each struct, so
+a newer library works with an older game.
+
+### How deadsync is built (read 2026-10-20, upstream `bacdc3e37`)
+
+What the SDK has to fit, from deadsync's source:
+
+- **Main loop: winit.** Input backends run on threads deadsync spawns, and post
+  events into the main loop through winit's `EventLoopProxy`
+  (`crates/deadsync-shell/src/input_backend.rs`). The stock-SMX support
+  (`deadsync-smx`, on the `rustmaniax-sdk` crate) takes the SDK's callbacks and
+  forwards them through that same proxy.
+- **FSR telemetry is polled.** The FSR screens call `poll_pads_into()` and read
+  a `PadView` snapshot per frame (`crates/deadsync-input-fsr/`), with one backend
+  per pad family (`BackendKind::{Fsrio, Smx}`).
+- **No async in the input path.** tokio appears only in the heart-rate crate, on
+  its own runtime thread.
+
+So deadsync would use the SDK as: a thread of its own blocking on the event
+queue (C) that forwards into `EventLoopProxy`, like its native input backends;
+and the state snapshot (B) behind a new `BackendKind::KrakenPad` for the FSR
+screens. Rust async (E) isn't needed.
+
+Constraints it puts on the SDK:
+- deadsync supports **Windows 7** and patches the `hidapi` crate for it
+  (`[patch.crates-io]` → `vendor/hidapi-win7`). The SDK must depend on the
+  `hidapi` crate (not its own HID code), so that patch covers it too.
+- deadsync builds with **edition 2024, `rust-version = 1.97`**, and pins
+  `hidapi = 2.6.7` per OS (`windows-native`, `linux-static-hidraw`).
+
+**DECIDED 2026-10-20: versions match deadsync where they overlap**, so the SDK
+drops into deadsync without conflicts.
+
+| | Pinned | Why |
+|---|---|---|
+| `hidapi` crate | **2.6.7**, `windows-native` on Windows, `linux-static-hidraw` on Linux | deadsync's version and backends; its Windows 7 patch then covers the SDK |
+| Rust edition | **2024** | deadsync's |
+| `rust-version` | **1.97**, fixed; raised only on purpose | deadsync's minimum today; the SDK must never be what raises deadsync's |
+| `egui` / `eframe` | latest release when the apps are started, then pinned exactly | apps only; not in the SDK or deadsync |
+| `cbindgen` | latest when `krakenpad-c` is started | build-time tool only |
+
 ## Not decided
 
-- Crate and library names, and the C interface's shape (handles, callbacks vs
-  polling for input and telemetry).
-- Versions to pin. egui, eframe and the hidapi crate were chosen from what was
-  known on 2026-10-20; check current releases and maintenance before starting.
 - How the SDK takes over bus updates (`docs/FIELD_UPDATE.md`), which today go
   through the master's text-console passthrough rather than a USB report.
