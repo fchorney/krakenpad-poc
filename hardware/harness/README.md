@@ -35,8 +35,9 @@ Outputs land in `out/` and are **not** committed.
 | `underglow.yml` | Fan-out + master → underglow strips | 1 |
 | `fsr-panel.yml` | FSR → panel carrier, internal to a panel | 36 (4×9) |
 
-`PARTS.md` is the connector/contact/cable/tooling index **and the shopping
-list** — everything still to buy is marked ⬜ there.
+`PARTS.md` is the as-built connector, contact, cable and tooling list, with the
+assembly rules and the few open items. Both pads' harnesses were built by
+2026-10-12.
 
 `WIRE_COLORS.md` is the per-conductor color reference.
 
@@ -95,16 +96,24 @@ these totals.
 | 12 V columns + trunk, 2C 20 AWG | 5.4 m + ~1 m = **6.4 m** | **20 m** |
 | **RS-485 + INT, 22 AWG 2-core shielded pair (RVSP)** — one reel | 4.2 m + 10.65 m = **14.85 m** (INT was 9.3 m before the +15 cm/cable of 2026-10-02) | **40 m** (bought 50 m) |
 
+**As built (both pads, 2026-10-12):** power 18 × 60 cm; RS-485 2 × 60 cm +
+16 × 45 cm; INT per `int-home-run.yml`. A dry fit found the stock-derived power
+and RS-485 lengths a little long, and they were kept. Two INT pairs share a
+length (UL/C at 105 cm, L/D at 135 cm), so each pair was labelled one of each;
+they are interchangeable. On pad A, the INT cable first cut for `U` at 90 cm
+was relabelled `UR`.
+
 **RS-485 and INT share one cable as of 2026-08-16.** Both are 2-core shielded
 twisted pair at signal-level current; only the shield termination differs
 (RS-485 → Micro-Fit pin 3, INT trimmed). 22 AWG is the only gauge inside both
 connector windows — JST XH needs ≥1.30 mm insulation OD, Micro-Fit ≤1.85 mm.
-Rationale in `PARTS.md` → "RS-485 and INT share ONE cable".
+Rationale in `docs/archive/HARNESS_PARTS_HISTORY.md` → "RS-485 and INT share
+ONE cable". The cable as delivered measures 24 AWG; see `PARTS.md` → "Cable".
 
 ⚠ **The "Needed" column is one pad; the "Buy" column is two.** These were
 mismatched until 2026-08-16, when the buy quantities were still sized for a
 single pad even though the board and connector orders had long been sized for
-two. Sourcing detail and the match-checks are in `docs/BOM.md` → Order 4.
+two. Sourcing detail and the match-checks are in `docs/rev1-order/BOM.md` → Order 4.
 
 ## Power budget
 
@@ -126,6 +135,16 @@ only PWM duty reduces current. WS2811 has three independent sinks, so
 **underglow red draws ⅓ of white** and colour scales current linearly. A single
 global power or animation policy is therefore wrong. Full treatment and both
 current models: `docs/UNDERGLOW.md` → "Current draw".
+
+### WS2815 behaviour worth knowing
+
+Moved here from `CLAUDE.md` on 2026-10-20.
+
+- **12V buys BOTH lower current and lower power.** Bench A/B, one LED at full white so neither strip is voltage-sagging: **WS2815 0.108W vs WS2812B 0.247W — ~44% of the power for comparable brightness** (brightness confirmed by eye at 25 LEDs). Current is also **2.7× lower**, which is the harness win. The old "~2× the power per LED, because it linearly drops ~9V as heat" claim is **wrong and superseded**: three dies in series total ~8.4V, so the regulator drops ~3.6V, not 9V. Compare per-LED figures only at equal, unsagged rail voltage — a 25-LED WS2812B comparison read 3.59W vs 3.16W and looked like a wash purely because the 5V strip had drooped to 4V
+- **WS2815 is constant-current; WS2812B is not, and the bench showed the difference plainly.** The WS2812B strip's per-LED draw fell from 49.3mA (1 LED) to 28.7mA (25 LEDs) as its rail sagged, and its white÷red ratio compressed from the expected 3.0 to 2.24. The WS2815 showed none of this — red exactly equalled white and 1 LED scaled cleanly to 25. **That uniformity regardless of position in the chain or drop along the harness is the reason the panels want this part**
+- ✅ **Quiescent independently CONFIRMED 2026-09-08** at 1.76mA/pixel, fitted from a real panel — see the per-pixel table below. **WS2815 quiescent is high: ~1.84mA/LED** (vs ~0.07mA for WS2812B) — ~0.41A / 5W across all 225 panel LEDs with everything dark. The price of the constant-current and dual-signal circuitry. Trivial against a 10A supply, but "all off" is not free
+- **Per-colour heat asymmetry — matters for animations, not for the power budget.** Because unlit dies are shorted out, pure red leaves the regulator dropping ~10V of 12V at unchanged current: ~83% of the power becomes heat for one die's worth of light. **White is the most light-efficient state on this part; saturated single colours are the least.** Current (and so PSU/wiring sizing) is identical either way, but a long saturated-colour idle animation heats the LED ICs more than the same animation in white. Not near any limit at ~4.5W/panel — just the opposite of the usual intuition
+- **Corrected 2026-08-16; everything above replaces earlier figures.** The long-standing **47mA/LED** (and **36mA** before it) came from reading the datasheet's 15mA as per-channel and multiplying by three. A 25-LED cut of a `HD-12v-WS2815-144L-B-IP30` strip at a verified 11.7V measured **10.5mA/pixel, red exactly equal to white** — ~30% under datasheet, i.e. ordinary binning, and inside the community range of 8.3–13.5mA/pixel. Downstream items that moved: PSU 20A→10A, panel trunk class, F201/Q201 sizing. Bench firmware: `firmware/panel/c/led_current_test/`
 
 ### ⚠ Per-pixel figures: always say WHICH quantity
 

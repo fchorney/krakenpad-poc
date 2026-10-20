@@ -325,3 +325,29 @@ debugging.
 | 27 | ADC1 — FSR 2 |
 | 28 | ADC2 — FSR 3 |
 | 29 | ADC3 — FSR 4 (see GPIO29 warning above) |
+---
+
+## RS-485 prototype pin map (moved from `docs/RS485_PROTOCOL.md`, 2026-10-20)
+
+
+⚠ **Breadboard only — this is NOT either board's as-built pinout.** On the real
+hardware RS-485 runs on the master's **Serial2** (GPIO7 RX / GPIO8 TX, DE on
+**GPIO6**) and on the panel's **GPIO0 TX / GPIO1 RX with DE on GPIO4**. See
+`docs/MASTER_PCB.md` and `docs/DUAL_PANEL.md` for the netlist-verified maps.
+
+| Role | Teensy 4.0 | Pico |
+|------|-----------|------|
+| TX | 1 (TX1) | GPIO0 (UART0 TX) |
+| RX | 0 (RX1) | GPIO1 (UART0 RX) |
+| DE/~RE | 2 (auto via transmitterEnable) | GPIO2 (manual) |
+
+**As of 2026-09-03 the master half no longer uses this map** —
+`firmware/master/master.ino` was ported to the as-built board (Serial2, DE on 6,
+nine INT lines on 15–23). **As of 2026-10-18 the panel half doesn't either:**
+`firmware/panel/c/main.c` was rebuilt on the bring-up firmware's as-built map.
+The table is kept as a record of the breadboard rig.
+
+Panel ID is read once at boot from GPIO6 (internal pull-down): floating = panel
+0, jumpered to the Pico's own 3V3 OUT = panel 1. Bench-test stand-in for the
+final PCB's 4-position DIP switch (0–8) — a single pin only distinguishes two
+units, doesn't scale past that.

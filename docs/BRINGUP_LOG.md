@@ -18,13 +18,13 @@ module was fitted at the time.
 Twenty brains and twenty carriers were fabricated, and five master boards; this
 file fills in as they are brought up.
 
-**SWD (`tools/swd_check.py`, 2026-10-18):** all eight assembled boards pass —
+**SWD (`tools/swd_check.py`, from 2026-10-18):** all nine assembled boards pass —
 DPIDR `0x0bc12477`, both cores, CHIP_ID `0x20002927` on every one. The
 SWD-only erase-and-recover test was run once, on `462D`.
 
-**Plan from 2026-10-18:** boards go through stages 0–2 one at a time. Stage 3
-waits until nine are done, then runs once as a full nine-panel bus with the
-master, instead of pairing boards up.
+**Plan from 2026-10-18:** boards go through stages 0–2 one at a time, then stage
+3 runs once as a full nine-panel bus with the master instead of pairing boards
+up. **Done 2026-10-19 for boards 1–9** (master #2 section).
 
 ## Summary
 
@@ -45,7 +45,7 @@ master, instead of pairing boards up.
 | board | assembled | stage 1 | stage 2 | stage 3 | Teensy fitted | notes |
 |---|---|---|---|---|---|---|
 | **master #1** | 2026-09-08 | ✅ | ✅ INT | — | `20432520` (ex-prototype) | SMD hand-soldered with Sn42Bi57Ag1; INT path proven end to end with one panel; `r` closed the single-GPIO-port open item |
-| **master #2** | 2026-10-02 | ✅ | ✅ INT | ✅ | `19755070` (new) | all-leaded build: Chip Quik Sn63/Pb37 paste through the printed stencils, no added flux. `S` bus fault found and fixed in master firmware 2026-10-02; first two-panel bus, see below. **Eight-panel bus and bus updates 2026-10-18** |
+| **master #2** | 2026-10-02 | ✅ | ✅ INT | ✅ | `19755070` (new) | all-leaded build: Chip Quik Sn63/Pb37 paste through the printed stencils, no added flux. `S` bus fault found and fixed in master firmware 2026-10-02; first two-panel bus, see below. **Eight-panel bus and bus updates 2026-10-18; nine-panel bus, gameplay firmware and USB joystick 2026-10-19** |
 
 ## `DE6558A69754442F` — first board
 
@@ -125,7 +125,8 @@ gameplay input path**. Not a failure, a silent halving of margin.
 `int_out_init()`. **Re-measured after the fix: released dwell = 3.29 V** — the
 rail, i.e. true hi-Z — with the asserted dwell unchanged at ~9 mV. Full 1.0 V of
 noise margin restored. **`firmware/panel/c/main.c` needs the same call when
-ported.**
+ported.** (Done: the 2026-10-18 gameplay firmware disables pulls on both
+`INT_OUT` and `SENSE_12V`.)
 
 ### Bonus: this board's internal pull-down measures ~45 kΩ
 
@@ -364,8 +365,9 @@ Two consequences, both recorded in `PANEL_BRINGUP.md`:
 
 ### Still open for this board
 
-- Stage 3 (RS-485, needs the master and a second panel).
-- `i` not run; INT to be proven on the bus at stage 3, as for board 2.
+- ~~Stage 3 (RS-485, needs the master and a second panel).~~ Done 2026-10-19.
+- ~~`i` not run; INT to be proven on the bus at stage 3, as for board 2.~~ INT
+  proven on the bus by the nine-panel `I` self-test, 2026-10-19.
 - South, West and North FSR connectors not yet exercised with a sensor.
 
 ## `DE6558A697556A2F` — fourth brain
@@ -402,7 +404,7 @@ Two consequences, both recorded in `PANEL_BRINGUP.md`:
 
 ### Still open for this board
 
-- Stage 3 (nine-panel bus).
+- ~~Stage 3 (nine-panel bus).~~ Done 2026-10-19 (master #2 section).
 - South, West and North FSR connectors not yet exercised with a sensor.
 
 ## `DE6558A697545C2F` — fifth brain
@@ -454,7 +456,7 @@ flash config would absorb it.
 
 ### Still open for this board
 
-- Stage 3 (nine-panel bus).
+- ~~Stage 3 (nine-panel bus).~~ Done 2026-10-19 (master #2 section).
 - South, West and North FSR connectors not yet exercised with a sensor.
 
 ## `DE6558A69784622D` — sixth brain
@@ -492,7 +494,7 @@ flash config would absorb it.
 
 ### Still open for this board
 
-- Stage 3 (nine-panel bus).
+- ~~Stage 3 (nine-panel bus).~~ Done 2026-10-19 (master #2 section).
 - South, West and North FSR connectors not yet exercised with a sensor.
 
 ## `DE6558A69776582F` — seventh brain
@@ -530,7 +532,7 @@ flash config would absorb it.
 
 ### Still open for this board
 
-- Stage 3 (nine-panel bus).
+- ~~Stage 3 (nine-panel bus).~~ Done 2026-10-19 (master #2 section).
 - South, West and North FSR connectors not yet exercised with a sensor.
 
 ## `DE6558A697543C2F` — eighth brain
@@ -568,7 +570,7 @@ flash config would absorb it.
 
 ### Still open for this board
 
-- Stage 3 (nine-panel bus).
+- ~~Stage 3 (nine-panel bus).~~ Done 2026-10-19 (master #2 section).
 - South, West and North FSR connectors not yet exercised with a sensor.
 
 ## `DE6558A6977B342D` — ninth brain

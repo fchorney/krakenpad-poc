@@ -1,9 +1,12 @@
-# RS-485 Bus Protocol (v0 — prototype)
+# RS-485 Bus Protocol (v0)
 
-Status: **v0, prototype bring-up.** Minimal framing; `'L'`/`'F'`/`'f'`/`'C'`/`'c'`
-are implemented and bench-proven, **`'I'`/`'i'` (identify) are specified but not
-yet implemented** — there is no master firmware yet. Config write/read and
-calibration come later; they slot in as new command bytes with the same framing.
+Status: **v0, running on rev-1 hardware** — master #2 and nine panels on one bus
+(2026-10-19). Every command below is implemented on both sides unless it says
+otherwise. Implemented in `firmware/master/master.ino`, `firmware/panel/c/main.c`
+(gameplay), `firmware/panel/c/bringup/main.c` (bench) and
+`firmware/panel/c/bootloader/` (update commands). Config write/read and
+calibration are not built yet; they will be new command bytes in the same
+framing (`docs/PANEL_CONFIG.md`).
 
 ## Physical layer
 
@@ -11,7 +14,7 @@ calibration come later; they slot in as new command bytes with the same framing.
 - Master drives the bus by default; a panel transmits only when replying to a
   poll addressed to it
 - DE/~RE tied together per transceiver:
-  - Teensy: `Serial1.transmitterEnable(pin)` — hardware manages DE automatically
+  - Teensy: `Serial2.transmitterEnable(6)` — hardware manages DE automatically
   - RP2040: manual — raise DE, `uart_write_blocking`, `uart_tx_wait_blocking`
     (TX **complete**, not FIFO-empty), drop DE
 
@@ -39,9 +42,9 @@ Good enough for v0; re-sync loss just costs one frame.)
 - addr = panel ID (per-panel frame) or `0xFF` broadcast, len 75
 - Payload: 25 × RGB triplets, **serpentine LED order** (LED index i at bytes
   3i, 3i+1, 3i+2 = R, G, B)
-- Panel displays the frame on receipt. Remote frames take priority over local
-  animations; panel falls back to local animation if no `'L'` frame arrives
-  within **100ms**.
+- Panel displays the frame on receipt (LED mode 0). If no `'L'` frame arrives
+  within **100ms** the panel goes dark; falling back to a local animation from
+  flash is planned (`docs/ANIMATIONS.md`) but not built.
 - Multi-panel: **per-panel addressed `'L'` frames** (addr = panel ID) — working
   as of the 2-panel bench bring-up 2026-07-11. A single big broadcast with
   per-panel offsets was the alternative considered; not needed at current bus
@@ -168,7 +171,7 @@ true mapping empirically instead of assuming it.
 
 | Symptom | Meaning |
 |---------|---------|
-| `'i'` ack, edge on an unexpected slot | INT cable in the wrong header — the per-panel heat-shrink marker (`docs/BOM.md`) names which one to move |
+| `'i'` ack, edge on an unexpected slot | INT cable in the wrong header — the position label on the cable (`hardware/harness/WIRE_COLORS.md`) names which one to move |
 | `'i'` ack, no edge on any slot | INT wire not landed, open, or the panel's open-drain GPIO is dead |
 | `'i'` ack, **two** slots fire | two panels share a DIP ID — both answered the address and both pulsed |
 | Edge fires but no `'i'` ack | panel lives on INT but not on RS-485: transceiver, termination, or A/B swapped |
@@ -187,12 +190,14 @@ press (that is the point), so the host must gate it: no HID input reporting
 while a self-test runs. Keep the learned map in RAM and re-derive it each run;
 persisting it risks caching a wrong mapping.
 
-## Timing budget (v0, single panel)
+## Timing budget
 
 At 1 Mbps ≈ 10µs/byte: LED frame 80 bytes = 0.8ms, poll 5 bytes + reply 14 bytes
-≈ 0.2ms. Master cycles at 60Hz (16.6ms) — bus is ~6% utilized. Nine panels:
-0.8ms × 9 frames + 9 polls ≈ 9ms per cycle, matching the ~110Hz ceiling estimate
-in CLAUDE.md.
+≈ 0.2ms. The master sends LED frames at 60Hz (16.6ms). Nine panels:
+0.8ms × 9 frames + 9 polls ≈ 9ms per cycle, the ~110Hz ceiling estimate in
+`CLAUDE.md`. **As measured, the honest schedule polls at ~125/s**, i.e. ~14 Hz
+telemetry per panel at nine panels (see "Every reply gets a guaranteed window"
+below).
 
 ## Polling must be paced, not bursted (found 2026-07-11, multi-panel bring-up)
 
@@ -240,7 +245,12 @@ The rule now, master side (`firmware/master/master.ino`, `sendRequest()`):
 - **The clock is re-read after the LED burst**, and the next poll is scheduled
   from the time it was actually sent.
 
-`'I'` is unaffected: the self-test pauses all other traffic and waits for the ack.
+**Anything sent outside `loop()`'s schedule waits for the bus to go quiet first**
+(`waitBusQuiet()`, 2026-10-19). Pausing traffic stops *new* frames but not what
+is already on the wire: the reply to the last poll, or a queued LED burst. The
+`I` self-test sent its first `'I'` on top of an `'f'` reply and lost IDs in 6 of
+10 runs; it now flushes TX and waits out the reply window, and so does `P`
+(passthrough). 0 failures in 30 runs after the fix.
 
 Measured before/after on the same bench: 9/20 `'c'` acks with 11 panel CRC and
 ~400 uart errors across both panels → **120/120 acks, 0 CRC, 0 uart, 0
@@ -284,26 +294,3 @@ then reply`) rather than waiting to be individually asked.
   INT wire's job; this poll is purely for telemetry/diagnostics). Revisit only
   if bus bandwidth headroom becomes an actual constraint.
 
-## Prototype pin map
-
-⚠ **Breadboard only — this is NOT either board's as-built pinout.** On the real
-hardware RS-485 runs on the master's **Serial2** (GPIO7 RX / GPIO8 TX, DE on
-**GPIO6**) and on the panel's **GPIO0 TX / GPIO1 RX with DE on GPIO4**. See
-`docs/MASTER_PCB.md` and `docs/DUAL_PANEL.md` for the netlist-verified maps.
-
-| Role | Teensy 4.0 | Pico |
-|------|-----------|------|
-| TX | 1 (TX1) | GPIO0 (UART0 TX) |
-| RX | 0 (RX1) | GPIO1 (UART0 RX) |
-| DE/~RE | 2 (auto via transmitterEnable) | GPIO2 (manual) |
-
-**As of 2026-09-03 the master half no longer uses this map** —
-`firmware/master/master.ino` was ported to the as-built board (Serial2, DE on 6,
-nine INT lines on 15–23). **As of 2026-10-18 the panel half doesn't either:**
-`firmware/panel/c/main.c` was rebuilt on the bring-up firmware's as-built map.
-The table is kept as a record of the breadboard rig.
-
-Panel ID is read once at boot from GPIO6 (internal pull-down): floating = panel
-0, jumpered to the Pico's own 3V3 OUT = panel 1. Bench-test stand-in for the
-final PCB's 4-position DIP switch (0–8) — a single pin only distinguishes two
-units, doesn't scale past that.

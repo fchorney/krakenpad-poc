@@ -1,13 +1,16 @@
-# Dual-Panel (carrier + brain) — as-built reference
+# Dual-Panel (carrier + brain) — as built, rev 1
 
-**This is the panel design that gets built.** The single-board `hardware/panel-pcb`
-was retired on 2026-08-04 when the two-board split won; it is not in the working
-tree any more, only in git history (last present at `1b41d1c`). The measurements
-that decided it are archived at `docs/archive/DESIGN_COMPARISON.md`.
+**This is the panel in use: rev 1, ordered 2026-08-18 (tag `rev1-fab`), nine
+boards assembled and running.** Changes proposed for the next revision are in
+`docs/REV2_CANDIDATES.md`; nothing below describes them. The single-board
+`hardware/panel-pcb` was retired on 2026-08-04 when the two-board split won (git
+history, last present at `1b41d1c`); the measurements that decided it are in
+`docs/archive/DESIGN_COMPARISON.md`.
 
-Everything below is read out of the current KiCad files — the schematic netlist
-(`kicad-cli sch export netlist --format kicadxml`) and `dual-panel.kicad_pcb` —
-not carried forward from plans. Last derived **2026-08-04**.
+Everything below is read out of the KiCad files: the schematic netlist
+(`kicad-cli sch export netlist --format kicadxml`) and `dual-panel.kicad_pcb`.
+Last derived **2026-08-04**, re-verified after the order-day edits of
+2026-08-18. Bring-up results per board are in `docs/BRINGUP_LOG.md`.
 
 ## Project shape
 
@@ -186,7 +189,8 @@ Small facts that are easy to get wrong at firmware or assembly time.
 
 ## Layout and routing
 
-- **4 layers, JLC 4-layer standard** (0.3/0.45 via class): L1 components + signals,
+- **4 layers, JLC 4-layer standard** (0.30 mm drill vias on 0.60 mm pads since
+  2026-08-17; three stay at 0.45 mm for clearance): L1 components + signals,
   **In1 and In2 are BOTH solid GND, never split** (layer names `GND1.Cu`/`GND2.Cu`);
   B.Cu spillover + GND pour. There is **no 12 V plane** — 12 V is a routed trace
   tree (2 mm trunk, ≥0.5 mm LED branches, verified by widest-path analysis
@@ -303,7 +307,7 @@ with artwork still pending. Verified against the board — all graphics live on
 `F.Silkscreen` (10 items) and `User.Drawings` (5); **there is no copper/mask logo
 pair anywhere.** The stale claim mattered because it was the stated reason the
 surface finish was an aesthetic choice, which propagated into
-`docs/PRE_ORDER_CHECKLIST.md`. Finish is **ENIG**, decided on solderability and
+`docs/rev1-order/PRE_ORDER_CHECKLIST.md`. Finish is **ENIG**, decided on solderability and
 probe life, not appearance.
 
 ## Passthrough variant
@@ -314,12 +318,52 @@ and INT floats safe-HIGH at the master. Mechanism is KiCad per-symbol DNP → a 
 BOM/CPL export, so it is **one bare-PCB SKU with two assembly variants**. Nothing is
 built yet — see `docs/MODULAR_PANEL_COUNT.md`.
 
-## Accepted-for-rev-A risks
+## Rev-1 risks accepted at order, and what bring-up found
 
-Bring-up measurements, **not order blockers** — these were accepted deliberately:
-U303 thermal at real load (~50 mA), +5 V rail margin, INT-into-a-dead-panel (the
-master-side 10 k pull-up is deliberately *not* stiff for exactly this case),
-hot-plug/USB-attach behaviour, SI asymmetries, and the FSR runs on B.Cu.
+These were accepted as bench questions rather than order blockers.
+
+| Risk | Result |
+|---|---|
+| `U303` thermal at real load | Barely warm running the board on 12 V only (first board) |
+| +5 V rail margin | `U303` output 4.965–5.034 V across boards; VBUS 5.25 V wins the `U304` mux whenever USB is present |
+| Hot-plug / USB attach | **Found a real limit:** the brain back-drives VBUS to 2.78 V on 12 V, so a host won't attach to a powered panel. Connect USB before 12 V. Rev-2 candidate #3 |
+| SI asymmetries on the bus | Nine panels on one bus, 0 errors in steady state (`BRINGUP_LOG.md`, master #2, 2026-10-19) |
+| FSR runs on B.Cu | A hard press moves no neighbouring channel; `ADC_DUMMY_READ = 0` confirmed |
+| INT into a dead panel | Not recorded as tested |
+
+## Part choices and their history
+
+Why the brain and carrier use the parts they do. Moved here from `CLAUDE.md`
+on 2026-10-20 so that file can stay short; the text is unchanged except where
+noted. Rev-2 changes to any of these are in `docs/REV2_CANDIDATES.md`.
+
+### MCU: bare RP2040 (QFN-56), decided 2026-07-10
+
+Chosen over the RP2040-Zero module: ~$3–4/panel support BOM vs ~$10 module, full pin control (clean ADC routing incl. GPIO29, 10nF caps at the pins), keeps the 4MB W25Q32JV decision (Zero is fixed 2MB), and the whole panel becomes one flat fab-assemblable PCB. Support circuit per the official "Hardware design with RP2040" minimal reference: 12MHz crystal + load caps, decoupling set, QSPI flash, **USB-C for flashing** (16-pin USB 2.0-only receptacle, **through-hole or TH-reinforced mounting required** — TH pins take the mechanical stress of repeated plug/unplug during flashing. Orientation is free (clarified 2026-07-11, supersedes the 2026-07-10 "vertical preferred"): the port is only used on the bench with the panel top off, so cable clearance is irrelevant; only constraint is receptacle body height must clear the panel platform during play (trivial, ~35mm budget). **Part as built: GCT USB4085-GF-A** (horizontal, all-TH), LCSC **C7095263**, footprint `dual-panel:USB_C_Receptacle_GCT_USB4085_EdgeTrim`, **on the brain as J305** — it moved off the carrier 2026-07-28. The vertical LCK TCF829D (C53184807) was the earlier pick; its footprint `USB_C_Receptacle_LCK_TCF829D_TEMPLATE` is still in `dual-panel.pretty` as a deliberate revert path, so going back to vertical is a footprint re-pick. Note **J305's contact holes sit at exactly 0.45mm edge-to-edge — zero margin against JLC's multilayer floor** (re-verified 2026-08-04); the `.kicad_dru` pad-to-pad rule is relaxed to 0.45mm for it, and it stays on the DFM-confirmation list. Rejected earlier: GCT USB4105 (SMT signals). 5.1kΩ pull-down on each CC pin — required for C-to-C cables; tie duplicated D+/D− pairs), **USBLC6-2SC6 ESD array on D+/D−/VBUS (U305, added 2026-07-17)** — rationale is dance-pad specific: rubber-soled shoes rubbing the panels tribocharge the pad, so USB ESD exposure isn't limited to bench plug events; sits on the connector side of the 27Ω series resistors, flow-through routed — BOOTSEL button, and a 3-pin SWD header (SWDIO/GND/SWCLK) as the firmware-independent recovery/debug path.
+
+### RS-485 transceiver
+
+- RS-485 transceiver: **THVD1450DR** (final PCB, both boards — LCSC **C2671361**, TI, SOIC-8). History: THVD1419 (250kbps, too slow for the 1Mbps bus) → THVD1429 (20Mbps grade) on 2026-07-19 → **THVD1450 on 2026-08-18**. The 1450 has the **identical SOIC-8 pinout** (R1, RE̅2, DE3, D4, GND5, A6, B7, VCC8 — verified against both datasheets), the same open/short/idle failsafe, same 1/8-unit-load 256-node bus, same 3–5.5V supply. **What changed and why:** it drops the 1429's on-die ±2.5kV IEC 61000-4-5 surge TVS, which TI's own datasheet frames as protection against *lightning and industrial power-grid transients* — not a threat this indoor, ~3m, in-chassis, shielded bus faces. In exchange it is **better on the threat that IS documented here** (ESD from a tribocharged pad and from hand-servicing connectors): **±18kV vs ±8kV IEC 61000-4-2 contact**, ±30kV vs ±16kV HBM. It also improves common-mode range (±15V vs ±12V), bus-fault range (±18V vs ±15V), and adds glitch-free hot-plug. It was **3.6× cheaper ($0.99 vs $3.60) and had 84× the JLC stock (5,056 vs 60)**, the latter having been the tightest line in the whole BOM. ⚠ **The RS-485 A/B pair has no external TVS** — D201 is on the INT line — so the transceiver's own rating (±18kV IEC 61000-4-2 contact) is the only bus protection. **DECIDED 2026-08-18: this ships as-is for rev A, and an external TVS on A/B is a rev-2 candidate.** It is purely additive — two parts plus placement and routing on the carrier — so deferring costs nothing but a rev. Do not re-open for rev A. Alternative: **MAX3485** (budget breadboard substitute, same SOIC-8 footprint, 10Mbps) — must be 3.3V-logic compatible. Do NOT use MAX485 (5V-only, logic thresholds marginal at 3.3V)
+
+### Flash
+
+- **Flash**: W25Q32JV (4MB QSPI, SOIC-8) — required for RP2040 boot. 4MB chosen over 2MB (W25Q16JV) for future-proofing; both are pin-compatible, same footprint, negligible cost difference. Stores firmware + released/pressed animation slots + config. Flash map: `docs/FIELD_UPDATE.md` → "Flash map".
+
+### LED data level shifter
+
+- **LED data level shifter**: **SN74AHCT1G125 (SOT-23-5, single gate) as of 2026-08-03** — swapped in on all three boards (panel, dual-panel brain, master) from the quad SN74AHCT125 after an external review noted only one gate was used. The reviewer suggested 74LVC1G34/74LVC1G17; both were rejected on datasheet grounds (LVC at 5V has VIH = 0.7×VCC = 3.5V; the 1G17's Schmitt VT+ max reaches 3.33V at 5.5V — same marginal-threshold trap as MAX485). AHCT keeps the guaranteed TTL VIH = 2.0V. LCSC **C7484**, DigiKey **296-4708-1-ND**, MPN SN74AHCT1G125DBVR; OE̅ (pin 1) tied to GND. Breadboard prototype keeps the quad SN74AHCT125N DIP. VCC = 5V in all cases. Its output stays at ~5V regardless — the chip cannot run from 12V (its own VCC abs max is far below that) and doesn't need to: WS2815's DIN comparator threshold is not scaled to its 12V power rail, so a normal 5V logic signal is sufficient (well-established in the addressable-LED community; only the LED VDD/GND pins are 12V, never the data line). Direct 3.3V connection works for WS2812B in practice (spec says 3.5V min) but the shifter is required on the final PCB.
+
+### Logic regulation
+
+- **Panel logic regulation — DECIDED 2026-07-09: cascaded linear LDOs.** AMS1117-5.0 (12V → 5V) feeding the 3.3V stage — **which is AP7361C-33ER-13 as of 2026-07-16** (swapped in for AMS1117-3.3: low-dropout CMOS, ~360mV@1A vs ~1.1V, gives >1V of headroom when powered from USB VBUS alone through the power-OR diode; Vin abs max 6V so it must stay downstream of the 5V stage, never raw 12V; **order the `-33ER-` suffix only** — SOT223R pinout matches AMS1117 GND/OUT/IN tab=OUT, while plain `-33E-` is pin-reversed). **5V power-OR is U304, an LM66200 ideal-diode mux (LCSC C3235556, SOT-583 8-pin) as of 2026-07-20** — auto-selects the higher of VBUS and the AMS1117 5V output, needs no external caps, and removes the Schottky VF drop that left the shifter rail at ~4.7V against a 4.5V VCC minimum. The former power-OR diodes D301/D302 (**PMEG3015EH**, SOD-123F, 255mV typ @100mA; they had replaced 1N5819W on 2026-07-16) remain on the board as **DNP footprints** — populating both and removing U304 restores the Schottky OR as a hand-solderable rescue. Discrete cross-coupled P-FETs were considered and rejected: with both supplies present both FETs turn off and conduction falls to the body diodes, sagging the rail to ~4.3V — worse than the Schottky. Cap rules: AMS1117-5.0 output (C308) = 22µF 16V tantalum (needs ESR — ceramic-only can oscillate); AMS1117 input (C306) and both AP7361C caps (C303/C307) = 10µF 0805 MLCC (AP7361C is ceramic-stable per datasheet). The 5V rail powers only the SN74AHCT1G125 level shifter (single-digit mA — this rail was previously missing from the design; the prototype borrowed a separate USB 5V supply, see docs/archive/PROTOTYPE_WIRING.md, but the final panel is self-contained on 12V bus power). The 3.3V rail powers RP2040, RS-485 transceiver, and remaining logic (~30–50mA total).
+  - Why cascade over two parallel LDOs off 12V: second stage's PSRR gives a very clean 3.3V for the RP2040's noise-sensitive ADC (FSR readings); dissipation splits favorably (~0.35W in the 5.0, ~0.07W in the 3.3 — fine for SOT-223 with a copper pour); same part family = BOM coherence.
+  - Why not a buck (or buck + LDO hybrid): total logic draw is ~0.44W worst case from 12V — no thermal problem to solve. A buck adds inductor/caps/layout risk, switching noise near the FSR analog inputs, and at single-digit mA loads many bucks drop into PFM/pulse-skipping with worse ripple. Hybrid only becomes worthwhile if logic-rail load grows to ~200mA+.
+  - 3.3V-stage dropout is a non-issue since the AP7361C swap (~tens of mV at the ~30–50mA panel load); the old AMS1117-3.3's ~1.1V dropout was the USB-VBUS-only weak point that motivated the swap.
+  - **AP2112K-3.3 is NOT usable anywhere here** — absolute max input 6.5V, far below 12V. MCP1804 (28V max) remains a fallback if AMS1117 sourcing fails.
+  - LED strip VDD/GND stay straight 12V, untouched — the shifter only drives the data line into the first LED, never LED power.
+
+The cascade runs every rev-1 board; `U303`/`U302` regulate at 4.965–5.034 V and
+3.29–3.30 V on 12 V alone (`docs/BRINGUP_LOG.md`).
 
 ## Carrier (2xx) — 76 parts
 
@@ -373,92 +417,54 @@ all four channels so any shift is common-mode.
 
 ## Mechanical stack
 
-Three M3 screws take all mechanical load; the sockets carry none.
+Three M3 screws take all mechanical load; the interface connectors carry none.
 
 | item | mm |
 |---|---|
-| male header plastic body | 2.45 |
-| female socket body | 8.30 |
-| **board-to-board separation** | **10.75** |
-| brain PCB | 1.60 |
-| M3 socket-cap head, brain underside | 3.00 |
-| **total below the carrier underside** | **15.35** |
+| header plastic, `C5383116` (HanElectricity 2541WV-08P, carrier B.Cu) | 2.54 |
+| socket body, `C7509515` (CONNFLY DS1023-1x8SF11, brain) | 8.50 |
+| connector stack | **11.04** |
+| **spacer: M3 female-female, 12 mm** | **12.00** |
+| air gap between the plastics | 0.96 |
+| pin engagement (6.0 mm mating pin) | ~5.04 |
+| brain PCB + M3 socket-cap head | 1.60 + 3.00 |
+| **total below the carrier underside** | **16.60** |
 | available (6 mm to frame floor + 14 mm inside the opening) | 20.00 |
-| **spare** | **4.65** |
+| **spare** | **3.40** |
 
-- **Spacer: 11 mm M3, deliberately erring tall.** A 10 mm spacer would be 0.75 mm
-  short and the screws would close that gap by flexing the boards, putting exactly
-  the load on the connectors that the spacer exists to remove. **Never omit it.**
-- **⚠ The table above predates the sourced parts, and 11 mm no longer clears.**
-  The connectors chosen 2026-08-16 (LCSC **C5383116** header, **C7509515** socket)
-  measure **2.54 mm** and **8.50 mm** of plastic against the 2.45/8.30 assumed
-  here — so board-to-board is **11.04 mm**, and the plastics now meet 0.04 mm
-  *before* an 11 mm spacer bottoms out. That is the exact failure mode the
-  spacer exists to prevent, merely small.
-  **Buy 12 mm M3 spacers as well and measure the parts on arrival.** At 12 mm
-  the gap is 0.96 mm, pin engagement is still ~5 mm, and total depth below the
-  carrier becomes 16.6 mm against 20.0 mm available — 3.4 mm spare, so the
-  cavity fit is unaffected. Spacers cost pennies; buy both and settle it with
-  calipers rather than by arithmetic on datasheet nominals.
-- **The spacer sets separation, so socket body height only buys pin engagement.**
-  Worth stating plainly, because it is counterintuitive: as long as the spacer is
-  *taller* than header plastic + socket plastic, the plastics never touch, the
-  connectors carry no load, and a shorter socket simply means the 6 mm pin goes
-  less far in. A shorter socket cannot make the pin "stick out".
-
-  | socket | body | stack | spacer | air gap | **pin engagement** | load on connectors |
-  |---|---|---|---|---|---|---|
-  | C7509515 | 8.50 | 11.04 | 11 mm | −0.04 | 6.00 (full) | ⚠ yes, slight |
-  | **C7509515** | **8.50** | **11.04** | **12 mm** | **0.96** | **5.04** | **none ✓** |
-  | C55218878 | 5.70 | 8.24 | 11 mm | 2.76 | 3.24 | none ✓ |
-
-  The spacer is a bought part and freely chosen, so a shorter socket paired with
-  a shorter spacer is equally valid on load — 5.7 mm socket + 9 mm spacer gives
-  5.24 mm engagement, as good as 8.5 mm + 12 mm. **Height alone does not decide
-  this.** What decides it is the next bullet.
-
-- **What is in the gap, and why it does not constrain the spacer.** The brain's
-  **F.Cu faces the carrier**, and that is the side carrying `J305` (USB-C) and
-  both SOT-223 LDOs — verified from `dual-panel.kicad_pcb`: carrier headers on
-  B.Cu at x≈91–138, brain sockets/USB-C/LDOs on F.Cu at x≈193–247. The tallest
-  of them is the GCT USB4085 at **3.16 mm** (datasheet section view), so
-  component clearance is satisfied by every spacer under discussion.
-
-  **USB-C cable clearance is explicitly NOT a requirement.** `CLAUDE.md`: the
-  port "is only used on the bench with the panel top off, so cable clearance is
-  irrelevant". The in-situ access path is the **3-pin SWD header, which is on the
-  CARRIER's F.Cu** (x≈113) and therefore reachable without separating the boards.
-  Nothing needs to reach into the inter-board gap.
-  *(A 2026-08-16 analysis argued the gap was a USB-cable budget and used that to
-  justify the 8.5 mm socket. It was wrong — recorded so it is not re-derived.)*
-
-- **Socket choice is therefore open, and close to free.** Both give ~5 mm
-  engagement with a matched spacer and neither strains the depth budget:
-
-  | socket | spacer | pin engagement | note |
-  |---|---|---|---|
-  | C7509515 (8.5) | 12 mm | 5.04 mm | satisfies the pin-shorter-than-bore rule |
-  | C7509515 (8.5) | 11 mm | 6.00 mm | ⚠ connectors take load — do not use |
-  | C55218878 (5.7) | 9–10 mm | ~5.2 mm | lower profile, more cavity spare |
-
-  The only residual argument for the 8.5 mm part is that a 6 mm pin fits inside
-  its bore, so it can never be *pin*-loaded even if assembled with a wrong-length
-  spacer. Mildly more forgiving; not a strong reason.
-- **Separation is set by the two plastics meeting, not by pins bottoming out** —
-  which only holds while the mating pin is shorter than the socket is deep. Source
-  headers as **6.0 mm mating pin with a ≥3.0 mm solder tail**; some "short" headers
-  trim the tail instead, leaving nothing to solder through the carrier.
-- **Everything deep must sit inside the cavity opening**, because the stack is
-  10.75 mm at the connectors while the frame floor is only 6 mm below the carrier.
-  Verified: all four interface connectors and all three screws clear the opening on
-  every side. Re-check with `fit-test/gen_cavity_template.py` after any outline or
-  placement change.
+- **The spacer sets the separation and must never be omitted.** It has to be
+  taller than the connector stack, or tightening pulls the brain into the
+  carrier and the connectors take the clamping force. An 11 mm spacer is
+  0.04 mm short of the 11.04 mm stack, which is why 12 mm was chosen
+  (2026-08-16). The table before the connectors were sourced assumed
+  2.45 + 8.30 = 10.75 mm and an 11 mm spacer; that is superseded.
+- **Socket height only buys pin engagement**, not separation. A shorter socket
+  with a matched spacer is equally valid on load: `C55218878` (5.7 mm) with a
+  9–10 mm spacer gives ~5.2 mm engagement and more cavity spare. The 8.5 mm part
+  keeps the 6 mm pin inside its bore, so it can't be pin-loaded even with a
+  wrong spacer.
+- **Source headers by mating-pin length:** 6.0 mm mating pin **and** ≥3.0 mm
+  solder tail. Some "short" headers trim the tail instead, leaving nothing to
+  solder through the carrier. Most listings state neither dimension.
+- **What sits in the gap:** the brain's **F.Cu faces the carrier**, carrying
+  `J305` (USB-C) and both SOT-223 LDOs. The tallest is the GCT USB4085 at
+  3.16 mm, clear of every spacer considered. USB-C cable clearance is not a
+  requirement (the port is used on the bench with the panel top off), and the
+  in-situ access path is the SWD header `J209` on the **carrier's** F.Cu. A
+  2026-08-16 analysis that treated the gap as a USB-cable budget was wrong.
+- **Everything deep must sit inside the cavity opening**, because the frame floor
+  is only 6 mm below the carrier. Verified: all four interface connectors and all
+  three screws clear the opening on every side. Re-check with
+  `fit-test/gen_cavity_template.py` after any outline or placement change.
+- **Assembly:** fit both headers into their sockets and mate the boards, **then**
+  solder the second connector's pins with the stack held together. Four
+  connectors must align in X, Y and rotation at once.
 - Carrier underside carries only D201, R202, R203 and the four headers.
 
 ## First bring-up — blank RP2040 over USB
 
-Written 2026-09-02, before the first board was powered. Every net claim here was
-re-derived from `dual-panel.kicad_pcb`.
+Written 2026-09-02, before the first board was powered, from
+`dual-panel.kicad_pcb`. Its predictions held on all nine boards brought up.
 
 > **The staged procedure and the firmware that runs it are now
 > `docs/PANEL_BRINGUP.md` + `firmware/panel/c/bringup/`** (2026-09-03). This
@@ -527,35 +533,20 @@ brain; standalone, the net terminates at `J303` pin 5.
 12 × 33/133 ≈ **2.98 V = logic high**; USB-only reads 0. A one-line guard
 (`if (!gpio_get(17)) skip_led_output();`) is that pin's intended job.
 
-### Bench check: `RS485_DE` at rest — ✅ CLOSED 2026-09-07, measured 35 mV
+### `RS485_DE` at rest: closed 2026-09-07
 
-**`RS485_DE` has no external pull resistor** — the net is only GPIO4, `U308`
-pins 2/3 and `TP306` — so DE/R̅E̅ is undriven between power-on and firmware
-configuring the pin, and for the whole time a board sits in BOOTSEL.
-
-In principle this is fine: RP2040 pads reset to input-with-internal-pull-down,
-which parks the THVD1450 in **receive** mode, the safe state. An unflashed panel
-should therefore not jam the bus. But the internal pull-down was weak (~50–80 kΩ)
-and unestablished until POR completed, so it wanted measuring.
-
-**Measured on the first board, 2026-09-07: `TP306` to GND = 35 mV**, on a blank
-brain sitting in BOOTSEL on USB power. That is a hard low, not a float — the
-internal pull-down establishes and holds, the THVD1450 parks in receive, and an
-unflashed panel cannot jam the bus.
-
-**No rework, and the rev-2 external pull-down is dropped.** Do not re-open: this
-is a property of the design and the silicon, not of an individual board, so it
-does not need repeating per board.
-
-> **Note the measurement window.** A standalone brain has no 12V — that rail only
-> reaches it through `J303` pins 1/6 from the carrier — so USB *is* the power, and
-> "blank and powered" means **enumerated as `RPI-RP2` and sitting in BOOTSEL**.
-> The bootrom never touches GPIO4, so that state holds the reset default
-> indefinitely and is the window to meter in.
+`RS485_DE` has no external pull resistor (the net is only GPIO4, `U308` pins 2/3
+and `TP306`), so DE/R̅E̅ is undriven until firmware configures the pin, and for
+the whole time a board sits in BOOTSEL. The RP2040's reset-default pull-down
+holds it: **`TP306` measured 35 mV** on a blank brain in BOOTSEL. The THVD1450
+parks in receive, so an unflashed panel can't jam the bus. This is a property of
+the design and the silicon, so it isn't repeated per board, and the rev-2
+external pull-down was dropped.
 
 ## Verification status
 
-Re-run 2026-08-04 from clean project copies with
+Re-run 2026-08-04 and again 2026-08-18 after the order-day edits (same counts),
+from clean project copies with
 `kicad-cli pcb drc --severity-all --schematic-parity`:
 
 | check | result |
@@ -587,27 +578,9 @@ Re-run 2026-08-04 from clean project copies with
 
 ### Known open items
 
-- ~~**`RS485_DE` rest state is unverified on real silicon.**~~ **CLOSED
-  2026-09-07:** `TP306` to GND measured **35 mV** on the first board, blank and in
-  BOOTSEL on USB power. A hard low — the internal pull-down parks the THVD1450 in
-  receive as intended. **No rework; the rev-2 external pull-down candidate is
-  dropped.** See "Bench check: `RS485_DE` at rest" above.
-- **44 vias at 0.60 mm drill exceed JLC's 0.5 mm epoxy-fill limit.** All
-  power-distribution, none in a pad, so unfilled is electrically fine — but POFV is
-  normally applied board-wide. **Ask JLC how they handle a board mixing fillable and
-  non-fillable vias** rather than eating an engineering query.
-- ~~**The 8 interface connectors (J210–J213, J301–J304) carry no LCSC part
-  number.**~~ **CLOSED 2026-08-16:** header **C5383116** (HanElectricity
-  2541WV-08P, 6 mm pin / 3 mm tail) and socket **C7509515** (CONNFLY
-  DS1023-1x8SF11, 8.5 mm body), 50 of each ordered against a need of 36.
-  **They bring a spacer consequence — see the mechanical stack above.**
-  Original note retained for the reasoning:
-  **Type is NOT unknown** — read out of `dual-panel.kicad_pcb` 2026-08-16:
-  J210–J213 are `PinHeader_1x08_P2.54mm_Vertical` (carrier, B.Cu) and J301–J304
-  are `PinSocket_1x08_P2.54mm_Vertical` (brain). Ordinary 2.54 mm headers and
-  sockets, four of each per panel, 32 pins per side. The *only* non-commodity
-  spec is the **6.0 mm mating pin with ≥3.0 mm solder tail** from the mechanical
-  stack above, which most "2.54 mm header" listings state neither half of.
+- **POFV and the 0.60 mm vias:** answered at order. Only the 0.30 mm drill vias
+  were asked to be filled; the 44 at 0.60 mm are power distribution and none sit
+  in a pad (`docs/rev1-order/ORDER_NOTES.md` §1).
 - **`.kicad_dru` silently overrides the netclass clearance.** The rule "Minimum
   Trace Width and Spacing" carries `(constraint clearance (min 0.09mm))`, and in
   KiCad a custom rule **replaces** the netclass value rather than acting as a floor

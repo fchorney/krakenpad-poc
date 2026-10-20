@@ -2,6 +2,8 @@
 
 Companion to `docs/PANEL_BRINGUP.md`. Written 2026-09-03, before any board was
 powered; every pin and net below was read out of `master-pcb.kicad_pcb`.
+**Masters #1 and #2 have been through it** (`docs/BRINGUP_LOG.md`); master #2
+runs the nine-panel bench pad.
 
 **Firmware: `firmware/master/master.ino`** — unlike the panel, this is not a
 separate tool. The master sketch had to be ported to the as-built board anyway,
@@ -80,10 +82,13 @@ five need no panels and no 12V.
 | `g <n>` | light underglow group *n* (1–44) alone and hold it |
 | `x` | pause/resume LED frames + FSR polling |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
+| `j` | USB pad input: current mask, sequence number, counters (`docs/USB_PROTOCOL.md`) |
 | `t` | toggle the telemetry stream. Lines are `T <id> <S> <W> <N> <E> <mask> <live>`; `live` is 0 once a panel has been silent for `PANEL_TIMEOUT_MS` (added 2026-10-18; `tools/fsr_monitor.py` reads both the old 7-field form and this one) |
 | `P` | bus passthrough for `tools/panel_update.py`: USB carries raw frames until the host exits or 30 s idle. Not for typing into; see `docs/FIELD_UPDATE.md` |
 | `H` | status sweep: one `'H'` per poll slot to IDs 0–8, one line per panel (build tag, uptime, last reset cause, 12V/termination/auto-INT/echo/INT state, frame and error counters), `NO REPLY` for a silent one |
-| `S <panel> <press> <rel>` | set FSR thresholds on one panel |
+| `z` | zero bus counters, on the master and (by broadcast `'Z'`) on every panel |
+| `m <mode> [secs]` | panel LED mode by broadcast `'M'`: 0 normal, 1 ID, 2 sensor test |
+| `S <panel> <press> <rel>` | set FSR thresholds on one panel (RAM only) |
 
 ## Stage 1 — master alone, USB only
 
@@ -309,10 +314,3 @@ unterminated, terminated mid-chain, at the wrong end, and doubled to 40 Ω
     on the side that can. Measure before deciding it is worth anything at all.
   - Full investigation: `docs/PANEL_BRINGUP.md` → stage 3.
 
-
-- **USB HID to the PC is not started.** The master talks to the bench over USB
-  serial and to panels over RS-485; the actual gameplay path to the host does
-  not exist yet. `docs/USB_PROTOCOL.md` has the design.
-- ~~**The panel firmware is still breadboard-pinned.**~~ Ported 2026-10-18:
-  `firmware/panel/c/main.c` was rebuilt on the bring-up firmware's as-built
-  map, so it doesn't inherit any of the prototype's LED/INT/DE pins.

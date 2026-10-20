@@ -5,6 +5,12 @@ binary format (`.smxa`) → panel flash slots → playback behavior. Merged 2026
 from `ANIMATION_FORMAT.md`, `ANIMATION_BINARY_FORMAT.md`, and
 `PROTOTYPE_LED_LAYOUT.md`.
 
+**Status: design, not built** (2026-10-20). The flash slots are reserved in the
+panel's flash map, but no firmware reads them, no converter exports `.smxa`,
+and the gameplay firmware goes dark when `'L'` frames stop rather than playing
+a local animation. The LED index order below is live: the gameplay firmware and
+the master's `'L'` frames use it.
+
 ---
 
 ## Source / interchange format: APNG or animated WebP
@@ -76,21 +82,28 @@ have no transparency); strip alpha before export.
 | 5 sec    | 60  | 300    | 22,508 B  |
 | 30 sec   | 60  | 1800   | 135,008 B |
 
-## Flash layout (W25Q32JV, 4MB)
+## Flash slots
+
+The slots sit in the panel flash map defined by the bus-update bootloader
+(`firmware/panel/c/common/fw_layout.h`, narrated in `docs/FIELD_UPDATE.md` →
+"Flash map"):
 
 ```
-Address range          Size    Contents
-────────────────────────────────────────────────────────
-0x000000 – 0x07FFFF   512 KB  Firmware (actual usage ~200 KB; headroom for growth)
-0x080000 – 0x0FFFFF   512 KB  Released animation slot
-0x100000 – 0x17FFFF   512 KB  Pressed animation slot
-0x180000 – 0x3FFFFF  ~2.5 MB  Reserved (future: config, extra animation slots, etc.)
+0x080000 – 0x0FFFFF   512 KB  released animation slot
+0x100000 – 0x17FFFF   512 KB  pressed animation slot
 ```
 
-Sector size (minimum erase unit): **4 KB**. All slot boundaries are
-sector-aligned. 512 KB per animation slot supports ~113 seconds at 60fps — far
-more than any reasonable looping animation; the headroom costs nothing on a 4MB
-chip.
+The rest of the 4 MB holds the bootloader (`0x000000`), the application
+(`0x008000`, 480 KB), the update staging area (`0x180000`) and a reserved golden
+copy (`0x200000`). Config has no region assigned yet.
+
+Sector size (minimum erase unit): **4 KB**. Both slot boundaries are
+sector-aligned. 512 KB per slot holds ~113 seconds at 60fps, far more than any
+reasonable looping animation.
+
+> The 2026-07 version of this map put the firmware at `0x000000` (512 KB) and
+> left everything above `0x180000` reserved. The bootloader split of 2026-10-18
+> replaced it; the animation slots kept their addresses.
 
 ## Slot validation
 
@@ -141,5 +154,7 @@ handles the serpentine mapping) will be extended to:
 3. Strip alpha, pack as 25 × RGB bytes
 4. Write header + frame data to `.smxa`
 
-The `.smxa` file is then flashed to the appropriate slot offset using a
-to-be-written upload tool (USB or RS-485 based).
+The `.smxa` file then has to reach the slot. The bus-update mechanism
+(`docs/FIELD_UPDATE.md`) is the obvious carrier: its `'U'` command dropped the
+`target` field for now, and animations are expected to get their own command
+once the slots exist.

@@ -169,3 +169,26 @@ Conventions on `dual-panel`: **carrier = 2xx, brain = 3xx.**
 - **The RP2040 GPIO map changed** — see `docs/DUAL_PANEL.md`. A refdes translation
   does *not* translate pin numbers.
 
+
+
+---
+
+## Master: re-annotated 2026-07-31 (moved here 2026-10-20)
+
+The master was re-annotated for the r/PrintedCircuitBoard convention (each
+refdes type starts at 1 with no gaps). Reset-annotate renumbers **by position**,
+so 47 refdes changed, not just the two gaps it was meant to close. **Any master
+refdes in a note from before 2026-07-31 is the old one.** Key swaps:
+
+- **`U1` is now the RS-485 transceiver; `U2` is the Teensy 4.0** (they traded
+  places). `U3` (LED-data buffer) is unchanged.
+- **`J2` is the underglow-DATA + GND-tie screw terminal** (was `J4`). **The nine
+  INT JST-XH are `J3`–`J11`** (were J2, J3, J5–J11). `J1` (RS-485 out) unchanged.
+- INT TVS diodes reversed: `D2..D10` → `D9..D1` (D2→D9, D10→D1, …).
+- Also remapped: C3↔C11, C4↔C10, C5↔C9, C6↔C8, H2↔H3, most of R1–R15, most of
+  TP1–TP10.
+
+The docs were corrected 2026-08-02 and checked against a fresh netlist export.
+The INT connectors run **J11 → J3 left to right**, so connector numbers descend
+across the board while D/R/C ascend with panel order. `INT_xx` net names are the
+**Teensy-side** node; the connector and TVS sit on the unnamed entry net.

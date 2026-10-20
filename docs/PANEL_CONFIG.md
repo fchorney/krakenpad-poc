@@ -1,8 +1,27 @@
-# Panel Configuration (early design notes)
+# Panel configuration — design
 
-Status: **draft / musings** — collecting config-related decisions as they come up.
-Not yet a binary format spec. Binary layout will slot into the flash config region
-alongside the animation slots (see `docs/ANIMATIONS.md`).
+Status: **mostly design, partly built.** This collects the config decisions made
+so far. There is no binary format yet and **nothing persists to flash**.
+
+**Built in the gameplay firmware (`firmware/panel/c/main.c`), as of 2026-10-19:**
+
+- Panel ID from the DIP at boot (0–8). `15` (all OFF) and other codes are not
+  addressed on the bus.
+- **DIP 10:** the sensor test runs standalone. The other diagnostic codes in the
+  table below (9, 11, 12, 13) are not built.
+- The three **LED modes** (normal, ID, sensor test), set by `'M'`. See below.
+- Press/release thresholds per channel (`g_press_th` / `g_rel_th`), defaults
+  500/400, set over the bus with `'C'`. **RAM only**: a reboot restores the
+  defaults.
+- The debug LED `D202` lights on press in DIP 10 only, and stays dark otherwise.
+
+**Not built:** flash-backed config and its write/commit protocol, the
+`populated`/`enabled` flags, calibration and drift tracking, the periodic
+re-push from the master, local animations (normal mode goes dark when `'L'`
+frames stop), and the other DIP diagnostic modes.
+
+The binary layout will slot into the flash config region alongside the animation
+slots. The current flash map is in `docs/FIELD_UPDATE.md` → "Flash map".
 
 ## What lives where
 
@@ -11,9 +30,9 @@ alongside the animation slots (see `docs/ANIMATIONS.md`).
   bus-configured value. Everything else below lives in flash and is configurable
   over RS-485 from the master.
 - **Per-channel FSR config:** flags + calibration, 4 channels per panel (see below).
-- **RS-485 fallback timeout:** panel falls back to local (flash-stored) animation if
-  no LED frame arrives from the master within **100ms**. Probably configurable,
-  100ms default.
+- **RS-485 fallback timeout:** **100ms** without an LED frame from the master.
+  As built the panel goes dark; the plan is to fall back to a local
+  (flash-stored) animation. Probably configurable, 100ms default.
 
 ## Panel DIP Switch: Diagnostic Modes (decided 2026-07-09)
 
@@ -30,9 +49,9 @@ Adopting 3 of stock's ideas plus 2 new ones our extra headroom allows for:
 
 | DIP value | Mode | Behavior |
 |---|---|---|
-| 0–8 | Panel ID | Normal operation (existing) |
+| 0–8 | Panel ID | Normal operation. **Built** |
 | 9 | **LED Check** | All 25 LEDs lit dim white — visual "are they all alive" check, no bus needed. *(from stock, value 13)* |
-| 10 | **Sensor Pressure Test** | Each of the 4 FSR edges lights a distinct color when pressed — visual per-sensor wiring/function check, no bus needed. *(from stock, value 14)* |
+| 10 | **Sensor Pressure Test** | Each of the 4 FSR edges lights a distinct color when pressed — visual per-sensor wiring/function check, no bus needed. *(from stock, value 14)* **Built** (as LED mode 2, below) |
 | 11 | **Standalone Mode** | Panel lights on press, entirely independent of the master — isolates a single panel for bench testing with just 12V power, no RS-485/master present at all. *(from stock, value 15)* |
 | 12 | **Raw ADC Streaming Mode** (new) | Continuously dumps raw per-channel FSR ADC values (e.g. over UART/serial) regardless of whether a master is present — useful for bench calibration work without wiring up the full rig. |
 | 13 | **Factory Reset Trigger** (new) | Forces the flash animation/config magic-byte wipe-and-rewrite-defaults path on boot — a recovery mechanism that doesn't depend on any working host software or bus command, useful if config/animation flash ever gets corrupted and normal boot can't get far enough to accept a reset command. |
@@ -149,11 +168,12 @@ them apart. So:
 
 ## Per-channel calibration values
 
-- Press threshold (12-bit ADC counts). Bench reference: resting ~100–115, full press
-  ~3900, threshold ~500 sits comfortably between noise floor and activation.
+- Press threshold (12-bit ADC counts). On the rev-1 boards: resting 85–108 across
+  nine boards (most 94–102), full press ~4000; the 500 default sits comfortably
+  between them. (Breadboard figures were ~100–115 / ~3900.)
 - Resting baseline (captured at calibration time) — for drift diagnostics.
-- Hysteresis (separate press/release thresholds) — implemented (`g_press_thr`/
-  `g_rel_thr` in main.c, bus-settable via `'C'`/`'c'`, see RS485_PROTOCOL.md).
+- Hysteresis (separate press/release thresholds) — implemented (`g_press_th`/
+  `g_rel_th` in main.c, bus-settable via `'C'`/`'c'`, see RS485_PROTOCOL.md).
   RAM only for now; flash persistence is the remaining open item.
 
 ## Boot-time float detection (firmware behavior, not config)

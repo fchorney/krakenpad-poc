@@ -11,8 +11,8 @@
 // panels flashed and every board-local check has to work standalone.
 //
 // Protocol: docs/RS485_PROTOCOL.md. Bring-up procedure: docs/MASTER_BRINGUP.md.
-// Flash: arduino-cli compile --fqbn teensy:avr:teensy40 firmware/master
-//        arduino-cli upload  --fqbn teensy:avr:teensy40 firmware/master
+// Build: firmware/master/build.sh (compile) or build.sh upload. It builds
+//        against a patched Teensy core for the USB joystick (docs/MASTER_BRINGUP.md).
 
 // ── As-built pin map (netlist-verified against master-pcb.kicad_pcb) ─────────
 constexpr uint8_t NUM_PANELS = 9;

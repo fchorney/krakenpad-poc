@@ -1,28 +1,30 @@
-# Master PCB — as-built reference
+# Master PCB — as built, rev 1
 
+**This is the master in use: rev 1, ordered 2026-08-18 (tag `rev1-fab`), five
+boards fabbed, two assembled (master #1 and #2, `docs/BRINGUP_LOG.md`).**
+Changes proposed for the next revision are in `docs/REV2_CANDIDATES.md`.
 Condensed 2026-07-23 from `MASTER_SCHEMATIC_PLAN.md` (drafting history,
 including the retired SRV05-4 TVS approach and the original Serial1 pin plan,
-lives in git). Everything below is verified against the current schematic
-netlist.
+lives in git). Everything below is verified against the schematic netlist.
 
-**Status:** schematic and layout complete, **ERC/DRC clean (both re-run
-2026-07-24)** — **not yet ordered.** External AI review (2026-07-23) triaged +
-reworked 2026-07-24; **no fab-blockers** — the review's flagged SW1↔Teensy-socket
-"short" was a false positive (a rotation-sign error in the manual pad-overlap
-math; KiCad's clean copper-clearance DRC was correct all along).
+ERC/DRC clean at order (re-verified 2026-08-18; one accepted courtyard overlap,
+R4 under the socketed Teensy). An external AI review (2026-07-23) found **no
+fab-blockers**: its SW1↔Teensy-socket "short" was a rotation-sign error in the
+review's pad-overlap math.
 
 The master is deliberately simple: **no 12V anywhere on the board, no
 regulators, no magnetics.** Everything runs from the Teensy's USB power
 (+5VDC_USB rail from VIN + the Teensy's onboard 3.3V regulator). 12V runs
 PSU → panel columns directly and never touches this PCB. **The master's GND
-must be tied to the PSU ground stud** (J2 pin 2) — INT and RS-485 need the
+must be tied into the pad ground network** (J2 pin 2 → its own GND port on the
+Wago fan-out) — INT and RS-485 need the
 common reference; separate grounds was a real bench failure mode.
 
 **Assembly: bare PCB fab only, hand-soldered** (PCBA's ~$148 fixed overhead
 still isn't worth it at this volume × 2 boards; the 2026-07-24 INT-filter
 additions — 9× 330R + 9× 1nF, all 0805 — roughly double the passive count but
 stay easy to hand-place). Sourcing: the whole master is
-hand-assembled from the LCSC order — see `docs/BOM.md` order 2. Hot air available; SOT-23-6 and
+hand-assembled from the LCSC order — see `docs/rev1-order/BOM.md` order 2. Hot air available; SOT-23-6 and
 SOIC-8 are fine. Do not re-litigate: THVD1450 has no DIP equivalent worth the
 downgrade (MAX3485CPA loses failsafe + surge), and the passives are 0805 by
 choice (hand-placed, not dense).
@@ -196,7 +198,7 @@ needed a connector change.
 | SW1 | DORABO DS-3P-BU (DIP-3, LCSC C46595747) | player ID 0–7 to GND, internal pull-ups |
 | J1 | Micro-Fit 43650-0300 (RS-485 OUT) | A=pin 1, B=pin 2, **pin 3 = cable shield, tied directly to GND here** (see "RS-485 shield" below) — **matches the panel's J204/J207 exactly** so the cable is straight-through |
 | J3–J11 | JST B2B-XH-A 2-pos 2.5mm vertical THT (LCSC C158012) | one per INT line; pin 1 = INT signal, pin 2 = dedicated GND return. Mating half is XHP-2 housing (C144401) + SXH-001T-P0.6N contacts (C385122), 22–26 AWG. Symbol is generic `Connector_Generic:Conn_01x02`; there is no JST-specific symbol in KiCad. Replaced the 9-pos Euroblock 2026-07-26 |
-| J2 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R5, the 330R series element — R3 is the RS-485 termination), pin 2 = **mandatory GND tie** to the PSU ground stud. DATA position may sit empty if underglow unused |
+| J2 | KANGNEX WJ500V-5.08-2P 2-pos screw terminal (LCSC C8465) | pin 1 = underglow DATA (from R5, the 330R series element — R3 is the RS-485 termination), pin 2 = **mandatory GND tie** to its own GND port on the Wago fan-out. DATA position may sit empty if underglow unused |
 | TP1–TP10 | THT probe holes | TP1 RS-485 RX / TP2 DE / TP3 RS-485 TX / TP4 +5VDC_USB / TP5 GND / TP6 +3.3VDC / TP7 RS485+ / TP8 RS485− / TP9 underglow 3.3V side / TP10 underglow 5V side |
 | H1–H4 | M3 mounting holes | |
 
@@ -220,23 +222,23 @@ needed a connector change.
     landings on the + net). That fan-out is unavoidable and inconsequential at
     1 Mbps. **Do not "fix" it.**
   - Master inner layers are **both GND** (`In1.Cu "GND_1"`, `In2.Cu "GND_2"`),
-    unlike the panel's GND/power split — so there is no reference-plane-type
-    change anywhere on this board, and any future via transition is fully
+    the same as the panel — so there is no reference-plane-type change
+    anywhere on this board, and any future via transition is fully
     solved by a nearby GND stitching via.
 - No SMD parts under the Teensy socket; hot-air approach room around D1–D9
   and the 0805s (electrically they belong at the INT connectors, but clear of
   the socket — this constraint predates the Euroblock→JST XH swap and the
   low-profile XH bodies only relax it).
-- Target ~80×60mm; enclosure to be modeled from the KiCad 3D export once
-  boards are in hand.
+- Board 77.6 × 65.6 mm. The enclosure is being modelled in
+  `hardware/Master-Case/`.
 
 ## Deliberately absent (do not re-add)
 
 - Any 12V input, distribution, or sensing — the master never sees 12V.
 - Underglow 5V-in from the stock Daygreen converter (Teensy USB rail already
   provides shifter VCC) and an underglow presence-sense pin — UI/config
-  gating for now; the harness teardown may reopen it (a 12V-sense divider like
-  the panel's is the known upgrade path).
+  gating for now (a 12V-sense divider like the panel's is the known upgrade
+  path).
 - ~~GND position on the INT Euroblock~~ — **reversed 2026-07-26.** The Euroblock
   is gone and every INT connector now has a dedicated GND pin; the return no
   longer rides the power ground network. See "INT cabling" above.
@@ -281,14 +283,10 @@ a shield across it re-creates the loop area the twisting exists to remove.
 
 ## Open items
 
-- Underglow connector final form — the J2 screw terminal is the interim
-  decision; the harness splice point (stock leads crimp into a 12-pin Dupont
-  at the old MCU) is decided at teardown and may change it. A GND position
-  adjacent to DATA preserves the option of a paired/twisted return wire.
-- ~~Master INT filter caps~~ **DONE 2026-07-24** — full two-stage TVS + 330Ω
-  series R (R6–R14) + 1nF RC (C3–C11) per INT line is now on the board (see the
-  INT block section above).
-- Firmware: USB HID to the PC is the one major master-side piece not started
-  (RS-485 + INT handling already proven on the prototype). Note the master-side
-  **glitch-qualify window** requirement (µs-scale, hidden in USB dead-time,
-  never average on master) — see `docs/USB_PROTOCOL.md`.
+- **Underglow connector: closed.** The 2026-08-08 teardown confirmed J2's screw
+  terminal as final; the underglow pigtail is described in
+  `hardware/harness/PARTS.md`.
+- **Firmware** lives in `firmware/master/` and is current as of 2026-10-19: RS-485
+  bus master, INT capture, USB joystick input, underglow, bench commands.
+  Status and next steps: `docs/STATUS.md`. Bench procedure and the one open
+  measurement (the RS-485 turnaround glitch): `docs/MASTER_BRINGUP.md`.

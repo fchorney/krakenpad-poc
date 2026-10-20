@@ -137,19 +137,6 @@ modular jacks for data IN/OUT (J3/J2), blue 2-pos screw terminal
    stock's interrupt/signal line — amusing validation of our screw-terminal
    INT plan.
 
-## Open items (pending full teardown)
-
-1. ~~**PSU stud size**~~ — **MOOT.** The stock PSU is a brick with one captive
-   output cable; it has no screw terminals and no ground stud, so there are no
-   fork/spade lugs to size. Confirmed at the 2026-08-08 teardown.
-2. **Underglow data connector type/pinout at the old MCU** — gates the master
-   PCB's underglow DATA-out connector choice (see `docs/UNDERGLOW.md`).
-   Related: stock leads crimp directly into a 12-pin Dupont housing at the
-   stock MCU, no reusable intermediate connector.
-3. **Harness run lengths** — power hops, RS-485 links, and the 9 INT
-   home-runs — real measurements to replace the estimates in `docs/BOM.md`.
-   User's plan: snake a wire through the pad along the real routing.
-
 ## Other stock observations (photo estimate, not re-verified physically)
 
 MCU + crystal right-of-center, DIP switch bottom-right, 4 "FSR AMP" labeled
@@ -159,5 +146,5 @@ board family — ours is 12V, no conflict.
 ## INT wire color map
 
 **Confirmed correct 2026-07-10** against the physical pad — matches the stock
-SMX color map adopted in `docs/BOM.md`: 0=Red, 1=Orange, 2=Yellow, 3=Green,
+SMX color map (`WIRE_COLORS.md`): 0=Red, 1=Orange, 2=Yellow, 3=Green,
 4=Blue, 5=Brown, 6=Grey, 7=White, 8=Black.

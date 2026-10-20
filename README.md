@@ -42,15 +42,16 @@ readily available for this kind of upgrade.
 
 ## Status
 
-Prototype boards in hand, bring-up underway. Rev 1 of both boards — the master
-controller and the two-board panel — was fabricated in August 2026, and the
-boards are now being assembled and tested one at a time. The first panel and the
-first master have been brought up: power, flash, sensors, all 25 LEDs, the
-interrupt path and the RS-485 bus all work on the real hardware, panel to master.
-Any board change from here is a rev 2 change. Firmware is still at bring-up
-stage: the host-facing USB HID layer and flash-backed animation playback are not
-written yet. See `docs/BRINGUP_LOG.md` for per-board results, `CLAUDE.md` and
-`docs/` for design notes and specs.
+Rev 1 of both boards (the master controller and the two-board panel) was
+fabricated in August 2026 and is the hardware in use. A full set of nine panels
+and a master run together on the bench: presses reach the PC as a USB joystick,
+all nine panels share one RS-485 bus with no errors, and new panel firmware is
+flashed to the whole pad over that bus. Not written yet: live sensor telemetry
+and configuration over USB, settings saved to flash, and local panel
+animations. Any board change from here is a rev 2 change.
+
+Current state and next steps: `docs/STATUS.md`. Per-board results:
+`docs/BRINGUP_LOG.md`. Design notes and specs: `CLAUDE.md` and `docs/`.
 
 ## AI Disclosure
 

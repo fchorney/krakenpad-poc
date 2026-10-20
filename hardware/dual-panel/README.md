@@ -1,6 +1,6 @@
-# Dual-board panel — the production panel design
+# Dual-board panel — the panel design
 
-**This is the panel that gets built.** The single-board alternative
+**This is the panel in use (rev 1, nine assembled).** The single-board alternative
 (`hardware/panel-pcb`) was retired on 2026-08-04; it lives in git history only,
 last present at `1b41d1c`.
 
@@ -91,7 +91,7 @@ fault isolation. Only a 6-layer *brain* would genuinely force two fab runs; the 
 is already 4-layer-proven, since all of its content routed on 4 layers back when it
 was still sharing them with the LED field and 12V distribution.
 
-*Prices are point-in-time — verify live, per the warning in `docs/BOM.md`.*
+*Prices are point-in-time — verify live (`docs/FAB_ORDER.md` → "Money").*
 
 ## Directory map
 
@@ -101,7 +101,7 @@ was still sharing them with the LED field and 12V distribution.
 | `carrier.kicad_sch` / `brain.kicad_sch` | the two roles |
 | `dual-panel.kicad_pcb` | **both** outlines, carrier left of x=182.55 mm, brain right |
 | `dual-panel.pretty` / `.kicad_sym` / `3dmodels/` | project-local libraries |
-| `panel/` | panelisation + JLC fab package — `gen_panel.py`, `gen_fab.py`, `QUOTE-2026-07-31.md` |
+| `panel/` | panelisation + JLC fab package — `gen_panel.py`, `gen_fab.py` (quotes are in `docs/rev1-order/`) |
 | `fit-test/` | 1:1 printable cavity fit template — re-run after any outline change |
 
 Both sheets were seeded as full copies of `panel-pcb` rev 1.0 and stripped to role,

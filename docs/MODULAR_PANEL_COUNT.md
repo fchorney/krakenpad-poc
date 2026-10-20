@@ -1,9 +1,10 @@
 # Modular Panel Count (Passthrough PCBs)
 
-> **Status: forward-looking design, nothing built.** No passthrough PCB exists and
-> none is on the order. This captures the decision so a future kit build doesn't
-> re-derive it. The connector and INT details below were re-checked against the
-> as-built boards on 2026-08-04.
+> **Status: forward-looking design.** No passthrough board has been built. The
+> rev-1 carrier can serve as one with only its connectors, `SW202` and `R201`
+> fitted (`docs/DUAL_PANEL.md` → "Passthrough variant"). This captures the
+> decision so a future kit build doesn't re-derive it. The connector and INT
+> details were re-checked against the as-built boards on 2026-08-04.
 
 This document captures the design decision for supporting kits with fewer than 9 populated
 panels (e.g. a 4-panel/single-play customer), without requiring custom wiring harnesses per
@@ -52,73 +53,34 @@ copper. This means:
   switchable/populatable termination footprint must exist on **both** real panel PCBs and
   passthrough PCBs — it can no longer be hardwired to "panel 8" specifically.
 
-## Termination Jumper Mechanism (resolved)
+## Termination: the DPDT switch on every board (built)
 
-Both real panel PCBs and passthrough PCBs get a **3-pin (SPDT-style) jumper header** tapped
-off the RS-485 A/B differential pair, with the 120Ω termination resistor always populated on
-every board:
+Both real panels and passthrough boards need switchable termination, because
+either could end up last in the chain. Rev 1's carrier has it: **`SW202`**, a
+DPDT slide switch. Pole A puts `R201` (120 Ω, always fitted) across the pair;
+pole B reports the position on `TERM_SENSE` (GPIO, LOW = terminated), so the
+reported state comes from the same actuator as the electrical one. A 3-pin
+jumper header was the first idea; the switch replaced it so there is no loose
+cap to lose. Wiring: `docs/DUAL_PANEL.md` → "Signal conventions".
 
-- **Common pin**: tied to the RS-485 A/B tap.
-- **Position 1 (default, shipped state on every board)**: plain PCB trace — not terminated.
-  No component populated here; a trace and a 0Ω resistor are electrically identical, so a
-  resistor would just be an extra assembly step for no benefit.
-- **Position 2**: routes through the always-populated 120Ω resistor — terminated.
+**Detection is built.** Each panel reports `TERM_SENSE` in its `'h'` status
+reply, and after every `H` sweep the master checks that exactly one panel is
+terminated: the last one, in the documented chain order, that answered. It
+prints a warning, never an error, because the bus ran with zero errors
+unterminated, mid-chain and doubled (`docs/MASTER_BRINGUP.md` → "Termination
+check", which also lists what the check cannot see). A passthrough board has no
+MCU, so it couldn't report its switch; a kit with a passthrough at the end of
+the chain would need the check to allow for that.
 
-The jumper cap is always installed on the header, just moved between the two positions rather
-than added/removed loose — this avoids customers losing a physical jumper cap when
-reconfiguring. A customer only needs to move the jumper to position 2 on whichever single
-physical board (real panel or passthrough) ends up last in their kit's chain; every other
-board stays at the default position 1.
+## Detecting a misconfigured panel-ID DIP switch (built)
 
-### Physical control: DPDT slide switch (replaces jumper header)
+Each panel's INT wire is a home run, so the master knows which physical slot
+asserted a press without relying on any self-reported ID. The DIP ID only
+matters for RS-485 (LED targeting, telemetry labels), so a wrong-but-unique DIP
+setting breaks lighting and telemetry attribution, not press detection.
 
-Preferred over a loose jumper cap for end-user-facing hardware: a **DPDT slide switch** does
-the same job with no removable part to lose.
-
-- **Pole 1**: routes the 120Ω termination resistor in/out of the RS-485 A/B pair (same
-  function as the jumper header above).
-- **Pole 2**: ganged to the same physical actuator, wired to a spare panel MCU GPIO (internal
-  pull-up; switch pulls it LOW in the "terminated" position). Guarantees the reported state
-  always matches the real electrical state, since it's the same switch.
-
-### Software detection of misconfigured termination
-
-Termination is purely a signal-integrity (impedance matching) measure — it prevents reflections
-at the end of the bus. At this project's cable lengths (<3m) and 1 Mbps baud, a missing or
-misplaced termination resistor is unlikely to actually corrupt data (see
-`CLAUDE.md` RS-485 baud rate notes), so **monitoring for bus errors is not a reliable way to
-detect a termination mistake** — there may be no observable data errors even when it's wired
-wrong. Detection instead reads the switch's physical state directly, independent of whether it
-currently affects data integrity:
-
-- Each panel reports its pole-2 GPIO state as one extra field in its existing RS-485 telemetry
-  poll response.
-- The master already knows, from panel DIP-switch identities, which panels are present and
-  therefore which single panel *should* be last in the chain for the current kit configuration.
-- Master cross-checks expected-last-panel against actual reported termination state and flags:
-  - **None terminated** — "no termination detected, check the switch on panel `<expected>`"
-  - **Wrong panel terminated** — "termination is on panel `<actual>`, should be on panel `<expected>`"
-  - **Multiple terminated** — "multiple panels terminated, should be exactly one"
-
-This is a deterministic hardware-state check, not a heuristic — no error-rate thresholds or
-false-positive risk from unrelated bus/cable issues.
-
-## Detecting a misconfigured panel-ID DIP switch (2026-07-09)
-
-Stock SMX has to multiplex the DIP-switch ID into the shared interrupt-line sensor data,
-because that line is genuinely shared across panels — the only way to know whose data
-you're looking at is if the panel tells you. **This project doesn't have that ambiguity**:
-each panel's INT wire is a home-run, one wire per physical slot, so the master already
-knows *which physical position* asserted a press with zero reliance on any self-reported
-ID. The DIP ID only matters for RS-485 (LED targeting, telemetry labeling) — so a
-wrong-but-unique DIP setting breaks lighting/telemetry attribution, not press-detection
-latency or bus function (duplicate IDs are a separate, already-handled case — see the
-2026-07-11 multi-panel bring-up notes above).
-
-**Detection idea (not yet implemented):** cross-correlate the two independent identity
-channels the master already has. If INT-slot 3 asserts a press but the RS-485 telemetry
-for panel ID "3" shows no threshold crossing at that same moment (while some other ID, say
-"5", does), that's a deterministic signature of a misconfigured DIP switch on that physical
-board — no new hardware, just a correlation check in master firmware. Cleanest as a guided
-setup step (have the installer press panels 0→8 in physical order once) rather than passive
-run-time monitoring, similar in spirit to the termination cross-check above.
+The **`'I'` slot ↔ panel-ID self-test** (`docs/RS485_PROTOCOL.md`) is the
+check: the master asks each ID to pulse its INT line and records which slot
+the pulse arrives on, so it learns the real mapping instead of assuming it. It
+also catches duplicate IDs (two slots fire). The 2026-07-09 idea of
+correlating presses with telemetry during a guided setup step is not needed.

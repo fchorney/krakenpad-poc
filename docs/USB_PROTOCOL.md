@@ -1,6 +1,8 @@
-# USB Protocol (ours) — v0 design draft
+# USB Protocol (ours) — v0
 
-Status: **draft.** Derived by walking the stock SMX USB protocol
+Status: **the input report is built and works on the bench** (2026-10-19, below).
+The command and data reports, and everything in "Command inventory", are still
+a **draft**. Derived by walking the stock SMX USB protocol
 (`../stepmaniax-sdk-mp/docs/USB_PROTOCOL.md`) command-by-command and deciding
 keep / adapt / drop. Intentionally NOT SMX-compatible — our own VID/PID and
 descriptor; no software expecting an SMX pad will (or should) talk to us.
@@ -14,7 +16,7 @@ descriptor; no software expecting an SMX pad will (or should) talk to us.
 | Interfaces (as built 2026-10-19) | 0–1 CDC serial (the bench console, unchanged), 2 HID joystick (pad input). Command/data reports are not built yet |
 | Transport | USB HID, 64-byte packets |
 | USB speed | High Speed 480 Mbps (Teensy 4.x native) |
-| Input polling | 1000Hz baseline; 2000Hz+ target (HS microframes allow up to 8000Hz) |
+| Input polling | **8000Hz offered** (`bInterval = 1` at High Speed, as built). Host-side achieved rate not measured |
 
 ### VID/PID plan: pid.codes
 
@@ -25,10 +27,8 @@ vendor ID or using unregistered numbers indefinitely.
 
 **Not eligible yet** — pid.codes requires a public repo with modifiable design
 files (PCB sources and/or firmware) under a recognized open-source license
-(LICENSE file required). The repo now lives at
-`github.com/fchorney/krakenpad-poc` with active commits (as of 2026-07-11),
-but there is **still no LICENSE file**, and the repo must be public for
-eligibility. Revisit once both are true.
+(LICENSE file required). `github.com/fchorney/krakenpad-poc` is public, but
+there is **still no LICENSE file** (checked 2026-10-20). Revisit once there is.
 
 **Process, for when it's time** (fork `pidcodes/pidcodes.github.com`):
 1. `org/<org-name>/index.md` — organization page (frontmatter: layout, title,

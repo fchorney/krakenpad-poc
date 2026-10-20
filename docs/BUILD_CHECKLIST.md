@@ -4,8 +4,8 @@
 the right shape for board 1, the wrong shape for boards 3 through 20. This is the
 condensed version: what to do per board, and what not to do again.
 
-**Remaining as of 2026-10-02:** 2 panels built of **20** (2 pads × 9 + 2 spares),
-so **18 to go**. Both masters built.
+**As of 2026-10-19:** 9 panels built of **20** (2 pads × 9 + 2 spares), so
+**11 to go**. Masters #1 and #2 built (five boards fabbed).
 
 ---
 
@@ -95,7 +95,7 @@ them costs bench time and risks "re-opening" settled decisions.
 
 ---
 
-## Per panel (×19)
+## Per panel
 
 ### 1. Hand-solder — 20 connectors, all through-hole
 
@@ -161,22 +161,44 @@ the AMS1117 so the mux otherwise never selects it.
 
 ### 5. Bench — on the bus
 
-`R` to enable the responder, then from the master: heartbeat shows replies, `I`
+Bus mode starts by itself once 12 V is present and the DIP reads 0–8 (`R` toggles it by hand). Then from the master: heartbeat shows replies, `I`
 passes for this panel's ID, `S <id> 500 400` acks. `T` on the panel should read
 **0 CRC errors, 0 overruns, 0 uart errors**.
 
 ⚠ Give every panel a **unique** ID 0–8. Two on one address collide, and the
 master's health check calls it out by name.
 
-### 6. Record
+### 6. SWD
+
+Run `tools/swd_check.py` with the debugprobe Pico on `J209` (wiring in
+`docs/PANEL_BRINGUP.md` → "SWD — `J209`"). Pass: DPIDR `0x0bc12477`, both
+cores examine, CHIP_ID `0x20002927`. The SWD-only erase-and-recover test was
+run once, on `462D`, and is not repeated.
+
+### 7. Gameplay firmware
+
+On the bus with the rest of the pad, from the master:
+
+```
+python3 tools/panel_update.py firmware/panel/c/build/panel_firmware.bin
+```
+
+A board whose app was loaded over USB has no app CRC on record, so the tool
+re-installs it even without `--force`. That is expected.
+
+### 8. Record
 
 Append to `docs/BRINGUP_LOG.md`, keyed by the RP2040 unique ID: JEDEC, `w`, DIP,
 FSR mapping and resting values, LED count, bus counters. One summary row + a
 detail section. With 20 boards, "which one had the odd channel" gets asked later.
 
+Tag the board physically with the **last 4 hex characters** of the RP2040 ID
+(the IDs in this batch share their first 10 characters): a sticker on the brain's B side,
+which stays visible when mated, and the same tag on its carrier.
+
 ---
 
-## Per master (×1)
+## Per master
 
 1. **Solder headers onto a fresh Teensy** — the reason board 1 uses the
    ex-prototype module. Two 1×14 rows only.
@@ -197,7 +219,8 @@ detail section. With 20 boards, "which one had the odd channel" gets asked later
 
 ## Per pad — harness
 
-~29 cables: 9 RS-485 (1 × 60 cm + 8 × 45 cm), 9 power, 9 INT home-runs, 1
+Both pads' harnesses were built by 2026-10-12. For a rebuild or a repair: ~29
+cables per pad, 9 RS-485 (1 × 60 cm + 8 × 45 cm), 9 power, 9 INT home-runs, 1
 underglow pigtail, 1 master GND tie.
 
 - ⚠ **Pull-test every crimp.** The RVSP reel is 24 AWG despite its marking and
@@ -210,4 +233,5 @@ underglow pigtail, 1 master GND tie.
   pigtail, a 22 AWG lead soldered on, joint heat-shrunk, *that* lead crimped.
   Never tin the part inside the crimp barrel. INT shields are trimmed and
   heat-shrunk at both ends, never bonded to the INT ground.
-- 🛒 **Still to buy: 100 × 0.34 mm² ferrules** (~30 on hand, 36 needed per pad).
+- Ferrules: 0.34 mm² for the `J214` INT conductors, 0.5 mm² for master `J2`
+  (`hardware/harness/PARTS.md`). Enough on hand (recounted 2026-10-07).

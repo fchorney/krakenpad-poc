@@ -1,15 +1,15 @@
 # Field update — flashing panels over RS-485
 
-**Status (2026-10-18): implemented and passes an end-to-end host test. On
-hardware, the USB load, the hand-off to the app and the `U` hold work on one
-board. A bus update has NOT been run yet.** The pieces:
+**Status: implemented and in use.** Proven on hardware 2026-10-18 (eight panels,
+including both power-cut cases) and used since to deliver every gameplay build
+to all nine panels. The golden copy is reserved but not implemented. The pieces:
 
 | piece | where |
 |---|---|
 | panel bootloader | `firmware/panel/c/bootloader/` |
 | flash map + command letters, shared | `firmware/panel/c/common/fw_layout.h` |
 | app linker script (app at `0x10008000`) | `firmware/panel/c/common/memmap_app.ld` |
-| app side: `'B'` on the bus, `U` on the console | `firmware/panel/c/bringup/main.c` |
+| app side: `'B'` on the bus, `U` on the console | `firmware/panel/c/main.c` (gameplay) and `firmware/panel/c/bringup/main.c` |
 | master passthrough (`P`) | `firmware/master/master.ino` |
 | host tool | `tools/panel_update.py` |
 | host test (real bootloader C, simulated bus) | `firmware/panel/c/bootloader/host_test/` |
@@ -23,7 +23,7 @@ the flash map still holds; "What changed" below lists where this differs.
 With the master on USB and every panel on the bus, one command updates them all:
 
 ```sh
-python3 tools/panel_update.py firmware/panel/c/bringup/build/panel_bringup.bin
+python3 tools/panel_update.py firmware/panel/c/build/panel_firmware.bin
 ```
 
 The image is broadcast once, so a whole pad takes about as long as one panel.
@@ -46,8 +46,8 @@ verified copy, so the pad never ends up half old and half new.
 The application is the SDK's normal layout moved to `0x10008000`: its own
 256-byte boot2 slot comes first (unused) and its vector table sits at
 `0x10008100`. The bootloader jumps through that table exactly as boot2 would.
-**An application linked this way cannot boot without the bootloader.** The
-bring-up build links this way by default; `-DPANEL_UNDER_BOOTLOADER=OFF` builds
+**An application linked this way cannot boot without the bootloader.** The gameplay
+and bring-up builds both link this way by default; `-DPANEL_UNDER_BOOTLOADER=OFF` builds
 the old standalone image.
 
 The bootloader build fails if it grows past 28 KB, because it would run into
@@ -245,7 +245,7 @@ What it cannot show: bus timing, the real UART and IRQ, real flash timing, the
 SDK's runtime coming up after the hand-off, and the master's USB behaviour.
 Those need hardware.
 
-## Hardware bring-up, not yet run
+## Hardware validation (2026-10-18)
 
 1. ✅ **Done 2026-10-18** (`DE6558A6977D462D`, build tag `09447A32`). Load the
    bootloader and the new bring-up image on one panel. It should boot to the

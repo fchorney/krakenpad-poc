@@ -2,21 +2,18 @@
 
 How to prove a freshly assembled `dual-panel` board works, and in what order.
 
-Written 2026-09-03, while the LCSC parts parcel was still in transit. Every pin,
-net and part number was re-derived from `dual-panel.kicad_pcb` and
-`docs/DUAL_PANEL.md`.
-
-**Stage 0 has since been run on real hardware (2026-09-07) and is closed** — see
-below. Stages 1–3 are still as-written and unexercised.
+Written 2026-09-03, before any board was powered, from `dual-panel.kicad_pcb`
+and `docs/DUAL_PANEL.md`. **All nine boards have now been through every stage**
+(results per board in `docs/BRINGUP_LOG.md`), so this is both the procedure and
+the record of what each check found the first time. For boards after the first,
+`docs/BUILD_CHECKLIST.md` is the condensed version.
 
 **Firmware: `firmware/panel/c/bringup/`.** It is deliberately *not* the gameplay
-firmware. `firmware/panel/c/main.c` is breadboard-pinned (LED on GPIO4, INT on
-GPIO5, DE on GPIO2) and needs a port to the as-built map regardless; but the port
-should not be the first thing to run on a real board, because bring-up happens in
-a world the gameplay firmware does not model — a **standalone brain with no
-carrier**: no DIP switch, no termination switch, no FSR connectors, no LEDs, no
-12V. The bring-up build is single-core, USB-CDC interactive, and free to be as
-chatty as a bench tool should be.
+firmware (`firmware/panel/c/main.c`), because bring-up happens in a world the
+gameplay firmware does not model: a **standalone brain with no carrier**, so no
+DIP switch, no termination switch, no FSR connectors, no LEDs and no 12V. The
+bring-up build is single-core, USB-CDC interactive, and as chatty as a bench
+tool should be. The gameplay firmware was built on its hardware layer.
 
 Build (note the toolchain — the Homebrew `arm-none-eabi-gcc` on `PATH` has no
 newlib and dies on `nosys.specs`):
@@ -39,9 +36,12 @@ No `-x` on the app, and no `-f` on the loads. Why, and the traps, are in
 **As of 2026-10-18 the bring-up image links at `0x10008000` behind the panel
 bootloader** (build it from `firmware/panel/c/bootloader/` the same way), which
 is what lets the master update it over the bus later: `docs/FIELD_UPDATE.md`.
-Load the bootloader first; the app alone does not boot. Boards 1–8 were brought
-up on the old standalone image (`-DPANEL_UNDER_BOOTLOADER=OFF` still builds it)
-and need both loads once to move over.
+Load the bootloader first; the app alone does not boot, and `picotool verify`
+still passes on a board that will sit in BOOTSEL forever (board 9, see
+`docs/BRINGUP_LOG.md`). Boards 1–8 were first brought up on the old standalone
+image (`-DPANEL_UNDER_BOOTLOADER=OFF` still builds it) and have since been moved
+onto the bootloader. Once a board has the bootloader, later images go over the
+bus (`tools/panel_update.py`).
 
 `picotool load`, never the `RPI-RP2` drag-drop on macOS. `picotool info`
 segfaults on RP2040.
@@ -53,7 +53,7 @@ segfaults on RP2040.
 | **0** | brain alone, USB, blank flash (in BOOTSEL) | `TP306` rest state, rails, `RUN` — meter only, no firmware. ✅ **done 2026-09-07** |
 | **1** | brain alone, USB | flash, rails, `SENSE_12V` reads absent, pull configuration |
 | **2** | + carrier + 12V, USB kept | power mux, DIP, termination, FSR mapping, INT, LEDs |
-| **3** | 2 panels + master | RS-485 — needs peers, cannot be self-tested |
+| **3** | panels + master | RS-485 — needs peers, cannot be self-tested. ✅ nine panels on one bus 2026-10-19 |
 | **SWD** | + debugprobe Pico on `J209` | the SWD path to `U306`, any time after stage 2. See "SWD — `J209`" |
 
 The staging is not arbitrary: each stage is the largest set of checks that the
@@ -461,7 +461,7 @@ power.
 
 ---
 
-## Stage 3 — RS-485, the master and at least one panel — ✅ FIRST PASS 2026-09-08
+## Stage 3 — RS-485, the master and at least one panel — ✅ nine panels 2026-10-19
 
 **Implemented.** The bring-up firmware carries a minimal responder for
 `docs/RS485_PROTOCOL.md` — enough to make the master's bus and its slot↔ID

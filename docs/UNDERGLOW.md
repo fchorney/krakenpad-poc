@@ -1,7 +1,10 @@
 # Platform / Underglow LED Strips (optional feature)
 
-Status: **optional — electrical spec fully resolved.** Nice-to-have; if it
-isn't easy to fit, the plan is to just not connect it rather than force a fit.
+Status: **optional — electrical spec fully resolved, hardware proven on a real
+strip (2026-10-05).** In the master firmware the underglow is driven only by the
+bench commands (`u`, `U`, `g`). The periodic re-send this doc calls for and the
+host's strip command are **not built yet**. Nice-to-have; if it isn't easy to
+fit, the plan is to just not connect it rather than force a fit.
 Trimmed 2026-07-23 — superseded speculation (5V-bus theories, Daygreen-reuse
 ideas, pre-confirmation brightness background) removed; full history in git.
 
@@ -167,7 +170,7 @@ periodically, not only on command.** The master runs on USB and the strip on
 strip powers up after the master has sent its frame, or is re-plugged, it sits
 at full white until the host happens to send another. Fix: send the current
 frame at boot, then every few hundred ms. A frame is ~1.3 ms, so the cost is
-negligible. A 12 V sense on the master would also solve it, but that is a board
+negligible. **Not built yet** (2026-10-20). A 12 V sense on the master would also solve it, but that is a board
 change.
 
 ## Our design (as built on the master PCB — see `docs/MASTER_PCB.md`)
@@ -180,7 +183,8 @@ change.
   screw terminal). Ground reference comes via the master's mandatory GND
   tie (J2 pin 2).
 - **Host-side**: a strip-set command in our USB protocol
-  (`docs/USB_PROTOCOL.md`, `'L'` platform strip — write-on-command).
+  (`docs/USB_PROTOCOL.md`, `'L'` platform strip). Not built: the USB command
+  report doesn't exist yet.
 - Gating is UI/software config only ("underglow: on/off") — no sense pin; a
   12V-sense divider (like the panel's) is the known upgrade path if
   config-only gating proves annoying.
