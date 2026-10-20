@@ -75,6 +75,14 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Next steps (firmware/software)
 
+**Next session (the user's plan, 2026-10-20): build these three, in order.**
+(a) config on the bus (step 4: panel `'W'`/`'w'`, the "not configured" bit,
+`'C'` removed; the master's EEPROM record, re-push, `S` editing the master's
+copy), (b) the master's vendor HID interface (step 5: core patch, then device
+info, get/set config, pad status), (c) the Rust SDK skeleton in
+`software/sdk` against (b) (`docs/HOST_SOFTWARE.md`). (a) and (b) can be
+written and built without the pad; testing needs it plugged in.
+
 1. ~~Inter-byte timeout in the panel parser~~ done 2026-10-20: master `b`
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
