@@ -159,8 +159,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.600
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Master to panel 0 (UL). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -169,8 +169,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 0 (UL) to panel 3 (L). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -179,8 +179,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 3 (L) to panel 6 (DL). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -189,8 +189,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 6 (DL) to panel 7 (D). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -199,8 +199,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 7 (D) to panel 4 (C). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -209,8 +209,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 4 (C) to panel 1 (U). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -219,8 +219,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 1 (U) to panel 2 (UR). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -229,8 +229,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 2 (UR) to panel 5 (R). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is
@@ -239,8 +239,8 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.450
-    colors: [BU, WH]
-    shield: true
+    colors: [RD, BK]
+    shield: GN
     notes: >
       Panel 5 (R) to panel 8 (DR). Length from the stock data chain, 2026-08-16.
       Shielded twisted pair (RVSP). Shield lands on pin 3 at both ends and is

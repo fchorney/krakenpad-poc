@@ -78,25 +78,29 @@ barrel before cutting it. See `stock-smx/harness/psu-12v.yml`.
 
 | Conductor | Gauge | Color | Code | Status |
 |-----------|-------|-------|------|--------|
-| +12V | 20 AWG | red | `RD` | **TODO confirm** |
-| GND | 20 AWG | black | `BK` | **TODO confirm** |
+| +12V | 20 AWG (measures 21) | red | `RD` | confirmed on the built cables, 2026-10-20 |
+| GND | 20 AWG (measures 21) | black | `BK` | confirmed on the built cables, 2026-10-20 |
 
 ## RS-485 chain — `rs485-chain.yml`
 
 | Conductor | Gauge | Color | Code | Status |
 |-----------|-------|-------|------|--------|
-| A | 22 AWG | blue | `BU` | **TODO confirm** |
-| B | 22 AWG | white | `WH` | **TODO confirm** |
-| Shield | — | drain | — | pin 3, both ends |
+| A | 22 AWG (measures 24) | red | `RD` | confirmed on the built cables, 2026-10-20 |
+| B | 22 AWG (measures 24) | black | `BK` | confirmed on the built cables, 2026-10-20 |
+| Shield | — | green | `GN` | confirmed on the built cables, 2026-10-20. Micro-Fit pin 3, both ends |
 
 ## INT home runs — `int-home-run.yml`
 
-New builds, not stock — colors are ours to choose.
-
 | Conductor | Gauge | Color | Code | Status |
 |-----------|-------|-------|------|--------|
-| INT | 22 AWG | white | `WH` | proposed |
-| GND | 22 AWG | black | `BK` | proposed |
+| INT | 22 AWG (measures 24) | red | `RD` | confirmed on the built cables, 2026-10-20 |
+| GND | 22 AWG (measures 24) | black | `BK` | confirmed on the built cables, 2026-10-20 |
+
+⚠ **Red is the signal here, not a supply.** Both RS-485 and INT use the same
+red/black reel, so on these cables red means RS-485 A or INT signal. Only the
+power columns carry 12 V on red. The connectors keep them apart: 2-circuit
+Micro-Fit for power, 3-circuit for RS-485, JST XH and the screw terminal for
+INT.
 
 Per-panel identification is a **printed position label under clear heat-shrink
 at both cable ends**, not conductor color. See "Panel identification" at the top

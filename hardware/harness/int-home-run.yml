@@ -120,7 +120,7 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 1.050
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: >
       Master J11 to panel 0 (UL). 105 cm (stock 90 + 15). Label UL.
       PER-PANEL IDENTIFICATION IS A PRINTED LABEL UNDER CLEAR HEAT-SHRINK AT
@@ -130,7 +130,7 @@ cables:
       silkscreen, never the panel ID. Laser-printed; slide the shrink on BEFORE
       crimping. Full rules in WIRE_COLORS.md. The same convention applies to all
       nine cables below.
-      Superseded, kept as the documented fallback in WIRE_COLORS.md: the
+      Superseded, archived in docs/archive/INT_COLOUR_CODE_FALLBACK.md: the
       2026-08-17 two-band row/column color code (rows RED/YELLOW/GREEN, columns
       BLUE/WHITE/VIOLET), which itself replaced the stock SMX 0=Red..8=Black
       map. The per-cable notes below used to carry single marker colors left
@@ -139,37 +139,37 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 0.750
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: Master J10 to panel 1 (U). 75 cm (stock 60 + 15) -- shortest of the nine. Label U.
   W_P2:
     category: bundle
     gauge: 22 AWG
     length: 0.850
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: Master J9 to panel 2 (UR). 85 cm (stock 70 + 15). Label UR.
   W_P3:
     category: bundle
     gauge: 22 AWG
     length: 1.350
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: Master J8 to panel 3 (L). 135 cm (stock 120 + 15). Label L.
   W_P4:
     category: bundle
     gauge: 22 AWG
     length: 1.050
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: Master J7 to panel 4 (C). 105 cm (stock 90 + 15). Label C.
   W_P5:
     category: bundle
     gauge: 22 AWG
     length: 1.150
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: Master J6 to panel 5 (R). 115 cm (stock 100 + 15). Label R.
   W_P6:
     category: bundle
     gauge: 22 AWG
     length: 1.650
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: >
       Master J5 to panel 6 (DL). 165 cm (stock 150 + 15) -- longest of the nine. Label DL.
       TOTAL FOR THE SET: 10.65 m of 24 AWG twisted pair before slack (was
@@ -179,13 +179,13 @@ cables:
     category: bundle
     gauge: 22 AWG
     length: 1.350
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: Master J4 to panel 7 (D). 135 cm (stock 120 + 15). Label D.
   W_P8:
     category: bundle
     gauge: 22 AWG
     length: 1.450
-    colors: [WH, BK]
+    colors: [RD, BK]
     notes: Master J3 to panel 8 (DR). 145 cm (stock 130 + 15). Label DR.
 
 connections:

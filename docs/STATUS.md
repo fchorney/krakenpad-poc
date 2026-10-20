@@ -63,8 +63,8 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 - **Harness install, last recorded open 2026-10-12:** choose which 6 power
   cables are the column feeds; cut the trunk, master GND tie and underglow leads
   to fit once the master and the Wago carrier are mounted.
-- **Carried since 2026-10-02:** scope `TP214` (`LED_DATA_5V`) during a 12 V
-  pull; scope the RS-485 bus once the panels are in a pad.
+- **Scope the RS-485 bus once the panels are in a pad** (edge settling; carried
+  from master #2's open list in `docs/BRINGUP_LOG.md`).
 
 ## Next steps (firmware/software)
 
