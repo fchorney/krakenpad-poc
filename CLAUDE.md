@@ -5,6 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Current state, what works, and next steps: `docs/STATUS.md`.** Read it first.
 It also maps every doc to its job.
 
+**Keep `docs/STATUS.md` current.** A session can end at any point, so don't save
+the update for the end:
+- Update it **alongside** any change that moves it: something built or newly
+  working on the bench, a board assembled, an open item found or closed, a next
+  step done or added. That includes bench results the user reports in chat.
+  Bump **Last updated**.
+- Keep it a summary. Detail goes in the doc it links (bench results in
+  `docs/BRINGUP_LOG.md`, specs in their own docs).
+- At the start of a session, list the commits since STATUS last changed:
+  `git log --oneline $(git log -1 --format=%h -- docs/STATUS.md)..HEAD`. If any
+  of them aren't reflected in it, bring it up to date first.
+- Where it disagrees with a detailed doc or the code, they win; fix STATUS.
+
 > # 🔒 Rev 1 is the hardware in use, and it is frozen
 >
 > Both boards were ordered from JLCPCB on **2026-08-18** and are on the bench

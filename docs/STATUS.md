@@ -1,7 +1,8 @@
 # Project status
 
 **Last updated 2026-10-20.** This is the one page for "where is the project right
-now". Update it at the end of a work session. Detail lives in the docs it links.
+now". Update it alongside any change that moves it (rules in `CLAUDE.md`).
+Detail lives in the docs it links.
 
 ## The hardware in use is rev 1
 
