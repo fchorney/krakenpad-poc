@@ -363,6 +363,26 @@ defaults and the old master's `S` would do nothing.
 On Windows, remove the cached `16C0:0487` device first: its interface set
 changed again (`docs/USB_PROTOCOL.md` → device identification).
 
+## Parser resync (built 2026-10-20, not yet run)
+
+The master drops a half-parsed packet before each of its transmissions
+(`docs/RS485_PROTOCOL.md` → "Framing"). To make one, the gameplay panel
+firmware's USB console has **`g`**: it puts a lone header claiming an 80-byte
+payload on the bus (`55 58 <id> 50`) and nothing after it.
+
+1. Master: `z`, then `x` to pause its traffic. Wait 2 s.
+2. One panel's USB console: `g`.
+3. Master: `x` to resume. Watch the next heartbeat.
+
+| master | expected |
+|---|---|
+| with the resync | `1 partial packets dropped`, `0 crc errs`, poll replies keep pace with polls |
+| before it (commit `f138ece` or older) | `1 crc errs` once the bogus packet fills, and about six `'f'` replies missing from the count (80 bytes of replies read as its payload) |
+
+Run it once on the old master too, so the test is seen to fail without the fix.
+Every other panel also counts one `tmo` in `H` for the same header; that is
+their own timeout working, not a fault.
+
 ## Still open on the master
 
 - **Check whether the master has the panel's RS-485 turnaround glitch.** The

@@ -1290,7 +1290,9 @@ this existed. What it shows is that the parser now recovers from that kind of
 garbage within one gap.
 
 **Same gap elsewhere:** the master's RX parser has no inter-byte timeout
-either (not changed). ~~The panel bootloader's parser, which only USB or SWD
+either (not changed). *(Since built a different way, a resync before each of
+the master's transmissions, 2026-10-20, not yet run: `docs/RS485_PROTOCOL.md`
+→ "Framing".)* ~~The panel bootloader's parser, which only USB or SWD
 could reach~~: fixed the same day, by updating the bootloader over the bus
 (next entry).
 

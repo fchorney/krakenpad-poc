@@ -242,6 +242,38 @@ void sendPacket(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) 
   // transmitterEnable handles DE timing; no flush needed before queuing more
 }
 
+// One receiver's state machine: the master's own (rx, below) and the two
+// passthrough directions (pt_host, pt_bus) each have one.
+struct FrameParser {
+  enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
+  uint8_t cmd = 0, addr = 0, len = 0, idx = 0, crc = 0;
+  uint8_t pay[PKT_MAX_PAYLOAD];
+  bool crc_failed = false;   // the last feed() ended a frame with a bad CRC
+
+  // True when `c` completes a CRC-valid frame (fields above then hold it).
+  bool feed(uint8_t c) {
+    crc_failed = false;
+    switch (st) {
+      case W_SYNC: if (c == PKT_SYNC) { crc = 0; st = W_CMD; } break;
+      case W_CMD:  cmd = c;  crc = crc8Update(crc, c); st = W_ADDR; break;
+      case W_ADDR: addr = c; crc = crc8Update(crc, c); st = W_LEN;  break;
+      case W_LEN:
+        len = c; crc = crc8Update(crc, c); idx = 0;
+        st = (len > PKT_MAX_PAYLOAD) ? W_SYNC : (len ? W_PAY : W_CRC);
+        break;
+      case W_PAY:
+        pay[idx++] = c; crc = crc8Update(crc, c);
+        if (idx == len) st = W_CRC;
+        break;
+      case W_CRC:
+        st = W_SYNC;
+        crc_failed = c != crc;
+        return !crc_failed;
+    }
+    return false;
+  }
+};
+
 // ── Reply window ─────────────────────────────────────────────────────────────
 // After a packet that expects a reply ('F', 'W', 'H'), the master must stay silent
 // until the reply is over: both ends tie DE to R̅E̅, so a master frame sent on
@@ -265,6 +297,7 @@ uint32_t bus_quiet_from_us = 0;
 
 void sendRequest(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len,
                  uint8_t reply_len) {
+  rxResync();
   sendPacket(cmd, addr, payload, len);
   RS485_SERIAL.flush();   // returns at transmit-complete, when DE drops
   bus_quiet_from_us = micros() + (5u + reply_len) * 10u + REPLY_MARGIN_US;
@@ -760,58 +793,57 @@ void printConfig() {
   }
 }
 
-void parseRx() {
-  static enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
-  static uint8_t cmd, addr, len, idx;
-  static uint8_t pay[PKT_MAX_PAYLOAD];
+// The master's receiver for panel replies. Passthrough reads the bus through
+// pt_bus instead, and leaves this one alone.
+FrameParser rx;
+uint32_t stat_rx_dropped = 0;   // partial packets dropped by rxResync()
 
+void parseRx() {
   while (RS485_SERIAL.available()) {
-    uint8_t c = (uint8_t)RS485_SERIAL.read();
-    switch (st) {
-      case W_SYNC: if (c == PKT_SYNC) st = W_CMD; break;
-      case W_CMD:  cmd = c; st = W_ADDR; break;
-      case W_ADDR: addr = c; st = W_LEN; break;
-      case W_LEN:
-        len = c; idx = 0;
-        if (len > PKT_MAX_PAYLOAD) { st = W_SYNC; break; }
-        st = (len > 0) ? W_PAY : W_CRC;
-        break;
-      case W_PAY:
-        pay[idx++] = c;
-        if (idx == len) st = W_CRC;
-        break;
-      case W_CRC: {
-        uint8_t crc = 0;
-        crc = crc8Update(crc, cmd);
-        crc = crc8Update(crc, addr);
-        crc = crc8Update(crc, len);
-        for (int i = 0; i < len; i++) crc = crc8Update(crc, pay[i]);
-        int pidx = panelIndex(addr);
-        if (crc != c) {
-          stat_crc_errs++;
-        } else if (cmd == 'f' && len == 9 && pidx >= 0) {
-          for (int i = 0; i < 4; i++)
-            panel_fsr[pidx][i] = (uint16_t)pay[2 * i] | ((uint16_t)pay[2 * i + 1] << 8);
-          panel_pressed_mask[pidx] = pay[8] & KP_F_PRESSED_MASK;
-          stat_replies++;
-          poll_ok_window[pidx]++;
-          poll_ok_total[pidx]++;
-          last_reply_ms[pidx] = millis();
-          panelSeen(pidx, pay[8] & KP_F_NOT_CONFIGURED);
-          vndStreamRecord(addr, micros(), pay);
-        } else if (cmd == 'h' && (len == REPLY_H_LEN || len == REPLY_H_LEN_OLD)) {
-          if (pidx >= 0) storeStatusReply(pidx, pay);
-          if (status_verbose) printStatusReply(addr, pay, len);
-        } else if (cmd == 'w' && len == KP_WACK_LEN && pidx >= 0) {
-          cfgAck(pidx, pay);
-        } else if (cmd == 'i' && len == 0) {
-          ident_ack_id = addr;
-        }
-        st = W_SYNC;
-        break;
-      }
+    if (!rx.feed((uint8_t)RS485_SERIAL.read())) {
+      if (rx.crc_failed) stat_crc_errs++;
+      continue;
+    }
+    uint8_t cmd = rx.cmd, addr = rx.addr, len = rx.len;
+    const uint8_t *pay = rx.pay;
+    int pidx = panelIndex(addr);
+    if (cmd == 'f' && len == 9 && pidx >= 0) {
+      for (int i = 0; i < 4; i++)
+        panel_fsr[pidx][i] = (uint16_t)pay[2 * i] | ((uint16_t)pay[2 * i + 1] << 8);
+      panel_pressed_mask[pidx] = pay[8] & KP_F_PRESSED_MASK;
+      stat_replies++;
+      poll_ok_window[pidx]++;
+      poll_ok_total[pidx]++;
+      last_reply_ms[pidx] = millis();
+      panelSeen(pidx, pay[8] & KP_F_NOT_CONFIGURED);
+      vndStreamRecord(addr, micros(), pay);
+    } else if (cmd == 'h' && (len == REPLY_H_LEN || len == REPLY_H_LEN_OLD)) {
+      if (pidx >= 0) storeStatusReply(pidx, pay);
+      if (status_verbose) printStatusReply(addr, pay, len);
+    } else if (cmd == 'w' && len == KP_WACK_LEN && pidx >= 0) {
+      cfgAck(pidx, pay);
+    } else if (cmd == 'i' && len == 0) {
+      ident_ack_id = addr;
     }
   }
+}
+
+// The master's replacement for the panels' 500 us inter-byte timeout. It can't
+// time bytes itself: the core's interrupt buffers them and loop() reads them
+// late (an LED burst blocks it ~7 ms). It doesn't need to. The master owns the
+// bus, every reply answers one of its requests, and it transmits again only
+// once that request's reply window has closed, by which time the whole reply
+// is readable (available() counts the UART's FIFO too). So a packet still
+// open when the master is about to transmit is never a reply in progress: it
+// is garbage that parsed as a header (a stray 0x55, then a length), or a reply
+// cut short, and left alone it would swallow the next replies as its payload.
+// Called before every scheduled transmission; drops such a packet and counts
+// it (heartbeat, `z` zeroes it).
+void rxResync() {
+  parseRx();
+  if (rx.st == FrameParser::W_SYNC) return;
+  rx.st = FrameParser::W_SYNC;
+  stat_rx_dropped++;
 }
 
 // ── LED patterns ─────────────────────────────────────────────────────────────
@@ -1221,6 +1253,7 @@ bool identifySelfTest(uint8_t *slot_id, uint16_t *acked_mask, uint16_t *low_mask
   for (int id = 0; id < NUM_PANELS; id++) {
     ident_ack_id = -1;
     uint8_t payload[1] = {PULSE_MS};
+    rxResync();
     sendPacket('I', (uint8_t)id, payload, 1);
 
     uint32_t t0 = millis();
@@ -1293,32 +1326,6 @@ constexpr uint32_t PT_IDLE_MS = 30000;
 bool     passthrough = false;
 uint32_t pt_last_host_ms = 0;
 
-struct FrameParser {
-  enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
-  uint8_t cmd = 0, addr = 0, len = 0, idx = 0, crc = 0;
-  uint8_t pay[PKT_MAX_PAYLOAD];
-
-  // True when `c` completes a CRC-valid frame (fields above then hold it).
-  bool feed(uint8_t c) {
-    switch (st) {
-      case W_SYNC: if (c == PKT_SYNC) { crc = 0; st = W_CMD; } break;
-      case W_CMD:  cmd = c;  crc = crc8Update(crc, c); st = W_ADDR; break;
-      case W_ADDR: addr = c; crc = crc8Update(crc, c); st = W_LEN;  break;
-      case W_LEN:
-        len = c; crc = crc8Update(crc, c); idx = 0;
-        st = (len > PKT_MAX_PAYLOAD) ? W_SYNC : (len ? W_PAY : W_CRC);
-        break;
-      case W_PAY:
-        pay[idx++] = c; crc = crc8Update(crc, c);
-        if (idx == len) st = W_CRC;
-        break;
-      case W_CRC:
-        st = W_SYNC;
-        return c == crc;
-    }
-    return false;
-  }
-};
 FrameParser pt_host, pt_bus;
 
 void ptWriteHost(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) {
@@ -1667,6 +1674,7 @@ void vndCommand(uint8_t txn, const uint8_t *m, uint16_t len) {
         waitBusQuiet();
         parseRx();                      // the last reply is ours, not the host's
         pt_bus = FrameParser();
+        rx = FrameParser();
         vnd_passthrough = true;
         vnd_pt_last_ms = millis();
         Serial.println("# USB passthrough ON: the master's own bus traffic stops");
@@ -1874,6 +1882,7 @@ void handleCommand(const char *s) {
     while (RS485_SERIAL.available()) RS485_SERIAL.read();   // nothing stale reaches the host
     pt_host = FrameParser();
     pt_bus = FrameParser();
+    rx = FrameParser();                  // and nothing half-parsed waits for after
     pt_last_host_ms = millis();
     passthrough = true;
   } else if (strcmp(s, "H") == 0 || strcmp(s, "h") == 0) {
@@ -2178,6 +2187,7 @@ void loop() {
   if (bus_traffic && now_ms >= next_frame_ms && replyWindowOver()) {
     next_frame_ms = now_ms + FRAME_INTERVAL_MS;
     bool host_leds = host_frame_seen && (int32_t)(now_ms - host_frame_ms) < (int32_t)HOST_FRAME_HOLD_MS;
+    rxResync();
     for (int i = 0; i < NUM_PANELS; i++) {
       uint8_t frame[NUM_LEDS * 3];
       if (white_soak)            buildSolidFrame(frame, Color{255, 255, 255});
@@ -2225,7 +2235,7 @@ void loop() {
   int push = poll_due ? cfgNextPush() : -1;
   if (clear_pending && poll_due) {
     sendRequest('Z', BROADCAST, nullptr, 0, 0);   // broadcast: no reply
-    stat_replies = stat_crc_errs = stat_polls_sent = stat_frames_sent = 0;
+    stat_replies = stat_crc_errs = stat_polls_sent = stat_frames_sent = stat_rx_dropped = 0;
     for (int i = 0; i < NUM_PANELS; i++) poll_sent_window[i] = poll_ok_window[i] = 0;
     next_poll_ms = millis() + POLL_INTERVAL_MS;
     clear_pending = false;
@@ -2354,7 +2364,13 @@ void loop() {
     Serial.print(stat_frames_sent);
     Serial.print(" frames sent, ");
     Serial.print(stat_crc_errs);
-    Serial.print(" crc errs | config: ");
+    Serial.print(" crc errs");
+    if (stat_rx_dropped) {
+      Serial.print(", ");
+      Serial.print(stat_rx_dropped);
+      Serial.print(" partial packets dropped");
+    }
+    Serial.print(" | config: ");
     int online = 0, match = 0;
     for (int i = 0; i < NUM_PANELS; i++) {
       online += panel_online[i];

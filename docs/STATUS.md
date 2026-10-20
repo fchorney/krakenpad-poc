@@ -63,8 +63,11 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   (`docs/PANEL_CONFIG.md` → "As built").
 - **Connect USB before 12 V** on any panel. A powered brain back-drives its VBUS,
   so a host won't attach (rev-2 candidate #3).
-- **The master's RS-485 parser has no inter-byte timeout.** The panel app and
-  bootloader got one on 2026-10-20 (`docs/BRINGUP_LOG.md`).
+- **The master's RS-485 parser resync is built (2026-10-20) but not yet run.**
+  Instead of an inter-byte timeout (the panel app and bootloader have one), the
+  master drops a half-parsed packet before each of its own transmissions.
+  Bench test with the panel console's new `g`: `docs/MASTER_BRINGUP.md` →
+  "Parser resync".
 - **Bootloader-over-bus, six checks not yet run on a board** (V1–V6 in
   `docs/FIELD_UPDATE.md` → "Validation"): the USB image, both BOOTSEL
   fallbacks, SWD restore, power cuts mid-update and mid-conversion. V1–V4 go

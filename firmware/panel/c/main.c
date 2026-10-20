@@ -648,8 +648,26 @@ static void banner(void) {
 static void help(void) {
     printf("\n  s  status            v  banner\n"
            "  n  LED mode: normal   i  LED mode: ID   t  LED mode: test\n"
+           "  g  send a broken header onto the bus (master paused with x first)\n"
            "  B  reboot into BOOTSEL\n"
            "  U  reboot into the panel bootloader and hold\n");
+}
+
+// Bench test of the master's parser resync (docs/MASTER_BRINGUP.md): a lone
+// header claiming an 80-byte payload, then silence. The master's `x` must
+// pause its traffic first, or this lands on top of it. The other panels hear
+// it too, and each counts one parser timeout.
+static void send_broken_header(void) {
+    if (!g_rs485_on) { printf("\n  bus not started (no 12V, or DIP not 0-8)\n"); return; }
+    const uint8_t hdr[4] = { RS485_SYNC, 'X', g_dip, RS485_MAX_PAY };
+    gpio_put(PIN_RS485_DE, 1);          // same DE handling as rs485_send()
+    busy_wait_us(2);
+    uart_write_blocking(uart0, hdr, sizeof(hdr));
+    uart_tx_wait_blocking(uart0);
+    busy_wait_us(12);
+    gpio_put(PIN_RS485_DE, 0);
+    rs_last_tx_us = time_us_32();
+    printf("\n  sent 55 58 %02X 50 and nothing after it\n", g_dip);
 }
 
 static void status(void) {
@@ -695,6 +713,7 @@ static void console_poll(void) {
     case 'n': set_mode(MODE_NORMAL, 0); printf("\n  LED mode normal\n"); break;
     case 'i': set_mode(MODE_ID, 0);     printf("\n  LED mode ID\n");     break;
     case 't': set_mode(MODE_TEST, 0);   printf("\n  LED mode test\n");   break;
+    case 'g': send_broken_header(); break;
     case 'B':
         printf("\n  rebooting into BOOTSEL\n");
         sleep_ms(120);

@@ -43,8 +43,18 @@ payload. Recovery waits for the next idle gap, so inside the master's
 back-to-back `'L'` burst it comes at the end of the burst. The threshold sits
 above the 320 µs the 32-byte RX FIFO takes to fill, so interrupt latency alone
 can't fake a gap without also overrunning the FIFO. The panel bootloader has
-the same timeout since 2026-10-20 (it does not count it). The master's parser
-does not have it yet.
+the same timeout since 2026-10-20 (it does not count it).
+
+**The master resyncs at its own transmissions instead** (2026-10-20, built,
+not yet run on the bus). It can't time bytes: the Teensy core's interrupt
+buffers them and `loop()` reads them late, up to ~7 ms behind an LED burst.
+It doesn't need to. Every reply answers one of the master's requests, and the
+master transmits again only once that request's reply window has closed, when
+the whole reply is readable. So before each transmission it parses what has
+arrived, and a packet still open then is dropped: garbage that parsed as a
+header, or a reply cut short. Counted on the heartbeat ("partial packets
+dropped") and zeroed by `z`. Bench test: `docs/MASTER_BRINGUP.md` → "Parser
+resync".
 
 ## Commands
 
