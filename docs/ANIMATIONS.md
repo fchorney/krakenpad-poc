@@ -15,7 +15,8 @@ the master's `'L'` frames use it.
 
 **DECIDED 2026-10-20:**
 
-- **On a computer, an animation is always APNG or animated WebP.** There is no
+- **On a computer, an animation is always APNG** (format chosen below, same
+  day; this line first read "APNG or animated WebP"). There is no
   user-facing panel file. The program that uploads to the panels converts to the
   panel format as part of the upload, the same way the stock SDK turns a GIF into
   its panel format before writing it.
@@ -43,6 +44,25 @@ the master's `'L'` frames use it.
 - **The pad's maximum LED refresh rate: 60, 90 or 120 Hz.** It sets the shortest
   frame delay. To be chosen by measurement: the highest rate at which the bus
   and the panel CPUs still drop no presses and lose no telemetry replies.
+  - **Preview in other viewers (tested 2026-10-20, MacBook with ProMotion).**
+    Test files: a dot turning once per second, stored at 10/60/90/120 Hz in
+    APNG, WebP, JPEG XL and GIF, plus APNGs at 99/100/101 Hz.
+    - **Chrome (measured):** correct up to 90 Hz in every format. At 120 Hz every
+      format is far too slow, and the 99, 100 and 101 Hz APNGs all take ~10 s
+      per turn: each frame shown for 100 ms. Inferred cause: Chrome turns a
+      delay into whole milliseconds (10.1 → 10), then replaces anything of
+      10 ms or less with 100 ms, so frames under 11 ms (above ~90.9 Hz) are
+      slowed.
+    - **Safari (observed):** 60 Hz correct; 90 Hz slower than 60, and higher
+      rates slower still. Inferred: it shows every frame, at most one per
+      screen update, with page updates at 60 Hz by default even on ProMotion,
+      so a 90 Hz file would take ~1.5 s per turn. Not yet timed.
+    - **Finder / Quick Look (observed):** anything above 10 Hz plays slowly, more
+      slowly the higher the rate. Inferred: a ~100 ms minimum per frame.
+    - So outside viewers show 60 Hz frames correctly (Chrome and Safari), not
+      faster ones. The pad and our editor are unaffected: neither uses these
+      decoders. This bears on the maximum rate only as preview fidelity; the
+      bus and CPU limits are still to measure.
 - **Loop semantics** beyond one start/end pair. Ideas so far, none settled:
   - loop **counts** and **several loops** in one animation (e.g. intro, loop ×3,
     middle, loop until release, outro). Two marker pixels can't express this
@@ -54,7 +74,10 @@ the master's `'L'` frames use it.
 - **Milliseconds vs frames.** "Whole milliseconds" and "whole frames" conflict:
   at 60, 90 and 120 Hz a frame is 16.67, 11.11 and 8.33 ms, so a whole number of
   frames is almost never a whole number of ms. One way out is to store a frame
-  count on the panel and show ms only in the editor. The APNG/WebP source also
+  count on the panel and show ms only in the editor. With APNG chosen
+  (below), the source file can hold whole frames exactly (`delay_num` frames
+  over `delay_den` = the LED rate), so the conflict only remains for how the
+  editor displays delays and what the panel image stores. The APNG/WebP source also
   has its own delay units (APNG: a fraction; WebP: whole ms) that the editor
   must round to.
 - The panel binary layout itself (see "Binary format" below: the draft there
@@ -62,7 +85,29 @@ the master's `'L'` frames use it.
 
 ---
 
-## Source / interchange format: APNG or animated WebP
+## Source / interchange format: APNG
+
+**DECIDED 2026-10-20: APNG**, over animated WebP and JPEG XL, because:
+
+- **It stores frame timing exactly.** An APNG delay is a fraction
+  (`delay_num / delay_den`, 16 bits each), so "3 frames at 120 Hz" is exactly
+  3/120 s. WebP stores whole milliseconds, so frame-based delays would be
+  rounded on save and snapped back on upload. JPEG XL can store exact ticks,
+  but `cjxl` rounded an APNG's 1/120 s to 8 ms when converting.
+- **It is the simplest to write.** Chunks plus zlib, no library: a test writer
+  was ~30 lines of Python. WebP's lossless encoder means linking libwebp;
+  JPEG XL means libjxl. Pillow reads and writes APNG; its JPEG XL support is
+  not in Pillow 12.2.
+- **Widest viewer support**, and standard since the W3C PNG Third Edition.
+  JPEG XL only became default in Chrome (155) and Firefox (158) in October
+  2026.
+- File size doesn't separate them: a 25-LED frame is tiny in any format.
+
+Accepted: outside viewers misplay fast frames (see "Preview in other viewers"
+above). The same happens with WebP and JPEG XL, so it doesn't favour either;
+only a dedicated app previews correctly.
+
+The comparison as written before the decision:
 
 Goals:
 

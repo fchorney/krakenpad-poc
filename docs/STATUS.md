@@ -44,7 +44,7 @@ models).
 |---|---|---|
 | **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I C H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader | Config in flash (thresholds are **RAM only**); local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; `populated`/`enabled` flags; DIP diagnostic codes 9, 11, 12, 13 |
 | **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check | **USB command and data reports** (live FSR telemetry and config over HID); underglow periodic re-send and host strip command; poll interleaving (telemetry is ~14 Hz/panel) |
-| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py` | A config / SDK application (planned home for the update logic) |
+| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py` | The SDK and apps: **Rust SDK with a C interface, apps in Rust + egui**, decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 `docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. A future idea, not scheduled:
@@ -83,7 +83,7 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
    "Open questions"); calibration and the USB command report depend on it.
 5. USB command and data reports: live telemetry and config for host software.
 6. Animations: flash slots, pressed/released playback, conversion in the upload
-   program. Source format, whole-frame per-frame delays, flag-row loop markers,
+   program. APNG as the format, whole-frame per-frame delays, flag-row loop markers,
    length+CRC and the gif-maker fork decided 2026-10-20; max LED rate, ms vs
    frame units, loop counts and the panel layout still open
    (`docs/ANIMATIONS.md` → "Decisions and open questions").
@@ -121,6 +121,7 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
 | Bring-up procedure / per-board results | `docs/PANEL_BRINGUP.md`, `docs/MASTER_BRINGUP.md` / `docs/BRINGUP_LOG.md` |
 | Building more boards | `docs/BUILD_CHECKLIST.md` |
 | Bus protocol / USB protocol / bus updates | `docs/RS485_PROTOCOL.md` / `docs/USB_PROTOCOL.md` / `docs/FIELD_UPDATE.md` |
+| Host SDK and apps (languages, decisions) | `docs/HOST_SOFTWARE.md` |
 | Harness as built | `hardware/harness/` |
 | Rev-2 candidates / how to order a revision | `docs/REV2_CANDIDATES.md` / `docs/FAB_ORDER.md` |
 | How rev 1 was verified, ordered and bought | `docs/rev1-order/` |
