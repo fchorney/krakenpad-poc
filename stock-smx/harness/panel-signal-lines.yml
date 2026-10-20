@@ -42,7 +42,7 @@ connectors:
       Pin numbering carries straight across the mating (pin 1 mates pin 1), so
       the pinout is identical to the YLR-09V: pin 1 yellow, 2 orange, 3 red,
       4 brown, 5 blue, 6 green, 7 black, 8 white, 9 grey.
-      COLORS NAME THE PANELS via the stock SMX map in docs/BOM.md -- 0=Red
+      COLORS NAME THE PANELS via the stock SMX map in stock-smx/WIRE_COLORS.md -- 0=Red
       1=Orange 2=Yellow 3=Green 4=Blue 5=Brown 6=Grey 7=White 8=Black.
       ALL NINE CONDUCTORS ARE 18 AWG, noticeably thick with a heavy jacket --
       much heavier than the 22 AWG the same signals run on between this

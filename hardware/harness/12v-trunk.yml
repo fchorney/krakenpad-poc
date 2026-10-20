@@ -57,7 +57,7 @@ metadata:
     same 2C 20 AWG reel spec'd for the columns, and cut to fit on the bench.
     CORRECTION 2026-08-16: an earlier version of this note said that reel was
     "already ordered" / "already bought" -- it is NOT. The wire is an open
-    AliExpress line (docs/BOM.md, Order 4). What is settled is the ALLOCATION:
+    AliExpress line (docs/rev1-order/BOM.md, Order 4). What is settled is the ALLOCATION:
     add ~1 m per pad to the column footage when the reel is finally bought.
     Nothing needs measuring first -- the surplus is cheap and the carrier
     position is fixed by the Daygreen holes anyway. The per-cable figures below
@@ -237,7 +237,7 @@ cables:
       This and the two cables below are OURS to make. The supply's captive
       cable is not part of this harness -- it simply ends in the mating XT30.
       GAUGE SETTLED 2026-08-16: 20 AWG, taken from the same 2C jacketed reel as
-      the power columns -- NOTHING EXTRA TO BUY. docs/BOM.md already carries
+      the power columns -- NOTHING EXTRA TO BUY. docs/rev1-order/BOM.md already carries
       ~10 m against a 5.4 m column need; allocate 1 m to the trunk, which is
       double the ~0.5 m actually used.
       20 AWG is comfortable here: ~11 A chassis ampacity against 6.34 A, about

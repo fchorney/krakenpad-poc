@@ -8,7 +8,7 @@
 
 Run this top to bottom before paying JLCPCB. ⬜ is open, ✅ is closed.
 
-> 📋 **`docs/ORDER_NOTES.md` is the companion to this file** — the text and
+> 📋 **`docs/rev1-order/ORDER_NOTES.md` is the companion to this file** — the text and
 > answers you need *while the order form is open*: what to say about POFV and
 > J305, and every DFM flag that is intentional. This file is the process;
 > that one is the script.
@@ -21,7 +21,7 @@ the same physical parts, only the reference designators moved (carrier 2xx, brai
 
 **Build scope: 2 fully assembled pads** = 2 master PCBs + **20 panel assemblies**
 (2 × 9 + 2 spares). One fab panel = one carrier + one brain, so that is **20
-panels**. Every quantity here and in `docs/BOM.md` is sized to that; if the scope
+panels**. Every quantity here and in `docs/rev1-order/BOM.md` is sized to that; if the scope
 changes, both docs move together.
 
 ---
@@ -288,7 +288,7 @@ exist** (`KiKit_FID_T/B_1-3`); JLC's detector just missed KiKit's. Slot width
 |---|---|---|
 | Lead to hole distance | 72 | ✅ **deliberate via-in-pad** — makes POFV mandatory, see below |
 | Pin left / right / outer edge | 28 / 28 | ✅ **fixed 2026-08-18** — pads widened to 0.23 mm = datasheet b max; confirmed cleared on the DFM re-run |
-| Pin **inner** edge | 42 | ⚠ **ACCEPTED, do not fix** — pad inner edge 3.000 mm = pin inner edge at datasheet **L max 0.500**. Zero heel at worst case only; 0.100 mm at nominal. Adding heel measured to cause solder-mask bridging. Full argument + JLC reply in `docs/ORDER_NOTES.md` §8 |
+| Pin **inner** edge | 42 | ⚠ **ACCEPTED, do not fix** — pad inner edge 3.000 mm = pin inner edge at datasheet **L max 0.500**. Zero heel at worst case only; 0.100 mm at nominal. Adding heel measured to cause solder-mask bridging. Full argument + JLC reply in `docs/rev1-order/ORDER_NOTES.md` §8 |
 | Lead area overlapping pad | 1 | RP2040 exposed pad; conservative, see below |
 | component→board edge, through-hole ×4, pad spacing, clipped by outline, pin without pad, pin outer edge, missing hole | **0** | clean |
 
@@ -459,7 +459,7 @@ netclass govern.
 - ✅ **Quantity: 20 panels, ONE run.** Fixed overhead is ~$93/order ($25 eng fee +
   $51.12 PCBA setup + $16.42 stencil) plus shipping, regardless of quantity — two
   runs = paying all of it twice. **Real qty-20 quote, 2026-08-18: PCB $174.47 +
-  PCBA $375.41**, full breakdown in `hardware/dual-panel/panel/QUOTE-2026-08-18.md`.
+  PCBA $375.41**, full breakdown in `docs/rev1-order/QUOTE-2026-08-18.md`.
   ⚠ **Do not estimate a quantity change by scaling linearly** — 18→20 PCBA cost
   **+$70.45**, not the ~$20 that dividing predicts, because component cost steps.
 - ✅ **Master boards: $8.04 for 5** — confirmed on the real quote, unchanged since
@@ -535,7 +535,7 @@ netclass govern.
   is the first suspect.
 
 **Deliberately dropped (user's call — do not re-raise as findings):** the remaining
-`review/RULES-CHECKLIST.md` ⚠ items — no colour called out on the debug LED, SW202
+`docs/rev1-order/review/RULES-CHECKLIST.md` ⚠ items — no colour called out on the debug LED, SW202
 not marked DPDT, the panel-ID DIP not marked 4P, connector family/pitch missing next
 to the FSR connector symbols.
 

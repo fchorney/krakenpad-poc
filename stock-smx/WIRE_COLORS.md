@@ -186,8 +186,7 @@ do.** All twelve conductors (3 branches × 4) are 18 AWG.
 ## MCU panel I/O — `mcu-panel-io.yml`
 
 **The nine panel signal lines carry the stock SMX panel color map**, so each
-conductor names its own panel. Map (`docs/BOM.md`, re-confirmed in
-`docs/STOCK_PANEL_REFERENCE.md`): 0=Red 1=Orange 2=Yellow 3=Green 4=Blue
+conductor names its own panel. Map: 0=Red 1=Orange 2=Yellow 3=Green 4=Blue
 5=Brown 6=Grey 7=White 8=Black.
 
 | Panel | Color | Code | Micro pin | KF2510 pos | YLR-09V pin | Status |

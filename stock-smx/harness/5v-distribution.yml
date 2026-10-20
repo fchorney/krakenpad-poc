@@ -98,7 +98,7 @@ connectors:
       CURRENT FIGURE CORRECTED 2026-08-14. This previously said "~8.1 A at full
       white, roughly 4 A each" -- but 8.1 A was OUR 12 V panel budget wrongly
       applied to a 5 V connector. The stock 5 V load is 225 LEDs x ~58.5 mA
-      (from the IREF measurement in docs/STOCK_PANEL_REFERENCE.md) = ~13.2 A,
+      (from the stock panel IREF measurement) = ~13.2 A,
       so roughly 6.6 A PER CONDUCTOR.
       That reframes the doubling entirely. JST rates a 4-circuit VL at 7 A per
       circuit with #18 wire (eVL-WW.pdf), so the stock build sits at ~94 percent

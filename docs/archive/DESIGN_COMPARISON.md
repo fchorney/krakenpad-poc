@@ -27,7 +27,7 @@ Both quoted at qty 5, ENIG, epoxy filled & capped, SMD-only assembly:
 
 **$2.13 per panel**, all of it bare board area, and 70% of that extra area is rails
 and dead space rather than the brain itself. Assembly is free. Full detail in
-[`hardware/dual-panel/panel/QUOTE-2026-07-31.md`](../../hardware/dual-panel/panel/QUOTE-2026-07-31.md).
+[`docs/rev1-order/QUOTE-2026-07-31.md`](../rev1-order/QUOTE-2026-07-31.md).
 
 Cost is therefore **not** the deciding factor. Layout quality is.
 

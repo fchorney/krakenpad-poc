@@ -1,3 +1,9 @@
+> **REV-1 RECORD, moved 2026-10-20.** The review posts were made before the rev-1
+> order and the replies were triaged. The images were removed from the tree; run
+> `tools/gen_review_images.py` to regenerate them into `review/` (gitignored).
+> The post drafts and `RULES-CHECKLIST.md` are kept as the template for a rev-2
+> review.
+
 # Review package — r/PrintedCircuitBoard, regenerated 2026-08-04
 
 Export-only image set for every board in this project, formatted to the

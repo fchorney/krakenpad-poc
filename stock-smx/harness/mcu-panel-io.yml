@@ -68,8 +68,8 @@ connectors:
       pin 1 yellow, 2 orange, 3 red, 4 brown, 5 blue, 6 green, 7 black,
       8 white, 9 grey.
       THESE COLORS DECODE. They are exactly the stock SMX panel color map
-      already recorded in docs/BOM.md and re-confirmed in
-      docs/STOCK_PANEL_REFERENCE.md: 0=Red 1=Orange 2=Yellow 3=Green 4=Blue
+      recorded in stock-smx/WIRE_COLORS.md:
+      0=Red 1=Orange 2=Yellow 3=Green 4=Blue
       5=Brown 6=Grey 7=White 8=Black. So every wire names its own panel, and
       this is an independent confirmation of that map from the MCU end.
       THE ARDUINO SIDE IS PERFECTLY SEQUENTIAL: D2 = panel 0, D3 = panel 1, and
@@ -115,7 +115,7 @@ connectors:
       TX-ONLY, NO RETURN PATH. D0/RX is covered by the P17 housing and left
       unconnected, so nothing comes back to the MCU on this bus. That is
       consistent with the reverse-engineered stock protocol in
-      docs/STOCK_PANEL_REFERENCE.md and the SDK notes referenced from CLAUDE.md,
+      the SDK notes referenced from CLAUDE.md,
       where sensor data returns on the per-panel signal wires rather than on the
       serial bus. Recorded here as a cross-reference, not a conclusion.
 

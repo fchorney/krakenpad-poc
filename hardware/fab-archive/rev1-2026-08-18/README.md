@@ -11,7 +11,7 @@
 > versions drift. When a board misbehaves, compare against **these** files, not a
 > fresh export.
 >
-> ⚠ **One caveat, found 2026-08-21 (`docs/CAM_REVIEW.md` §2).** "Byte-exact" holds
+> ⚠ **One caveat, found 2026-08-21 (`docs/rev1-order/CAM_REVIEW.md` §2).** "Byte-exact" holds
 > for **master-pcb** — all 14 files match what JLC received. It does **not** hold
 > literally for **panel-gerbers.zip**: JLC's copy is the `08:28:44` export and this
 > one is a `10:05:44` re-export of the same board, so all 16 files differ by
@@ -28,8 +28,8 @@
 | Panel size | 227.57 × 143.10 mm (326 cm²), customer panel, one carrier + one brain per panel |
 | Cost | $630.93 USD JLC ($876.05 CAD) + $155.80 USD LCSC ($216.33 CAD), plus a **$24.42 USD / $33.91 CAD panelisation supplement** charged after review for carrying two designs on one panel |
 
-Full quote and reasoning: `hardware/dual-panel/panel/QUOTE-2026-08-18.md`.
-What was said to JLC: `docs/ORDER_NOTES.md`.
+Full quote and reasoning: `docs/rev1-order/QUOTE-2026-08-18.md`.
+What was said to JLC: `docs/rev1-order/ORDER_NOTES.md`.
 
 ## Verify a regenerated package against what was built
 
@@ -69,7 +69,7 @@ design and therefore where to look first:
 
 ## Known-accepted DFM findings — not defects
 
-`docs/ORDER_NOTES.md` §3, §8 and §11 carry the full arguments. Summary: the USB
+`docs/rev1-order/ORDER_NOTES.md` §3, §8 and §11 carry the full arguments. Summary: the USB
 differential pair's 0.14 mm gap is intentional (sets impedance), U306's "pin inner
 edge" is flush with the pin at the datasheet's **maximum** terminal length only,
 via-in-pad is deliberate and POFV is the mitigation, and `tht to smd` does not

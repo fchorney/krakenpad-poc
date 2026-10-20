@@ -1,7 +1,15 @@
+> **ARCHIVED 2026-10-20 — the harness is built (both pads, 2026-10-12).** This was
+> `hardware/harness/PARTS.md` while the harness was being sourced. It carries the
+> full reasoning behind the cable, ferrule, fuse, XT30, Wago and tooling choices,
+> including the 24 AWG / CCA investigation and its measurement method. The
+> as-built parts list is now `hardware/harness/PARTS.md`. Nothing here is a live
+> instruction; "the sourcing authority" below meant the rev-1 BOM, now
+> `docs/rev1-order/BOM.md`.
+
 # Harness parts index — our design
 
 Connectors, contacts, cable and tooling for the harnesses **this project
-builds**. Board-side parts are also in the PCB BOMs (`docs/BOM.md`); this file
+builds**. Board-side parts are also in the PCB BOMs (`docs/rev1-order/BOM.md`); this file
 covers the cable-side halves, the wire, and everything that has to be bought
 separately.
 
@@ -19,10 +27,10 @@ The **stock** pad's parts are a separate record: `stock-smx/PARTS.md`.
 
 ## Board-side (already on the PCBs, listed for mating reference)
 
-> ⚠ **`docs/BOM.md` IS THE SOURCING AUTHORITY, NOT THIS FILE.** The LCSC column
-> here went stale and read `TODO` for parts that `docs/BOM.md` had already
+> ⚠ **`docs/rev1-order/BOM.md` IS THE SOURCING AUTHORITY, NOT THIS FILE.** The LCSC column
+> here went stale and read `TODO` for parts that `docs/rev1-order/BOM.md` had already
 > sourced with part numbers, which cost a round of confusion on 2026-08-16.
-> Corrected below. **If the two ever disagree again, believe `docs/BOM.md`** and
+> Corrected below. **If the two ever disagree again, believe `docs/rev1-order/BOM.md`** and
 > fix this table — never the other way round.
 
 | Ref | Part | LCSC | Used by |
@@ -53,7 +61,7 @@ panel = **32 pins per side**.
 > It previously read *"36 of each for a 9-panel pad, 50 ordered"*, and the LCSC
 > cart was built to that 50. **36 is the ONE-PAD figure.** The build scope is
 > **20 panel assemblies**, so the need is **4 × 20 = 80 of each**, and 50 was
-> 30 short on both lines. See the scope banner in `docs/BOM.md`.
+> 30 short on both lines. See the scope banner in `docs/rev1-order/BOM.md`.
 
 The
 6 mm pin into an 8.5 mm socket cannot bottom out, so separation is set by the
@@ -79,12 +87,12 @@ standoffs, not the 11 mm the original design assumed. See `docs/DUAL_PANEL.md`
 
 **Not a harness part** — no cable in this directory touches them; they gate the
 *PCB* order, and sourcing them closed the last item in
-`docs/PRE_ORDER_CHECKLIST.md` § 0.
+`docs/rev1-order/PRE_ORDER_CHECKLIST.md` § 0.
 
 
 ## Cable-side (what these harnesses need)
 
-All sourced in `docs/BOM.md`; repeated here for mating reference.
+All sourced in `docs/rev1-order/BOM.md`; repeated here for mating reference.
 
 > ### Sourcing status, updated 2026-10-07 — **nothing left to buy**
 >
@@ -109,13 +117,13 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 > | 🛒 wanted, not urgent (2026-10-07) | **JST `SYM-001T-P0.6` SM male pins** for the `SMR-03V-B` housings already on hand, so underglow leads can be made to any length instead of splicing a pre-made pigtail. LCSC part number and stock not yet checked |
 > | ⏸ deferred by decision | printed carrier (dimensions off the real Wago bodies + fuse holder in hand) |
 >
-> **The build scope is TWO pads** — see the scope banner in `docs/BOM.md`. This
+> **The build scope is TWO pads** — see the scope banner in `docs/rev1-order/BOM.md`. This
 > is settled and is not to be re-derived.
 
-> ⚠ **The table below counts ONE pad; `docs/BOM.md` counts TWO.** Both units
+> ⚠ **The table below counts ONE pad; `docs/rev1-order/BOM.md` counts TWO.** Both units
 > appear in this file and mixing them has already caused one live cart shortage
 > (the 2541WV/DS1023 headers, 2026-08-18). **Multiply these figures by 2 before
-> comparing them to `docs/BOM.md`**, which remains the sourcing authority.
+> comparing them to `docs/rev1-order/BOM.md`**, which remains the sourcing authority.
 >
 > ⚠ **Two rows were wrong in this column and were corrected 2026-09-11** — the
 > Micro-Fit 2-ckt housing read 12 (the right answer is **15**) and the crimp row
@@ -125,7 +133,7 @@ All sourced in `docs/BOM.md`; repeated here for mating reference.
 > cables), so a pad has **3 feeds + 6 jumpers = 9 cables**. The feed's source end
 > is bare conductor into a Wago lever port, so Micro-Fit ends are
 > **3 × 1 + 6 × 2 = 15**. Crimps then come to **15 × 2 + 18 × 3 = 84**/pad =
-> **168** for two pads, which is exactly what `docs/BOM.md` orders against.
+> **168** for two pads, which is exactly what `docs/rev1-order/BOM.md` orders against.
 > **Nothing is short — 50 / 50 / 300 were ordered against 30 / 36 / 168.**
 
 | Part | For | LCSC | Qty **per pad** |
@@ -223,7 +231,7 @@ The bare bundle of a stripped 22 AWG RVSP conductor reads **~0.6 mm**, below the
 0.76–0.85 mm predicted above, and fine stranding should have pushed it *up*. So
 the reel's copper is plausibly **24 AWG sold as 22** — common on AliExpress cable
 and, here, almost entirely harmless: the insulation OD passes both connector
-windows (`docs/BOM.md`), the Molex `430300001` crimp covers 20–24 AWG, the JST
+windows (`docs/rev1-order/BOM.md`), the Molex `430300001` crimp covers 20–24 AWG, the JST
 `SXH-001T-P0.6N` covers 22–28 AWG, and the conductor carries microamps.
 **The ferrule barrel is the only thing the answer changes.**
 
@@ -402,7 +410,7 @@ Printed on the jacket: **`ZC-RVSP 2x0.3mm² 300/300V JB/T8734.5-2016 PVC CABLE`*
 - **`ZC`** = 阻燃 C, flame-retardant class C. A small unlooked-for bonus for
   cable running inside a chassis.
 - **`300/300V`** — 300 V core-to-core and to earth. Against our 12 V, irrelevant.
-- ⚠ **`JB/T 8734.5-2016` implies a 70 °C PVC rating**, and `docs/BOM.md` →
+- ⚠ **`JB/T 8734.5-2016` implies a 70 °C PVC rating**, and `docs/rev1-order/BOM.md` →
   "Wire specification" asks for **≥80 °C**. **Accepted deviation, not a
   problem**: these conductors carry microamps to milliamps with no self-heating,
   and the pad is a room-temperature environment. Recorded so the next reader
@@ -525,7 +533,7 @@ holes, horizontal** (measured 2026-08-16). Full harness: `12v-trunk.yml`.
 
 #### ✅ Is it CCA? — NO, it is copper. Settled 2026-08-31 by resistance × mass
 
-**`docs/BOM.md` → "Wire specification" says "never CCA", so this was a
+**`docs/rev1-order/BOM.md` → "Wire specification" says "never CCA", so this was a
 spec-compliance question, not a curiosity. The reel passes; no re-buy needed.**
 
 **Keep the method.** Multiply the two measurements and the cross-section
@@ -870,7 +878,7 @@ Wire colors for every harness live in `WIRE_COLORS.md`.
 ### RS-485 and INT share ONE cable — 22 AWG, decided 2026-08-16
 
 They were spec'd separately (RS-485 "22–24 AWG", INT "24 AWG"), and
-`rs485-chain.yml` had drifted to 24 AWG against `docs/BOM.md`'s 22. Both runs
+`rs485-chain.yml` had drifted to 24 AWG against `docs/rev1-order/BOM.md`'s 22. Both runs
 are **2-core shielded twisted pair**, both carry signal-level current, and both
 now use the same 22 AWG reel. Only the *shield termination* differs:
 
@@ -902,7 +910,7 @@ Cross-plugging is impossible despite the shared cable: RS-485 terminates in
 
 ### Grommets — dropped as a purchase, kept as an assembly check (2026-08-17)
 
-A "grommets where cable crosses frame metal" line sat in `docs/BOM.md` from the
+A "grommets where cable crosses frame metal" line sat in `docs/rev1-order/BOM.md` from the
 start with no quantity and no candidate. **It was precautionary, not derived
 from anything.** The completed stock record documents no frame penetration that
 our harness has to cross, and stock ran its own nine signal home-runs through

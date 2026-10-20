@@ -1,12 +1,12 @@
 # Sourcing history (archived 2026-07-26)
 
-Superseded material moved out of `docs/BOM.md` when that doc was rewritten as a
+Superseded material moved out of `docs/rev1-order/BOM.md` when that doc was rewritten as a
 "what we're buying and from where" list derived from the boards. **Nothing here
 is a live instruction.** It is kept because it is the record that justified the
 current plan — the DigiKey prices are what the LCSC pivot was measured against,
 and the AliExpress comparisons are why several parts are *not* bought there.
 
-For what to actually order, see `docs/BOM.md`.
+For what to actually order, see `docs/rev1-order/BOM.md`.
 
 ---
 

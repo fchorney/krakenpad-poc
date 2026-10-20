@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Derive the purchasable-part census straight from the KiCad boards.
 
-`docs/BOM.md` is written from this output, so the BOM cannot silently drift away
-from the design.  Re-run it after any part change and reconcile the "need"
+The rev-1 purchase (`docs/rev1-order/BOM.md`) was written from this output, so
+the order could not silently drift away from the design (`docs/FAB_ORDER.md`).  Re-run it after any part change and reconcile the "need"
 column against the LCSC cart before ordering.
 
     /Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/\
@@ -107,8 +107,8 @@ def main():
         sys.exit("board file(s) not found: %s" % ", ".join(missing))
     for name, path, boards in BOARDS:
         report(name, census(path), boards)
-    print("\nReconcile the total column against docs/BOM.md order 2 (LCSC cart) "
-          "before placing an order.")
+    print("\nReconcile the total column against a fresh LCSC cart export "
+          "before placing an order (docs/FAB_ORDER.md, section 4).")
 
 
 if __name__ == "__main__":

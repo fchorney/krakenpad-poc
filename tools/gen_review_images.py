@@ -14,7 +14,7 @@ are r/PrintedCircuitBoard rule #8 plus the "before you request a review" post:
 
 Everything runs on throwaway copies of the projects under --work, because
 kicad-cli mutates .kicad_pro / .kicad_sym as a side effect (see
-docs/PRE_ORDER_CHECKLIST.md).  The repo's own hardware/ tree is never touched.
+docs/rev1-order/PRE_ORDER_CHECKLIST.md).  The repo's own hardware/ tree is never touched.
 
 Usage:
     tools/gen_review_images.py [--work DIR] [--out DIR] [--only NAME[,NAME...]]

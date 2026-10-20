@@ -250,7 +250,7 @@ stock panel interface.**
 3–11 = D10…D2, 12 = GND, then a two-position gap (RESET, D0/RX), then 15 = D1/TX.
 Every landmark lands exactly.
 
-**The nine colors decode to the stock SMX panel map** already in `docs/BOM.md`,
+**The nine colors decode to the stock SMX panel map** (`WIRE_COLORS.md`),
 so each wire names its panel — an independent confirmation of that map from the
 MCU end. **`Dn` drives panel `n−2`.** Full table in `WIRE_COLORS.md`.
 
@@ -502,7 +502,7 @@ intend to use, not an existing cable.
 | 7 | D | | |
 | 8 | DR | | Black |
 
-(Marker colors follow the stock SMX map in `docs/BOM.md`. Fill the middle rows
+(Marker colors follow the stock SMX map in `WIRE_COLORS.md`. Fill the middle rows
 from that table.)
 
 ### FSR leads — `fsr-panel.yml`

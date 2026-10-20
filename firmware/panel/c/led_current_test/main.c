@@ -1,6 +1,6 @@
 // LED current-draw bench test — holds one flat colour across the strip so a
 // DMM in series with the 12V feed can settle. Not panel firmware: no FSRs, no
-// RS-485. See docs/POWER_PROTECTION.md for why this measurement exists.
+// RS-485. See docs/rev1-order/POWER_PROTECTION.md for why this measurement exists.
 //
 // Strip must be PHYSICALLY CUT to NUM_LEDS. Addressing only the first 25 of a
 // 144-LED strip leaves the other 119 drawing ~2mA each of quiescent current,

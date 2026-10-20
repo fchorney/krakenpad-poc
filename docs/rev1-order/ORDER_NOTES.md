@@ -1,10 +1,10 @@
 # Order notes — what to say to JLCPCB
 
-Companion to `docs/PRE_ORDER_CHECKLIST.md`. That file is the *process*; this one
+Companion to `docs/rev1-order/PRE_ORDER_CHECKLIST.md`. That file is the *process*; this one
 is the **text and answers you need while the order form is open**, including
 everything JLC's DFM flags that is intentional.
 
-**After the order:** `docs/CAM_REVIEW.md` reviews the production files JLC sends
+**After the order:** `docs/rev1-order/CAM_REVIEW.md` reviews the production files JLC sends
 back for approval — what their CAM changed versus what we uploaded, and the
 process parameters read out of their own job files.
 
@@ -77,7 +77,7 @@ question at all.
 
 **POFV cost — settled.** On the real **qty-20** quote it is **Via covering $32.44 +
 Via plating method $4.89 = $37.33**, ~6.7% of the order
-(`hardware/dual-panel/panel/QUOTE-2026-08-18.md`). At qty 5 it was $22.77. This
+(`docs/rev1-order/QUOTE-2026-08-18.md`). At qty 5 it was $22.77. This
 closes an earlier note here that claimed it had "never been priced".
 
 ## 2. J305 (USB-C) — flag proactively
@@ -188,7 +188,7 @@ the **silkscreen logo**, **and a ground pour present on BOTH boards** (a missing
 defect this project has already shipped once — see `docs/DUAL_PANEL.md`).
 
 Sanity-check against the **real qty-20 quote of 2026-08-18**
-(`hardware/dual-panel/panel/QUOTE-2026-08-18.md`): dual-panel **PCB $174.47 + PCBA
+(`docs/rev1-order/QUOTE-2026-08-18.md`): dual-panel **PCB $174.47 + PCBA
 $375.41**, master ×5 **$8.04**, **merchandise $557.92**. If a "qty 20" quote lands
 near the old **qty-5** figure of $297.38, the quantity field did not take.
 
@@ -239,7 +239,7 @@ and re-verified afterwards (DRC 0 · unconnected 19 · parity 90 · ERC 0).
 Two knock-on fixes were required by change 1 and are already applied — a **zone
 refill** (stale fill polygons produced three phantom pad-to-`GND_Brain` errors)
 and **scoping the `QSPI flash pour clearance` rule to `B.Type == 'Zone'`** so it
-stops policing track-to-pad. Full detail in `docs/PRE_ORDER_CHECKLIST.md`.
+stops policing track-to-pad. Full detail in `docs/rev1-order/PRE_ORDER_CHECKLIST.md`.
 
 ⚠ **Re-run the SMT DFM after uploading** — §3's accepted-findings table was
 written against the pre-change board, and the pin-edge rows should now be gone.
@@ -412,7 +412,7 @@ parts placement" are for.
 ### Master board order — no notes needed
 
 Bare fab only, 4-layer. **No PCBA, no BOM, no CPL, no baking, no POFV.** The
-`docs/BOM.md` "qty 2" is the *need*; **order qty 5**, JLC's minimum, which is what
+`docs/rev1-order/BOM.md` "qty 2" is the *need*; **order qty 5**, JLC's minimum, which is what
 the ≈$8 quote was against.
 
 ---
@@ -489,7 +489,7 @@ annular-ring problem the panel had already been fixed for.
 `hardware/master-pcb/production/master-pcb-gerbers.zip`. The old zip has the
 0.45 mm vias.
 
-⚠ **Lesson: a quote is not a DFM check.** `docs/PRE_ORDER_CHECKLIST.md` had carried
+⚠ **Lesson: a quote is not a DFM check.** `docs/rev1-order/PRE_ORDER_CHECKLIST.md` had carried
 "the master quoted fine at 0.075 mm" as partial reassurance for months. JLC will
 happily quote a board it would then flag.
 
