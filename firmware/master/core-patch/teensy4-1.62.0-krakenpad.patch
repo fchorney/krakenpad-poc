@@ -42,14 +42,15 @@ diff -u a/usb_desc.c b/usb_desc.c
 diff -u a/usb_desc.h b/usb_desc.h
 --- a/usb_desc.h
 +++ b/usb_desc.h
-@@ -324,6 +324,42 @@
+@@ -324,6 +324,55 @@
    #define ENDPOINT6_CONFIG      ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
    #define ENDPOINT7_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
  
 +#elif defined(USB_KRAKENPAD)
-+  // KrakenPad master: CDC serial (bench console) + a 9-button joystick whose
-+  // report is the panel bitmask. Not a menu type: firmware/master/build.sh
-+  // builds against a patched copy of this core with -DUSB_KRAKENPAD.
++  // KrakenPad master: CDC serial (bench console), the vendor command/data
++  // interface (RawHID), and a 9-button joystick whose report is the panel
++  // bitmask. Not a menu type: firmware/master/build.sh builds against a
++  // patched copy of this core with -DUSB_KRAKENPAD.
 +  // PID borrowed from USB_SERIAL_HID for development (docs/USB_PROTOCOL.md).
 +  #define VENDOR_ID		0x16C0
 +  #define PRODUCT_ID		0x0487
@@ -61,8 +62,8 @@ diff -u a/usb_desc.h b/usb_desc.h
 +  #define PRODUCT_NAME		{'K','r','a','k','e','n','P','a','d'}
 +  #define PRODUCT_NAME_LEN	9
 +  #define EP0_SIZE		64
-+  #define NUM_ENDPOINTS		4
-+  #define NUM_INTERFACE		3
++  #define NUM_ENDPOINTS		5
++  #define NUM_INTERFACE		4
 +  #define CDC_IAD_DESCRIPTOR	1
 +  #define CDC_STATUS_INTERFACE	0
 +  #define CDC_DATA_INTERFACE	1	// Serial
@@ -74,13 +75,25 @@ diff -u a/usb_desc.h b/usb_desc.h
 +  #define CDC_TX_SIZE_480       512
 +  #define CDC_RX_SIZE_12        64
 +  #define CDC_TX_SIZE_12        64
-+  #define JOYSTICK_INTERFACE    2	// Pad input
++  // Numbered in the order usb_desc.c writes the interfaces (RawHID's block
++  // comes before the joystick's), so the vendor interface is 2.
++  #define RAWHID_INTERFACE      2	// Vendor command/data
++  #define RAWHID_USAGE_PAGE	0xFF00
++  #define RAWHID_USAGE		0x0001
++  #define RAWHID_TX_ENDPOINT    5
++  #define RAWHID_TX_SIZE        64
++  #define RAWHID_TX_INTERVAL    1	// 125 us at High Speed, 1 ms at Full Speed
++  #define RAWHID_RX_ENDPOINT    5
++  #define RAWHID_RX_SIZE        64
++  #define RAWHID_RX_INTERVAL    1
++  #define JOYSTICK_INTERFACE    3	// Pad input
 +  #define JOYSTICK_ENDPOINT     4
 +  #define JOYSTICK_SIZE         4	// report ID, 9 buttons + 7 pad bits, sequence
 +  #define JOYSTICK_INTERVAL     1	// 125 us at High Speed, 1 ms at Full Speed
 +  #define ENDPOINT2_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
 +  #define ENDPOINT3_CONFIG	ENDPOINT_RECEIVE_BULK + ENDPOINT_TRANSMIT_BULK
 +  #define ENDPOINT4_CONFIG      ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
++  #define ENDPOINT5_CONFIG	ENDPOINT_RECEIVE_INTERRUPT + ENDPOINT_TRANSMIT_INTERRUPT
 +
  #elif defined(USB_TOUCHSCREEN)
    #define VENDOR_ID		0x16C0
@@ -124,3 +137,42 @@ diff -u a/usb_joystick.h b/usb_joystick.h
  extern uint32_t usb_joystick_data[(JOYSTICK_SIZE+3)/4];
  extern volatile uint8_t usb_configuration;
  #ifdef __cplusplus
+diff -u a/usb_rawhid.c b/usb_rawhid.c
+--- a/usb_rawhid.c
++++ b/usb_rawhid.c
+@@ -143,6 +143,24 @@
+ 	return RAWHID_TX_SIZE;
+ }
+ 
++// Non-blocking send for a caller that must never wait: queue the packet if a
++// transmit slot is free, otherwise return 0 at once. usb_rawhid_send(buf, 0)
++// is not that: it spins (calling yield()) until the millisecond tick changes,
++// up to ~1 ms, before it gives up.
++int usb_rawhid_try_send(const void *buffer)
++{
++	if (!usb_configuration) return -1; // usb not enumerated by host
++	transfer_t *xfer = tx_transfer + tx_head;
++	if (usb_transfer_status(xfer) & 0x80) return 0; // all slots in flight
++	uint8_t *txdata = txbuffer + (tx_head * RAWHID_TX_SIZE);
++	memcpy(txdata, buffer, RAWHID_TX_SIZE);
++	arm_dcache_flush_delete(txdata, RAWHID_TX_SIZE );
++	usb_prepare_transfer(xfer, txdata, RAWHID_TX_SIZE, 0);
++	usb_transmit(RAWHID_TX_ENDPOINT, xfer);
++	if (++tx_head >= TX_NUM) tx_head = 0;
++	return RAWHID_TX_SIZE;
++}
++
+ int usb_rawhid_available(void)
+ {
+ 	if (!usb_configuration) return 0;
+diff -u a/usb_rawhid.h b/usb_rawhid.h
+--- a/usb_rawhid.h
++++ b/usb_rawhid.h
+@@ -44,6 +44,7 @@
+ int usb_rawhid_recv(void *buffer, uint32_t timeout);
+ int usb_rawhid_available(void);
+ int usb_rawhid_send(const void *buffer, uint32_t timeout);
++int usb_rawhid_try_send(const void *buffer);
+ #ifdef __cplusplus
+ }
+ #endif

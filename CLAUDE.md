@@ -73,8 +73,9 @@ Improvements over stock SMX hardware:
 
 ```
 firmware/
+  shared/            # panel_config.h: the config format both firmwares include (+ test/)
   master/
-    master.ino       # Teensy 4.0: RS-485 bus master, INT capture, USB joystick, bench console
+    master.ino       # Teensy 4.0: RS-485 bus master, INT capture, USB joystick + vendor interface, config store, bench console
     build.sh         # build/upload via a patched Teensy core (core-patch/)
     usb_speed_test/  # USB HS bench-test sketch
   panel/c/
@@ -95,7 +96,7 @@ docs/                # status, as-built references, protocols, procedures
   rev1-order/        # how rev 1 was verified, ordered and bought (frozen record)
   archive/           # superseded material, banner-marked, kept for the rationale
 stock-smx/           # the stock SMX pad as found: harness, parts, panel PCB (descriptive only)
-tools/               # BOM/census, fab, review images, bus update, SWD, monitors
+tools/               # BOM/census, fab, review images, bus update, SWD, monitors, USB vendor commands (pad_cmd.py)
 ```
 
 **Both firmware trees use the as-built pin maps.** The RP2040 GPIO map is in
@@ -135,9 +136,16 @@ PC (USB HID) ←→ Master MCU (Teensy 4.0)
 
 ### Master: Teensy 4.0 (600 MHz Cortex-M7), socketed on the master PCB
 
-- USB HID to the PC: a 9-button joystick report today (`docs/USB_PROTOCOL.md`).
-  Teensyduino can't take a custom descriptor, so `firmware/master/build.sh`
-  builds against a patched copy of the core.
+- USB HID to the PC: a 9-button joystick report (pad input), plus a vendor
+  interface for config, telemetry, LED frames and bus updates, **built
+  2026-10-20 and not yet run on hardware** (`docs/USB_PROTOCOL.md`;
+  `tools/pad_cmd.py` speaks it). Teensyduino can't take a custom descriptor, so
+  `firmware/master/build.sh` builds against a patched copy of the core; it also
+  adds `firmware/shared/` to the include path, so a plain `arduino-cli compile`
+  fails.
+- Holds the **only saved copy of every panel's config** (emulated EEPROM, two
+  slots) and pushes it to the panels with `'W'`; panels keep config in RAM
+  (`docs/PANEL_CONFIG.md`).
 - 9 hardware interrupt inputs, one per panel; presses go straight from the INT
   ISR to the USB report.
 - Drives the RS-485 bus on **Serial2** (RX 7 / TX 8, DE 6): LED frames to each
@@ -184,7 +192,8 @@ transceiver, flash, level shifter, LDO cascade, power-OR) are in
   pull-down is always on the board, so an unplugged FSR reads near 0, the same
   as an unloaded one (presence must therefore be config, not measurement).
 - Rev-1 ADC values (12-bit): resting **85–108** across nine boards (most
-  94–102), full press **~4000**. Default thresholds press 500 / release 400.
+  94–102), full press **~4000**. Default thresholds press 500 / release 400
+  (`firmware/shared/panel_config.h`), set per channel by the master's `'W'`.
 - Sampling: the C firmware's loop runs at ~100 kHz (102,080 Hz measured on the
   breadboard). Targets were 4 kHz hard, 8 kHz soft. MicroPython managed
   ~1–2 kHz, which is why the firmware is C.

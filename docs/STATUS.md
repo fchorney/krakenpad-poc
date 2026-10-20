@@ -42,9 +42,9 @@ models).
 
 | | Built | Not built |
 |---|---|---|
-| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I C H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader | Whole-panel config `'W'` (thresholds are set by `'C'`, **RAM only**; panels stay RAM-only by design since 2026-10-20, the master will persist); local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; `populated`/`enabled` flags; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
-| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check | **USB command and data reports** (live FSR telemetry and config over HID); underglow periodic re-send and host strip command; poll interleaving (telemetry is ~14 Hz/panel) |
-| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py` | The SDK and apps: **Rust SDK with a C interface, apps in Rust + egui**, decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
+| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, not yet run on a board:** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed | Local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
+| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check. **Built 2026-10-20, not yet run on hardware:** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry is ~14 Hz/panel, ~12.7 expected with the re-push) |
+| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, not yet run against a master) | The SDK and apps: **Rust SDK with a C interface, apps in Rust + egui**, decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 `docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. A future idea, not scheduled:
@@ -52,6 +52,15 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Known open items
 
+- **Config on the bus and the USB vendor interface have never run on
+  hardware.** Both were built and compiled clean on 2026-10-20 without the pad.
+  Bench procedure: `docs/MASTER_BRINGUP.md` → "Config and the USB vendor
+  interface". It also records the two numbers still missing: how long a save
+  stalls the master, and the telemetry rate with the re-push.
+- **The master's two EEPROM slots share the emulation's flash sectors**, so a
+  power cut during a sector compaction can lose both: the result is defaults
+  plus "config was reset", never a wrong config. Found reading the core
+  (`docs/PANEL_CONFIG.md` → "As built").
 - **Connect USB before 12 V** on any panel. A powered brain back-drives its VBUS,
   so a host won't attach (rev-2 candidate #3).
 - **The master's RS-485 parser has no inter-byte timeout.** The panel app and
@@ -75,26 +84,31 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Next steps (firmware/software)
 
-**Next session (the user's plan, 2026-10-20): build these three, in order.**
-(a) config on the bus (step 4: panel `'W'`/`'w'`, the "not configured" bit,
-`'C'` removed; the master's EEPROM record, re-push, `S` editing the master's
-copy), (b) the master's vendor HID interface (step 5: core patch, then device
-info, get/set config, pad status), (c) the Rust SDK skeleton in
-`software/sdk` against (b) (`docs/HOST_SOFTWARE.md`). (a) and (b) can be
-written and built without the pad; testing needs it plugged in.
+**The user's plan (2026-10-20): (a) config on the bus, (b) the master's vendor
+HID interface, (c) the Rust SDK skeleton in `software/sdk` against (b)**
+(`docs/HOST_SOFTWARE.md`). **(a) and (b) were built 2026-10-20**, (b) with the
+whole command table except underglow and reset animations (the user's call),
+and neither has run yet. **Next: the bench procedure** in
+`docs/MASTER_BRINGUP.md` → "Config and the USB vendor interface", with the pad
+plugged in; then (c), with `tools/pad_cmd.py` as the working reference for the
+framing.
 
 1. ~~Inter-byte timeout in the panel parser~~ done 2026-10-20: master `b`
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
 3. Robustness: cable pull, panel power cycle, poll/LED interleave under load.
-4. Config: designed 2026-10-20, ready to build. Panels RAM-only; the master
-   persists a two-copy EEPROM record; bus `'W'`/`'w'` layouts and the "not
-   configured" bit in `'f'` (`docs/RS485_PROTOCOL.md`); versioning; factory
-   reset. Auto-calibration deferred until installed-pad data. The USB side is
-   step 5.
-5. USB command and data reports: designed 2026-10-20, ready to build. A
-   separate vendor HID interface, packet framing, the command table, the
-   telemetry stream and the update paths (`docs/USB_PROTOCOL.md`).
+4. Config: **built 2026-10-20, not yet run on hardware.** Panels RAM-only; the
+   master's two-slot EEPROM record, `'W'`/`'w'` and the "not configured" bit
+   (`docs/RS485_PROTOCOL.md`), the version check, reset config, console `S`/`F`
+   editing the master's copy with a separate `save` (the user's call,
+   2026-10-20). Shared format: `firmware/shared/panel_config.h`.
+   Auto-calibration deferred until installed-pad data.
+5. USB vendor interface: **built 2026-10-20, not yet run on hardware.** Packet
+   framing, the command table except underglow (deferred) and reset animations
+   (waits on step 6), the telemetry stream, host LED frames (hand back after
+   1 s, the user's call), the bus passthrough for updates, reboot to the Teensy
+   bootloader (`docs/USB_PROTOCOL.md` → "As built"). Not built: the SDK side of
+   updates (porting `panel_update.py`), and writing master firmware over HID.
 6. Animations: flash slots, pressed/released playback, conversion in the upload
    program. APNG as the format, whole-frame per-frame delays, flag-row loop markers,
    length+CRC and the gif-maker fork decided 2026-10-20; max LED rate, ms vs

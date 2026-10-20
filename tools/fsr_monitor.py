@@ -6,9 +6,11 @@ panel's four FSR channels as live bars. The data path visualized is:
 panel ADC -> RS-485 poll reply -> master -> USB serial -> here.
 
 Threshold changes are sent to the master ("S <panel> <press> <release>"),
-which forwards them to the addressed panel over RS-485 (cmd 'C'); the panel
-applies them to its live hysteresis logic and acks. RAM only — reboot
-restores defaults.
+which edits its config copy and pushes it to the addressed panel over RS-485
+(cmd 'W', since 2026-10-20). The panel applies them at once, and the "ack"
+shown is the master's "config matches" line, printed when the panel's 'w'
+confirms it runs them. Not saved: a panel reboot gets them again from the
+master, but a master reboot returns to its last `save`.
 
 Two lines per panel: four bars (South, West, North, East, the bring-up
 firmware's channel order), then thresholds and the last 'H' status reply. A
@@ -45,7 +47,9 @@ BAR_WIDTH = 14
 PANEL_NAME = ["UL", "U", "UR", "L", "C", "R", "DL", "D", "DR"]
 FSR_NAME = ["S", "W", "N", "E"]
 
-ACK_RE = re.compile(r"panel (\d+) ack thresholds: press=(\d+) release=(\d+)")
+# The master's line when a panel confirms its config; channel 0's thresholds
+# stand for the panel, since `S` here sets all four alike.
+ACK_RE = re.compile(r"panel (\d+) \(\S+\) config matches: 0:(\d+)/(\d+)")
 STATUS_RE = re.compile(r"^# status \S+\s+id (\d+)\s+(.*)$")
 
 

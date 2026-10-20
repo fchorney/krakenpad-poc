@@ -13,6 +13,7 @@ migrated). The golden copy is reserved but not implemented. The pieces:
 | app linker script (app at `0x10008000`) | `firmware/panel/c/common/memmap_app.ld` |
 | app side: `'B'` on the bus, `U` on the console | `firmware/panel/c/main.c` (gameplay) and `firmware/panel/c/bringup/main.c` |
 | master passthrough (`P`) | `firmware/master/master.ino` |
+| master USB passthrough for the SDK (vendor commands 0x0D/0x0E, built 2026-10-20, not yet run; `tools/pad_cmd.py bus-h` exercises it) | `firmware/master/master.ino`, `docs/USB_PROTOCOL.md` |
 | host tool | `tools/panel_update.py` |
 | host test (real bootloader C, simulated bus) | `firmware/panel/c/bootloader/host_test/` |
 

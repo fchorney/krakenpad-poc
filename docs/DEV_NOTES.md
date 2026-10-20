@@ -115,6 +115,35 @@ to `(footprint …)` when adding to a project library. Preview headless with
   explicit `gpio_disable_pulls()` or pull setting. It has bitten `SENSE_12V`
   (GPIO17) and `INT_OUT` (GPIO22). See `docs/BRINGUP_LOG.md`, first board.
 
+## Teensy / Arduino (master firmware)
+
+- **`arduino-cli` puts its generated function prototypes above the first
+  function in the sketch.** A function defined above a type that later
+  prototypes use (`struct Color`) breaks the build with "'Color' has not been
+  declared" at an unrelated line. Hit 2026-10-20; keep early globals free of
+  functions, or define the function lower down.
+- **The sketch is copied elsewhere to build**, so a relative `#include` outside
+  `firmware/master/` can't resolve. `build.sh` reads the board's
+  `build.flags.defs` (`arduino-cli compile --show-properties`) and passes it
+  back with `-I…/firmware/shared` appended; every compile and the library scan
+  use that property.
+- **`arduino-cli compile` shows no compiler warnings by default.** Add
+  `--warnings all` to see them.
+- **`usb_rawhid_send(buf, 0)` is not non-blocking** (Teensyduino 1.62): with
+  every transmit slot busy it spins, calling `yield()`, until the millisecond
+  tick changes, up to ~1 ms. The core patch adds `usb_rawhid_try_send()`, which
+  returns at once; the vendor interface uses only that.
+- **The Teensy core writes USB interfaces in a fixed block order** (CDC, …,
+  RawHID, …, joystick), whatever numbers `usb_desc.h` gives them, so the
+  numbers follow that order: RawHID 2, joystick 3.
+- **EEPROM emulation spreads every address over all 15 sectors**
+  (`sector = (addr >> 2) % 15`), so two "separate" records share sectors, and a
+  sector compaction (erase, then rewrite from RAM) touches both. See
+  `docs/PANEL_CONFIG.md` → "As built".
+- **`micros()` undercounts while interrupts are off** for over a millisecond:
+  it is built on the SysTick count. Time such stretches with `ARM_DWT_CYCCNT`
+  (enabled by the core at startup).
+
 ## USB devices on the bench
 
 The Teensy, the debugprobe Pico and every brain all enumerate as

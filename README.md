@@ -46,9 +46,10 @@ Rev 1 of both boards (the master controller and the two-board panel) was
 fabricated in August 2026 and is the hardware in use. A full set of nine panels
 and a master run together on the bench: presses reach the PC as a USB joystick,
 all nine panels share one RS-485 bus with no errors, and new panel firmware is
-flashed to the whole pad over that bus. Not written yet: live sensor telemetry
-and configuration over USB, settings saved to flash, and local panel
-animations. Any board change from here is a rev 2 change.
+flashed to the whole pad over that bus. Written but not yet run on the
+hardware: live sensor telemetry and configuration over USB, with the settings
+saved on the master. Not written yet: local panel animations. Any board change
+from here is a rev 2 change.
 
 Current state and next steps: `docs/STATUS.md`. Per-board results:
 `docs/BRINGUP_LOG.md`. Design notes and specs: `CLAUDE.md` and `docs/`.

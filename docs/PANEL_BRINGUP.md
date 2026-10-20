@@ -479,7 +479,8 @@ map 2026-10-18.
 
 It answers frames addressed to this panel's DIP ID or to `0xFF`:
 `'F'`→`'f'` (4 × uint16 LE raw ADC + pressed bitmask), `'I'`→`'i'` (ack **first**,
-then pulse INT), `'C'`→`'c'` (thresholds, RAM only), `'H'`→`'h'` (status).
+then pulse INT), `'C'`→`'c'` (thresholds, RAM only; nothing sends it since
+2026-10-20), `'H'`→`'h'` (status). It ignores `'W'`.
 `'L'` is counted.
 
 **Bus mode (added 2026-10-18).** `R`, `A` and `E` used to be off at boot, so
@@ -517,8 +518,11 @@ lossy. `led_init()` is lazy and 12V-gated, same as `l`.
 thresholds using the *same* hysteresis state the `'F'` reply reports, so
 telemetry and the INT edge can never disagree. Stand on a sensor and the master
 prints `PRESS panel N` — panel ADC → threshold → emulated open-drain → wire →
-master ISR, nothing simulated. Thresholds are live-settable from the master with
-`S <panel> <press> <rel>`, which is the `'C'`→`'c'` path.
+master ISR, nothing simulated. Until 2026-10-20 the thresholds were
+live-settable from the master with `S <panel> <press> <rel>`, the `'C'`→`'c'`
+path. The master's `S` now pushes `'W'`, which this firmware ignores, so it
+runs on its 500/400 defaults and the master lists it as "sent, waiting"; `'F'`
+and `'H'` still exercise the bus both ways.
 
 ### Three constraints the responder is built around
 

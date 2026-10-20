@@ -6,13 +6,29 @@
 // two INT lines there and carry the player-ID DIP here, so a partial port would
 // have read the DIP as panel presses.
 //
-// Runs the pad: INT edge capture, addressed LED frames, FSR telemetry polling.
+// Runs the pad: INT edge capture, addressed LED frames, FSR telemetry polling,
+// the panels' config (the only saved copy, pushed to them with 'W'), and the
+// USB vendor interface (commands, events, telemetry stream).
 // Also carries the bench command set, because master bring-up happens with zero
 // panels flashed and every board-local check has to work standalone.
 //
-// Protocol: docs/RS485_PROTOCOL.md. Bring-up procedure: docs/MASTER_BRINGUP.md.
+// Protocols: docs/RS485_PROTOCOL.md, docs/USB_PROTOCOL.md. Config:
+// docs/PANEL_CONFIG.md. Bring-up procedure: docs/MASTER_BRINGUP.md.
 // Build: firmware/master/build.sh (compile) or build.sh upload. It builds
-//        against a patched Teensy core for the USB joystick (docs/MASTER_BRINGUP.md).
+//        against a patched Teensy core for the USB interfaces and adds
+//        firmware/shared/ to the include path (docs/MASTER_BRINGUP.md).
+
+#if !defined(USB_KRAKENPAD)
+#error "Build with firmware/master/build.sh: it selects the KrakenPad USB type and adds firmware/shared/ to the include path."
+#endif
+
+#include <EEPROM.h>
+#include "panel_config.h"   // firmware/shared/: the 'W' format, defaults, CRC-32
+
+// Reported in USB device info. The build tag (FNV-1a of the build time, the
+// same scheme as the panels' 'h' tag) tells two builds of one version apart.
+constexpr uint8_t FW_VERSION_MAJOR = 0, FW_VERSION_MINOR = 1, FW_VERSION_PATCH = 0;
+uint32_t build_tag = 0;   // computeBuildTag(), at setup
 
 // ── As-built pin map (netlist-verified against master-pcb.kicad_pcb) ─────────
 constexpr uint8_t NUM_PANELS = 9;
@@ -108,8 +124,6 @@ inline void pushEdge(uint8_t panel, uint8_t pin) {
 // send that found the queue full, repeats the report as a heartbeat, and
 // corrects the mask if a line ever disagrees with it for two ticks. All three
 // paths run at one NVIC priority so none preempts another.
-// Needs the KrakenPad USB type: build with firmware/master/build.sh.
-#if defined(USB_KRAKENPAD)
 constexpr uint32_t INT_QUALIFY_NS   = 10000;   // edge must still hold 10 us later
 constexpr uint32_t HID_HEARTBEAT_US = 10000;
 constexpr uint8_t  HID_IRQ_PRIORITY = 128;     // Teensy default for GPIO and USB
@@ -184,13 +198,6 @@ void hidReport() {
   Serial.print("  USB ");
   Serial.println(usb_configuration ? "configured" : "NOT configured");
 }
-#else
-#warning "Built without the KrakenPad USB type: no pad input reaches the PC. Use firmware/master/build.sh."
-volatile bool hid_hold = false;
-inline void hidEdge(uint8_t) {}
-void hidBegin() {}
-void hidReport() { Serial.println("# no USB pad input in this build (use firmware/master/build.sh)"); }
-#endif
 
 // attachInterrupt needs a plain function pointer per pin — no capture, so one
 // trampoline per panel rather than a single parameterized handler.
@@ -204,6 +211,14 @@ void (*const INT_ISR[NUM_PANELS])() = {
 };
 
 // ── RS-485 framing ───────────────────────────────────────────────────────────
+void putU32(uint8_t *p, uint32_t v) {
+  p[0] = (uint8_t)v; p[1] = (uint8_t)(v >> 8); p[2] = (uint8_t)(v >> 16); p[3] = (uint8_t)(v >> 24);
+}
+
+uint32_t getU32(const uint8_t *p) {
+  return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
+}
+
 uint8_t crc8Update(uint8_t crc, uint8_t b) {
   crc ^= b;
   for (int i = 0; i < 8; i++)
@@ -228,7 +243,7 @@ void sendPacket(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) 
 }
 
 // ── Reply window ─────────────────────────────────────────────────────────────
-// After a packet that expects a reply ('F', 'C'), the master must stay silent
+// After a packet that expects a reply ('F', 'W', 'H'), the master must stay silent
 // until the reply is over: both ends tie DE to R̅E̅, so a master frame sent on
 // top of a reply corrupts it on the wire and the master cannot even hear it.
 // Nothing scheduled may transmit before this deadline. Found at the bench
@@ -242,7 +257,8 @@ void sendPacket(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) 
 // 400us; 'h' (29 bytes) gets 550us.
 constexpr uint32_t REPLY_MARGIN_US = 260;
 constexpr uint8_t  REPLY_F_LEN = 9;    // 'f' payload
-constexpr uint8_t  REPLY_C_LEN = 5;    // 'c' payload
+constexpr uint8_t  REPLY_W_LEN = KP_WACK_LEN;   // 'w' payload
+constexpr uint8_t  REPLY_M_LEN = 2;    // 'm' echoes an addressed 'M'
 constexpr uint8_t  REPLY_H_LEN = 24;   // 'h' payload (gameplay firmware)
 constexpr uint8_t  REPLY_H_LEN_OLD = 22; // bring-up firmware: no parser timeouts
 uint32_t bus_quiet_from_us = 0;
@@ -291,9 +307,20 @@ uint32_t poll_ok_total[NUM_PANELS] = {};
 // after it stopped answering. A panel that is unplugged, reset, or dead must
 // read as gone, not as frozen. Found at the bench 2026-09-08 by toggling the
 // panel's responder off and watching the master carry on regardless.
-constexpr uint32_t PANEL_TIMEOUT_MS = 1000;   // ~22 missed polls at 9 x 5ms
+// Updated as replies arrive and by updatePresence() every loop(), so presence
+// changes are seen at once (console, USB events, config pushes).
+constexpr uint32_t PANEL_TIMEOUT_MS = 1000;   // ~14 missed polls at the measured ~14 Hz
 uint32_t last_reply_ms[NUM_PANELS] = {};
 bool     panel_online[NUM_PANELS]  = {};
+// Poll reply rate over the last completed heartbeat window, for USB pad status.
+uint8_t  poll_pct[NUM_PANELS] = {};
+
+// Latest 'h' from each panel. The console's `H` sweep fills it, and so does a
+// background request to one answering panel every STATUS_BG_MS, for USB pad
+// status and the termination check in device info.
+constexpr uint32_t STATUS_BG_MS = 500;
+struct PanelStatus { bool got; uint32_t build_tag; uint16_t crc_errs; bool term; };
+PanelStatus panel_status[NUM_PANELS] = {};
 
 extern volatile int ident_ack_id;   // defined with the bench checks below
 
@@ -303,6 +330,8 @@ extern volatile int ident_ack_id;   // defined with the bench checks below
 int  status_next = -1;              // next index to ask; -1 = no sweep running
 bool status_got[NUM_PANELS] = {};
 bool status_term[NUM_PANELS] = {};  // SW202 position from each 'h'
+bool status_verbose = false;        // print 'h' replies: `H` sweep and `b` test only
+int  bg_status_due = -1;            // panel owed a background 'H', -1 = none
 
 // RS-485 daisy-chain order, master first (CLAUDE.md -> "Daisy-Chain Order").
 // Documented, not measured: the bus cannot discover its own topology, so a pad
@@ -317,6 +346,25 @@ constexpr uint8_t CHAIN_ORDER[NUM_PANELS] = {0, 3, 6, 7, 4, 1, 2, 5, 8};
 // only, so a missing R201 or a bad pole A still reads ON; and a panel that is
 // cabled in but silent (unpowered, dead) still passes A/B through, so the real
 // end of the cable may lie beyond the last panel that answered.
+// The rule, over any set of 'h' results: 0 OK, 1 none terminated, 2 several,
+// 3 the wrong panel, 0xFF nothing to judge (no status yet). `term_id` gets the
+// terminated panel's ID when exactly one is, else 0xFF. USB device info
+// reports exactly this.
+uint8_t terminationCode(const bool *got, const bool *term, uint8_t *term_id) {
+  int expect = -1, n_term = 0, which = -1;
+  for (int k = 0; k < NUM_PANELS; k++)
+    if (got[CHAIN_ORDER[k]]) expect = CHAIN_ORDER[k];
+  *term_id = 0xFF;
+  if (expect < 0) return 0xFF;
+  for (int i = 0; i < NUM_PANELS; i++)
+    if (got[i] && term[i]) { n_term++; which = i; }
+  if (n_term == 0) return 1;
+  if (n_term > 1) return 2;
+  *term_id = PANEL_IDS[which];
+  return which == expect ? 0 : 3;
+}
+
+// The console's version, over the last `H` sweep, with the fix spelled out.
 void checkTermination() {
   int expect = -1, n_term = 0;
   for (int k = 0; k < NUM_PANELS; k++)
@@ -349,6 +397,13 @@ void checkTermination() {
   Serial.print(" (id ");
   Serial.print(PANEL_IDS[expect]);
   Serial.println("), the last panel answering in chain order. SW202 on that panel ON, every other off");
+}
+
+void storeStatusReply(int pidx, const uint8_t *p) {
+  panel_status[pidx].got = true;
+  panel_status[pidx].build_tag = getU32(p);
+  panel_status[pidx].crc_errs = (uint16_t)p[10] | ((uint16_t)p[11] << 8);
+  panel_status[pidx].term = p[9] & 0x02;
 }
 
 void printStatusReply(uint8_t addr, const uint8_t *p, uint8_t len) {
@@ -414,6 +469,297 @@ void printStatusReply(uint8_t addr, const uint8_t *p, uint8_t len) {
   Serial.println();
 }
 
+// ── Panel config: the master's copy, its EEPROM record, each panel's state ───
+// The master holds the only saved copy of every panel's config; panels keep
+// theirs in RAM and boot on defaults (docs/PANEL_CONFIG.md → "Config
+// persistence"). This copy is what panels are sent and what USB Get config
+// returns. The console's `S` and `F` edit it without saving (`save` saves);
+// USB Set config and both resets save it at once.
+//
+// A panel is sent its 'W' in a poll slot: when it appears (which covers the
+// master's own boot), when its 'f' says "not configured since boot" after it
+// had matched (it rebooted), when the copy changes, and as a re-push, one
+// panel every CFG_REPUSH_MS / 9 so each gets it about once a second. Its 'w'
+// carries the CRC of the config it now runs; only a CRC equal to the master's
+// copy counts as configured.
+constexpr uint16_t CFG_BLOCK_LEN = NUM_PANELS * KP_PANEL_CFG_LEN;   // 180
+constexpr uint32_t CFG_REPUSH_MS = 1000;
+uint8_t  cfg_block[CFG_BLOCK_LEN];
+bool     cfg_unsaved = false;      // edited since the last load or save
+bool     cfg_was_reset = false;    // no valid record at boot: defaults until saved
+uint16_t cfg_seq = 0;              // sequence number of the newest record
+int      cfg_slot = -1;            // slot holding it, -1 = none
+
+// The EEPROM record (docs/PANEL_CONFIG.md → "The master's EEPROM record"):
+// magic, version, sequence, the block, then the CRC-32 of all of that. Two
+// slots; a save writes the one not holding the newest record, so a power cut
+// mid-save leaves the previous config intact.
+constexpr uint8_t  CFG_MAGIC[4] = {'K', 'P', 'C', 'F'};
+constexpr uint16_t CFG_REC_SEQ = 5, CFG_REC_BLOCK = 7, CFG_REC_CRC = CFG_REC_BLOCK + CFG_BLOCK_LEN;
+constexpr uint16_t CFG_REC_LEN = CFG_REC_CRC + 4;   // 191
+constexpr uint16_t CFG_SLOT_ADDR[2] = {0, 512};
+static_assert(CFG_SLOT_ADDR[1] + CFG_REC_LEN <= E2END + 1, "slot B must fit the emulated EEPROM");
+
+// Per panel, numbered as the USB config result event reports it.
+enum : uint8_t {
+  CFG_MATCH = 0, CFG_WAITING = 1, CFG_REJECTED_VERSION = 2,
+  CFG_REJECTED_INVALID = 3, CFG_NOT_CONFIGURED = 4, CFG_ABSENT = 5,
+};
+const char *const CFG_STATE_NAME[] = {
+  "matches", "sent, waiting for the panel", "REJECTED: unknown config version",
+  "REJECTED: invalid values", "not configured since boot", "absent",
+};
+uint8_t  cfg_state[NUM_PANELS];
+uint32_t cfg_sent_crc[NUM_PANELS] = {};    // CRC of the last 'W' sent
+uint32_t cfg_panel_crc[NUM_PANELS] = {};   // CRC the panel reported in its last 'w'
+uint8_t  cfg_panel_ver[NUM_PANELS] = {};   // highest version it speaks, from 'w'
+bool     cfg_push_due[NUM_PANELS] = {};
+uint32_t cfg_mismatches = 0;               // 'w' said applied, CRC was not what was sent
+uint32_t cfg_save_us = 0;                  // how long the last save took
+
+uint8_t *cfgPanel(int pidx) { return cfg_block + pidx * KP_PANEL_CFG_LEN; }
+
+void cfgDefaults() {
+  for (int i = 0; i < NUM_PANELS; i++) kp_panel_cfg_default(cfgPanel(i));
+}
+
+// Prints the moments that matter: a panel confirmed running the master's copy
+// (with its thresholds, which tools/fsr_monitor.py reads as the panel's ack),
+// and a rejection.
+void cfgSetState(int pidx, uint8_t st) {
+  if (cfg_state[pidx] == st) return;
+  cfg_state[pidx] = st;
+  if (st == CFG_MATCH) {
+    Serial.print("# panel ");
+    Serial.print(PANEL_IDS[pidx]);
+    Serial.print(" (");
+    Serial.print(PANEL_NAME[pidx]);
+    Serial.print(") config matches:");
+    for (int c = 0; c < KP_NUM_FSR; c++) {
+      const uint8_t *ch = cfgPanel(pidx) + c * KP_CH_LEN;
+      Serial.print(' ');
+      Serial.print(c);
+      Serial.print(':');
+      Serial.print(kp_get_u16(ch));
+      Serial.print('/');
+      Serial.print(kp_get_u16(ch + 2));
+    }
+    Serial.println();
+  } else if (st == CFG_REJECTED_VERSION || st == CFG_REJECTED_INVALID) {
+    Serial.print("# !! panel ");
+    Serial.print(PANEL_IDS[pidx]);
+    Serial.print(" (");
+    Serial.print(PANEL_NAME[pidx]);
+    Serial.print(") rejected its config: ");
+    if (st == CFG_REJECTED_VERSION) {
+      Serial.print("it speaks config version ");
+      Serial.print(cfg_panel_ver[pidx]);
+      Serial.print(", this master sends ");
+      Serial.print(KP_CONFIG_VERSION);
+      Serial.println(". Update the panel firmware");
+    } else {
+      Serial.println("invalid values (a master bug: the copy is checked before it is sent)");
+    }
+  }
+  vndConfigResultEvent(pidx);
+}
+
+// The copy changed: every panel is owed it, and one that matched no longer does.
+void cfgChanged() {
+  for (int i = 0; i < NUM_PANELS; i++) {
+    cfg_push_due[i] = true;
+    if (cfg_state[i] == CFG_MATCH) cfgSetState(i, CFG_WAITING);
+  }
+}
+
+bool cfgReadSlot(int slot, uint8_t *rec) {
+  for (uint16_t i = 0; i < CFG_REC_LEN; i++) rec[i] = EEPROM.read(CFG_SLOT_ADDR[slot] + i);
+  if (memcmp(rec, CFG_MAGIC, 4) != 0 || getU32(rec + CFG_REC_CRC) != kp_crc32_from(0, rec, CFG_REC_CRC))
+    return false;
+  // Version 1 is the only one so far, so there is nothing older to convert.
+  if (rec[4] != KP_CONFIG_VERSION) return false;
+  for (int i = 0; i < NUM_PANELS; i++)
+    if (kp_panel_cfg_bad_channel(rec + CFG_REC_BLOCK + i * KP_PANEL_CFG_LEN) >= 0) return false;
+  return true;
+}
+
+// At boot: the valid record with the higher sequence number wins. Neither
+// valid → defaults, flagged as "config was reset" until something is saved.
+void cfgLoad() {
+  static uint8_t rec[2][CFG_REC_LEN];
+  bool ok[2] = {cfgReadSlot(0, rec[0]), cfgReadSlot(1, rec[1])};
+  int pick = -1;
+  if (ok[0] && ok[1])
+    pick = (int16_t)(kp_get_u16(rec[1] + CFG_REC_SEQ) - kp_get_u16(rec[0] + CFG_REC_SEQ)) > 0 ? 1 : 0;
+  else if (ok[0] || ok[1])
+    pick = ok[0] ? 0 : 1;
+  if (pick < 0) {
+    cfgDefaults();
+    cfg_was_reset = true;
+    return;
+  }
+  memcpy(cfg_block, rec[pick] + CFG_REC_BLOCK, CFG_BLOCK_LEN);
+  cfg_seq = kp_get_u16(rec[pick] + CFG_REC_SEQ);
+  cfg_slot = pick;
+}
+
+// Writes the copy to the slot not holding the newest record, then reads it
+// back. Every byte the emulation actually changes holds off all interrupts
+// while the flash programs, and an occasional sector erase holds them off for
+// the whole erase, so INT, USB and the bus stall in bursts: never during
+// gameplay (docs/PANEL_CONFIG.md).
+//
+// Timed with the cycle counter, not micros(): micros() is built on the
+// millisecond tick, whose interrupt the writes hold off.
+bool cfgSave() {
+  uint32_t c0 = ARM_DWT_CYCCNT;
+  uint8_t rec[CFG_REC_LEN];
+  uint16_t seq = cfg_seq + 1;
+  memcpy(rec, CFG_MAGIC, 4);
+  rec[4] = KP_CONFIG_VERSION;
+  kp_put_u16(rec + CFG_REC_SEQ, seq);
+  memcpy(rec + CFG_REC_BLOCK, cfg_block, CFG_BLOCK_LEN);
+  putU32(rec + CFG_REC_CRC, kp_crc32_from(0, rec, CFG_REC_CRC));
+  int slot = (cfg_slot == 0) ? 1 : 0;
+  for (uint16_t i = 0; i < CFG_REC_LEN; i++) EEPROM.update(CFG_SLOT_ADDR[slot] + i, rec[i]);
+  cfg_save_us = (ARM_DWT_CYCCNT - c0) / (F_CPU_ACTUAL / 1000000);
+  for (uint16_t i = 0; i < CFG_REC_LEN; i++)
+    if (EEPROM.read(CFG_SLOT_ADDR[slot] + i) != rec[i]) return false;
+  cfg_slot = slot;
+  cfg_seq = seq;
+  cfg_unsaved = false;
+  cfg_was_reset = false;
+  return true;
+}
+
+// A whole new copy from USB or a reset: saved, then pushed to every panel.
+bool cfgCommit() {
+  cfg_unsaved = true;
+  bool ok = cfgSave();
+  cfgChanged();
+  return ok;
+}
+
+// The first answering panel owed a 'W', or -1.
+int cfgNextPush() {
+  for (int i = 0; i < NUM_PANELS; i++)
+    if (cfg_push_due[i] && panel_online[i]) return i;
+  return -1;
+}
+
+void cfgSendPush(int pidx) {
+  uint8_t w[KP_W_LEN];
+  w[0] = KP_CONFIG_VERSION;
+  memcpy(w + 1, cfgPanel(pidx), KP_PANEL_CFG_LEN);
+  sendRequest('W', PANEL_IDS[pidx], w, sizeof(w), REPLY_W_LEN);
+  cfg_sent_crc[pidx] = kp_w_crc(cfgPanel(pidx));
+  cfg_push_due[pidx] = false;
+  if (cfg_state[pidx] == CFG_NOT_CONFIGURED) cfgSetState(pidx, CFG_WAITING);
+}
+
+void cfgAck(int pidx, const uint8_t *p) {
+  uint32_t crc = getU32(p + 2);
+  cfg_panel_ver[pidx] = p[1];
+  cfg_panel_crc[pidx] = crc;
+  if (p[0] == KP_WACK_UNKNOWN_VERSION) {
+    cfgSetState(pidx, CFG_REJECTED_VERSION);
+  } else if (p[0] != KP_WACK_APPLIED) {
+    cfgSetState(pidx, CFG_REJECTED_INVALID);
+  } else if (crc == kp_w_crc(cfgPanel(pidx))) {
+    cfgSetState(pidx, CFG_MATCH);
+  } else if (crc != cfg_sent_crc[pidx]) {
+    // It applied something, but not what was sent. Try again.
+    cfg_mismatches++;
+    cfg_push_due[pidx] = true;
+    cfgSetState(pidx, CFG_WAITING);
+    Serial.print("# !! panel ");
+    Serial.print(PANEL_IDS[pidx]);
+    Serial.println(" acked 'W' with a CRC that is not what was sent: re-sending");
+  }
+  // Otherwise it applied what was sent, but the copy has changed since; that
+  // push is already due.
+}
+
+// Every 'f' reply. A panel appearing gets its config; one that matched and now
+// says "not configured since boot" rebooted, and gets it again at once.
+void panelSeen(int pidx, bool not_configured) {
+  if (!panel_online[pidx]) {
+    panel_online[pidx] = true;
+    Serial.print("# panel ");
+    Serial.print(PANEL_IDS[pidx]);
+    Serial.print(" (");
+    Serial.print(PANEL_NAME[pidx]);
+    Serial.println(") is replying");
+    vndPresenceEvent(pidx, true);
+    cfg_push_due[pidx] = true;
+    cfgSetState(pidx, not_configured ? CFG_NOT_CONFIGURED : CFG_WAITING);
+  } else if (not_configured && cfg_state[pidx] == CFG_MATCH) {
+    Serial.print("# panel ");
+    Serial.print(PANEL_IDS[pidx]);
+    Serial.print(" (");
+    Serial.print(PANEL_NAME[pidx]);
+    Serial.println(") is on defaults again (rebooted?): re-sending its config");
+    cfg_push_due[pidx] = true;
+    cfgSetState(pidx, CFG_NOT_CONFIGURED);
+  }
+}
+
+void updatePresence(uint32_t now_ms) {
+  for (int i = 0; i < NUM_PANELS; i++) {
+    if (!panel_online[i] || (now_ms - last_reply_ms[i]) < PANEL_TIMEOUT_MS) continue;
+    panel_online[i] = false;
+    Serial.print("# !! panel ");
+    Serial.print(PANEL_IDS[i]);
+    Serial.print(" (");
+    Serial.print(PANEL_NAME[i]);
+    Serial.println(") STOPPED REPLYING -- unplugged, reset, or dead");
+    vndPresenceEvent(i, false);
+    cfgSetState(i, CFG_ABSENT);
+  }
+}
+
+void printConfig() {
+  Serial.print("# config, version ");
+  Serial.print(KP_CONFIG_VERSION);
+  if (cfg_slot >= 0) {
+    Serial.print(", saved in slot ");
+    Serial.print(cfg_slot ? 'B' : 'A');
+    Serial.print(" (sequence ");
+    Serial.print(cfg_seq);
+    Serial.print(")");
+  } else {
+    Serial.print(", nothing saved");
+  }
+  if (cfg_was_reset) Serial.print(", RESET at boot: no valid saved config, on defaults");
+  if (cfg_unsaved) Serial.print(", UNSAVED edits (`save` keeps them)");
+  Serial.println();
+  Serial.println("  channels 0-3 in 'f' order: press/release, then p = not populated, d = disabled");
+  for (int i = 0; i < NUM_PANELS; i++) {
+    Serial.print("  ");
+    Serial.print(PANEL_NAME[i]);
+    Serial.print("\t id ");
+    Serial.print(PANEL_IDS[i]);
+    for (int c = 0; c < KP_NUM_FSR; c++) {
+      const uint8_t *ch = cfgPanel(i) + c * KP_CH_LEN;
+      char buf[24];
+      snprintf(buf, sizeof(buf), "  %d:%4u/%4u%s%s", c, kp_get_u16(ch), kp_get_u16(ch + 2),
+               (ch[4] & KP_CH_POPULATED) ? "" : " p", (ch[4] & KP_CH_ENABLED) ? "" : " d");
+      Serial.print(buf);
+    }
+    Serial.print("   ");
+    Serial.println(CFG_STATE_NAME[cfg_state[i]]);
+  }
+  if (cfg_mismatches) {
+    Serial.print("  'w' CRC mismatches since boot: ");
+    Serial.println(cfg_mismatches);
+  }
+  if (cfg_save_us) {
+    Serial.print("  last save took ");
+    Serial.print(cfg_save_us);
+    Serial.println(" us");
+  }
+}
+
 void parseRx() {
   static enum { W_SYNC, W_CMD, W_ADDR, W_LEN, W_PAY, W_CRC } st = W_SYNC;
   static uint8_t cmd, addr, len, idx;
@@ -446,24 +792,20 @@ void parseRx() {
         } else if (cmd == 'f' && len == 9 && pidx >= 0) {
           for (int i = 0; i < 4; i++)
             panel_fsr[pidx][i] = (uint16_t)pay[2 * i] | ((uint16_t)pay[2 * i + 1] << 8);
-          panel_pressed_mask[pidx] = pay[8];
+          panel_pressed_mask[pidx] = pay[8] & KP_F_PRESSED_MASK;
           stat_replies++;
           poll_ok_window[pidx]++;
           poll_ok_total[pidx]++;
           last_reply_ms[pidx] = millis();
+          panelSeen(pidx, pay[8] & KP_F_NOT_CONFIGURED);
+          vndStreamRecord(addr, micros(), pay);
         } else if (cmd == 'h' && (len == REPLY_H_LEN || len == REPLY_H_LEN_OLD)) {
-          printStatusReply(addr, pay, len);
+          if (pidx >= 0) storeStatusReply(pidx, pay);
+          if (status_verbose) printStatusReply(addr, pay, len);
+        } else if (cmd == 'w' && len == KP_WACK_LEN && pidx >= 0) {
+          cfgAck(pidx, pay);
         } else if (cmd == 'i' && len == 0) {
           ident_ack_id = addr;
-        } else if (cmd == 'c' && len == 5) {
-          uint16_t press = (uint16_t)pay[1] | ((uint16_t)pay[2] << 8);
-          uint16_t rel   = (uint16_t)pay[3] | ((uint16_t)pay[4] << 8);
-          Serial.print("# panel ");
-          Serial.print(addr);
-          Serial.print(" ack thresholds: press=");
-          Serial.print(press);
-          Serial.print(" release=");
-          Serial.println(rel);
         }
         st = W_SYNC;
         break;
@@ -509,24 +851,22 @@ bool bus_traffic = true;   // 'x' gates the LED-frame + poll loop
 // ~4 A (hardware/harness/README.md -> "Power budget").
 bool white_soak = false;
 
-// A reply-bearing command ('C') must not go out the moment it is typed: it can
-// land tens of microseconds after an 'F' poll, while that panel is still
-// sending its 'f'. The panel's DE and R̅E̅ are tied, so it hears none of the 'C'
+// A reply-bearing command must not go out the moment it is typed: it can land
+// tens of microseconds after an 'F' poll, while that panel is still sending
+// its 'f'. The panel's DE and R̅E̅ are tied, so it hears none of the command
 // while it transmits, and the two collide on the wire. Seen at the bench
-// 2026-10-01: the panel captured `55 43 01 05 FF FE` and then the next poll's
-// header as payload, and the master logged CRC errors for the same moments.
-// Instead 'S' queues it here and loop() sends it IN PLACE OF the next poll,
-// so it takes a scheduled slot and the reply window that comes with it.
-// `z`: zero the bus counters here and, by broadcast 'Z', on every panel. Sent
-// in a poll slot like 'C', so it never lands on top of a reply.
+// 2026-10-01 with the old 'C': the panel captured `55 43 01 05 FF FE` and then
+// the next poll's header as payload, and the master logged CRC errors for the
+// same moments. So everything below is queued, and loop() sends it IN PLACE OF
+// the next poll, in a scheduled slot with the reply window that comes with it.
+// Config pushes ('W') work the same way (cfg_push_due).
+// `z`: zero the bus counters here and, by broadcast 'Z', on every panel.
 bool    clear_pending = false;
-// `m`: panel LED mode by broadcast 'M' (0 normal, 1 ID, 2 sensor test), sent
-// in a poll slot like `z`.
-bool    mode_pending = false;
-uint8_t mode_payload[2];
-bool    cfg_pending = false;
-uint8_t cfg_addr = 0;
-uint8_t cfg_payload[5];
+// `m` and USB: panel LED mode (0 normal, 1 ID, 2 sensor test). Every panel is
+// one broadcast 'M'; a subset is one addressed 'M' per panel, each acked.
+bool     mode_pending = false;
+uint16_t mode_mask_pending = 0;     // panel IDs still owed an addressed 'M'
+uint8_t  mode_payload[2];
 
 uint8_t readPlayerId() {
   // Closed switch = 0 (closes to GND against the internal pull-up), and the bit
@@ -818,6 +1158,7 @@ void brokenHeaderTest() {
   waitBusQuiet();
   parseRx();
   for (int i = 0; i < NUM_PANELS; i++) status_got[i] = false;
+  status_verbose = true;
   Serial.println("# broken-header test: header claiming 80 bytes, then 'H' to each panel");
 
   const uint8_t hdr[4] = {PKT_SYNC, 'X', BROADCAST, PKT_MAX_PAYLOAD};
@@ -831,6 +1172,7 @@ void brokenHeaderTest() {
     parseRx();
   }
 
+  status_verbose = false;
   int n = 0;
   for (int i = 0; i < NUM_PANELS; i++) n += status_got[i];
   Serial.print("# broken-header test: ");
@@ -841,16 +1183,24 @@ void brokenHeaderTest() {
   bus_traffic = was;
 }
 
-void identifySelfTest() {
+// Results for USB (Slot self-test): slot_id[s] = the panel ID whose pulse
+// arrived on INT slot s (0xFF none), acked = bit per ID that answered 'i',
+// low = bit per slot found already LOW by the pre-check. False if the
+// pre-check stopped it.
+bool identifySelfTest(uint8_t *slot_id, uint16_t *acked_mask, uint16_t *low_mask) {
   constexpr uint8_t PULSE_MS = 2;
   constexpr uint32_t ACK_TIMEOUT_MS = 20;
   constexpr uint32_t EDGE_WINDOW_MS = 50;
+
+  for (int i = 0; i < NUM_PANELS; i++) slot_id[i] = 0xFF;
+  *acked_mask = *low_mask = 0;
 
   // Step 1: idle pre-check. A line already LOW cannot show a transition, so
   // mis-attributing a later pulse is the real risk — stop instead.
   bool blocked = false;
   for (int i = 0; i < NUM_PANELS; i++) {
     if (digitalReadFast(INT_PINS[i]) == LOW) {
+      *low_mask |= 1u << i;
       Serial.print("# pre-check FAIL: ");
       Serial.print(PANEL_NAME[i]);
       Serial.print(" (pin ");
@@ -859,7 +1209,7 @@ void identifySelfTest() {
       blocked = true;
     }
   }
-  if (blocked) { Serial.println("# aborting self-test"); return; }
+  if (blocked) { Serial.println("# aborting self-test"); return false; }
 
   bool was = bus_traffic;
   bus_traffic = false;   // no LED frames or polls competing for the bus
@@ -876,6 +1226,7 @@ void identifySelfTest() {
     uint32_t t0 = millis();
     while (ident_ack_id != id && (millis() - t0) < ACK_TIMEOUT_MS) parseRx();
     bool acked = (ident_ack_id == id);
+    if (acked) *acked_mask |= 1u << id;
 
     // Watch all nine, not just the expected one — that is the whole point.
     int      fired[NUM_PANELS]; int nfired = 0;
@@ -894,6 +1245,8 @@ void identifySelfTest() {
         }
       }
     }
+
+    for (int k = 0; k < nfired; k++) slot_id[fired[k]] = (uint8_t)id;
 
     Serial.print("  ID ");
     Serial.print(id);
@@ -922,6 +1275,7 @@ void identifySelfTest() {
   bus_traffic = was;
   hid_hold = false;      // the 1 kHz tick re-reads the lines within 2 ms
   Serial.println("# self-test done");
+  return true;
 }
 
 // ── Passthrough (panel firmware updates) ─────────────────────────────────────
@@ -1010,6 +1364,427 @@ void passthroughService() {
   if (millis() - pt_last_host_ms > PT_IDLE_MS) passthroughExit("30 s idle");
 }
 
+// ── USB vendor interface (docs/USB_PROTOCOL.md → "Command table") ────────────
+// The second HID interface (usage page 0xFF00, interface 2): commands from the
+// host; responses, events and the telemetry stream back. Every packet is 64
+// bytes: kind, transaction ID, flags, payload length, then up to 60 payload
+// bytes. A message longer than one packet spans several, START on the first
+// and END on the last, and byte 0 of a message is its code.
+//
+// It all runs from loop() and never waits on the host. Outgoing packets queue
+// here until the core has a free transmit slot; a message that doesn't fit is
+// dropped whole and counted. Telemetry is queued only behind nothing else, so
+// a slow host loses telemetry, not responses. Events start with the host's
+// first command after USB configures, so a pad no program has opened doesn't
+// fill up with stale ones.
+constexpr uint8_t  VND_PROTOCOL = 1;
+constexpr uint8_t  VND_PACKET = RAWHID_TX_SIZE;     // 64
+constexpr uint8_t  VND_PAYLOAD = VND_PACKET - 4;    // 60
+constexpr uint8_t  VND_CMD = 1, VND_RESP = 2, VND_EVENT = 3, VND_STREAM = 4;   // kind
+constexpr uint8_t  VND_START = 0x01, VND_END = 0x02;                           // flags
+
+constexpr uint8_t  CMD_DEVICE_INFO = 0x01, CMD_GET_CONFIG = 0x02, CMD_SET_CONFIG = 0x03,
+                   CMD_PAD_STATUS = 0x04, CMD_STREAM = 0x05, CMD_RESET_CONFIG = 0x06,
+                   CMD_RESET_ANIMATIONS = 0x07, CMD_LED_FRAME = 0x08, CMD_UNDERGLOW = 0x09,
+                   CMD_LED_MODE = 0x0A, CMD_SELF_TEST = 0x0B, CMD_ZERO_COUNTERS = 0x0C,
+                   CMD_PASSTHROUGH = 0x0D, CMD_BUS_FRAME = 0x0E, CMD_REBOOT_BOOTLOADER = 0x0F,
+                   CMD_CLOCK_PROBE = 0x10;
+// The response to a command that can't be answered in its own format:
+// [RESP_ERROR, command code, reason].
+constexpr uint8_t  RESP_ERROR = 0x7F;
+constexpr uint8_t  ERR_UNKNOWN = 1, ERR_LENGTH = 2, ERR_BUSY = 3, ERR_UNSUPPORTED = 4;
+constexpr uint8_t  EVT_PRESENCE = 0x81, EVT_CONFIG_RESULT = 0x82, EVT_CONFIG_RESET = 0x83,
+                   EVT_BUS_FRAME = 0x84;
+constexpr uint8_t  STREAM_FSR_RAW = 0xC1;
+constexpr uint8_t  STREAM_RECORD = 14;   // panel u8, master us u32, then the 'f' payload (9)
+constexpr uint8_t  STREAM_MAX_RECORDS = (VND_PAYLOAD - 1) / STREAM_RECORD;   // 4
+
+constexpr uint32_t REBOOT_MAGIC = 0x544F4F42;      // "BOOT" as little-endian bytes
+constexpr uint16_t HOST_FRAME_LEN = NUM_PANELS * NUM_LEDS * 3;   // 675
+constexpr uint32_t HOST_FRAME_HOLD_MS = 1000;      // then the master's own pattern again
+constexpr uint8_t  VND_TXQ = 16;                   // packets
+
+uint8_t  vnd_txq[VND_TXQ][VND_PACKET];
+uint8_t  vnd_txq_tail = 0, vnd_txq_count = 0;
+uint8_t  vnd_rx_msg[1 + HOST_FRAME_LEN];   // the longest command is an LED frame
+uint16_t vnd_rx_len = 0;
+uint8_t  vnd_rx_txn = 0;
+bool     vnd_rx_open = false;
+uint32_t vnd_rx_us = 0;            // when the last packet was read (clock probe)
+uint8_t  vnd_usb_config = 0;       // usb_configuration as last seen
+bool     vnd_host = false;         // a command has arrived since USB configured
+bool     vnd_stream_on = false;
+uint8_t  vnd_stream_msg[1 + STREAM_MAX_RECORDS * STREAM_RECORD];
+uint8_t  vnd_stream_n = 0;         // records waiting in vnd_stream_msg
+bool     vnd_passthrough = false;
+uint32_t vnd_pt_last_ms = 0;
+uint8_t  host_frame[HOST_FRAME_LEN];
+uint32_t host_frame_ms = 0;
+bool     host_frame_seen = false;
+uint32_t vnd_cmds = 0, vnd_bad = 0, vnd_dropped = 0, vnd_stream_dropped = 0;
+
+void vndPump() {
+  while (vnd_txq_count && usb_rawhid_try_send(vnd_txq[vnd_txq_tail]) > 0) {
+    vnd_txq_tail = (vnd_txq_tail + 1) % VND_TXQ;
+    vnd_txq_count--;
+  }
+}
+
+// Queues one message as packets, all or nothing.
+bool vndSend(uint8_t kind, uint8_t txn, const uint8_t *msg, uint16_t len) {
+  uint16_t npk = len ? (len + VND_PAYLOAD - 1) / VND_PAYLOAD : 1;
+  vndPump();
+  if (npk > VND_TXQ - vnd_txq_count) { vnd_dropped++; return false; }
+  for (uint16_t k = 0; k < npk; k++) {
+    uint8_t *pk = vnd_txq[(vnd_txq_tail + vnd_txq_count) % VND_TXQ];
+    uint16_t off = k * VND_PAYLOAD;
+    uint8_t n = (uint8_t)((len - off) > VND_PAYLOAD ? VND_PAYLOAD : (len - off));
+    pk[0] = kind;
+    pk[1] = txn;
+    pk[2] = (k == 0 ? VND_START : 0) | (k == npk - 1 ? VND_END : 0);
+    pk[3] = n;
+    memcpy(pk + 4, msg + off, n);
+    memset(pk + 4 + n, 0, VND_PAYLOAD - n);
+    vnd_txq_count++;
+  }
+  vndPump();
+  return true;
+}
+
+// Transaction 0 is fire-and-forget: no response, ever.
+void vndRespond(uint8_t txn, const uint8_t *msg, uint16_t len) {
+  if (txn) vndSend(VND_RESP, txn, msg, len);
+}
+
+void vndError(uint8_t txn, uint8_t code, uint8_t reason) {
+  uint8_t m[3] = {RESP_ERROR, code, reason};
+  vndRespond(txn, m, sizeof(m));
+}
+
+void vndEvent(const uint8_t *msg, uint16_t len) {
+  if (vnd_host) vndSend(VND_EVENT, 0, msg, len);
+}
+
+void vndPresenceEvent(int pidx, bool present) {
+  uint8_t m[3] = {EVT_PRESENCE, PANEL_IDS[pidx], (uint8_t)present};
+  vndEvent(m, sizeof(m));
+}
+
+void vndConfigResultEvent(int pidx) {
+  uint8_t m[7] = {EVT_CONFIG_RESULT, PANEL_IDS[pidx], cfg_state[pidx]};
+  putU32(m + 3, cfg_panel_crc[pidx]);
+  vndEvent(m, sizeof(m));
+}
+
+// Telemetry goes out only when nothing else is queued, so at most one stream
+// packet waits here; records gather behind it, up to four, and past that the
+// newest is dropped. With the queue empty a record leaves at once.
+void vndStreamFlush() {
+  if (!vnd_stream_n) return;
+  vndPump();
+  if (vnd_txq_count) return;
+  vnd_stream_msg[0] = STREAM_FSR_RAW;
+  if (vndSend(VND_STREAM, 0, vnd_stream_msg, 1 + vnd_stream_n * STREAM_RECORD)) vnd_stream_n = 0;
+}
+
+// One 'f' reply (`f` = its 9-byte payload, "not configured" bit included).
+void vndStreamRecord(uint8_t addr, uint32_t t_us, const uint8_t *f) {
+  if (!vnd_stream_on) return;
+  if (vnd_stream_n == STREAM_MAX_RECORDS) { vnd_stream_dropped++; return; }
+  uint8_t *r = vnd_stream_msg + 1 + vnd_stream_n * STREAM_RECORD;
+  r[0] = addr;
+  putU32(r + 1, t_us);
+  memcpy(r + 5, f, REPLY_F_LEN);
+  vnd_stream_n++;
+  vndStreamFlush();
+}
+
+void vndPassthroughExit(const char *why) {
+  RS485_SERIAL.flush();
+  vnd_passthrough = false;
+  pt_bus = FrameParser();
+  Serial.print("# USB passthrough OFF (");
+  Serial.print(why);
+  Serial.println(")");
+}
+
+// USB configured afresh (plugged in, host reset, reboot): the host side starts
+// over, so nothing of the last session carries on.
+void vndReset() {
+  vnd_txq_tail = vnd_txq_count = 0;
+  vnd_rx_open = false;
+  vnd_host = vnd_stream_on = false;
+  vnd_stream_n = 0;
+  host_frame_seen = false;
+  if (vnd_passthrough) vndPassthroughExit("USB reset");
+}
+
+void vndPadStatus(uint8_t *r) {
+  uint32_t now = millis();
+  for (int i = 0; i < NUM_PANELS; i++) {
+    uint8_t *o = r + i * 12;
+    uint32_t age = now - last_reply_ms[i];
+    o[0] = panel_online[i];
+    kp_put_u16(o + 1, !poll_ok_total[i] ? 0xFFFF : age > 0xFFFE ? 0xFFFE : (uint16_t)age);
+    o[3] = poll_pct[i];
+    kp_put_u16(o + 4, panel_status[i].got ? panel_status[i].crc_errs : 0);
+    o[6] = cfg_state[i];
+    putU32(o + 7, panel_status[i].got ? panel_status[i].build_tag : 0);
+    o[11] = panel_status[i].got ? panel_status[i].term : 0xFF;
+  }
+}
+
+void vndCommand(uint8_t txn, const uint8_t *m, uint16_t len) {
+  if (!len) { vnd_bad++; return; }
+  uint8_t code = m[0];
+  const uint8_t *a = m + 1;
+  uint16_t n = len - 1;
+  if (txn == 0 && code != CMD_LED_FRAME && code != CMD_UNDERGLOW && code != CMD_BUS_FRAME) {
+    vnd_bad++;     // only frames may be fire-and-forget
+    return;
+  }
+  vnd_cmds++;
+  if (!vnd_host) {
+    vnd_host = true;
+    if (cfg_was_reset) { uint8_t e = EVT_CONFIG_RESET; vndEvent(&e, 1); }
+  }
+
+  static uint8_t r[2 + CFG_BLOCK_LEN];   // the longest response: Get config
+  r[0] = code;
+  switch (code) {
+    case CMD_DEVICE_INFO: {
+      bool got[NUM_PANELS], term[NUM_PANELS];
+      uint16_t present = 0;
+      for (int i = 0; i < NUM_PANELS; i++) {
+        got[i] = panel_online[i] && panel_status[i].got;
+        term[i] = panel_status[i].term;
+        if (panel_online[i]) present |= 1u << PANEL_IDS[i];
+      }
+      r[1] = VND_PROTOCOL;
+      r[2] = VND_PACKET;
+      r[3] = FW_VERSION_MAJOR; r[4] = FW_VERSION_MINOR; r[5] = FW_VERSION_PATCH;
+      putU32(r + 6, build_tag);
+      r[10] = KP_CONFIG_VERSION;
+      r[11] = readPlayerId();
+      r[12] = (cfg_was_reset ? 0x01 : 0) | (vnd_stream_on ? 0x02 : 0) |
+              (vnd_passthrough ? 0x04 : 0) | (cfg_unsaved ? 0x08 : 0);
+      kp_put_u16(r + 13, present);
+      r[15] = terminationCode(got, term, &r[16]);
+      vndRespond(txn, r, 17);
+      break;
+    }
+    case CMD_GET_CONFIG:
+      r[1] = KP_CONFIG_VERSION;
+      memcpy(r + 2, cfg_block, CFG_BLOCK_LEN);
+      vndRespond(txn, r, 2 + CFG_BLOCK_LEN);
+      break;
+    case CMD_SET_CONFIG: {
+      // Saved first, then pushed; each panel's outcome follows as a config
+      // result event. Saving stalls this core: not during gameplay.
+      if (n >= 1 && a[0] != KP_CONFIG_VERSION) { r[1] = 1; vndRespond(txn, r, 2); break; }
+      if (n != 1 + CFG_BLOCK_LEN) { vndError(txn, code, ERR_LENGTH); break; }
+      for (int i = 0; i < NUM_PANELS; i++) {
+        int bad = kp_panel_cfg_bad_channel(a + 1 + i * KP_PANEL_CFG_LEN);
+        if (bad < 0) continue;
+        r[1] = 2; r[2] = PANEL_IDS[i]; r[3] = (uint8_t)bad;
+        vndRespond(txn, r, 4);
+        return;
+      }
+      memcpy(cfg_block, a + 1, CFG_BLOCK_LEN);
+      r[1] = cfgCommit() ? 0 : 3;
+      vndRespond(txn, r, 2);
+      Serial.print(r[1] ? "# !! config from USB: SAVE FAILED (read-back mismatch); pushing it anyway"
+                        : "# config from USB: saved, pushing to every panel");
+      Serial.print(" (save ");
+      Serial.print(cfg_save_us);
+      Serial.println(" us)");
+      break;
+    }
+    case CMD_PAD_STATUS:
+      vndPadStatus(r + 1);
+      vndRespond(txn, r, 1 + NUM_PANELS * 12);
+      break;
+    case CMD_STREAM:
+      if (n < 2) { vndError(txn, code, ERR_LENGTH); break; }
+      if (a[1] != 0) { r[1] = 1; vndRespond(txn, r, 2); break; }   // raw is the only mode yet
+      vnd_stream_on = a[0] != 0;
+      vnd_stream_n = 0;
+      r[1] = 0;
+      vndRespond(txn, r, 2);
+      break;
+    case CMD_RESET_CONFIG:
+      cfgDefaults();
+      r[1] = cfgCommit() ? 0 : 3;
+      vndRespond(txn, r, 2);
+      Serial.println(r[1] ? "# !! config reset to defaults from USB, but the SAVE FAILED; pushing anyway"
+                          : "# config reset to defaults from USB: saved, pushing to every panel");
+      break;
+    case CMD_LED_FRAME:
+      // Newest wins: the master sends whichever frame it holds when its own
+      // 60 Hz LED slot comes round.
+      if (n != HOST_FRAME_LEN) { vnd_bad++; vndError(txn, code, ERR_LENGTH); break; }
+      memcpy(host_frame, a, HOST_FRAME_LEN);
+      host_frame_ms = millis();
+      host_frame_seen = true;
+      r[1] = 0;
+      vndRespond(txn, r, 2);
+      break;
+    case CMD_LED_MODE: {
+      if (n < 4) { vndError(txn, code, ERR_LENGTH); break; }
+      uint16_t mask = kp_get_u16(a) & 0x1FF;
+      if (!mask || a[2] > 2) { r[1] = 1; vndRespond(txn, r, 2); break; }
+      mode_payload[0] = a[2];
+      mode_payload[1] = a[3];
+      if (mask == 0x1FF) mode_pending = true;
+      else               mode_mask_pending |= mask;
+      r[1] = 0;
+      vndRespond(txn, r, 2);
+      break;
+    }
+    case CMD_SELF_TEST: {
+      if (passthrough || vnd_passthrough) { vndError(txn, code, ERR_BUSY); break; }
+      uint8_t slot_id[NUM_PANELS];
+      uint16_t acked, low;
+      r[1] = identifySelfTest(slot_id, &acked, &low) ? 0 : 1;
+      kp_put_u16(r + 2, low);
+      kp_put_u16(r + 4, acked);
+      for (int i = 0; i < NUM_PANELS; i++) {
+        r[6 + 2 * i] = slot_id[i];
+        r[7 + 2 * i] = slot_id[i] != 0xFF && ((acked >> slot_id[i]) & 1);
+      }
+      vndRespond(txn, r, 6 + 2 * NUM_PANELS);
+      break;
+    }
+    case CMD_ZERO_COUNTERS:
+      clear_pending = true;
+      r[1] = 0;
+      vndRespond(txn, r, 2);
+      break;
+    case CMD_PASSTHROUGH:
+      if (n < 1) { vndError(txn, code, ERR_LENGTH); break; }
+      if (a[0] && passthrough) { vndError(txn, code, ERR_BUSY); break; }
+      if (a[0] && !vnd_passthrough) {
+        waitBusQuiet();
+        parseRx();                      // the last reply is ours, not the host's
+        pt_bus = FrameParser();
+        vnd_passthrough = true;
+        vnd_pt_last_ms = millis();
+        Serial.println("# USB passthrough ON: the master's own bus traffic stops");
+      } else if (!a[0] && vnd_passthrough) {
+        vndPassthroughExit("host");
+      }
+      r[1] = 0;
+      vndRespond(txn, r, 2);
+      break;
+    case CMD_BUS_FRAME:
+      if (!vnd_passthrough) { vnd_bad++; vndError(txn, code, ERR_BUSY); break; }
+      if (n < 2 || n - 2 > PKT_MAX_PAYLOAD) { vnd_bad++; vndError(txn, code, ERR_LENGTH); break; }
+      sendPacket(a[0], a[1], a + 2, (uint8_t)(n - 2));
+      r[1] = 0;
+      vndRespond(txn, r, 2);
+      break;
+    case CMD_REBOOT_BOOTLOADER: {
+      if (n < 4 || getU32(a) != REBOOT_MAGIC) { r[1] = 1; vndRespond(txn, r, 2); break; }
+      r[1] = 0;
+      vndRespond(txn, r, 2);
+      Serial.println("# rebooting into the Teensy bootloader (USB command)");
+      // Let the response leave before USB goes away.
+      uint32_t t0 = millis();
+      while (vnd_txq_count && (millis() - t0) < 100) vndPump();
+      delay(50);
+      _reboot_Teensyduino_();
+      break;
+    }
+    case CMD_CLOCK_PROBE:
+      if (n < 8) { vndError(txn, code, ERR_LENGTH); break; }
+      memcpy(r + 1, a, 8);
+      putU32(r + 9, vnd_rx_us);
+      putU32(r + 13, micros());
+      vndRespond(txn, r, 17);
+      break;
+    case CMD_RESET_ANIMATIONS:   // waits on the animation design
+    case CMD_UNDERGLOW:          // deferred (docs/UNDERGLOW.md)
+      vndError(txn, code, ERR_UNSUPPORTED);
+      break;
+    default:
+      vnd_bad++;
+      vndError(txn, code, ERR_UNKNOWN);
+      break;
+  }
+}
+
+void vndService() {
+  if (usb_configuration != vnd_usb_config) {
+    vnd_usb_config = usb_configuration;
+    vndReset();
+  }
+  uint8_t pk[VND_PACKET];
+  while (usb_rawhid_available() && usb_rawhid_recv(pk, 0) > 0) {
+    vnd_rx_us = micros();
+    vnd_pt_last_ms = millis();
+    uint8_t flags = pk[2], n = pk[3];
+    if (pk[0] != VND_CMD || n > VND_PAYLOAD) { vnd_bad++; continue; }
+    if (flags & VND_START) {
+      vnd_rx_open = true;
+      vnd_rx_txn = pk[1];
+      vnd_rx_len = 0;
+    } else if (!vnd_rx_open || pk[1] != vnd_rx_txn) {
+      vnd_bad++;
+      continue;
+    }
+    if (vnd_rx_len + n > sizeof(vnd_rx_msg)) {
+      vnd_bad++;
+      vnd_rx_open = false;
+      vndError(vnd_rx_txn, vnd_rx_msg[0], ERR_LENGTH);
+      continue;
+    }
+    memcpy(vnd_rx_msg + vnd_rx_len, pk + 4, n);
+    vnd_rx_len += n;
+    if (flags & VND_END) {
+      vnd_rx_open = false;
+      vndCommand(vnd_rx_txn, vnd_rx_msg, vnd_rx_len);
+    }
+  }
+  vndStreamFlush();
+  vndPump();
+}
+
+// loop() runs only this while USB passthrough is on, as it runs only
+// passthroughService() for the console's `P`: every CRC-valid frame heard on
+// the bus goes to the host as a bus frame event, and the host's bus frame
+// commands go out unchanged. It ends when the host says so, on USB reset, or
+// after PT_IDLE_MS with nothing from the host.
+void vndPassthroughService() {
+  while (RS485_SERIAL.available()) {
+    if (!pt_bus.feed((uint8_t)RS485_SERIAL.read())) continue;
+    uint8_t ev[3 + PKT_MAX_PAYLOAD] = {EVT_BUS_FRAME, pt_bus.cmd, pt_bus.addr};
+    memcpy(ev + 3, pt_bus.pay, pt_bus.len);
+    vndEvent(ev, 3 + pt_bus.len);
+  }
+  vndService();
+  if (vnd_passthrough && millis() - vnd_pt_last_ms > PT_IDLE_MS) vndPassthroughExit("30 s idle");
+}
+
+void vndReport() {
+  Serial.print("# USB vendor interface: host ");
+  Serial.print(vnd_host ? "active" : "none yet");
+  Serial.print("  commands ");
+  Serial.print(vnd_cmds);
+  Serial.print("  malformed ");
+  Serial.print(vnd_bad);
+  Serial.print("  dropped ");
+  Serial.print(vnd_dropped);
+  Serial.print("  stream ");
+  Serial.print(vnd_stream_on ? "ON" : "off");
+  Serial.print(" (records dropped ");
+  Serial.print(vnd_stream_dropped);
+  Serial.print(")  passthrough ");
+  Serial.print(vnd_passthrough ? "ON" : "off");
+  bool host_leds = host_frame_seen && (int32_t)(millis() - host_frame_ms) < (int32_t)HOST_FRAME_HOLD_MS;
+  Serial.print("  LEDs from ");
+  Serial.println(host_leds ? "the host" : "the master");
+}
+
 // ── USB serial commands ──────────────────────────────────────────────────────
 // Newline-terminated. The board-local ones (?, n, r, D, u, x) need no panels.
 void printHelp() {
@@ -1027,14 +1802,18 @@ void printHelp() {
     "  x                          pause/resume LED frames + FSR polling\r\n"
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  b                          broken-header test: panel parser timeout\r\n"
-    "  j                          USB pad input: mask, sequence, counters\r\n"
+    "  j                          USB: pad input and vendor interface counters\r\n"
     "  t                          toggle telemetry stream\r\n"
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
     "  z                          zero bus counters, master and all panels\r\n"
     "  m <mode> [secs]            panel LEDs: 0 normal, 1 ID, 2 sensor test\r\n"
     "  w                          toggle full white on all panels (soak test)\r\n"
     "  P                          bus passthrough for tools/panel_update.py (binary)\r\n"
-    "  S <panel> <press> <rel>    set FSR thresholds on one panel"));
+    "  c                          panel config: the master's copy, each panel's state\r\n"
+    "  S <panel> <press> <rel> [ch]  thresholds, all channels or one (0-3); not saved\r\n"
+    "  F <panel> <ch> <pop> <en>  channel flags: populated, enabled (0/1); not saved\r\n"
+    "  save                       save the config to EEPROM (stalls INT/USB: not in play)\r\n"
+    "  reset config               defaults for every panel, saved and pushed"));
 }
 
 void handleCommand(const char *s) {
@@ -1080,11 +1859,14 @@ void handleCommand(const char *s) {
     if (white_soak && !bus_traffic) Serial.print(" (bus traffic is paused: `x` to resume)");
     Serial.println();
   } else if (strcmp(s, "I") == 0) {
-    identifySelfTest();
+    uint8_t slot_id[NUM_PANELS];
+    uint16_t acked, low;
+    identifySelfTest(slot_id, &acked, &low);
   } else if (strcmp(s, "b") == 0) {
     brokenHeaderTest();
   } else if (strcmp(s, "j") == 0 || strcmp(s, "J") == 0) {
     hidReport();
+    vndReport();
   } else if (strcmp(s, "P") == 0) {
     Serial.println("# passthrough ON: binary frames until the host exits or 30 s idle");
     Serial.send_now();
@@ -1101,6 +1883,7 @@ void handleCommand(const char *s) {
     }
     for (int i = 0; i < NUM_PANELS; i++) status_got[i] = status_term[i] = false;
     status_next = 0;
+    status_verbose = true;
     Serial.println("# status sweep: asking panels 0-8, one per poll slot");
   } else if (strcmp(s, "z") == 0 || strcmp(s, "Z") == 0) {
     clear_pending = true;
@@ -1118,25 +1901,69 @@ void handleCommand(const char *s) {
     stream_telemetry = !stream_telemetry;
     Serial.print("# telemetry stream ");
     Serial.println(stream_telemetry ? "ON" : "OFF");
-  } else if (s[0] == 'S' || s[0] == 's') {
-    int panel, press, rel;
-    if (sscanf(s + 1, "%d %d %d", &panel, &press, &rel) == 3 &&
-        panel >= 0 && panel < NUM_PANELS &&
-        press > 0 && press <= 4095 && rel > 0 && rel < press) {
-      if (cfg_pending) {
-        Serial.println("# previous S not sent yet — try again");
-        return;
-      }
-      cfg_payload[0] = 0xFF;  // all channels
-      cfg_payload[1] = (uint8_t)(press & 0xFF);
-      cfg_payload[2] = (uint8_t)(press >> 8);
-      cfg_payload[3] = (uint8_t)(rel & 0xFF);
-      cfg_payload[4] = (uint8_t)(rel >> 8);
-      cfg_addr = PANEL_IDS[panel];
-      cfg_pending = true;
-      // Sent by loop() in the next poll slot; the 'c' ack is printed by parseRx.
+  } else if (strcmp(s, "c") == 0 || strcmp(s, "C") == 0) {
+    printConfig();
+  } else if (strcmp(s, "save") == 0) {
+    if (cfgSave()) {
+      Serial.print("# config saved: slot ");
+      Serial.print(cfg_slot ? 'B' : 'A');
+      Serial.print(", sequence ");
+      Serial.print(cfg_seq);
+      Serial.print(", ");
+      Serial.print(cfg_save_us);
+      Serial.println(" us");
     } else {
-      Serial.println("# usage: S <panel 0-8> <press 1-4095> <release, below press>");
+      Serial.println("# !! config save FAILED: EEPROM read-back does not match");
+    }
+  } else if (strcmp(s, "reset config") == 0) {
+    cfgDefaults();
+    Serial.println(cfgCommit() ? "# config reset to defaults: saved, pushing to every panel"
+                               : "# !! config reset to defaults, but the save FAILED; pushing anyway");
+  } else if (s[0] == 'S' || s[0] == 's') {
+    // Edits the master's copy; the 'W' goes out in the next poll slot and the
+    // panel's 'w' shows up in `c`. Not saved until `save`.
+    int panel, press, rel, ch = -1;
+    int n = sscanf(s + 1, "%d %d %d %d", &panel, &press, &rel, &ch);
+    if (n >= 3 && panel >= 0 && panel < NUM_PANELS &&
+        press >= 1 && press <= KP_ADC_MAX && rel >= 0 && rel < press &&
+        (n == 3 || (ch >= 0 && ch < KP_NUM_FSR))) {
+      for (int c = 0; c < KP_NUM_FSR; c++) {
+        if (n == 4 && c != ch) continue;
+        uint8_t *chp = cfgPanel(panel) + c * KP_CH_LEN;
+        kp_put_u16(chp, (uint16_t)press);
+        kp_put_u16(chp + 2, (uint16_t)rel);
+      }
+      cfg_unsaved = true;
+      cfgChanged();
+      Serial.print("# panel ");
+      Serial.print(PANEL_IDS[panel]);
+      Serial.print(n == 4 ? " channel " : " all channels");
+      if (n == 4) Serial.print(ch);
+      Serial.print(": press ");
+      Serial.print(press);
+      Serial.print(" release ");
+      Serial.print(rel);
+      Serial.println(". Sending 'W'; not saved (`save` keeps it)");
+    } else {
+      Serial.println("# usage: S <panel 0-8> <press 1-4095> <release, below press> [channel 0-3]");
+    }
+  } else if (s[0] == 'F') {
+    int panel, ch, pop, en;
+    if (sscanf(s + 1, "%d %d %d %d", &panel, &ch, &pop, &en) == 4 &&
+        panel >= 0 && panel < NUM_PANELS && ch >= 0 && ch < KP_NUM_FSR &&
+        (pop == 0 || pop == 1) && (en == 0 || en == 1)) {
+      cfgPanel(panel)[ch * KP_CH_LEN + 4] = (uint8_t)((pop ? KP_CH_POPULATED : 0) | (en ? KP_CH_ENABLED : 0));
+      cfg_unsaved = true;
+      cfgChanged();
+      Serial.print("# panel ");
+      Serial.print(PANEL_IDS[panel]);
+      Serial.print(" channel ");
+      Serial.print(ch);
+      Serial.print(pop ? ": populated" : ": NOT populated");
+      Serial.print(en ? ", enabled" : ", disabled");
+      Serial.println(". Sending 'W'; not saved (`save` keeps it)");
+    } else {
+      Serial.println("# usage: F <panel 0-8> <channel 0-3> <populated 0/1> <enabled 0/1>");
     }
   }
 }
@@ -1214,12 +2041,22 @@ void checkPanelHealth() {
   }
 
   for (int i = 0; i < NUM_PANELS; i++) {
+    poll_pct[i] = poll_sent_window[i] ? (uint8_t)((poll_ok_window[i] * 100) / poll_sent_window[i]) : 0;
     poll_sent_window[i] = 0;
     poll_ok_window[i] = 0;
   }
 }
 
 // ── Setup / loop ─────────────────────────────────────────────────────────────
+// Defined down here, not with build_tag: arduino-cli puts its generated
+// prototypes above the first function in the file, and they need Color.
+void computeBuildTag() {
+  const char *s = __DATE__ " " __TIME__;
+  uint32_t h = 2166136261u;
+  while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; }
+  build_tag = h;
+}
+
 void setup() {
   // RN1 (10k x9) already pulls every INT line to +3.3VDC on the board. The
   // internal pull-up is belt-and-braces and costs nothing; it also keeps the
@@ -1240,7 +2077,29 @@ void setup() {
   RS485_SERIAL.begin(RS485_BAUD);
   RS485_SERIAL.transmitterEnable(RS485_DE_PIN);  // hardware DE: asserted during TX only
 
-  Serial.println("Master firmware — multi-panel INT monitor + RS-485 bus");
+  computeBuildTag();
+  char tagbuf[9];
+  snprintf(tagbuf, sizeof(tagbuf), "%08lX", (unsigned long)build_tag);
+  Serial.print("Master firmware ");
+  Serial.print(FW_VERSION_MAJOR);
+  Serial.print('.');
+  Serial.print(FW_VERSION_MINOR);
+  Serial.print('.');
+  Serial.print(FW_VERSION_PATCH);
+  Serial.print(" (build ");
+  Serial.print(tagbuf);
+  Serial.println(") — INT capture, RS-485 bus, USB pad input + vendor interface");
+
+  for (int i = 0; i < NUM_PANELS; i++) cfg_state[i] = CFG_ABSENT;
+  cfgLoad();
+  if (cfg_was_reset) {
+    Serial.println("config: NO valid saved config, running on defaults (`c` to see, `save` to keep)");
+  } else {
+    Serial.print("config: loaded from slot ");
+    Serial.print(cfg_slot ? 'B' : 'A');
+    Serial.print(", sequence ");
+    Serial.println(cfg_seq);
+  }
   reportIntLines("at boot");
 
   for (int i = 0; i < NUM_PANELS; i++)
@@ -1260,13 +2119,23 @@ void loop() {
   static uint32_t next_frame_ms = 0;
   static uint32_t next_poll_ms = 0;
   static uint32_t next_stream_ms = 0;
+  static uint32_t next_repush_ms = 0;
+  static uint8_t  repush_idx = 0;
+  static uint32_t next_bg_status_ms = 0;
+  static uint8_t  bg_status_idx = 0;
 
   if (passthrough) {
     passthroughService();
+    vndService();          // commands that need the bus answer "busy" meanwhile
+    return;
+  }
+  if (vnd_passthrough) {
+    vndPassthroughService();
     return;
   }
 
   parseRx();
+  vndService();
   pollSerialCommands();
 
   // Drain INT edge ring buffer
@@ -1301,14 +2170,18 @@ void loop() {
   for (int i = 0; i < NUM_PANELS; i++) any_pressed |= panel_pressed[i];
   digitalWriteFast(LED_PIN, any_pressed ? HIGH : LOW);
 
-  // Per-panel addressed LED frames at 60Hz: solid color if that panel is
-  // pressed, dim rainbow chase otherwise. `w` overrides both with full white.
+  // Per-panel addressed LED frames at 60Hz: the host's frame if one arrived
+  // in the last HOST_FRAME_HOLD_MS; otherwise solid color if that panel is
+  // pressed, dim rainbow chase if not. `w` overrides all of them with white.
   uint32_t now_ms = millis();
+  updatePresence(now_ms);
   if (bus_traffic && now_ms >= next_frame_ms && replyWindowOver()) {
     next_frame_ms = now_ms + FRAME_INTERVAL_MS;
+    bool host_leds = host_frame_seen && (int32_t)(now_ms - host_frame_ms) < (int32_t)HOST_FRAME_HOLD_MS;
     for (int i = 0; i < NUM_PANELS; i++) {
       uint8_t frame[NUM_LEDS * 3];
       if (white_soak)            buildSolidFrame(frame, Color{255, 255, 255});
+      else if (host_leds)        memcpy(frame, host_frame + PANEL_IDS[i] * sizeof(frame), sizeof(frame));
       else if (panel_pressed[i]) buildSolidFrame(frame, PANEL_PRESS_COLOR[i]);
       else                  buildIdleFrame(frame, now_ms);
       sendPacket('L', PANEL_IDS[i], frame, sizeof(frame));
@@ -1324,11 +2197,32 @@ void loop() {
   // transmission. 5ms >> the ~150us a full poll-reply round trip takes, so
   // round-robining leaves each panel an unambiguous, collision-free window.
   static uint8_t poll_panel_idx = 0;
-  // A queued 'C' takes this slot instead and the round-robin resumes next tick.
-  // It is sent even with bus traffic paused, since then nothing can collide.
+
+  // Config re-push: one answering panel every CFG_REPUSH_MS / 9, so each gets
+  // its 'W' about once a second. And a background 'H' to one answering panel
+  // every STATUS_BG_MS, for USB pad status.
+  if (bus_traffic && (int32_t)(now_ms - next_repush_ms) >= 0) {
+    next_repush_ms = now_ms + CFG_REPUSH_MS / NUM_PANELS;
+    if (panel_online[repush_idx]) cfg_push_due[repush_idx] = true;
+    repush_idx = (repush_idx + 1) % NUM_PANELS;
+  }
+  if (bus_traffic && status_next < 0 && bg_status_due < 0 &&
+      (int32_t)(now_ms - next_bg_status_ms) >= 0) {
+    next_bg_status_ms = now_ms + STATUS_BG_MS;
+    for (int k = 0; k < NUM_PANELS; k++) {
+      int i = (bg_status_idx + k) % NUM_PANELS;
+      if (!panel_online[i]) continue;
+      bg_status_due = i;
+      bg_status_idx = (uint8_t)((i + 1) % NUM_PANELS);
+      break;
+    }
+  }
+
+  // Queued commands, config pushes and the status sweep take a poll slot each
+  // instead of the poll, and the round-robin resumes after. They are sent even
+  // with bus traffic paused, since then nothing can collide.
   bool poll_due = replyWindowOver() && (!bus_traffic || now_ms >= next_poll_ms);
-  // A status sweep likewise takes slots, one panel each, and like 'C' it runs
-  // with bus traffic paused too.
+  int push = poll_due ? cfgNextPush() : -1;
   if (clear_pending && poll_due) {
     sendRequest('Z', BROADCAST, nullptr, 0, 0);   // broadcast: no reply
     stat_replies = stat_crc_errs = stat_polls_sent = stat_frames_sent = 0;
@@ -1345,10 +2239,17 @@ void loop() {
     Serial.print(MODE_NAMES[mode_payload[0]]);
     if (mode_payload[1]) { Serial.print(" for "); Serial.print(mode_payload[1]); Serial.print(" s"); }
     Serial.println(" ('M' broadcast; the bring-up build ignores it)");
-  } else if (cfg_pending && poll_due) {
-    sendRequest('C', cfg_addr, cfg_payload, sizeof(cfg_payload), REPLY_C_LEN);
+  } else if (mode_mask_pending && poll_due) {
+    for (int i = 0; i < NUM_PANELS; i++) {
+      if (!(mode_mask_pending & (1u << PANEL_IDS[i]))) continue;
+      mode_mask_pending &= ~(1u << PANEL_IDS[i]);
+      sendRequest('M', PANEL_IDS[i], mode_payload, sizeof(mode_payload), REPLY_M_LEN);
+      break;
+    }
     next_poll_ms = millis() + POLL_INTERVAL_MS;
-    cfg_pending = false;
+  } else if (push >= 0) {
+    cfgSendPush(push);
+    next_poll_ms = millis() + POLL_INTERVAL_MS;
   } else if (status_next >= 0 && poll_due) {
     // The previous panel's reply window has closed by now (poll_due waits for
     // it), so silence from it is final, once whatever arrived since the top of
@@ -1372,7 +2273,12 @@ void loop() {
       Serial.println("/9 panels answered");
       checkTermination();
       status_next = -1;
+      status_verbose = false;
     }
+    next_poll_ms = millis() + POLL_INTERVAL_MS;
+  } else if (bg_status_due >= 0 && poll_due) {
+    sendRequest('H', PANEL_IDS[bg_status_due], nullptr, 0, REPLY_H_LEN);
+    bg_status_due = -1;
     next_poll_ms = millis() + POLL_INTERVAL_MS;
   } else if (bus_traffic && poll_due) {
     sendRequest('F', PANEL_IDS[poll_panel_idx], nullptr, 0, REPLY_F_LEN);
@@ -1406,21 +2312,7 @@ void loop() {
     checkPanelHealth();
     // Nine panels would make the old single-line heartbeat unreadable, and with
     // no panels attached it was nine lines of zeros. Report only what replied.
-    // Report presence transitions before the table, so a panel dropping off the
-    // bus is an event and not something you have to notice by re-reading rows.
-    for (int i = 0; i < NUM_PANELS; i++) {
-      if (!poll_ok_total[i]) continue;
-      bool online = (now_ms - last_reply_ms[i]) < PANEL_TIMEOUT_MS;
-      if (online != panel_online[i]) {
-        panel_online[i] = online;
-        Serial.print(online ? "# panel " : "# !! panel ");
-        Serial.print(PANEL_IDS[i]);
-        Serial.print(" (");
-        Serial.print(PANEL_NAME[i]);
-        Serial.println(online ? ") is replying again"
-                              : ") STOPPED REPLYING -- unplugged, reset, or dead");
-      }
-    }
+    // Presence changes are printed as they happen (panelSeen, updatePresence).
 
     Serial.print("[heartbeat] ");
     int seen = 0;
@@ -1462,7 +2354,18 @@ void loop() {
     Serial.print(stat_frames_sent);
     Serial.print(" frames sent, ");
     Serial.print(stat_crc_errs);
-    Serial.print(" crc errs");
+    Serial.print(" crc errs | config: ");
+    int online = 0, match = 0;
+    for (int i = 0; i < NUM_PANELS; i++) {
+      online += panel_online[i];
+      match += panel_online[i] && cfg_state[i] == CFG_MATCH;
+    }
+    Serial.print(match);
+    Serial.print("/");
+    Serial.print(online);
+    Serial.print(" answering panels match");
+    if (cfg_unsaved) Serial.print(", UNSAVED edits");
+    if (cfg_was_reset) Serial.print(", on defaults (nothing saved)");
     if (dropped_edges) {
       Serial.print(", dropped edges: ");
       Serial.print(dropped_edges);

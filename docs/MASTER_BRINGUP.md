@@ -18,9 +18,11 @@ firmware/master/build.sh upload     # compile + upload
 
 **Since 2026-10-19 the master builds through `build.sh`**, which compiles
 against a patched copy of the Teensy core so the PC sees the pad as a joystick
-(`docs/USB_PROTOCOL.md` → "Input state report"). A plain `arduino-cli
-compile --fqbn teensy:avr:teensy40 firmware/master` still builds, with a
-warning, but sends no pad input to the PC.
+(`docs/USB_PROTOCOL.md` → "Input state report") and, since 2026-10-20, the
+vendor interface. **Since 2026-10-20 a plain `arduino-cli compile --fqbn
+teensy:avr:teensy40 firmware/master` fails on purpose**: the sketch includes
+`firmware/shared/panel_config.h`, which only `build.sh` puts on the include
+path (`docs/DEV_NOTES.md` → "Teensy / Arduino").
 
 `upload` finds the port with `arduino-cli board list`, or takes it as the
 second argument. Upload by hand needs `-p` with the `teensy` protocol port
@@ -83,14 +85,18 @@ five need no panels and no 12V.
 | `x` | pause/resume LED frames + FSR polling |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
 | `b` | broken-header test of the panel parser timeout: a lone header claiming 80 bytes, a 2 ms gap, then `'H'` to IDs 0–8. PASS = 9/9 answered, each with `tmo` up by one. Pauses traffic while it runs (added 2026-10-20) |
-| `j` | USB pad input: current mask, sequence number, counters (`docs/USB_PROTOCOL.md`) |
+| `j` | USB pad input: current mask, sequence number, counters; and the vendor interface: host seen, commands, malformed, dropped, stream on and records dropped, passthrough, who drives the LEDs (`docs/USB_PROTOCOL.md`) |
 | `t` | toggle the telemetry stream. Lines are `T <id> <S> <W> <N> <E> <mask> <live>`; `live` is 0 once a panel has been silent for `PANEL_TIMEOUT_MS` (added 2026-10-18; `tools/fsr_monitor.py` reads both the old 7-field form and this one) |
 | `P` | bus passthrough for `tools/panel_update.py`: USB carries raw frames until the host exits or 30 s idle. Not for typing into; see `docs/FIELD_UPDATE.md` |
 | `H` | status sweep: one `'H'` per poll slot to IDs 0–8, one line per panel (build tag, uptime, last reset cause, 12V/termination/auto-INT/echo/INT state, frame and error counters, `tmo` parser timeouts from gameplay firmware since 2026-10-20), `NO REPLY` for a silent one |
 | `z` | zero bus counters, on the master and (by broadcast `'Z'`) on every panel |
 | `m <mode> [secs]` | panel LED mode by broadcast `'M'`: 0 normal, 1 ID, 2 sensor test |
 | `w` | toggle full white (255,255,255) on every LED of every panel, presses ignored: the full-white soak. Panels must be in mode 0 and bus traffic running |
-| `S <panel> <press> <rel>` | set FSR thresholds on one panel (RAM only) |
+| `c` | panel config: the master's copy per panel and channel, each panel's state (matches / waiting / rejected / not configured / absent), saved slot and sequence, unsaved edits, how long the last save took (added 2026-10-20) |
+| `S <panel> <press> <rel> [ch]` | thresholds for one panel, all channels or channel 0–3: edits the master's copy and pushes `'W'`; **not saved** until `save`. Before 2026-10-20 it sent `'C'` |
+| `F <panel> <ch> <pop> <en>` | a channel's `populated`/`enabled` flags (0/1): pushed, not saved (added 2026-10-20) |
+| `save` | write the config to EEPROM and read it back; prints the slot, sequence and time taken. Stalls INT, USB and the bus while it runs: never during play (added 2026-10-20) |
+| `reset config` | every panel to the defaults, saved and pushed. Typed in full (added 2026-10-20) |
 
 ## Stage 1 — master alone, USB only
 
@@ -293,6 +299,69 @@ unterminated, terminated mid-chain, at the wrong end, and doubled to 40 Ω
   end of the cable can lie beyond the last panel that answered;
 - the chain order is documented, not measured. A pad cabled in another order
   gets the wrong expected panel.
+
+## Config and the USB vendor interface (built 2026-10-20, not yet run)
+
+Both were written and compiled without the pad. Nothing below has been run.
+Results go in `docs/BRINGUP_LOG.md` under the master that ran them.
+
+**Order: master first, then panels**, as for any update (`docs/USB_PROTOCOL.md`
+→ "firmware updates"). The new master copes with old panels (they never answer
+`'W'` and sit at "sent, waiting"). New panels on the old master would stay on
+defaults and the old master's `S` would do nothing.
+
+1. **Master alone.** `build.sh upload`. The banner shows `Master firmware
+   0.1.0 (build …)` and, on this first boot, `config: NO valid saved config`.
+   `tools/hid_monitor.py` still sees presses (the joystick is interface 3 now).
+   `python3 tools/pad_cmd.py info` answers: protocol 1, packet 64, config
+   version 1, the DIP's player ID, flag "config was reset". Then run
+   `build.sh upload` once more: it shows the upload's automatic reboot still
+   finds the Teensy with the new interface set.
+2. **Old panels.** `c`: every answering panel "sent, waiting"; the heartbeat
+   says `0/9 answering panels match`.
+3. **New panel firmware** to all nine with `tools/panel_update.py`. When they
+   are back: one `config matches` line per panel, `c` shows all nine
+   "matches", the heartbeat `9/9`. A panel's own
+   console `s` shows "from the master" and the CRC `FD704831` for defaults.
+4. **`S`.** `S 3 600 450`, then `c`: panel 3 matches at the new values, "UNSAVED
+   edits". Optionally feel the extra force on panel 3; panel 3's `s` shows them.
+   `S 3 600 450 2` changes channel 2 only.
+5. **`F`.** `F 3 0 1 0`: pressing panel 3's channel 0 sensor no longer presses
+   (no INT, no USB button), while `t` or `pad_cmd.py stream` still shows its raw
+   value. `F 3 0 1 1` restores it.
+6. **`save` and reboot.** `save` prints slot A, sequence 1, and the time it
+   took; **record that time** (`docs/PANEL_CONFIG.md` wants the stall
+   measured). Replug the master: the banner says `loaded from slot A,
+   sequence 1`, `c` shows the edits. A second `save` goes to slot B.
+7. **Panel reboot.** Cut one panel's 12 V for a few seconds: the console shows
+   it stop replying, reply again, and match again within about a second.
+8. **`reset config`**: all nine back to 500/400, saved, matching.
+9. **Vendor interface**, each with `tools/pad_cmd.py`:
+   - `config`, `status`: values agree with `c` and `H`; within ~5 s of boot
+     the status shows each panel's build tag and termination switch.
+   - `set 3 550 420`: "saved", then config result events for panel 3 (waiting →
+     matches); `c` agrees, with no "UNSAVED".
+   - `stream 30`: live values for all nine and a per-panel rate. **Record the
+     rate**: expected ~12.7 Hz with the re-push, not measured.
+   - `mode 1 3` (all nine show their ID for 3 s), `mode 2 5 --panels 4`
+     (only C runs the sensor test).
+   - `selftest`: every slot names its own panel, as the console's `I`.
+   - `zero`, then `H`: counters near zero.
+   - `clock`: **record** the round trip (min, median, max). No figure is
+     expected yet; an LED burst in the way can add up to ~7 ms.
+   - `leds 0 0 64 3`: all panels dim blue for 3 s, then the rainbow returns
+     about 1 s after the last frame.
+   - `bus-h 4`: one `'h'` from panel 4 through USB passthrough; the console
+     prints passthrough ON then OFF, and normal traffic resumes.
+   - `events 60`, while unplugging a panel's bus cable and plugging it back:
+     presence and config result events.
+   - Optional: `bootloader --yes` puts the Teensy in HalfKay; `build.sh upload`
+     brings it back.
+10. **Regression:** `I`, `b`, `H`, `P` with `tools/panel_update.py`, the
+    full-white `w`, and `hid_monitor.py` presses all behave as before.
+
+On Windows, remove the cached `16C0:0487` device first: its interface set
+changed again (`docs/USB_PROTOCOL.md` → device identification).
 
 ## Still open on the master
 

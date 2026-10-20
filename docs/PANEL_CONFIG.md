@@ -1,35 +1,43 @@
 # Panel configuration — design
 
-Status: **mostly design, partly built.** This collects the config decisions made
-so far. There is no binary format yet and **nothing persists**. Since 2026-10-20
-the plan is that panels never persist config at all; the master does.
+Status: **config on the bus is built (2026-10-20) and has not yet run on a
+board.** Panels keep config in RAM only; the master keeps the only saved copy
+and pushes it with `'W'`. What was built and how it behaves: "As built" below.
 
-**Built in the gameplay firmware (`firmware/panel/c/main.c`), as of 2026-10-19:**
+**Built in the gameplay firmware (`firmware/panel/c/main.c`):**
 
 - Panel ID from the DIP at boot (0–8). `15` (all OFF) and other codes are not
   addressed on the bus.
 - **DIP 10:** the sensor test runs standalone. The other diagnostic codes in the
   table below (9, 11, 12, 13) are not built.
 - The three **LED modes** (normal, ID, sensor test), set by `'M'`. See below.
-- Press/release thresholds per channel (`g_press_th` / `g_rel_th`), defaults
-  500/400, set over the bus with `'C'`. **RAM only**: a reboot restores the
-  defaults.
+- **Config from the master's `'W'`** (2026-10-20, not yet run on a board): per
+  channel press/release thresholds and the `populated`/`enabled` flags, boot
+  defaults 500/400 with both flags set (`firmware/shared/panel_config.h`).
+  **RAM only, by design**: a reboot returns to the defaults until the next
+  `'W'`, and the "not configured" bit in `'f'` tells the master. `'C'` is gone.
 - The debug LED `D202` lights on press in DIP 10 only, and stays dark otherwise.
 
-**Not built:** flash-backed config and its write/commit protocol, the
-`populated`/`enabled` flags, calibration and drift tracking, the periodic
-re-push from the master, local animations (normal mode goes dark when `'L'`
-frames stop), and the other DIP diagnostic modes.
+**Built in the master (`firmware/master/master.ino`), 2026-10-20, not yet run
+on hardware:** the canonical copy with its two-slot EEPROM record, the pushes
+and re-push, per-panel config state, the console commands, and USB get/set/reset
+config (`docs/USB_PROTOCOL.md`).
 
-The binary layout will slot into the flash config region alongside the animation
-slots. The current flash map is in `docs/FIELD_UPDATE.md` → "Flash map".
+**Not built:** calibration and drift tracking, local animations (normal mode
+goes dark when `'L'` frames stop), reset animations, and the other DIP
+diagnostic modes.
+
+~~The binary layout will slot into the flash config region alongside the
+animation slots.~~ Superseded 2026-10-20: panels keep no config in flash. The
+panel flash map is in `docs/FIELD_UPDATE.md` → "Flash map".
 
 ## What lives where
 
 - **Panel ID (0–8):** hardware DIP switch, NOT flash config. A panel must know its
   identity before it can be addressed over the bus, so identity can't itself be a
-  bus-configured value. Everything else below lives in flash and is configurable
-  over RS-485 from the master.
+  bus-configured value. Everything else below is configurable over RS-485 from
+  the master. (Written when panels were to keep a flash copy; since 2026-10-20
+  the master's EEPROM holds it and panels keep it in RAM.)
 - **Per-channel FSR config:** flags + calibration, 4 channels per panel (see below).
 - **RS-485 fallback timeout:** **100ms** without an LED frame from the master.
   As built the panel goes dark; the plan is to fall back to a local
@@ -173,9 +181,9 @@ them apart. So:
   nine boards (most 94–102), full press ~4000; the 500 default sits comfortably
   between them. (Breadboard figures were ~100–115 / ~3900.)
 - Resting baseline (captured at calibration time) — for drift diagnostics.
-- Hysteresis (separate press/release thresholds) — implemented (`g_press_th`/
-  `g_rel_th` in main.c, bus-settable via `'C'`/`'c'`, see RS485_PROTOCOL.md).
-  RAM only for now; flash persistence is the remaining open item.
+- Hysteresis (separate press/release thresholds) — implemented, set per
+  channel by the master's `'W'` (2026-10-20; `'C'`/`'c'` before that). RAM only
+  on the panel by design; the master's EEPROM persists it.
 
 ## Boot-time float detection (firmware behavior, not config)
 
@@ -237,7 +245,9 @@ stays canonical and the ~1 Hz re-push stays.
 - **`'W'` carries one panel's whole config in one addressed packet** (per
   channel: press and release thresholds, flags, rest baseline; plus panel-wide
   fields and a format version; about 40 bytes, under the 80-byte limit), so a
-  panel is never half-configured. It takes effect immediately. The panel answers
+  panel is never half-configured. *(As specified in `docs/RS485_PROTOCOL.md`
+  later the same day, and built: version 1 is 21 bytes, with no rest baseline
+  and no panel-wide fields.)* It takes effect immediately. The panel answers
   **`'w'` with the CRC of the config it now runs**, so the master sees a mismatch
   at once. The RAM-only `'C'` threshold command becomes redundant (keep it as a
   bench tool or drop it when `'W'` exists).
@@ -298,6 +308,63 @@ a version bump when they are built. Among them: the **underglow byte order**
 (RGB / GRB / BRG…), per pad, because different pads' strips differ; the master
 converts from USB's RGB with it (`docs/USB_PROTOCOL.md`).
 
+### As built (2026-10-20, not yet run on hardware)
+
+**Shared definition.** `firmware/shared/panel_config.h` holds the format
+version, the `'W'` layout, the validity rule (`release < press ≤ 4095`,
+reserved flag bits 0), the defaults and the CRC-32. The panel includes it
+through its `CMakeLists.txt` and the master through `build.sh`.
+`firmware/shared/test/run.sh` checks it on the host, compiled as C and as C++;
+the defaults' `'W'` CRC is `0xFD704831`.
+
+**Console (master), DECIDED 2026-10-20 by the user: `S` and `F` edit the
+master's copy in RAM and push it; `save` writes it to EEPROM.** So thresholds
+can be tried without writing flash. USB Set config and both resets save at
+once.
+
+| Command | What it does |
+|---|---|
+| `c` | the master's copy per panel and channel, each panel's state, which slot and sequence it was saved in, unsaved edits, "reset at boot" |
+| `S <panel> <press> <rel> [ch]` | thresholds for all four channels, or one; pushed, not saved |
+| `F <panel> <ch> <populated> <enabled>` | a channel's flags (0/1 each); pushed, not saved |
+| `save` | write the copy to EEPROM (the older slot) and read it back |
+| `reset config` | defaults for every panel, saved and pushed. Typed in full, so it can't happen by accident |
+
+`tools/fsr_monitor.py`'s threshold keys still send `S`, so they now set but no
+longer survive a master reboot without `save`.
+
+**Per-panel state** (`c`, and the USB config result event): matches, sent and
+waiting, rejected (unknown version), rejected (invalid), not configured since
+boot, absent. Only a `'w'` whose CRC equals the master's copy counts as a
+match; a `'w'` that says "applied" with any CRC but the one sent counts as a
+mismatch and is re-sent. A panel on the bring-up firmware, or on gameplay
+firmware older than 2026-10-20, never answers `'W'` and stays at "sent and
+waiting"; that is the sign it needs updating. A panel that rejects the version
+is not re-sent at once on every poll, only on the ~1 Hz re-push.
+
+**Pushes**, each in a poll slot with a reply window: when a panel appears
+(this covers the master's own boot), when a panel that matched reports "not
+configured" (it rebooted), when the copy changes, and the re-push, one
+answering panel every ~111 ms. Expected cost, not measured: telemetry drops
+from ~14 Hz to ~12.7 Hz per panel (`docs/RS485_PROTOCOL.md` → timing).
+
+**At boot** the master prints which slot it loaded, or that it found no valid
+record and runs on defaults ("config was reset", also in USB device info until
+something is saved). Each time a panel reaches "matches" the console prints
+`# panel N (XX) config matches: 0:press/release …`, which
+`tools/fsr_monitor.py` shows as that panel's ack; rejections print too. The
+heartbeat line ends with how many answering panels match.
+
+⚠ **Limit found while reading the emulation (2026-10-20, not measured): the
+two slots share flash sectors.** The emulation spreads every address over its
+15 sectors (`sector = (addr >> 2) % 15`), so slot A and slot B each have bytes
+in every sector. Two slots still cover a power cut **during a save** (the slot
+being written fails its CRC and the other one loads). They don't cover a power
+cut **during a sector compaction**, which erases a sector and rewrites it from
+RAM: that loses bytes of both slots. The CRC catches it, so the result is
+defaults plus "config was reset", never a wrong config. Compaction happens only
+after 2,048 writes to one sector, so it is rare.
+
 ## Config versioning (decided 2026-10-20)
 
 - **One config format version** covers the fields everywhere they travel: the
@@ -322,7 +389,8 @@ converts from USB's RGB with it (`docs/USB_PROTOCOL.md`).
 ## Factory reset (decided 2026-10-20)
 
 - **Two separate actions**, in the SDK/config app and as master console
-  commands: **reset config** (the master overwrites its EEPROM copy with
+  commands (reset config built 2026-10-20 as `reset config` and USB command
+  0x06; reset animations not built): **reset config** (the master overwrites its EEPROM copy with
   defaults and pushes them to every panel) and **reset animations** (erase one
   panel's or every panel's animation slots, so each writes its built-in defaults
   back). Different kinds of loss, so never one button for both.
@@ -427,7 +495,7 @@ the firmware to maintain whenever this gets designed.
 
 ## Open questions
 
-- ~~Config write protocol over RS-485 (command format, ack, when panels commit to flash)~~ — decided 2026-10-20 ("Config persistence and the write protocol"); the byte layout of `'W'` is still to write
+- ~~Config write protocol over RS-485 (command format, ack, when panels commit to flash)~~ — decided 2026-10-20 ("Config persistence and the write protocol"); layout in `docs/RS485_PROTOCOL.md`, built 2026-10-20
 - ~~Config versioning / migration when the format changes~~ — decided 2026-10-20 ("Config versioning")
 - ~~Factory reset story~~ — decided 2026-10-20 ("Factory reset")
 - Auto-calibration design (drift tracking over time) — stock's four calibration

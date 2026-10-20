@@ -4,9 +4,9 @@ Status: **v0, running on rev-1 hardware** — master #2 and nine panels on one b
 (2026-10-19). Every command below is implemented on both sides unless it says
 otherwise. Implemented in `firmware/master/master.ino`, `firmware/panel/c/main.c`
 (gameplay), `firmware/panel/c/bringup/main.c` (bench) and
-`firmware/panel/c/bootloader/` (update commands). Config write/read and
-calibration are not built yet; they will be new command bytes in the same
-framing (`docs/PANEL_CONFIG.md`).
+`firmware/panel/c/bootloader/` (update commands). **Config (`'W'`/`'w'` and the
+"not configured" bit) was built 2026-10-20 and has not yet run on a board.**
+Calibration is not built (`docs/PANEL_CONFIG.md`).
 
 ## Physical layer
 
@@ -71,15 +71,19 @@ does not have it yet.
 - addr = panel ID, len 9
 - Payload: 4 × uint16 little-endian raw ADC values (channels 0–3), then 1 byte
   pressed bitmask (bit i = channel i pressed, post-hysteresis/persistence)
-- **Decided 2026-10-20, not built:** bit 7 of the last byte = **not configured
-  since boot**. Set at every boot, cleared by the first accepted `'W'`; the
-  master sends that panel its config at its next poll slot. Readers take the
-  pressed mask as `byte & 0x0F`.
+- Bit 7 of the last byte = **not configured since boot** (decided 2026-10-20,
+  **built 2026-10-20, not yet run on a board**). Set at every boot, cleared by
+  the first accepted `'W'`; the master sends that panel its config at its next
+  poll slot. Readers take the pressed mask as `byte & 0x0F`. The bring-up
+  firmware and gameplay firmware older than 2026-10-20 never set it.
 
-### `'W'` — set whole panel config (master → one panel) — decided 2026-10-20, not built
+### `'W'` — set whole panel config (master → one panel) — built 2026-10-20, not yet run on a board
 
-- addr = panel ID (never broadcast), len 21. Design and reasoning:
-  `docs/PANEL_CONFIG.md` → "Config persistence and the write protocol".
+- addr = panel ID (never broadcast; a panel ignores a broadcast `'W'`), len 21.
+  Design and reasoning: `docs/PANEL_CONFIG.md` → "Config persistence and the
+  write protocol". **The layout, the validity rule, the defaults and the CRC
+  are defined once, in `firmware/shared/panel_config.h`**, which both firmwares
+  include (`firmware/shared/test/run.sh` checks it on the host).
 
 | Offset | Size | Field |
 |---|---|---|
@@ -93,12 +97,18 @@ does not have it yet.
   every channel, reserved bits are 0. Otherwise the panel rejects it and keeps
   the config it has. It never applies part of one.
 - Takes effect immediately, **RAM only by design**: panels never persist config;
-  the master does.
+  the master does. The panel builds the new config in a spare copy and swaps a
+  pointer, so its sampling loop never runs on half of an update.
+- The master sends it in a poll slot, with a reply window, when a panel
+  appears, when a panel that matched reports "not configured" (it rebooted),
+  when the master's copy changes, and as a re-push: one answering panel every
+  ~111 ms, so each gets it about once a second (`docs/PANEL_CONFIG.md` → "As
+  built").
 - Not in version 1: the rest baseline (the panel doesn't use it; it stays on
   the master/host side), the fallback timeout (fixed 100 ms), auto-calibration
   (deferred).
 
-### `'w'` — config ack (panel → master, reply only)
+### `'w'` — config ack (panel → master, reply only) — built 2026-10-20, not yet run on a board
 
 - addr = panel ID, len 6. Reply window (5 + 6) × 10 + 260 = 370 µs.
 
@@ -110,17 +120,21 @@ does not have it yet.
 
 - The CRC is computed from the panel's live config turned back into `'W'` form,
   so a match proves the panel runs exactly the master's values; the master
-  doesn't have to trust the status byte alone.
+  doesn't have to trust the status byte alone. With the defaults on every
+  channel it is **`0xFD704831`** (the host test checks this against zlib).
 - **No bus read-back command (`'R'`/`'r'`), on purpose:** the CRC makes it
   redundant for operation. Add one only if a mismatch ever needs diagnosing
   field by field. Reading config from the PC is a USB matter (`'G'` in
   `docs/USB_PROTOCOL.md`), answered from the master's copy.
 
-### ~~`'C'` — set FSR thresholds (master → one panel)~~ — to be removed when `'W'` lands (decided 2026-10-20)
+### ~~`'C'` — set FSR thresholds (master → one panel)~~ — removed 2026-10-20
 
-The master re-sends `'W'` about once a second and is canonical, so a threshold
-set with `'C'` would be overwritten within a second. The master's `S` console
-command becomes "edit the master's copy and push `'W'`" instead.
+Decided 2026-10-20 and done the same day: the gameplay firmware no longer
+answers it and the master no longer sends it. The bring-up firmware still
+answers it; nothing sends it. Why: the master re-sends `'W'` about once a
+second and is canonical, so a threshold set with `'C'` would be overwritten
+within a second. The master's `S` console command now edits the master's copy
+and pushes `'W'` instead. The description below is what `'C'` was.
 
 - addr = panel ID, len 5
 - Payload: `[channel]` (0–3, or `0xFF` = all) `[press u16 LE]` `[release u16 LE]`
@@ -147,7 +161,11 @@ command becomes "edit the master's copy and push `'W'`" instead.
 - addr = panel ID, len 0. Added 2026-10-18 so a pad with no USB cable to any
   panel can still see each one's health through the master.
 - Panel replies immediately with `'h'`. The master sends it in a poll slot,
-  like `'C'`, so it gets a reply window.
+  like `'W'`, so it gets a reply window.
+- Since 2026-10-20 the master also sends it in the background, to one answering
+  panel every 500 ms (each panel every ~4.5 s), and keeps the latest build tag,
+  CRC error count and termination bit per panel for USB pad status and device
+  info. Only the console's `H` sweep prints the replies.
 
 ### `'h'` — status (panel → master, reply only)
 
@@ -198,7 +216,10 @@ original 400 µs and gives `'h'` 550 µs.
   keep arriving and are buffered, but don't show until the panel is back in
   normal mode.
 - Addressed: the panel acks with `'m'` echoing the payload. Broadcast: no reply.
-- The master's `m <mode> [secs]` broadcasts it in a poll slot, like `z`.
+- The master's `m <mode> [secs]` broadcasts it in a poll slot, like `z`. The USB
+  LED mode command does the same for all nine panels; for a subset it sends one
+  addressed `'M'` per panel, each in its own slot with a reply window (built
+  2026-10-20).
 - Only the LEDs change. INT, `'F'` telemetry and every other command work as
   usual in all three modes.
 
@@ -297,13 +318,15 @@ second hidden behind the first:
 
 The rule now, master side (`firmware/master/master.ino`, `sendRequest()`):
 
-- **Any packet that expects a reply (`'F'`, `'C'`, `'H'`) is followed by a
-  window of master silence**, measured from transmit-complete (`flush()` returns
+- **Any packet that expects a reply (`'F'`, `'W'`, `'H'`, addressed `'M'`;
+  `'C'` until 2026-10-20) is followed by a window of master silence**, measured from transmit-complete (`flush()` returns
   when DE drops). The LED burst and the next poll both wait for it. It was a
   flat 400 µs, covering `'f'` (14 bytes = 140 µs) plus panel turnaround; since
   2026-10-18 it is sized per request as `(5 + reply payload) × 10 µs + 260 µs`,
   which is still 400 µs for `'f'` and 550 µs for the 29-byte `'h'`.
-- **`'C'` and `'H'` take a poll slot** instead of being sent from the command handler.
+- **`'W'`, `'H'` and every other master-initiated command take a poll slot**
+  instead of being sent from the command handler (`'C'` did, until it was
+  removed).
 - **The clock is re-read after the LED burst**, and the next poll is scheduled
   from the time it was actually sent.
 
@@ -326,6 +349,10 @@ polls that collided. At 9 panels that is **~14 Hz telemetry per panel**, a
 ~72 ms sweep rather than the 45 ms estimated above. Not on the gameplay path
 (presses travel on INT). Interleaving polls into the LED burst is the obvious
 next step, and it is deferred until all nine panels are on the bus.
+
+**Expected from 2026-10-20, not measured:** the config re-push (9 `'W'`/s) and
+the background `'H'` (2/s) take about 11 of those ~125 slots a second, which
+would leave ~114 polls, **~12.7 Hz per panel**.
 
 ## Future idea: slotted broadcast poll (not implemented, thinking point)
 

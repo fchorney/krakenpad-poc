@@ -9,7 +9,9 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 add_executable(panel_firmware main.c)
-target_include_directories(panel_firmware PRIVATE ${CMAKE_CURRENT_LIST_DIR}/common)
+target_include_directories(panel_firmware PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/common
+    ${CMAKE_CURRENT_LIST_DIR}/../../shared)   # panel_config.h, shared with the master
 
 # Linked at 0x10008000 to run under bootloader/, like the bring-up build: load
 # bootloader/build/panel_boot_usb.uf2 first, or update over the bus (docs/FIELD_UPDATE.md).

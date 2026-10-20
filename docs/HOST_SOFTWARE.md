@@ -2,7 +2,10 @@
 
 **Status: decided, not built** (2026-10-20). What runs on the PC: the SDK that
 games link, and the apps built on it. The USB interface they talk to is
-`docs/USB_PROTOCOL.md`; today only its joystick report is built.
+`docs/USB_PROTOCOL.md`: the joystick report works on the bench, and the vendor
+interface the SDK uses was built in the master 2026-10-20 but has not yet run
+on hardware. Until the SDK exists, **`tools/pad_cmd.py` speaks every vendor
+command**, as a bench tool and as a working reference for the framing.
 
 ## Decisions
 
@@ -157,4 +160,6 @@ finds the latest release.
 ## Not decided
 
 - How the SDK takes over bus updates (`docs/FIELD_UPDATE.md`), which today go
-  through the master's text-console passthrough rather than a USB report.
+  through the master's text-console passthrough. The master's side is built
+  (USB bus passthrough, commands 0x0D/0x0E, 2026-10-20, not yet run); what
+  remains is porting `tools/panel_update.py`'s logic onto it.

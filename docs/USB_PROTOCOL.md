@@ -1,8 +1,12 @@
 # USB Protocol (ours) — v0
 
 Status: **the input report is built and works on the bench** (2026-10-19, below).
-The command and data reports, and everything in "Command inventory", are still
-a **draft**. Derived by walking the stock SMX USB protocol
+**The vendor interface (command, response, event and stream packets) is built
+(2026-10-20) and has not yet run on hardware**: every command in the table
+below except underglow and reset animations, which answer "not supported yet".
+What changed while building it: "As built" under the command table. Bench
+tool: `tools/pad_cmd.py`. "Command inventory" further down is the older
+walk-through of stock that the table came from. Derived by walking the stock SMX USB protocol
 (`../stepmaniax-sdk-mp/docs/USB_PROTOCOL.md`) command-by-command and deciding
 keep / adapt / drop. Intentionally NOT SMX-compatible — our own VID/PID and
 descriptor; no software expecting an SMX pad will (or should) talk to us.
@@ -13,7 +17,7 @@ descriptor; no software expecting an SMX pad will (or should) talk to us.
 |----------|-------|
 | VID/PID | Teensyduino default (0x16C0 + USB-Type-dependent PID) during development. **As built 2026-10-19: 0x16C0:0x0487**, borrowed from Teensyduino's Serial + Keyboard + Mouse + Joystick type, which keeps `arduino-cli upload` and the Teensy auto-reboot working. ⚠ Our interface set differs from the one Windows may have cached for that PID; if Windows ever shows the pad wrongly, remove the cached device first. Plan: register a real PID under pid.codes' shared VID 0x1209 (see below) once eligible. |
 | Product string | "KrakenPad" — **working name, not final**, may still change |
-| Interfaces (as built 2026-10-19) | 0–1 CDC serial (the bench console, unchanged), 2 HID joystick (pad input). Command/data reports are not built yet |
+| Interfaces (as built 2026-10-20) | 0–1 CDC serial (the bench console, unchanged), **2 vendor HID** (command/data: usage page `0xFF00`, usage `0x0001`, interrupt IN `0x85` + OUT `0x05`, 64 bytes, `bInterval` 1), **3 HID joystick** (pad input, IN `0x84`). The joystick was interface 2 until 2026-10-20: the Teensy core writes the RawHID block before the joystick's, and the numbers follow that order. Only the number changed; the joystick's descriptor and report did not |
 | Transport | USB HID, 64-byte packets |
 | USB speed | High Speed 480 Mbps (Teensy 4.x native) |
 | Input polling | **8000Hz offered** (`bInterval = 1` at High Speed, as built). Host-side achieved rate not measured |
@@ -81,6 +85,12 @@ both directions:
   route them: `resp` completes the waiting call, `event` goes to the event
   queue, `stream` updates the state snapshot (`docs/HOST_SOFTWARE.md`).
 - No report ID byte: the interface has one input and one output report.
+  (hidapi still wants a leading 0 on writes, as for any report-ID-less device.)
+- **As built 2026-10-20:** kind codes **`cmd` 1, `resp` 2, `event` 3,
+  `stream` 4**; flags **START `0x01`, END `0x02`**; unused bytes after the
+  payload are 0. The code byte (below) is byte 0 of the **whole message**, so a
+  message that spans packets carries it once, in the first. Packets of one
+  message are never interleaved with another's.
 - **Packet size is a parameter, not a constant.** The device-info response
   states it and the SDK never assumes 64. **Shipped as 64 bytes at both
   speeds** (60 payload), which Full Speed requires. At High Speed, 64-byte
@@ -103,7 +113,10 @@ both directions:
   opens the pad late doesn't start with a backlog of stale reports buffered by
   its OS.
 - **The master drops stream packets when its USB queue is full; it never
-  blocks.** A stalled host must not slow the bus or the press path.
+  blocks.** A stalled host must not slow the bus or the press path. As built:
+  a stream packet is queued only when nothing else is waiting, so responses and
+  events go first; records gather behind it up to four, and past that the
+  newest is dropped and counted (`j` on the console).
 - The enable command carries a **mode**; only **raw** exists until
   auto-calibration (stock's calibrated / noise / tare modes come then, without
   a format change).
@@ -181,8 +194,9 @@ descriptor is in `firmware/master/core-patch/`):
   INT activity is not presses.
 - **Build:** Teensyduino cannot take a custom descriptor without changing its
   core, so `firmware/master/build.sh` compiles against a patched copy of the
-  installed core (Teensyduino 1.62.0). A plain `arduino-cli compile` still
-  builds, but warns, and the PC gets no pad input.
+  installed core (Teensyduino 1.62.0). Since 2026-10-20 a plain `arduino-cli
+  compile` fails on purpose: the sketch needs `firmware/shared/`, which only
+  `build.sh` adds to the include path.
 - Bench check: `j` on the master console; `tools/hid_monitor.py` on the PC.
 
 #### The INT lines are the **sole, authoritative** press path
@@ -236,7 +250,7 @@ only an "is it still low?" check. Averaging is strictly a panel-side (analog)
 concern. If latency ever needs squeezing, the biggest lever is **8 kHz vs 4 kHz
 USB**, not the qualify window.
 
-## Command table (reviewed 2026-10-20, not built)
+## Command table (reviewed 2026-10-20, built 2026-10-20, not yet run on hardware)
 
 Applies the decisions above to concrete payloads. Reviewed by the user on
 2026-10-20: the choices listed at the end are decided.
@@ -289,6 +303,62 @@ reset at boot, bit1 stream on, bit2 passthrough active), panel presence u16
 
 Master timestamps are u32 µs and wrap every ~71.6 minutes; the SDK unwraps
 them.
+
+### As built (2026-10-20, not yet run on hardware)
+
+Where the build fills in or shifts the table above. Implemented in
+`firmware/master/master.ino` → "USB vendor interface"; `tools/pad_cmd.py`
+speaks all of it.
+
+- **Errors.** A command that can't be answered in its own format gets
+  `resp` **`[0x7F, command code, reason]`**: 1 unknown command, 2 bad length,
+  3 busy / not now (a bus command during passthrough, a bus frame outside it),
+  4 not supported yet (reset animations, underglow).
+- **Transaction 0** on anything but a frame command is ignored and counted as
+  malformed. **Any non-zero transaction gets a response**, including LED and
+  bus frames (`[code, 0]`), so a host waiting on one never hangs.
+- **Set config:** status **3 = pushed, but the EEPROM read-back didn't match**.
+  The version is checked before the length, so a newer, longer format gets
+  "unknown version", not "bad length".
+- **Pad status**, per field: present = answered a poll within 1 s; polls
+  answered % = the last completed 5 s window; CRC errors, build tag and
+  termination switch = the panel's own, from its latest `'h'` (the master asks
+  each answering panel every ~4.5 s in the background), 0 / 0 / `0xFF` before
+  the first one.
+- **Device info:** flags **bit 3 = unsaved console edits** (`S`/`F` without
+  `save`); termination check **`0xFF` = nothing to judge yet** (no `'h'` from
+  any answering panel), with ID `0xFF`. The ID is `0xFF` too for "none" and
+  "several". "Config was reset" clears once a config is saved.
+- **Telemetry stream:** a mode other than 0 → status 1.
+- **Panel LED mode:** status 1 for mode > 2 or an empty mask. All nine →
+  one broadcast `'M'`; a subset → one addressed `'M'` per panel.
+- **Slot self-test** response, with a status and two masks ahead of the
+  table: `[status u8 (0 ran, 1 stopped by the pre-check)] [INT slots found LOW
+  u16] [panel IDs that acked u16]`, then per slot 0–8 `(panel ID, ack)`. The
+  masks keep what the per-slot table can't show: which line blocked the test,
+  and a panel that acked with no INT edge. It blocks the master ~0.7 s.
+- **LED frames from the host, DECIDED 2026-10-20 by the user:** they replace
+  the master's own pattern (rainbow plus press colours) and **hand back 1 s
+  after the last one**. The master sends whichever frame it holds when its own
+  60 Hz LED slot comes round, so the newest wins. The console's `w` (full
+  white) still overrides them.
+- **Bus passthrough** ends on "leave", on a USB reset, or after 30 s with
+  nothing from the host, as the console's `P`. Bus frames from the host go out
+  unchanged; every CRC-valid frame heard comes back as a bus frame event. Other
+  commands keep working; those that need the bus answer "busy".
+- **Reboot to bootloader:** the magic is the bytes **`"BOOT"`** (u32
+  `0x544F4F42`). The response is given ~50 ms to leave before the reboot.
+- **Clock probe:** "master receive µs" is when `loop()` read the packet, which
+  can be up to ~7 ms late behind an LED burst; "master send µs" is when the
+  response was built. The SDK should trust the probes with the shortest round
+  trip.
+- **Events start with the host's first command** after USB configures, so a
+  pad nobody has opened doesn't fill its queue with stale ones. If the boot
+  found no saved config, the "config was reset" event goes out then.
+- **A USB reset or replug** ends the stream, passthrough and host LED frames;
+  the next host starts clean. The SDK should still discard whatever it reads
+  before its first response (`tools/pad_cmd.py` drains for 200 ms).
+- Packet size stays 64 at both speeds, as planned.
 
 ### Choices in this table
 
@@ -362,7 +432,7 @@ them.
 
 ## Open questions
 
-- ~~Exact report IDs / descriptor layout~~ input report decided and built 2026-10-19 (above); the command and data reports are still open
+- ~~Exact report IDs / descriptor layout~~ input report decided and built 2026-10-19 (above); the vendor interface built 2026-10-20 (no report IDs, usage page `0xFF00` usage `0x0001`)
 - ~~Whether FSR streaming uses the data report or a dedicated input-style report~~ decided 2026-10-20: the `stream` kind on the vendor interface
 - ~~Config split: which fields live master-side vs panel-side~~ decided 2026-10-20: the master holds all of it; panels are RAM-only (`docs/PANEL_CONFIG.md`)
 - 2000Hz+ polling: HS bInterval choice (0.5ms vs 0.25ms vs 0.125ms) after

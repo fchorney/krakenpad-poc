@@ -9,6 +9,10 @@
 //   Core 1  RS-485 responder, LED rendering (PIO fed by DMA, so a paint never
 //           blocks a reply), SENSE_12V filter, USB console.
 //
+// Config (thresholds and channel flags) is RAM only by design: the panel boots
+// on the defaults in firmware/shared/panel_config.h and runs whatever the
+// master's last 'W' carried. The master persists it (docs/PANEL_CONFIG.md).
+//
 // LED modes (docs/PANEL_CONFIG.md → "LED modes"):
 //   normal   paint the master's 'L' frames; dark if none for LED_FALLBACK_MS
 //   ID       white image of this panel's position from the DIP, X if not 0-8.
@@ -29,10 +33,12 @@
 #include "hardware/pio.h"
 #include "hardware/uart.h"
 #include "hardware/irq.h"
+#include "hardware/sync.h"
 #include "hardware/watchdog.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 #include "hardware/structs/watchdog.h"
 #include "fw_layout.h"
+#include "panel_config.h"
 #include "ws2812.pio.h"
 
 // ── As-built pin map (docs/DUAL_PANEL.md → "RP2040 (U306) GPIO map") ─────────
@@ -51,6 +57,7 @@
 
 #define NUM_FSR   4
 #define NUM_LEDS  25
+_Static_assert(NUM_FSR == KP_NUM_FSR, "panel_config.h describes four channels");
 
 // Channel i = ADC i = GPIO 26+i, named by the panel edge it lands on.
 enum { FSR_SOUTH = 0, FSR_WEST = 1, FSR_NORTH = 2, FSR_EAST = 3 };
@@ -58,8 +65,8 @@ static const uint  FSR_GPIO[NUM_FSR] = {26, 27, 28, 29};
 static const char *FSR_NAME[NUM_FSR] = {"South", "West", "North", "East"};
 
 // ── Tunables ────────────────────────────────────────────────────────────────
-#define FSR_PRESS_THRESHOLD    500   // boot defaults; 'C' changes them (RAM only)
-#define FSR_RELEASE_THRESHOLD  400
+// Thresholds and channel flags are config: boot defaults in panel_config.h,
+// then the master's 'W' (below).
 // A state change must hold for this many consecutive samples (~0.1 ms at the
 // ~100 kHz loop rate) before it is committed.
 #define FSR_PERSISTENCE        10
@@ -123,18 +130,53 @@ enum { MODE_NORMAL = 0, MODE_ID = 1, MODE_TEST = 2, MODE_COUNT };
 static const char *MODE_NAME[MODE_COUNT] = {"normal", "ID", "test"};
 
 // ── Shared state ────────────────────────────────────────────────────────────
-// Core 0 writes: raw values, mask, INT state. Core 1 writes: thresholds, the
+// Core 0 writes: raw values, mask, INT state. Core 1 writes: the config, the
 // INT enable/hold flags and identify requests. Each field has one writer.
 static volatile uint16_t g_fsr_raw[NUM_FSR];
 static volatile uint8_t  g_pressed_mask = 0;
 static volatile bool     g_int_asserted = false;
-static volatile uint16_t g_press_th[NUM_FSR];
-static volatile uint16_t g_rel_th[NUM_FSR];
 static volatile bool     g_int_enable = false;  // set when bus mode starts
 static volatile bool     g_int_hold   = false;  // force released (reboot path)
 static volatile uint8_t  g_ident_req_ms = 0;    // core 1 sets, core 0 clears
 
 static uint8_t g_dip = 15;   // read once at boot
+
+// ── Config ──────────────────────────────────────────────────────────────────
+// The config in use: the boot defaults, then each accepted 'W'. Core 1 fills
+// the spare copy and only then swaps the pointer, and core 0 reads the pointer
+// once per pass, so a pass never mixes old and new values (a new press
+// threshold with the old release could put release above press). Two 'W's
+// can't land inside one ~10 us pass: one takes 260 us on the wire.
+typedef struct {
+    uint16_t press[NUM_FSR];
+    uint16_t rel[NUM_FSR];
+    bool     active[NUM_FSR];             // populated && enabled: detects presses
+    uint8_t  wire[KP_PANEL_CFG_LEN];      // as received, for the 'w' CRC
+} panel_cfg_t;
+static panel_cfg_t g_cfg_copy[2];
+static const panel_cfg_t *volatile g_cfg = &g_cfg_copy[0];
+static bool g_configured = false;         // a 'W' accepted since boot (core 1)
+
+// `wire` is one panel's 20 bytes, already checked by kp_panel_cfg_bad_channel().
+static void config_apply(const uint8_t *wire) {
+    panel_cfg_t *next = (g_cfg == &g_cfg_copy[0]) ? &g_cfg_copy[1] : &g_cfg_copy[0];
+    memcpy(next->wire, wire, KP_PANEL_CFG_LEN);
+    for (int i = 0; i < NUM_FSR; i++) {
+        const uint8_t *ch = wire + i * KP_CH_LEN;
+        next->press[i]  = kp_get_u16(ch);
+        next->rel[i]    = kp_get_u16(ch + 2);
+        next->active[i] = (ch[4] & (KP_CH_POPULATED | KP_CH_ENABLED)) ==
+                          (KP_CH_POPULATED | KP_CH_ENABLED);
+    }
+    __dmb();   // the copy is complete before core 0 can see the pointer
+    g_cfg = next;
+}
+
+static void config_init_defaults(void) {
+    uint8_t wire[KP_PANEL_CFG_LEN];
+    kp_panel_cfg_default(wire);
+    config_apply(wire);
+}
 
 // ── INT_OUT: emulated open-drain ────────────────────────────────────────────
 // Assert = drive LOW; release = input (hi-Z), the master's pull-up does the
@@ -162,14 +204,18 @@ static void fsr_loop(void) {
     uint32_t ident_start = 0, ident_len = 0;
 
     while (true) {
+        const panel_cfg_t *cfg = g_cfg;
         uint8_t mask = 0;
         for (int i = 0; i < NUM_FSR; i++) {
             adc_select_input(i);
             uint16_t v = adc_read() & 0x0FFF;
             g_fsr_raw[i] = v;
+            // A disabled or unpopulated channel still reports its raw value
+            // but never presses; disabling a pressed channel releases it.
+            if (!cfg->active[i]) { pressed[i] = false; streak[i] = 0; continue; }
             bool want = pressed[i];
-            if (pressed[i]) { if (v <= g_rel_th[i])  want = false; }
-            else            { if (v >= g_press_th[i]) want = true;  }
+            if (pressed[i]) { if (v <= cfg->rel[i])   want = false; }
+            else            { if (v >= cfg->press[i]) want = true;  }
             if (want != pressed[i]) {
                 if (++streak[i] >= FSR_PERSISTENCE) { pressed[i] = want; streak[i] = 0; }
             } else {
@@ -315,6 +361,7 @@ static volatile bool     rs_resync = false;
 static uint32_t rs_last_tx_us = 0;
 static uint32_t rs_last_rx_us = 0;      // ISR only
 static uint32_t rs_frames = 0, rs_crc_errs = 0, rs_polls = 0, rs_led = 0, rs_timeouts = 0;
+static uint32_t rs_cfg_ok = 0, rs_cfg_rejected = 0;
 
 // LED mode state
 static uint8_t  g_mode        = MODE_NORMAL;
@@ -382,6 +429,7 @@ static void rs485_send(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t le
 
 static void rs485_clear_counters(void) {
     rs_frames = rs_crc_errs = rs_polls = rs_led = rs_timeouts = 0;
+    rs_cfg_ok = rs_cfg_rejected = 0;
     rs_overruns = rs_uart_errs = rs_turnaround = 0;
 }
 
@@ -406,7 +454,7 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
             r[i * 2]     = (uint8_t)(v & 0xFF);
             r[i * 2 + 1] = (uint8_t)(v >> 8);
         }
-        r[8] = g_pressed_mask;
+        r[8] = (uint8_t)(g_pressed_mask | (g_configured ? 0 : KP_F_NOT_CONFIGURED));
         rs485_send('f', me, r, 9);
         rs_polls++;
         break;
@@ -421,16 +469,33 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         g_ident_req_ms = ms;
         break;
     }
-    case 'C':
-        if (len >= 5) {
-            uint8_t  ch = pay[0];
-            uint16_t p  = (uint16_t)(pay[1] | (pay[2] << 8));
-            uint16_t rl = (uint16_t)(pay[3] | (pay[4] << 8));
-            for (int i = 0; i < NUM_FSR; i++)
-                if (ch == 0xFF || ch == i) { g_press_th[i] = p; g_rel_th[i] = rl; }
-            rs485_send('c', me, pay, len);
+    case 'W': {
+        // Whole panel config, applied only whole and only when addressed (a
+        // broadcast would have nine panels answer at once). The reply carries
+        // the CRC of the config now in use, accepted or not, so the master
+        // checks the values rather than trusting the status.
+        if (addr != me) break;
+        uint8_t status;
+        if (len >= 1 && pay[0] != KP_CONFIG_VERSION)
+            status = KP_WACK_UNKNOWN_VERSION;
+        else if (len != KP_W_LEN || kp_panel_cfg_bad_channel(pay + 1) >= 0)
+            status = KP_WACK_INVALID;
+        else
+            status = KP_WACK_APPLIED;
+        if (status == KP_WACK_APPLIED) {
+            config_apply(pay + 1);
+            g_configured = true;
+            rs_cfg_ok++;
+        } else {
+            rs_cfg_rejected++;
         }
+        uint8_t r[KP_WACK_LEN];
+        r[0] = status;
+        r[1] = KP_CONFIG_VERSION;
+        put_u32(&r[2], kp_w_crc(g_cfg->wire));
+        rs485_send('w', me, r, sizeof(r));
         break;
+    }
     case 'H': {
         uint8_t r[24];
         put_u32(&r[0], g_build_tag);
@@ -597,7 +662,17 @@ static void status(void) {
     for (int i = 0; i < NUM_FSR; i++)
         printf(" %s=%4u%s", FSR_NAME[i], g_fsr_raw[i],
                (g_pressed_mask >> i) & 1 ? "*" : "");
-    printf("   (press %u / release %u)\n", g_press_th[0], g_rel_th[0]);
+    printf("\n  config    : %s, CRC %08lX (%lu 'W' accepted, %lu rejected)\n",
+           g_configured ? "from the master" : "boot defaults, no 'W' yet",
+           (unsigned long)kp_w_crc(g_cfg->wire), (unsigned long)rs_cfg_ok,
+           (unsigned long)rs_cfg_rejected);
+    const panel_cfg_t *cfg = g_cfg;
+    for (int i = 0; i < NUM_FSR; i++) {
+        uint8_t fl = cfg->wire[i * KP_CH_LEN + 4];
+        printf("    %-5s press %4u release %4u  %s%s\n", FSR_NAME[i], cfg->press[i],
+               cfg->rel[i], fl & KP_CH_POPULATED ? "populated" : "NOT populated",
+               fl & KP_CH_ENABLED ? "" : ", disabled");
+    }
     printf("  bus       : %lu frames, %lu crc, %lu uart, %lu overrun, %lu turnaround,"
            " %lu timeout, %lu 'F', %lu 'L'\n",
            (unsigned long)rs_frames, (unsigned long)rs_crc_errs,
@@ -713,10 +788,7 @@ int main(void) {
 
     adc_init();
     for (int i = 0; i < NUM_FSR; i++) adc_gpio_init(FSR_GPIO[i]);
-    for (int i = 0; i < NUM_FSR; i++) {
-        g_press_th[i] = FSR_PRESS_THRESHOLD;
-        g_rel_th[i]   = FSR_RELEASE_THRESHOLD;
-    }
+    config_init_defaults();
 
     sleep_us(100);   // let the DIP pull-ups settle
     g_dip = dip_read();
