@@ -275,6 +275,27 @@ them off for the whole erase. So while the master saves, its INT interrupt, USB
 and the RS-485 UART stall in bursts. Covered by the no-saves-during-gameplay
 rule; worth measuring once saving exists.
 
+### The master's EEPROM record (decided 2026-10-20, not built)
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 4 | magic `KPCF` |
+| 4 | 1 | config format version, **1** |
+| 5 | 2 | sequence number, u16 LE |
+| 7 | 180 | panels 0–8, 20 bytes each: the per-channel part of `'W'` (bytes 1–20, no version byte) |
+| 187 | 4 | CRC-32 (zlib) of bytes 0–186 |
+
+**191 bytes, stored twice: slot A at EEPROM offset 0, slot B at 512** (of 1,080).
+A save writes the slot holding the older record, with the sequence number + 1.
+At boot the valid record (magic, known version, CRC) with the higher sequence
+number wins, so a power cut mid-save leaves the previous config intact. Neither
+valid → defaults and the "config was reset" flag. The emulation skips
+unchanged bytes, so a save costs little wear.
+
+Version 1 holds only the nine panel configs. Rest baselines, auto-calibration
+values, the underglow idle colour and other pad-wide settings each arrive with
+a version bump when they are built.
+
 ## Config versioning (decided 2026-10-20)
 
 - **One config format version** covers the fields everywhere they travel: the

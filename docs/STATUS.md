@@ -79,11 +79,11 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
 3. Robustness: cable pull, panel power cycle, poll/LED interleave under load.
-4. Config: the design is decided (2026-10-20: panels RAM-only, master persists
-   in EEPROM, whole-config `'W'`/`'w'`, a "not configured" bit in `'f'`). Still
-   open in `docs/PANEL_CONFIG.md` → "Open questions": the `'W'` byte layout,
-   auto-calibration (deferred until installed-pad data). Versioning and
-   factory reset decided the same day.
+4. Config: designed 2026-10-20, ready to build. Panels RAM-only; the master
+   persists a two-copy EEPROM record; bus `'W'`/`'w'` layouts and the "not
+   configured" bit in `'f'` (`docs/RS485_PROTOCOL.md`); versioning; factory
+   reset. Auto-calibration deferred until installed-pad data. The USB side is
+   step 5.
 5. USB command and data reports: live telemetry and config for host software.
 6. Animations: flash slots, pressed/released playback, conversion in the upload
    program. APNG as the format, whole-frame per-frame delays, flag-row loop markers,

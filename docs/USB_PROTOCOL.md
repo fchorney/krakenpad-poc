@@ -53,6 +53,82 @@ Stock's fragmentation scheme (flags byte: START/END, payload ≤ 61 bytes/packet
 one command in flight, response carries FINISHED flag) is simple and proven —
 **keep the mechanism as-is**, drop the legacy variants inside it.
 
+**DECIDED 2026-10-20: command and data go over HID, on a second HID interface
+of their own** (vendor-defined usage page `0xFF00`), not in the joystick's
+interface as stock does. Why HID: no driver on any OS, and hidapi (already in
+deadsync and ITGmania) handles it; the traffic is small (config ~200 bytes,
+telemetry ~1.2 KB/s at the measured ~14 Hz per panel), so a bulk endpoint buys
+nothing. Why a separate interface: games and OS gamepad stacks keep seeing the
+plain 9-button joystick exactly as built and tested, the SDK never contends
+with a game for the joystick interface, and a fault in the command channel
+can't touch the press path. **Fallback if that fails on some OS:** extra report
+IDs in the joystick's interface, stock's way (the input report's ID 1 leaves
+room). The CDC serial console stays as the bench interface.
+
+**DECIDED 2026-10-20: packet framing on the vendor interface.** Every packet,
+both directions:
+
+| Byte | Field |
+|---|---|
+| 0 | kind: `cmd` (host → master), `resp` (reply to a command), `event` (unasked: panel state, per-panel config results, update progress, panel connect/disconnect), `stream` (telemetry) |
+| 1 | transaction ID: set by the host on each command, echoed on every packet of its response; 0 for `event` and `stream` |
+| 2 | flags: START, END (stock's fragmentation) |
+| 3 | payload bytes in this packet |
+| 4… | payload |
+
+- **One command in flight**, as stock. `event` and `stream` packets flow at any
+  time between response packets; the kind byte lets the SDK's reader thread
+  route them: `resp` completes the waiting call, `event` goes to the event
+  queue, `stream` updates the state snapshot (`docs/HOST_SOFTWARE.md`).
+- No report ID byte: the interface has one input and one output report.
+- **Packet size is a parameter, not a constant.** The device-info response
+  states it and the SDK never assumes 64. **Shipped as 64 bytes at both
+  speeds** (60 payload), which Full Speed requires. At High Speed, 64-byte
+  packets carry ~500 KB/s each way against a planned peak of ~40 KB/s (60 Hz
+  LED frames of 675 bytes, 12 packets / ~1.5 ms each), so ~10× headroom. A
+  larger High Speed report (up to 1,024 bytes, chosen by negotiated speed at
+  enumeration) is a later option if a measured need appears; it would change
+  the firmware descriptor, not the SDK's logic.
+
+**DECIDED 2026-10-20: telemetry stream.**
+- **Each panel's `'f'` reply is forwarded as it arrives** (no fixed-rate
+  whole-pad snapshot), as a 14-byte record: panel ID (1), **master timestamp in
+  µs** when the reply arrived (4), 4 × raw ADC (8), the `'f'` mask byte with its
+  "not configured" bit (1). Up to four records per 60-byte payload. No added
+  batching delay, and the timestamps show real sample spacing (drift and noise
+  analysis, missed polls). The SDK's snapshot keeps the latest per panel; the
+  stream carries the history.
+- **Off by default**, switched on by a command (in practice the SDK, when an
+  app asks). Nothing fills the USB queue when no one reads, and a host that
+  opens the pad late doesn't start with a backlog of stale reports buffered by
+  its OS.
+- **The master drops stream packets when its USB queue is full; it never
+  blocks.** A stalled host must not slow the bus or the press path.
+- The enable command carries a **mode**; only **raw** exists until
+  auto-calibration (stock's calibrated / noise / tare modes come then, without
+  a format change).
+- The rate is whatever the bus achieves (~14 Hz per panel today); raising it
+  is poll interleaving, `docs/STATUS.md` next steps.
+- The timestamps are the master's µs clock, the same timebase planned for
+  timestamped presses (`docs/TIMESTAMPED_INPUT.md`).
+
+**DECIDED 2026-10-20: firmware updates through the SDK.**
+- **Panels (app and bootloader):** the update logic stays on the PC, ported
+  from `tools/panel_update.py` / `panel_boot_update.py` into the Rust SDK. The
+  master only forwards: a **bus passthrough command** on the vendor interface
+  carries bus frames in `cmd` packets, bus replies come back as `event`
+  packets, and the master pauses its own LED frames and polls while it is
+  active, as the console's `P` does today. That replaces the text-console
+  passthrough for the SDK; `P` stays for the Python bench tools.
+- **The master:** a vendor-interface command reboots it into the Teensy's own
+  bootloader (PJRC's HalfKay), and the SDK writes the new firmware over HID
+  itself, following the protocol in PJRC's open-source `teensy_loader_cli`
+  (details to check against its source for the Teensy 4.0 when built). Users
+  install nothing extra to update the master.
+- **Order when both need it: master first, then panels.** Panel updates run
+  through the master, so a new panel image may rely on new master behaviour,
+  never the reverse.
+
 ### Input state report
 
 - 16-bit little-endian bitmask, bits 0–8 = panels 0–8 (same layout as stock)
@@ -167,9 +243,9 @@ USB**, not the qualify window.
 | Stock | Ours | Notes |
 |-------|------|-------|
 | Device info (flag 0x80) | keep | version, serial, capabilities; add per-panel presence bitmap + termination check result (see MODULAR_PANEL_COUNT) |
-| `'G'` get config | keep | our config format (see PANEL_CONFIG.md); single format, no v4/v5 legacy split |
-| `'W'` set config | keep | ack + read-back verify like stock SDK does |
-| `'f'` factory reset | keep | resets config + animation slots (magic-byte redetect, defaults rewritten) |
+| `'G'` get config | keep | our config format (see PANEL_CONFIG.md); single format, no v4/v5 legacy split. **Answered from the master's canonical copy** (2026-10-20): the config app reads with `'G'`, edits, writes with `'W'` |
+| `'W'` set config | keep | ack + read-back verify like stock SDK does. The master saves it to EEPROM and pushes RS-485 `'W'` to each panel; whether each panel accepted it (its `'w'` CRC) is reported back (2026-10-20) |
+| `'f'` factory reset | keep, **split** (2026-10-20) | ~~resets config + animation slots (magic-byte redetect, defaults rewritten)~~ two separate actions: reset config (master EEPROM → defaults, pushed to panels) and reset animations (one panel or all). `docs/PANEL_CONFIG.md` → "Factory reset" |
 | `'C'` force recalibration | keep | master forwards to panels over RS-485 |
 | `'L'` platform strip | keep | underglow, master-local, write-on-command (see UNDERGLOW.md) |
 | `'m'`+`'d'` animation upload | adapt | upload `.smxa` to panel flash slots. Ack-based flow control over RS-485 replaces the blind `'d'` delay hack; no interleaved-across-panels dance, no send-twice-for-reliability |
@@ -211,7 +287,7 @@ USB**, not the qualify window.
 ## Open questions
 
 - ~~Exact report IDs / descriptor layout~~ input report decided and built 2026-10-19 (above); the command and data reports are still open
-- Whether FSR streaming uses the data report or a dedicated input-style report
-- Config split: which fields live master-side vs panel-side (see PANEL_CONFIG.md)
+- ~~Whether FSR streaming uses the data report or a dedicated input-style report~~ decided 2026-10-20: the `stream` kind on the vendor interface
+- ~~Config split: which fields live master-side vs panel-side~~ decided 2026-10-20: the master holds all of it; panels are RAM-only (`docs/PANEL_CONFIG.md`)
 - 2000Hz+ polling: HS bInterval choice (0.5ms vs 0.25ms vs 0.125ms) after
   measuring real host-side behavior

@@ -146,6 +146,14 @@ persistence"). The SDK can't tell when a song is playing, so it doesn't enforce
 this: it is the caller's responsibility, and the SDK's documentation for those
 calls says so. The firmware relies on the rule instead of protecting play.
 
+**Direction (2026-10-20): firmware reaches users as published binaries.** Master
+and panel firmware are built and attached to the repo's releases; the config
+app checks for newer versions and offers to install them (master first). Users
+never build firmware; power users who change the code can. To settle when it
+is built: the release's contents and a manifest (versions, which master goes
+with which panel firmware, config format version, checksums), and how the app
+finds the latest release.
+
 ## Not decided
 
 - How the SDK takes over bus updates (`docs/FIELD_UPDATE.md`), which today go

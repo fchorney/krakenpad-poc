@@ -58,7 +58,13 @@ that decoupling all the way into the host's timeline.
   (ITGmania input arch; DeadSync is presumably more malleable).
 - Sync transport choice (feature-report ping vs SOF-based) and required probe
   cadence for the drift budget.
-- Whether the RS-485 FSR telemetry timestamps should ride the same timebase
-  (probably yes — one master timebase, everything referenced to it).
+- ~~Whether the RS-485 FSR telemetry timestamps should ride the same timebase~~
+  yes, decided 2026-10-20: the USB telemetry stream carries the master's µs
+  clock (`docs/USB_PROTOCOL.md`).
+- **Direction (2026-10-20): the SDK runs the clock sync**, in its background
+  thread, and hands games timestamps already converted to the host's monotonic
+  clock, so no game implements offset and drift estimation itself. The USB
+  command list's "latency probe" is the same exchange. Raised by the user:
+  periodic sync of the master's clock with the game's.
 - Interaction with the 8kHz stretch goal: likely reframes it — 8kHz becomes a
   latency optimisation only, and may not be worth host-side jitter fights.

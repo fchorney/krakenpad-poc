@@ -71,8 +71,56 @@ does not have it yet.
 - addr = panel ID, len 9
 - Payload: 4 × uint16 little-endian raw ADC values (channels 0–3), then 1 byte
   pressed bitmask (bit i = channel i pressed, post-hysteresis/persistence)
+- **Decided 2026-10-20, not built:** bit 7 of the last byte = **not configured
+  since boot**. Set at every boot, cleared by the first accepted `'W'`; the
+  master sends that panel its config at its next poll slot. Readers take the
+  pressed mask as `byte & 0x0F`.
 
-### `'C'` — set FSR thresholds (master → one panel)
+### `'W'` — set whole panel config (master → one panel) — decided 2026-10-20, not built
+
+- addr = panel ID (never broadcast), len 21. Design and reasoning:
+  `docs/PANEL_CONFIG.md` → "Config persistence and the write protocol".
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 1 | config format version, **1** (bumped on any format change) |
+| 1 + 5i | 2 | channel i press threshold, raw ADC counts, u16 LE (i = 0–3, the `'f'` order) |
+| 3 + 5i | 2 | channel i release threshold |
+| 5 + 5i | 1 | channel i flags: bit0 `populated`, bit1 `enabled`, bits 2–7 must be 0 |
+
+- A channel takes part in press detection only when both flag bits are set.
+- **Accepted only whole:** the version is known, `release < press ≤ 4095` on
+  every channel, reserved bits are 0. Otherwise the panel rejects it and keeps
+  the config it has. It never applies part of one.
+- Takes effect immediately, **RAM only by design**: panels never persist config;
+  the master does.
+- Not in version 1: the rest baseline (the panel doesn't use it; it stays on
+  the master/host side), the fallback timeout (fixed 100 ms), auto-calibration
+  (deferred).
+
+### `'w'` — config ack (panel → master, reply only)
+
+- addr = panel ID, len 6. Reply window (5 + 6) × 10 + 260 = 370 µs.
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 1 | status: 0 applied, 1 unknown version, 2 invalid values |
+| 1 | 1 | highest config version this panel firmware speaks |
+| 2 | 4 | CRC-32 (zlib) of the config **now in use**, serialised in `'W'`'s form |
+
+- The CRC is computed from the panel's live config turned back into `'W'` form,
+  so a match proves the panel runs exactly the master's values; the master
+  doesn't have to trust the status byte alone.
+- **No bus read-back command (`'R'`/`'r'`), on purpose:** the CRC makes it
+  redundant for operation. Add one only if a mismatch ever needs diagnosing
+  field by field. Reading config from the PC is a USB matter (`'G'` in
+  `docs/USB_PROTOCOL.md`), answered from the master's copy.
+
+### ~~`'C'` — set FSR thresholds (master → one panel)~~ — to be removed when `'W'` lands (decided 2026-10-20)
+
+The master re-sends `'W'` about once a second and is canonical, so a threshold
+set with `'C'` would be overwritten within a second. The master's `S` console
+command becomes "edit the master's copy and push `'W'`" instead.
 
 - addr = panel ID, len 5
 - Payload: `[channel]` (0–3, or `0xFF` = all) `[press u16 LE]` `[release u16 LE]`
