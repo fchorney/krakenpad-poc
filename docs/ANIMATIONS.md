@@ -146,7 +146,7 @@ and recovers gracefully from cable disconnection during play.
 
 ## Converter tool
 
-The existing `~/Documents/repos/personal/stepmaniax-gif-maker` tool (already
+The existing `~/Documents/repos/personal/dancegames/stepmaniax-gif-maker` tool (already
 handles the serpentine mapping) will be extended to:
 
 1. Read source APNG/WebP (adding APNG/WebP support — it's GIF-based today)
