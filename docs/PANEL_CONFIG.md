@@ -294,7 +294,9 @@ unchanged bytes, so a save costs little wear.
 
 Version 1 holds only the nine panel configs. Rest baselines, auto-calibration
 values, the underglow idle colour and other pad-wide settings each arrive with
-a version bump when they are built.
+a version bump when they are built. Among them: the **underglow byte order**
+(RGB / GRB / BRG…), per pad, because different pads' strips differ; the master
+converts from USB's RGB with it (`docs/USB_PROTOCOL.md`).
 
 ## Config versioning (decided 2026-10-20)
 

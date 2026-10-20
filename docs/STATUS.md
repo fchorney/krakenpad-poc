@@ -84,7 +84,9 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
    configured" bit in `'f'` (`docs/RS485_PROTOCOL.md`); versioning; factory
    reset. Auto-calibration deferred until installed-pad data. The USB side is
    step 5.
-5. USB command and data reports: live telemetry and config for host software.
+5. USB command and data reports: designed 2026-10-20, ready to build. A
+   separate vendor HID interface, packet framing, the command table, the
+   telemetry stream and the update paths (`docs/USB_PROTOCOL.md`).
 6. Animations: flash slots, pressed/released playback, conversion in the upload
    program. APNG as the format, whole-frame per-frame delays, flag-row loop markers,
    length+CRC and the gif-maker fork decided 2026-10-20; max LED rate, ms vs

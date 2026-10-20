@@ -236,6 +236,82 @@ only an "is it still low?" check. Averaging is strictly a panel-side (analog)
 concern. If latency ever needs squeezing, the biggest lever is **8 kHz vs 4 kHz
 USB**, not the qualify window.
 
+## Command table (reviewed 2026-10-20, not built)
+
+Applies the decisions above to concrete payloads. Reviewed by the user on
+2026-10-20: the choices listed at the end are decided.
+Codes and payloads may still shift when it is built. All multi-byte fields are
+little-endian. In every `cmd`, `resp`, `event` and `stream` packet, payload
+byte 0 is a code saying which one it is; the tables below give the rest.
+
+### Commands (`cmd`, host → master)
+
+| Code | Command | Request payload | Response (`resp`) |
+|---|---|---|---|
+| 0x01 | Device info | — | below |
+| 0x02 | Get config | — | config version u8, then the 180-byte panel config block of the EEPROM record (`docs/PANEL_CONFIG.md`) |
+| 0x03 | Set config | config version u8 + 180-byte block | status u8: 0 saved, 1 unknown version, 2 invalid (+ panel u8, channel u8 of the first bad value). Saved = in EEPROM and being pushed; each panel's outcome follows as a *config result* event |
+| 0x04 | Pad status | — | per panel 0–8, 12 bytes: present u8, last reply age ms u16 (0xFFFF = never), polls answered % u8, CRC errors u16, config state u8 (*config result* codes), panel build tag u32, termination switch u8 |
+| 0x05 | Telemetry stream | on u8, mode u8 (0 raw) | status u8 |
+| 0x06 | Reset config | — | status u8. Defaults saved and pushed; results follow as events |
+| 0x07 | Reset animations | panel mask u16 | status u8. Waits on the animation design (writing slots) |
+| 0x08 | LED frame | 9 panels × 25 LEDs × RGB = 675 bytes, panel 0 first, each panel in its wire (serpentine) order (`docs/ANIMATIONS.md`) | none (see question 2) |
+| 0x09 | Underglow frame | 44 groups × RGB = 132 bytes, from the connector end | none (see question 2) |
+| 0x0A | Panel LED mode | panel mask u16, mode u8, seconds u8 (0 = until changed) | status u8 |
+| 0x0B | Slot self-test | — | per INT slot 0–8: answering panel ID u8 (0xFF none), ack u8. The master's `I` |
+| 0x0C | Zero counters | — | status u8. The master's `z` |
+| 0x0D | Bus passthrough | enter u8 (1 enter, 0 leave) | status u8 |
+| 0x0E | Bus frame | cmd u8, addr u8, payload (≤ 80) | none; bus replies come back as *bus frame* events |
+| 0x0F | Reboot to bootloader | magic u32 (guards against a stray byte) | status u8, then the master reboots into HalfKay |
+| 0x10 | Clock probe | host time u64 (host's units) | host time echoed u64, master receive µs u32, master send µs u32 |
+
+**Device info** (`resp` to 0x01): protocol version u8, packet size u8 (64),
+firmware version major/minor/patch u8 ×3 + build tag u32, config format
+version u8 (highest it speaks), player ID u8 (DIP), flags u8 (bit0 config was
+reset at boot, bit1 stream on, bit2 passthrough active), panel presence u16
+(bit n = panel n answering), termination check u8 (0 OK, 1 none, 2 several,
+3 wrong panel) + the terminated panel's ID u8.
+
+### Events (`event`, master → host, unasked)
+
+| Code | Event | Payload |
+|---|---|---|
+| 0x81 | Panel presence changed | panel u8, present u8 |
+| 0x82 | Config result | panel u8, state u8 (0 matches, 1 sent and waiting, 2 rejected: unknown version, 3 rejected: invalid, 4 not configured, 5 absent), panel's config CRC u32 |
+| 0x83 | Config was reset | — (also in device info, for a host that connects later) |
+| 0x84 | Bus frame | cmd u8, addr u8, payload: a CRC-valid frame from the bus, passthrough only |
+
+### Streams (`stream`, master → host, only while enabled)
+
+| Code | Stream | Payload |
+|---|---|---|
+| 0xC1 | FSR raw | up to 4 records of 14 bytes (decided above) |
+
+Master timestamps are u32 µs and wrap every ~71.6 minutes; the SDK unwraps
+them.
+
+### Choices in this table
+
+1. **DECIDED: numeric codes on USB, letters on the bus.** Reason to keep
+   the bus on letters: every panel bootloader recognises `'B'` and `'Q'`, which
+   is how any app reaches a panel on any firmware, so the bus letters are
+   permanent; USB has no deployed base yet. Letters also read at a glance on a
+   scope or logic-analyser decode.
+2. **DECIDED: fire-and-forget.** A command with **transaction ID 0 gets no
+   response and doesn't count as in flight**; only LED frames, underglow frames
+   and bus frames may use it. The newest LED frame wins, as stock.
+3. **DECIDED: LED pixel order** on USB is each panel's wire (serpentine) order;
+   the SDK offers a helper from a row-by-row image, so games never deal with
+   the serpentine.
+4. **DECIDED: underglow is RGB on USB**; the master converts to the strip's
+   order. Pads' strips differ (RGB, GRB, BRG seen), so the byte order becomes a
+   **per-pad config field**, added with the other underglow settings in a later
+   config version (`docs/PANEL_CONFIG.md`).
+5. **DECIDED: packet size bootstrap:** the SDK reads the report size from the
+   HID descriptor (hidapi) before its first command; device info confirms it.
+6. **DECIDED: pad status** is one call for the config app's overview: bus health
+   plus each panel's config state, build tag and termination switch.
+
 ## Command inventory (from stock → ours)
 
 ### Keep (with cleanups)
