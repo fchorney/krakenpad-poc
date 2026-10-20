@@ -1,0 +1,14 @@
+# Host software: the SDK, its C interface and the apps (docs/HOST_SOFTWARE.md).
+# Kept apart from firmware/ and hardware/. Not published to crates.io; deadsync
+# uses the SDK as a path dependency while everything lives in this repo.
+[workspace]
+resolver = "3"
+members = ["sdk"]
+
+[workspace.package]
+version = "0.1.0"
+# Match deadsync where they overlap, so the SDK drops into it without conflicts
+# (docs/HOST_SOFTWARE.md → versions). Raised only on purpose.
+edition = "2024"
+rust-version = "1.97"
+publish = false

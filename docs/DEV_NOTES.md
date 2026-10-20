@@ -144,6 +144,14 @@ to `(footprint …)` when adding to a project library. Preview headless with
   it is built on the SysTick count. Time such stretches with `ARM_DWT_CYCCNT`
   (enabled by the core at startup).
 
+## Rust (host software)
+
+- **`software/` needs Rust 1.97 or later** (`rust-version`, pinned to
+  deadsync's). Cargo refuses an older compiler outright; `rustup update
+  stable`. To try a change on an older one: `--ignore-rust-version`.
+- **Formatting is `cargo fmt` with the defaults**, as `rustmaniax-sdk` and
+  deadsync (neither has a `rustfmt.toml`).
+
 ## USB devices on the bench
 
 The Teensy, the debugprobe Pico and every brain all enumerate as

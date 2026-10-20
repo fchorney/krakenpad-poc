@@ -92,6 +92,7 @@ hardware/
   harness/           # our cable harnesses (WireViz) — as built
   fab-archive/       # exact files sent to fab, per revision
   Master-Case/       # master enclosure 3D-print models
+software/            # Cargo workspace: sdk/ = crate krakenpad, the Rust SDK (docs/HOST_SOFTWARE.md)
 docs/                # status, as-built references, protocols, procedures
   rev1-order/        # how rev 1 was verified, ordered and bought (frozen record)
   archive/           # superseded material, banner-marked, kept for the rationale

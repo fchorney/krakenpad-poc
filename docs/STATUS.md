@@ -44,7 +44,7 @@ models).
 |---|---|---|
 | **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, not yet run on a board:** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed | Local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
 | **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check. **Built 2026-10-20, not yet run on hardware:** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry is ~14 Hz/panel, ~12.7 expected with the re-push) |
-| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, not yet run against a master) | The SDK and apps: **Rust SDK with a C interface, apps in Rust + egui**, decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
+| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, not yet run against a master). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; tested against a fake master only | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 `docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. A future idea, not scheduled:
@@ -89,12 +89,15 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 **The user's plan (2026-10-20): (a) config on the bus, (b) the master's vendor
 HID interface, (c) the Rust SDK skeleton in `software/sdk` against (b)**
-(`docs/HOST_SOFTWARE.md`). **(a) and (b) were built 2026-10-20**, (b) with the
-whole command table except underglow and reset animations (the user's call),
-and neither has run yet. **Next: the bench procedure** in
-`docs/MASTER_BRINGUP.md` → "Config and the USB vendor interface", with the pad
-plugged in; then (c), with `tools/pad_cmd.py` as the working reference for the
-framing.
+(`docs/HOST_SOFTWARE.md`). **All three were built 2026-10-20, plus the master's
+parser resync, and none has run on the pad yet.** (b) covers the whole command
+table except underglow and reset animations (the user's call); (c) is tested
+against a fake master. **Next: the bench procedure** in
+`docs/MASTER_BRINGUP.md` → "Config and the USB vendor interface" (it ends with
+the SDK's `monitor` example) and → "Parser resync", with the pad plugged in.
+The SDK's C interface (`krakenpad-c`) isn't needed yet (the user, 2026-10-20).
+How the SDK and firmware share values after the repos split is open
+(`docs/HOST_SOFTWARE.md` → "Not decided").
 
 1. ~~Inter-byte timeout in the panel parser~~ done 2026-10-20: master `b`
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.

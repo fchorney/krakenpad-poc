@@ -410,7 +410,9 @@ after 2,048 writes to one sector, so it is rare.
   builds a copy of the sketch elsewhere, so a relative include outside
   `firmware/master/` won't resolve; `build.sh` has to add the include path.
   How the Rust SDK gets the same values is a separate question, for when the
-  SDK exists.
+  SDK exists. *(Answered 2026-10-20 while building the SDK skeleton, for
+  review: it repeats them, and a test reads this header and fails if any
+  differ. `docs/HOST_SOFTWARE.md` → "Built".)*
 
 ## Auto-calibration: starting direction (2026-10-20, not decided)
 

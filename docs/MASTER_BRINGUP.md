@@ -357,6 +357,11 @@ defaults and the old master's `S` would do nothing.
      presence and config result events.
    - Optional: `bootloader --yes` puts the Teensy in HalfKay; `build.sh upload`
      brings it back.
+   - **The Rust SDK**, from `software/`: `cargo run --example monitor`. It
+     should print `PadConnected` with the master's version and panels, then
+     live values for every panel. Pressing a panel shows `*`. Unplugging a
+     panel's bus cable shows a presence event. Needs Rust 1.97 or later
+     (`docs/HOST_SOFTWARE.md` → "Built").
 10. **Regression:** `I`, `b`, `H`, `P` with `tools/panel_update.py`, the
     full-white `w`, and `hid_monitor.py` presses all behave as before.
 

@@ -1,7 +1,9 @@
 # Host software — SDK and apps
 
-**Status: decided, not built** (2026-10-20). What runs on the PC: the SDK that
-games link, and the apps built on it. The USB interface they talk to is
+**Status: the SDK's Rust skeleton is built (2026-10-20) and tested against a
+fake master; it has not talked to a real pad yet.** The C interface and the
+apps are not built. What runs on the PC: the SDK that games link, and the apps
+built on it. What exists: "Built (2026-10-20)" below. The USB interface they talk to is
 `docs/USB_PROTOCOL.md`: the joystick report works on the bench, and the vendor
 interface the SDK uses was built in the master 2026-10-20 but has not yet run
 on hardware. Until the SDK exists, **`tools/pad_cmd.py` speaks every vendor
@@ -157,7 +159,106 @@ is built: the release's contents and a manifest (versions, which master goes
 with which panel firmware, config format version, checksums), and how the app
 finds the latest release.
 
+## Built (2026-10-20, not yet run against a pad)
+
+The skeleton of the Rust SDK: crate **`krakenpad`** in `software/sdk`, in the
+`software/` Cargo workspace. Its only dependency is `hidapi` 2.6.7 (the pinned
+version), and it has no `unsafe` (`#![forbid(unsafe_code)]`).
+
+**Build and test** from `software/`: `cargo test`, `cargo clippy --all-targets`,
+`cargo fmt`. **It needs Rust 1.97 or later** (the pinned `rust-version`). First
+built on 1.96 with `--ignore-rust-version`, then on **1.99.1** (the user updated
+the same day): tests, clippy and fmt clean without the flag.
+
+**The pieces** (`software/sdk/src/`):
+
+| File | What |
+|---|---|
+| `protocol.rs` | Packet framing and reassembly, command and event codes. The firmware's and `tools/pad_cmd.py`'s framing, a third time |
+| `config.rs` | `PadConfig` / `PanelConfig` / `ChannelConfig`, the validity rule, the `'W'` CRC |
+| `messages.rs` | The master's answers, decoded: device info, pad status, telemetry samples, self-test, clock probe, LED frame |
+| `transport.rs` | hidapi behind a small trait: finds the vendor interface by VID/PID, usage page `0xFF00`, usage 1 and the product string |
+| `pad.rs` | One pad: its reader thread, commands, state, the public `Pad` |
+| `context.rs` | `Context`: the manager thread, the pads by player ID, the event queue |
+| `events.rs` | `Event` and the queue |
+| `fake.rs` | A fake master for the tests |
+
+**How it behaves:**
+- **Two HID handles per pad**, as `rustmaniax-sdk` does: the reader thread owns
+  one and callers write through the other, so a write never waits on a read.
+  On macOS that needs hidapi's `macos-shared-device` feature, which
+  `rustmaniax-sdk` already turns on in deadsync's build.
+- **Finding pads:** the manager thread scans every second. A new pad gets a
+  handshake (device info, then the config and pad status, so its first
+  snapshot is complete) and is registered under its player ID, and then
+  `PadConnected` goes out. **Refused, with `PadRejected`**: a master whose
+  protocol version or packet size differs from the SDK's, a duplicate player
+  ID, or a **reserved player ID (4–7). A master straight from assembly reads 7**
+  (all switches off). A refused master stays refused until it is replugged.
+- **Stale input:** at open the reader discards whatever the master queued
+  earlier (up to 200 ms), and transaction IDs start at an unpredictable value.
+  A test confirms the discard matters: without it, a stale response made the
+  pad register under the wrong player.
+- **Commands:** one in flight per pad, matched by transaction ID; a late
+  response is counted and dropped. Timeouts: 1 s; 3 s for set and reset config
+  (they save first); 5 s for the self-test.
+- **Events** that arrive during the handshake are held until the pad is
+  registered, so every event names its pad and none comes before
+  `PadConnected`. "Config was reset" comes from device info's flag at connect,
+  not from the master's own event, which only the first program to open the
+  pad would see.
+- **Telemetry** is off at connect; `set_telemetry(true)` streams into the
+  snapshot, which keeps the latest sample per panel.
+
+**The API**: `Context::new`, `pads`, `pad(player)`, `poll_event`, `wait_event`,
+`set_wake`; `Pad::snapshot`, `info`, `config`, `stats`, `device_info`,
+`get_config`, `set_config`, `reset_config`, `pad_status`, `set_telemetry`,
+`set_led_mode`, `self_test`, `zero_counters`, `send_led_frame`, `clock_probe`.
+The doc comments carry the "not during gameplay" rule for saving.
+
+**Tests:** 25 plus the doc example, 20 runs clean in a row. The fake master
+shares the SDK's reading of the protocol, so it can't catch a misreading of the
+firmware; the bench does that. **First run on the pad:** `cargo run --example
+monitor` from `software/` prints events and live FSR values
+(`docs/MASTER_BRINGUP.md` → "Config and the USB vendor interface").
+
+**Choices made while building it, for review:**
+- **How the SDK gets the firmware's shared values** (`docs/PANEL_CONFIG.md`
+  left this open): for now it repeats them, and a test reads
+  `firmware/shared/panel_config.h` and fails if any differ. That only works
+  while both live in this repo; the longer-term answer is open ("Not decided"
+  below).
+- **Player IDs 4–7 are refused**, following "4–7 reserved". The alternative was
+  accepting them as extra pads.
+- **No logging dependency**: problems surface as `Pad::stats()` counters and
+  `Error` values.
+
+**Not built yet:** `krakenpad-c` (the C interface and its `cbindgen` header;
+**not needed yet**, the user, 2026-10-20: it waits for a C or C++ program that
+uses the SDK);
+reading the packet size from the HID descriptor (the SDK assumes 64 and
+refuses a master that says otherwise); the row-by-row image helper for LED
+frames; sample history for graphs (the snapshot keeps only the latest);
+passthrough and panel updates; writing master firmware over HID; clock sync
+(only the probe exists); underglow; reset animations; timestamped input.
+
 ## Not decided
+
+- **How the SDK and the firmware share values once they live in separate
+  repos** (raised 2026-10-20; the user is unsure). Today the SDK repeats the
+  config format's values and a test reads the firmware's header. Options:
+  1. **Keep that**, with the header copied into the SDK's repo and the test
+     run against each new firmware release.
+  2. **One source file** (say, a small TOML) that generates both the C header
+     and the Rust constants, in a repo both use.
+  3. **Share less.** The SDK can learn most of it from the master: the config
+     version is in device info, the master applies defaults (Reset config) and
+     validates (Set config names the first bad channel). What is left is the
+     byte layout of each config version, which never changes once released.
+     That needs shared **test vectors** (bytes and their CRCs) that every
+     implementation checks, the same "shared test data" planned for a C++ port
+     (above). Defaults, if the SDK ever needs them, could come from a new
+     command.
 
 - How the SDK takes over bus updates (`docs/FIELD_UPDATE.md`), which today go
   through the master's text-console passthrough. The master's side is built
