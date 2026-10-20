@@ -29,7 +29,7 @@ models).
   (9 buttons, 8 kHz offered at High Speed). Checked on a Mac with
   `tools/hid_monitor.py`.
 - **RS-485 bus, nine panels:** 0 errors in steady state; `I` slot ↔ ID self-test
-  9/9; `H` status from every panel; termination placement check after each `H`.
+  9/9; parser recovers from a broken packet (`b` test, 2026-10-20); `H` status from every panel; termination placement check after each `H`.
 - **Bus firmware update** to all nine at once (`tools/panel_update.py`),
   including recovery from a 12 V cut mid-update.
 - **Panel LED modes:** master `'L'` frames, the ID image, and the on-panel sensor
@@ -52,9 +52,8 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 - **Connect USB before 12 V** on any panel. A powered brain back-drives its VBUS,
   so a host won't attach (rev-2 candidate #3).
-- **Panel RS-485 parser has no inter-byte timeout.** Unconfirmed suspect for IDs
-  lost later in the same `I` run, after a collision (`docs/BRINGUP_LOG.md`, master
-  #2, 2026-10-19).
+- **The master's and the bootloader's RS-485 parsers have no inter-byte
+  timeout.** The panel app's got one on 2026-10-20 (`docs/BRINGUP_LOG.md`).
 - **Master turnaround glitch:** whether the master's RX sees the same false start
   bit the panel did has never been measured (`docs/MASTER_BRINGUP.md`).
 - **Not yet measured:** the joystick in a real game (ITGmania), the host-side
@@ -69,13 +68,18 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Next steps (firmware/software)
 
-1. Inter-byte timeout in the panel parser, then re-run the nine-panel `I` test.
+1. ~~Inter-byte timeout in the panel parser~~ done 2026-10-20: master `b`
+   test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
 3. Robustness: cable pull, panel power cycle, poll/LED interleave under load.
 4. Config in flash: write the protocol spec first (`docs/PANEL_CONFIG.md` →
    "Open questions"); calibration and the USB command report depend on it.
 5. USB command and data reports: live telemetry and config for host software.
-6. Animations: `.smxa`, flash slots, pressed/released playback, converter.
+6. Animations: flash slots, pressed/released playback, conversion in the upload
+   program. Source format, whole-frame per-frame delays, flag-row loop markers,
+   length+CRC and the gif-maker fork decided 2026-10-20; max LED rate, ms vs
+   frame units, loop counts and the panel layout still open
+   (`docs/ANIMATIONS.md` → "Decisions and open questions").
 7. Underglow: periodic re-send, then the host command. (Deferred by the user on
    2026-10-08: noted, not to be built yet.)
 

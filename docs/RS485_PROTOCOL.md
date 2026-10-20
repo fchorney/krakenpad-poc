@@ -35,6 +35,16 @@ Receivers hunt for `0x55`, then validate CRC; on mismatch, drop and re-hunt.
 (`0x55` can appear inside payloads — the CRC is what actually validates a frame.
 Good enough for v0; re-sync loss just costs one frame.)
 
+**A packet is sent without pauses** (2026-10-20). The panel's gameplay firmware
+abandons a packet if the bus goes idle for more than **500 µs** partway
+through it, and counts it in `'h'`'s parser-timeout field. Without this, garbage that
+happened to parse as a large `len` swallowed the next real packets as its
+payload. Recovery waits for the next idle gap, so inside the master's
+back-to-back `'L'` burst it comes at the end of the burst. The threshold sits
+above the 320 µs the 32-byte RX FIFO takes to fill, so interrupt latency alone
+can't fake a gap without also overrunning the FIFO. The master's parser and the
+bootloader's don't have this yet.
+
 ## Commands
 
 ### `'L'` — LED frame (master → panels)
@@ -92,7 +102,9 @@ Good enough for v0; re-sync loss just costs one frame.)
 
 ### `'h'` — status (panel → master, reply only)
 
-- addr = panel ID, len 22. All multi-byte fields little-endian.
+- addr = panel ID, len 24 from the gameplay firmware (since 2026-10-20), 22
+  from the bring-up firmware, which has no parser timeout. The master accepts
+  both. All multi-byte fields little-endian.
 
 | Offset | Size | Field |
 |---|---|---|
@@ -105,11 +117,12 @@ Good enough for v0; re-sync loss just costs one frame.)
 | 14 | 2 | RX ring overruns (saturates) |
 | 16 | 2 | turnaround glitches (saturates) |
 | 18 | 4 | frames received OK |
+| 22 | 2 | parser timeouts: packets abandoned after a mid-packet idle gap over 500 µs (saturates; gameplay firmware only) |
 
-Counters are since the responder was last switched on, or since the last `'Z'`. At 27 bytes on the
-wire this is the longest reply, 270 µs; the master's reply window is now sized
+Counters are since the responder was last switched on, or since the last `'Z'`. At 29 bytes on the
+wire this is the longest reply, 290 µs; the master's reply window is now sized
 per request (`(5 + reply payload) × 10 µs + 260 µs`), which keeps `'f'` at its
-original 400 µs and gives `'h'` 530 µs.
+original 400 µs and gives `'h'` 550 µs.
 
 ### `'Z'` — zero counters (master → panels)
 
@@ -240,7 +253,7 @@ The rule now, master side (`firmware/master/master.ino`, `sendRequest()`):
   when DE drops). The LED burst and the next poll both wait for it. It was a
   flat 400 µs, covering `'f'` (14 bytes = 140 µs) plus panel turnaround; since
   2026-10-18 it is sized per request as `(5 + reply payload) × 10 µs + 260 µs`,
-  which is still 400 µs for `'f'` and 530 µs for the 27-byte `'h'`.
+  which is still 400 µs for `'f'` and 550 µs for the 29-byte `'h'`.
 - **`'C'` and `'H'` take a poll slot** instead of being sent from the command handler.
 - **The clock is re-read after the LED burst**, and the next poll is scheduled
   from the time it was actually sent.

@@ -239,11 +239,12 @@ void sendPacket(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len) 
 // The window is sized per request from the reply it expects: 10us per byte at
 // 1 Mbps for the whole frame (5 bytes of framing + payload), plus a fixed
 // margin for the panel's turnaround. For 'f' (14 bytes) that is the original
-// 400us; 'h' (27 bytes) gets 530us.
+// 400us; 'h' (29 bytes) gets 550us.
 constexpr uint32_t REPLY_MARGIN_US = 260;
 constexpr uint8_t  REPLY_F_LEN = 9;    // 'f' payload
 constexpr uint8_t  REPLY_C_LEN = 5;    // 'c' payload
-constexpr uint8_t  REPLY_H_LEN = 22;   // 'h' payload
+constexpr uint8_t  REPLY_H_LEN = 24;   // 'h' payload (gameplay firmware)
+constexpr uint8_t  REPLY_H_LEN_OLD = 22; // bring-up firmware: no parser timeouts
 uint32_t bus_quiet_from_us = 0;
 
 void sendRequest(uint8_t cmd, uint8_t addr, const uint8_t *payload, uint8_t len,
@@ -350,7 +351,7 @@ void checkTermination() {
   Serial.println("), the last panel answering in chain order. SW202 on that panel ON, every other off");
 }
 
-void printStatusReply(uint8_t addr, const uint8_t *p) {
+void printStatusReply(uint8_t addr, const uint8_t *p, uint8_t len) {
   int pidx = panelIndex(addr);
   uint32_t tag    = (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
   uint32_t up_s   = (uint32_t)p[4] | ((uint32_t)p[5] << 8) | ((uint32_t)p[6] << 16) | ((uint32_t)p[7] << 24);
@@ -405,7 +406,12 @@ void printStatusReply(uint8_t addr, const uint8_t *p) {
   Serial.print(" ovr ");
   Serial.print(ovr);
   Serial.print(" turn ");
-  Serial.println(turn);
+  Serial.print(turn);
+  if (len >= REPLY_H_LEN) {
+    Serial.print(" tmo ");
+    Serial.print((uint16_t)p[22] | ((uint16_t)p[23] << 8));
+  }
+  Serial.println();
 }
 
 void parseRx() {
@@ -445,8 +451,8 @@ void parseRx() {
           poll_ok_window[pidx]++;
           poll_ok_total[pidx]++;
           last_reply_ms[pidx] = millis();
-        } else if (cmd == 'h' && len == REPLY_H_LEN) {
-          printStatusReply(addr, pay);
+        } else if (cmd == 'h' && (len == REPLY_H_LEN || len == REPLY_H_LEN_OLD)) {
+          printStatusReply(addr, pay, len);
         } else if (cmd == 'i' && len == 0) {
           ident_ack_id = addr;
         } else if (cmd == 'c' && len == 5) {
@@ -799,6 +805,42 @@ void underglowChase() {
 // answer it.
 volatile int  ident_ack_id = -1;
 
+// Bench test for the panel parser's inter-byte timeout (2026-10-20). Sends a
+// lone header claiming an 80-byte payload, goes quiet, then asks every panel
+// for 'h'. A parser with no timeout reads the next 81 bytes (all nine 'H'
+// requests) as that payload and answers none; one with it answers all nine
+// and reports a parser timeout.
+void brokenHeaderTest() {
+  constexpr uint32_t GAP_US = 2000;   // well past the panels' 500 us
+
+  bool was = bus_traffic;
+  bus_traffic = false;
+  waitBusQuiet();
+  parseRx();
+  for (int i = 0; i < NUM_PANELS; i++) status_got[i] = false;
+  Serial.println("# broken-header test: header claiming 80 bytes, then 'H' to each panel");
+
+  const uint8_t hdr[4] = {PKT_SYNC, 'X', BROADCAST, PKT_MAX_PAYLOAD};
+  RS485_SERIAL.write(hdr, sizeof(hdr));
+  RS485_SERIAL.flush();
+  delayMicroseconds(GAP_US);
+
+  for (int i = 0; i < NUM_PANELS; i++) {
+    sendRequest('H', PANEL_IDS[i], nullptr, 0, REPLY_H_LEN);
+    while (!replyWindowOver()) parseRx();
+    parseRx();
+  }
+
+  int n = 0;
+  for (int i = 0; i < NUM_PANELS; i++) n += status_got[i];
+  Serial.print("# broken-header test: ");
+  Serial.print(n);
+  Serial.print("/9 answered -> ");
+  Serial.println(n == NUM_PANELS ? "PASS (each line above should show tmo >= 1)"
+                                 : "FAIL (a panel parser is still inside the bogus packet)");
+  bus_traffic = was;
+}
+
 void identifySelfTest() {
   constexpr uint8_t PULSE_MS = 2;
   constexpr uint32_t ACK_TIMEOUT_MS = 20;
@@ -984,6 +1026,7 @@ void printHelp() {
     "  g <n>                      light underglow group n (1-44) alone and hold\r\n"
     "  x                          pause/resume LED frames + FSR polling\r\n"
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
+    "  b                          broken-header test: panel parser timeout\r\n"
     "  j                          USB pad input: mask, sequence, counters\r\n"
     "  t                          toggle telemetry stream\r\n"
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
@@ -1038,6 +1081,8 @@ void handleCommand(const char *s) {
     Serial.println();
   } else if (strcmp(s, "I") == 0) {
     identifySelfTest();
+  } else if (strcmp(s, "b") == 0) {
+    brokenHeaderTest();
   } else if (strcmp(s, "j") == 0 || strcmp(s, "J") == 0) {
     hidReport();
   } else if (strcmp(s, "P") == 0) {

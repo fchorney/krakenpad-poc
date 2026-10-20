@@ -82,10 +82,11 @@ five need no panels and no 12V.
 | `g <n>` | light underglow group *n* (1–44) alone and hold it |
 | `x` | pause/resume LED frames + FSR polling |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
+| `b` | broken-header test of the panel parser timeout: a lone header claiming 80 bytes, a 2 ms gap, then `'H'` to IDs 0–8. PASS = 9/9 answered, each with `tmo` up by one. Pauses traffic while it runs (added 2026-10-20) |
 | `j` | USB pad input: current mask, sequence number, counters (`docs/USB_PROTOCOL.md`) |
 | `t` | toggle the telemetry stream. Lines are `T <id> <S> <W> <N> <E> <mask> <live>`; `live` is 0 once a panel has been silent for `PANEL_TIMEOUT_MS` (added 2026-10-18; `tools/fsr_monitor.py` reads both the old 7-field form and this one) |
 | `P` | bus passthrough for `tools/panel_update.py`: USB carries raw frames until the host exits or 30 s idle. Not for typing into; see `docs/FIELD_UPDATE.md` |
-| `H` | status sweep: one `'H'` per poll slot to IDs 0–8, one line per panel (build tag, uptime, last reset cause, 12V/termination/auto-INT/echo/INT state, frame and error counters), `NO REPLY` for a silent one |
+| `H` | status sweep: one `'H'` per poll slot to IDs 0–8, one line per panel (build tag, uptime, last reset cause, 12V/termination/auto-INT/echo/INT state, frame and error counters, `tmo` parser timeouts from gameplay firmware since 2026-10-20), `NO REPLY` for a silent one |
 | `z` | zero bus counters, on the master and (by broadcast `'Z'`) on every panel |
 | `m <mode> [secs]` | panel LED mode by broadcast `'M'`: 0 normal, 1 ID, 2 sensor test |
 | `w` | toggle full white (255,255,255) on every LED of every panel, presses ignored: the full-white soak. Panels must be in mode 0 and bus traffic running |

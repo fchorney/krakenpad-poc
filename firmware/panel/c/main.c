@@ -300,15 +300,21 @@ static void draw_image(const uint8_t *img, uint8_t r, uint8_t g, uint8_t b) {
 #define RS485_BCAST     0xFF
 #define RS485_MAX_PAY   80
 #define RS_RING         2048
+// A gap this long mid-packet abandons the packet. Longer than the 32-byte RX
+// FIFO takes to fill (320 us), so IRQ latency alone can't fake one without also
+// overrunning the FIFO; shorter than any gap the master leaves between packets.
+#define RS485_GAP_US    500u
+#define RS_GAP_FLAG     0x100u          // ring entry: idle gap before this byte
 
 static bool g_rs485_on = false;
 
-static volatile uint8_t  rs_ring[RS_RING];
+static volatile uint16_t rs_ring[RS_RING];
 static volatile uint16_t rs_head = 0, rs_tail = 0;
 static volatile uint32_t rs_overruns = 0, rs_uart_errs = 0, rs_turnaround = 0;
 static volatile bool     rs_resync = false;
 static uint32_t rs_last_tx_us = 0;
-static uint32_t rs_frames = 0, rs_crc_errs = 0, rs_polls = 0, rs_led = 0;
+static uint32_t rs_last_rx_us = 0;      // ISR only
+static uint32_t rs_frames = 0, rs_crc_errs = 0, rs_polls = 0, rs_led = 0, rs_timeouts = 0;
 
 // LED mode state
 static uint8_t  g_mode        = MODE_NORMAL;
@@ -328,6 +334,11 @@ static void set_mode(uint8_t mode, uint32_t duration_ms) {
 }
 
 static void rs485_rx_irq(void) {
+    // Timed per IRQ, not per byte: one drain of a contiguous stream is never
+    // more than a FIFO-fill apart from the last, well under RS485_GAP_US.
+    uint32_t now = time_us_32();
+    uint16_t flag = (now - rs_last_rx_us) > RS485_GAP_US ? RS_GAP_FLAG : 0;
+    rs_last_rx_us = now;
     while (uart_is_readable(uart0)) {
         uint32_t dr = uart_get_hw(uart0)->dr;
         if (dr & 0xF00u) {          // FE | PE | BE | OE
@@ -337,8 +348,9 @@ static void rs485_rx_irq(void) {
         }
         uint16_t next = (uint16_t)((rs_head + 1u) % RS_RING);
         if (next == rs_tail) { rs_overruns++; continue; }   // drop the byte, never the drain
-        rs_ring[rs_head] = (uint8_t)(dr & 0xFF);
+        rs_ring[rs_head] = (uint16_t)((dr & 0xFF) | flag);
         rs_head = next;
+        flag = 0;
     }
 }
 
@@ -369,7 +381,7 @@ static void rs485_send(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t le
 }
 
 static void rs485_clear_counters(void) {
-    rs_frames = rs_crc_errs = rs_polls = rs_led = 0;
+    rs_frames = rs_crc_errs = rs_polls = rs_led = rs_timeouts = 0;
     rs_overruns = rs_uart_errs = rs_turnaround = 0;
 }
 
@@ -420,7 +432,7 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         }
         break;
     case 'H': {
-        uint8_t r[22];
+        uint8_t r[24];
         put_u32(&r[0], g_build_tag);
         put_u32(&r[4], to_ms_since_boot(get_absolute_time()) / 1000u);
         r[8] = g_reset_flags;
@@ -435,6 +447,7 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         put_u16_sat(&r[14], rs_overruns);
         put_u16_sat(&r[16], rs_turnaround);
         put_u32(&r[18], rs_frames);
+        put_u16_sat(&r[22], rs_timeouts);
         rs485_send('h', me, r, sizeof(r));
         break;
     }
@@ -474,8 +487,12 @@ static void rs485_service(void) {
     if (rs_resync) { rs_resync = false; st = W_SYNC; }
 
     while (rs_tail != rs_head) {
-        uint8_t c = rs_ring[rs_tail];
+        uint16_t e = rs_ring[rs_tail];
+        uint8_t  c = (uint8_t)e;
         rs_tail = (uint16_t)((rs_tail + 1u) % RS_RING);
+        // A packet never pauses mid-way. Without this, garbage that parses as
+        // a length byte swallows the next real packets as its payload.
+        if ((e & RS_GAP_FLAG) && st != W_SYNC) { rs_timeouts++; st = W_SYNC; }
         switch (st) {
         case W_SYNC: if (c == RS485_SYNC) { crc = 0; st = W_CMD; } break;
         case W_CMD:  cmd  = c; crc = crc8_update(crc, c); st = W_ADDR; break;
@@ -511,7 +528,7 @@ static void rs485_start(void) {
     while (uart_is_readable(uart0)) (void)uart_get_hw(uart0)->dr;   // stale FIFO
     uart_get_hw(uart0)->rsr = 0x0Fu;
     rs_head = rs_tail = 0;
-    rs_last_tx_us = time_us_32();
+    rs_last_tx_us = rs_last_rx_us = time_us_32();
     irq_set_exclusive_handler(UART0_IRQ, rs485_rx_irq);
     irq_set_enabled(UART0_IRQ, true);
     uart_set_irq_enables(uart0, true, false);
@@ -582,10 +599,11 @@ static void status(void) {
                (g_pressed_mask >> i) & 1 ? "*" : "");
     printf("   (press %u / release %u)\n", g_press_th[0], g_rel_th[0]);
     printf("  bus       : %lu frames, %lu crc, %lu uart, %lu overrun, %lu turnaround,"
-           " %lu 'F', %lu 'L'\n",
+           " %lu timeout, %lu 'F', %lu 'L'\n",
            (unsigned long)rs_frames, (unsigned long)rs_crc_errs,
            (unsigned long)rs_uart_errs, (unsigned long)rs_overruns,
-           (unsigned long)rs_turnaround, (unsigned long)rs_polls, (unsigned long)rs_led);
+           (unsigned long)rs_turnaround, (unsigned long)rs_timeouts,
+           (unsigned long)rs_polls, (unsigned long)rs_led);
 }
 
 static void console_poll(void) {

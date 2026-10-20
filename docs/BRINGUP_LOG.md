@@ -1256,6 +1256,43 @@ the LEDs heating the board.
   INT wires; worth remembering for the "panel power cycle during play"
   robustness test.
 
+### 2026-10-20 — panel parser inter-byte timeout
+
+**Why:** the 2026-10-19 `I` runs left one suspect unconfirmed: garbage that
+parses as a large `len` byte makes a panel's parser read the next real packets
+as payload, and nothing recovered it until the bogus packet's CRC failed.
+
+**Change (panel gameplay firmware):** a byte arriving after more than 500 µs
+of bus silence ends any packet in progress (`docs/RS485_PROTOCOL.md` →
+"Framing"). Counted as a new `'h'` field, `tmo` (reply now 24 bytes; the master
+accepts 22 or 24). Image CRC `E87EF0CB`, build tag **`E3707C2E`**, pushed to
+all nine by bus update. Master gained a bench command, **`b`**: it sends a lone
+header claiming an 80-byte payload, waits 2 ms, then sends `'H'` to each panel.
+The nine requests (45 bytes) all fall inside the bogus payload if the parser
+doesn't time out.
+
+| | `b` result | panel counters after |
+|---|---|---|
+| old panel firmware (`E7D4BF9B`), new master | **0/9 answered, FAIL** | `crc 2` on all nine (the bogus packet failed its CRC once it filled) |
+| new panel firmware, 3 runs | **9/9, PASS** each time | `crc 0`, `tmo` 1 → 2 → 3, one per run |
+
+So the test fails on the known-broken firmware and passes on the fix.
+
+**Then, traffic running:** `z`, `I` ×10: **10/10 runs, 90/90 IDs acked, each
+firing exactly its own header** (J11…J3, 2.03 ms). ~2 min steady state after:
+`H` 9/9 with `crc 0 uart 0 ovr 0 turn 0 tmo 0` on all nine (~106,000 frames
+each); master 17,020/17,020 polls answered, 0 CRC errors. `tmo 0` there means
+normal traffic never trips the timeout.
+
+**What this does not show:** that the timeout was the cause of the 10-19
+later-ID failures. Those stopped with the master's `waitBusQuiet()` fix before
+this existed. What it shows is that the parser now recovers from that kind of
+garbage within one gap.
+
+**Same gap elsewhere, not changed:** the master's RX parser and the panel
+bootloader's parser have no inter-byte timeout either. The bootloader is only
+reachable per board (USB or SWD); a bus update installs the app only.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
