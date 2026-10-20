@@ -140,6 +140,12 @@ drops into deadsync without conflicts.
 | `egui` / `eframe` | latest release when the apps are started, then pinned exactly | apps only; not in the SDK or deadsync |
 | `cbindgen` | latest when `krakenpad-c` is started | build-time tool only |
 
+**DECIDED 2026-10-20: saving config and uploading animations are not for use
+during gameplay.** Saving stalls the master (`docs/PANEL_CONFIG.md` → "Config
+persistence"). The SDK can't tell when a song is playing, so it doesn't enforce
+this: it is the caller's responsibility, and the SDK's documentation for those
+calls says so. The firmware relies on the rule instead of protecting play.
+
 ## Not decided
 
 - How the SDK takes over bus updates (`docs/FIELD_UPDATE.md`), which today go

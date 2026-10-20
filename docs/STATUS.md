@@ -42,7 +42,7 @@ models).
 
 | | Built | Not built |
 |---|---|---|
-| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I C H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader | Config in flash (thresholds are **RAM only**); local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; `populated`/`enabled` flags; DIP diagnostic codes 9, 11, 12, 13 |
+| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I C H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader | Whole-panel config `'W'` (thresholds are set by `'C'`, **RAM only**; panels stay RAM-only by design since 2026-10-20, the master will persist); local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; `populated`/`enabled` flags; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
 | **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check | **USB command and data reports** (live FSR telemetry and config over HID); underglow periodic re-send and host strip command; poll interleaving (telemetry is ~14 Hz/panel) |
 | **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py` | The SDK and apps: **Rust SDK with a C interface, apps in Rust + egui**, decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
@@ -79,8 +79,11 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
 3. Robustness: cable pull, panel power cycle, poll/LED interleave under load.
-4. Config in flash: write the protocol spec first (`docs/PANEL_CONFIG.md` →
-   "Open questions"); calibration and the USB command report depend on it.
+4. Config: the design is decided (2026-10-20: panels RAM-only, master persists
+   in EEPROM, whole-config `'W'`/`'w'`, a "not configured" bit in `'f'`). Still
+   open in `docs/PANEL_CONFIG.md` → "Open questions": the `'W'` byte layout,
+   auto-calibration (deferred until installed-pad data). Versioning and
+   factory reset decided the same day.
 5. USB command and data reports: live telemetry and config for host software.
 6. Animations: flash slots, pressed/released playback, conversion in the upload
    program. APNG as the format, whole-frame per-frame delays, flag-row loop markers,
@@ -108,7 +111,12 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
    as "barely warm" on 12 V alone, on one board (`docs/DUAL_PANEL.md`).
 3. **Overnight bus soak.** Watch the `H` error counters and the master's
    poll-answered count.
-4. Some of the open items above may also have been on the list: cable pulls and
+4. **Installed-pad FSR logging** (added 2026-10-20): once the panels are in
+   the pad (sensors on U, L, C, R, D), log every sensor with
+   `tools/fsr_monitor.py` for the resting value under preload, through an hour
+   of play, from a cold start and in a warm room. It decides the
+   auto-calibration design (`docs/PANEL_CONFIG.md` → "Auto-calibration").
+5. Some of the open items above may also have been on the list: cable pulls and
    power cycles during play, and polling plus LED frames under load.
 
 ## Where things are

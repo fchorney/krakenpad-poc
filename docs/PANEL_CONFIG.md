@@ -1,7 +1,8 @@
 # Panel configuration — design
 
 Status: **mostly design, partly built.** This collects the config decisions made
-so far. There is no binary format yet and **nothing persists to flash**.
+so far. There is no binary format yet and **nothing persists**. Since 2026-10-20
+the plan is that panels never persist config at all; the master does.
 
 **Built in the gameplay firmware (`firmware/panel/c/main.c`), as of 2026-10-19:**
 
@@ -54,7 +55,7 @@ Adopting 3 of stock's ideas plus 2 new ones our extra headroom allows for:
 | 10 | **Sensor Pressure Test** | Each of the 4 FSR edges lights a distinct color when pressed — visual per-sensor wiring/function check, no bus needed. *(from stock, value 14)* **Built** (as LED mode 2, below) |
 | 11 | **Standalone Mode** | Panel lights on press, entirely independent of the master — isolates a single panel for bench testing with just 12V power, no RS-485/master present at all. *(from stock, value 15)* |
 | 12 | **Raw ADC Streaming Mode** (new) | Continuously dumps raw per-channel FSR ADC values (e.g. over UART/serial) regardless of whether a master is present — useful for bench calibration work without wiring up the full rig. |
-| 13 | **Factory Reset Trigger** (new) | Forces the flash animation/config magic-byte wipe-and-rewrite-defaults path on boot — a recovery mechanism that doesn't depend on any working host software or bus command, useful if config/animation flash ever gets corrupted and normal boot can't get far enough to accept a reset command. |
+| 13 | ~~**Factory Reset Trigger** (new)~~ **Dropped 2026-10-20** ("Factory reset", below). | ~~Forces the flash animation/config magic-byte wipe-and-rewrite-defaults path on boot — a recovery mechanism that doesn't depend on any working host software or bus command, useful if config/animation flash ever gets corrupted and normal boot can't get far enough to accept a reset command.~~ Reserved again |
 | 14–15 | Reserved | Unused for now, headroom for future diagnostic modes |
 
 These are all **panel-local**. The one diagnostic that is inherently
@@ -223,13 +224,142 @@ remember." Walking it field-by-field:
 - RS-485 fallback timeout (currently hardcoded 100ms; make configurable if a use case shows up)
 - Bus/termination diagnostics per `docs/MODULAR_PANEL_COUNT.md` (termination-switch GPIO state, expected-vs-actual last-panel-in-chain)
 
-## Master-canonical config with panel flash as write-through cache (decided 2026-07-09)
+## Config persistence and the write protocol (decided 2026-10-20)
 
-Master holds the single editable copy of config; panels persist a flash copy purely as a
+Supersedes the panel-flash half of the 2026-07-09 decision below; the master
+stays canonical and the ~1 Hz re-push stays.
+
+- **Panels keep config in RAM only**, starting from compiled-in defaults
+  (press 500 / release 400 today). Nothing about config is written to panel
+  flash.
+- **The master is the only persistent store**: the canonical config for all
+  nine panels in the Teensy's emulated EEPROM (below).
+- **`'W'` carries one panel's whole config in one addressed packet** (per
+  channel: press and release thresholds, flags, rest baseline; plus panel-wide
+  fields and a format version; about 40 bytes, under the 80-byte limit), so a
+  panel is never half-configured. It takes effect immediately. The panel answers
+  **`'w'` with the CRC of the config it now runs**, so the master sees a mismatch
+  at once. The RAM-only `'C'` threshold command becomes redundant (keep it as a
+  bench tool or drop it when `'W'` exists).
+- **`'f'` replies gain a "not configured since boot" bit.** The master sends that
+  panel its config at its next poll slot, so a panel that reboots mid-session
+  (a 12 V blip) runs on defaults for milliseconds, not until the next re-push.
+- The master pushes config when it boots, when a panel reports "not
+  configured", and on the ~1 Hz re-push.
+- **Rule: don't save config or upload animations during gameplay.** It is on
+  whoever calls the SDK (an app, a game) not to; the SDK can't tell when a song
+  is playing and doesn't enforce it, but its documentation for those calls
+  says so. The firmware does nothing special to protect play from them.
+
+**Why not on the panels any more:** the 2026-07-09 reason was so a panel could
+threshold presses correctly before the master reconnects or while standalone.
+But without a master a press reaches nothing (presses only matter once they
+are a USB report), a master reboot doesn't touch the panels' RAM, the
+standalone DIP modes are bench tools that run fine on defaults, and the one
+real case, a single panel rebooting mid-song, is covered by the "not
+configured" bit. Dropping it removes every app-side flash write, and with them
+the core-0 flash stall: the press loop runs from flash (XIP), and erasing or
+programming flash stops both cores for the duration. It also removes a panel
+config format to version, a corrupted-copy failure mode, and the need for two
+alternating copies. Animations still live on the panel (they are its local
+fallback); writing them is an animation-design question, possibly through the
+bootloader, which runs from RAM.
+
+**The master's emulated EEPROM** (Teensyduino 1.62 `cores/teensy4/eeprom.c`,
+read 2026-10-20, not measured): no EEPROM chip; the `EEPROM` API is kept in the
+last 15 sectors of the Teensy's program flash (60 KB at `0x601F0000`) as
+1,080 bytes, written as an append-only log per sector, erased and compacted
+after 2,048 entries, unchanged bytes skipped. **Every byte write disables all
+interrupts and busy-waits for the flash**, and the occasional sector erase holds
+them off for the whole erase. So while the master saves, its INT interrupt, USB
+and the RS-485 UART stall in bursts. Covered by the no-saves-during-gameplay
+rule; worth measuring once saving exists.
+
+## Config versioning (decided 2026-10-20)
+
+- **One config format version** covers the fields everywhere they travel: the
+  `'W'` packet, the master's EEPROM copy, and the USB config report. **Any change
+  to the format bumps it.**
+- **`'W'` carries the version.** A panel that doesn't know it rejects the packet,
+  keeps the config it has, and says so in `'w'`; the master reports that panel
+  as needing a firmware update. Normally all nine are updated together, so this
+  is mostly a spare panel swapped in on older firmware.
+- **The master's EEPROM copy starts with a magic, the version and a CRC.** At
+  boot: same version and good CRC → use it; an older version this firmware
+  knows → convert, save, continue; unknown or bad CRC → **defaults, plus a
+  "config was reset" flag** the SDK can show ("recalibrate").
+- **Every new field has a default**, so converting an older version is "copy
+  what exists, default the rest" and never needs a person.
+- **The SDK reads the master's version** (USB device info) and won't write a
+  format the master doesn't speak.
+- **Later, not designed:** export and import of a pad's config to a file through
+  the SDK, as a backup and to copy calibration between pads. It may cover only
+  a subset of the config; to think about when it's built.
+
+## Factory reset (decided 2026-10-20)
+
+- **Two separate actions**, in the SDK/config app and as master console
+  commands: **reset config** (the master overwrites its EEPROM copy with
+  defaults and pushes them to every panel) and **reset animations** (erase one
+  panel's or every panel's animation slots, so each writes its built-in defaults
+  back). Different kinds of loss, so never one button for both.
+- **Panel config needs no reset:** it is RAM-only, so every boot is already
+  defaults until the master pushes.
+- **DIP 13 is dropped** (back to reserved). It protected against corrupted
+  config or animation flash stopping a panel from booting far enough to take a
+  command. Config is no longer in panel flash, a corrupted animation slot fails
+  its length/CRC check and is replaced by the default automatically, and a
+  panel whose app crashes at boot is still reachable through its bootloader
+  over the bus.
+- **One set of defaults, in a header both firmwares include**, so the panel's
+  boot defaults and the master's reset defaults can't drift apart. It is the
+  first of what will be several values shared between master and panel
+  firmware: a shared directory (e.g. `firmware/shared/`), plain `#define`s that
+  both C (panel) and Arduino C++ (master) read. Implementation note: Arduino
+  builds a copy of the sketch elsewhere, so a relative include outside
+  `firmware/master/` won't resolve; `build.sh` has to add the include path.
+  How the Rust SDK gets the same values is a separate question, for when the
+  SDK exists.
+
+## Auto-calibration: starting direction (2026-10-20, not decided)
+
+**Deferred until installed-pad data exists.** On the bench, sensors rest at
+85–108 counts and a full press reads ~4000 (measured), so fixed 500/400
+thresholds have a huge margin. Unknown, and what decides the design: the
+resting value with the panel installed (its weight and mounting preload the
+sensors), how far that drifts over a session (creep, temperature), and how much
+the sensors differ once installed.
+
+**The user's direction for when it is designed:** start from how stock works,
+as the user understands it, then depart from it where useful:
+- **Tare** each sensor's resting value to 0, after a settling period that
+  measures how much to tare.
+- **Map linearly** from the tared value to a fixed range covering the sensor's
+  full travel, e.g. 0–250 (the 250 is a placeholder, not a choice).
+- **Unlike stock, expose that mapping:** each sensor's raw-value endpoints of
+  the 0–N range are visible and adjustable per sensor.
+- Thresholds then live in the mapped units. The ranges and thresholds come from
+  testing real panels with real feet.
+- **Adjusting thresholds during play** (stock-style drift tracking): undecided.
+  Measuring the resting value through a long session shows whether drift is
+  real at all.
+
+To settle when designing: whether the panel or the host applies the mapping
+(the press comparison runs on the panel, in raw counts today), and how a
+tracked tare on the panel would interact with thresholds the master sends.
+
+**First data:** panels go into the pad within a day or two (from 2026-10-20),
+with sensors on U, L, C, R and D only; the other four panels can borrow
+sensors from the user's second pad if needed. Logging plan in
+`docs/STATUS.md` → "Long-run tests".
+
+## ~~Master-canonical config with panel flash as write-through cache~~ (decided 2026-07-09; panel-flash half superseded 2026-10-20, above)
+
+Master holds the single editable copy of config; ~~panels persist a flash copy purely as a
 boot-time bootstrap so they can threshold presses correctly before the master reconnects
-(or if briefly running standalone) — panels never edit their own copy independently. On
+(or if briefly running standalone)~~ — panels never edit their own copy independently. ~~On
 any push from master, panel writes-through to flash and master's copy always wins on
-mismatch (same magic-byte-detect-and-overwrite pattern already used for animation slots).
+mismatch (same magic-byte-detect-and-overwrite pattern already used for animation slots).~~
 
 **Confirmed from a real logic capture** (`../rustmaniax-deadsync-cc/Logic Captures/CSV
 Export/Complete Song - Running in the 90s.csv`, full 108.7s song played through the
@@ -274,9 +404,10 @@ the firmware to maintain whenever this gets designed.
 
 ## Open questions
 
-- Config write protocol over RS-485 (command format, ack, when panels commit to flash) — the `'C'` threshold command (RAM-only) is the prototype of this pattern; needs a flash-commit step
-- Config versioning / migration when the format changes
-- Factory reset story: animation slots already have magic-byte detection + rewrite
-  of defaults; config should behave the same way
+- ~~Config write protocol over RS-485 (command format, ack, when panels commit to flash)~~ — decided 2026-10-20 ("Config persistence and the write protocol"); the byte layout of `'W'` is still to write
+- ~~Config versioning / migration when the format changes~~ — decided 2026-10-20 ("Config versioning")
+- ~~Factory reset story~~ — decided 2026-10-20 ("Factory reset")
 - Auto-calibration design (drift tracking over time) — stock's four calibration
-  parameters are placeholdered above pending this
+  parameters are placeholdered above pending this. **Deferred 2026-10-20 until
+  there is data from panels installed in a pad** (see "Auto-calibration:
+  starting direction")
