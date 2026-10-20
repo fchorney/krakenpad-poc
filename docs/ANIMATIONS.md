@@ -6,10 +6,59 @@ from `ANIMATION_FORMAT.md`, `ANIMATION_BINARY_FORMAT.md`, and
 `PROTOTYPE_LED_LAYOUT.md`.
 
 **Status: design, not built** (2026-10-20). The flash slots are reserved in the
-panel's flash map, but no firmware reads them, no converter exports `.smxa`,
+panel's flash map, but no firmware reads them, no converter exists,
 and the gameplay firmware goes dark when `'L'` frames stop rather than playing
 a local animation. The LED index order below is live: the gameplay firmware and
 the master's `'L'` frames use it.
+
+## Decisions and open questions (2026-10-20)
+
+**DECIDED 2026-10-20:**
+
+- **On a computer, an animation is always APNG or animated WebP.** There is no
+  user-facing panel file. The program that uploads to the panels converts to the
+  panel format as part of the upload, the same way the stock SDK turns a GIF into
+  its panel format before writing it.
+- **Every frame has its own delay, in whole milliseconds.** There is no global
+  fps. The editor won't accept a delay shorter than one LED frame period at the
+  pad's maximum LED refresh rate (below).
+- **The panel format carries a total length and a CRC**, so a transfer that
+  arrives incomplete or corrupted can be detected. No maximum length is set
+  beyond the size of the slot.
+- **Delays are whole LED frames.** A delay is always a whole number of frame
+  periods at the pad's maximum refresh rate, so playback never deals with a
+  fraction of a frame.
+- **Loop metadata starts as marker pixels in an extra flag row**, the convention
+  `stepmaniax-gif-maker` already uses: a row below the LED grid, pixel x=0
+  (R ≥ 128) marks loop start, x=1 marks loop end. Stock reads only the x=0
+  marker. x=1 is a deadsync extension (intro plays once, the loop repeats while
+  held, the outro plays on release). More pixels in that row can carry more
+  flags later. If APNG/WebP metadata turns out to be a cleaner home, it may
+  replace the flag row.
+- **`stepmaniax-gif-maker` is the starting template for the editor**, probably
+  as a fork, since the format will need changes of its own.
+
+**Open:**
+
+- **The pad's maximum LED refresh rate: 60, 90 or 120 Hz.** It sets the shortest
+  frame delay. To be chosen by measurement: the highest rate at which the bus
+  and the panel CPUs still drop no presses and lose no telemetry replies.
+- **Loop semantics** beyond one start/end pair. Ideas so far, none settled:
+  - loop **counts** and **several loops** in one animation (e.g. intro, loop ×3,
+    middle, loop until release, outro). Two marker pixels can't express this
+  - loop-start and loop-end on the same frame = **hold that frame until
+    release**
+  - which events end a loop ("until release" means the pressed animation needs
+    to know the press ended)
+- **Flag row or format metadata** (PNG `iTXt`, WebP XMP/EXIF) for the loop data.
+- **Milliseconds vs frames.** "Whole milliseconds" and "whole frames" conflict:
+  at 60, 90 and 120 Hz a frame is 16.67, 11.11 and 8.33 ms, so a whole number of
+  frames is almost never a whole number of ms. One way out is to store a frame
+  count on the panel and show ms only in the editor. The APNG/WebP source also
+  has its own delay units (APNG: a fraction; WebP: whole ms) that the editor
+  must round to.
+- The panel binary layout itself (see "Binary format" below: the draft there
+  predates these decisions).
 
 ---
 
@@ -58,7 +107,14 @@ mapping (the `stepmaniax-gif-maker` tool already does).
 
 ## Binary format (`.smxa`)
 
-Each animation file (released or pressed) has the following layout:
+> **Superseded draft (2026-07), kept for reference.** The 2026-10-20 decisions
+> above replace three things in it: the single `fps` byte becomes a per-frame
+> millisecond delay, loop flags are added, and a total length and CRC are added.
+> It is also no longer a file anyone handles: the upload program produces it
+> and sends it straight to the slot. The 75-byte serpentine RGB frame is still
+> the likely payload. The new layout isn't written yet.
+
+The 2026-07 draft layout of each animation (released or pressed):
 
 ```
 Offset  Size   Field
@@ -146,15 +202,20 @@ and recovers gracefully from cable disconnection during play.
 
 ## Converter tool
 
-The existing `~/Documents/repos/personal/dancegames/stepmaniax-gif-maker` tool (already
-handles the serpentine mapping) will be extended to:
+Since 2026-10-20 the conversion is a step **inside the upload program**, not a
+separate export (see "Decisions" above). The steps:
 
-1. Read source APNG/WebP (adding APNG/WebP support — it's GIF-based today)
+1. Read the source APNG/WebP, including each frame's delay and the loop metadata
 2. For each frame, sample the 25 LED pixel positions from the scaled frame
-3. Strip alpha, pack as 25 × RGB bytes
-4. Write header + frame data to `.smxa`
+3. Strip alpha, pack as 25 × RGB bytes in serpentine order
+4. Build the panel image (header, frames, length, CRC) and send it to the slot
 
-The `.smxa` file then has to reach the slot. The bus-update mechanism
+The existing `~/Documents/repos/personal/dancegames/stepmaniax-gif-maker` tool
+already handles the serpentine mapping and the flag-row loop markers, and is
+GIF-based today. It is the starting template for our editor, probably as a
+fork. Where the upload-time conversion code lives is not decided.
+
+The panel image then has to reach the slot. The bus-update mechanism
 (`docs/FIELD_UPDATE.md`) is the obvious carrier: its `'U'` command dropped the
 `target` field for now, and animations are expected to get their own command
 once the slots exist.
