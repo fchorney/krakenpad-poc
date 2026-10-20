@@ -357,7 +357,7 @@ checklist points the first new board here. Record results in
 | V4 | SWD restore: `program panel_boot_usb.bin 0x10000000` then the app (`docs/PANEL_BRINGUP.md`) | new board, probe | boots, `'Q'` answers |
 | V5 | **Power cut during a bootloader update** (A/B slots) | one board on the bus, USB unplugged | after 12 V returns: boots, or BOOTSEL; never a dead board. Re-running the update finishes it |
 | V6 | Power cut during **conversion** from the old layout | one board, old bootloader loaded first | as V5 |
-| V7 | Cold 12 V power-up of the pad through stage 0 | the whole pad, any time | `H` 9/9 after power-up |
+| V7 | ✅ **Passed 2026-10-20.** Cold 12 V power-up of the pad through stage 0 | the whole pad, any time | `H` 9/9 after power-up |
 
 Notes:
 - V2 and V3 test the two different ways a board falls back to BOOTSEL. V2 uses

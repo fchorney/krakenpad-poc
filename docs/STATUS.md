@@ -56,11 +56,11 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   so a host won't attach (rev-2 candidate #3).
 - **The master's RS-485 parser has no inter-byte timeout.** The panel app and
   bootloader got one on 2026-10-20 (`docs/BRINGUP_LOG.md`).
-- **Bootloader-over-bus, seven checks not yet run on a board** (V1–V7 in
+- **Bootloader-over-bus, six checks not yet run on a board** (V1–V6 in
   `docs/FIELD_UPDATE.md` → "Validation"): the USB image, both BOOTSEL
-  fallbacks, SWD restore, power cuts mid-update and mid-conversion, a cold
-  12 V boot. V1–V4 go with the first new board's bring-up
-  (`docs/BUILD_CHECKLIST.md` step 2); V7 is the next pad power cycle.
+  fallbacks, SWD restore, power cuts mid-update and mid-conversion. V1–V4 go
+  with the first new board's bring-up (`docs/BUILD_CHECKLIST.md` step 2). V7,
+  a cold 12 V boot, passed 2026-10-20.
 - **Master turnaround glitch:** whether the master's RX sees the same false start
   bit the panel did has never been measured (`docs/MASTER_BRINGUP.md`).
 - **Not yet measured:** the joystick in a real game (ITGmania), the host-side

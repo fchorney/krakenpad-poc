@@ -1325,6 +1325,14 @@ real power cut during an update, `picotool` loading `panel_boot_usb.uf2`, a
 cold 12 V power-up through stage 0 (every boot so far was a watchdog reboot),
 and an SWD restore with `panel_boot_usb.bin`.
 
+**Cold power-up (V7), same day: passed.** 12 V off ~5 s and on, master on USB
+throughout. `H` at `up 11s`: 9/9, reset cause **`power-on` alone** on all nine
+(every earlier boot through stage 0 also showed `watchdog-timeout`), so this
+was boot ROM → boot2 → stage 0 → bootloader → app from cold. Power-up bus
+errors on three panels, as after every 12 V power-up (panels booting into live
+traffic): L `uart 84 turn 14`, DL `uart 76 turn 14`, D `crc 1 uart 233 turn 20`.
+After `z` and 30 s: 0 errors on all nine, `tmo 0`; `b` test 9/9.
+
 **Tag change:** the first rebuild changed only slot B's binary (the `'q'` slot
 bit) while the tag was the CRC of slot A alone, so the tag would not have
 changed. Caught before it was used; the tag now covers both slot builds.
