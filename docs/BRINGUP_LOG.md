@@ -1048,9 +1048,9 @@ this run. Which board carries which DIP ID was not recorded.
   on ID 2). Since the steady state is clean, these were a start-up burst.
   When exactly it happens was not pinned down.
 - **Bus firmware update: works, both power-cut cases recover.** Detail in
-  `docs/FIELD_UPDATE.md` → "Hardware bring-up". Found and fixed: `--panels`
-  selected nothing, because `'U'`/`'A'` were broadcast to panels that were all
-  held.
+  `docs/FIELD_UPDATE.md` → "Hardware validation (2026-10-18)". Found and
+  fixed: `--panels` selected nothing, because `'U'`/`'A'` were broadcast to
+  panels that were all held.
 - **New: `z` / `'Z'` zeroes every bus counter on the master and all panels**
   without a reboot. Verified: all eight read 0 straight after, uptime
   unaffected.
