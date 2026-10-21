@@ -394,6 +394,10 @@ their own timeout working, not a fault.
 
 ## Still open on the master
 
+- **Evidence 2026-10-21:** no stray byte after 161 of the master's own
+  transmissions, logged by the USB passthrough diagnostics; the core stores
+  bytes with framing errors, so a false start bit would have shown
+  (`docs/BRINGUP_LOG.md`). A framing-error count (below) would settle it.
 - **Check whether the master has the panel's RS-485 turnaround glitch.** The
   panel measured **exactly one framing error per transmission** (2522 against
   2521 replies over 90,756 frames): while it transmits, DE tied to `R̅E̅` disables

@@ -64,7 +64,9 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   pulls with `events` and in the SDK, and looking at the LEDs for `mode` and
   `leds`.
 - **`pad_cmd.py bus-h` missed a reply twice** in its first ~15 runs, then 0 in
-  ~85. Cause unknown; the master's passthrough was seen working.
+  ~250 since, including 150 after random commands (2026-10-21). Cause
+  unknown. The master now logs what each passthrough session heard, so a
+  repeat will say which side lost the reply (`docs/BRINGUP_LOG.md`).
 - **Host LED frames, fixed 2026-10-21 at High Speed:** 12 × 64-byte writes
   took ~9 ms per frame with the bus running; protocol 2's one 1,024-byte
   packet takes 0.70 ms. At Full Speed it is still 15.5 ms (no headroom at
@@ -88,8 +90,10 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   fallbacks, SWD restore, power cuts mid-update and mid-conversion. V1–V4 go
   with the first new board's bring-up (`docs/BUILD_CHECKLIST.md` step 2). V7,
   a cold 12 V boot, passed 2026-10-20.
-- **Master turnaround glitch:** whether the master's RX sees the same false start
-  bit the panel did has never been measured (`docs/MASTER_BRINGUP.md`).
+- **Master turnaround glitch:** probably absent. No stray byte reached the
+  master's receive buffer after 161 of its own transmissions (2026-10-21,
+  passthrough logging), and the core keeps bytes with framing errors. No
+  framing-error count yet (`docs/MASTER_BRINGUP.md`).
 - **Not yet measured:** the joystick in a real game (ITGmania), the host-side
   achieved poll rate, and the report rate under many simultaneous presses.
 - **Not yet tested:** cable pulls and panel power cycles during play.

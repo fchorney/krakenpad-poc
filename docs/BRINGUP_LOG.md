@@ -1391,6 +1391,30 @@ debug runs and ~45 `pad_cmd.py bus-h` runs at random gaps, including right
 after `mode` and `leds` and with panel 4 in sensor-test mode. Panel counters
 afterwards were clean. Cause unknown.
 
+**Follow-up 2026-10-21: still not reproduced, now instrumented.** The master
+now prints what each USB passthrough session heard when it ends: frames sent,
+how many went out with a packet still open in `pt_bus`, bytes and frames heard,
+CRC failures, and the last 32 bytes. Suspect checked: a stray byte leaving
+`pt_bus` mid-packet so it reads the reply as the rest of it (the 6d61543 resync
+covers the master's own receiver, not passthrough). Then 150 `bus-h` runs to
+random panels, each after a random command (`mode`, `leds`, `stream`,
+`status`, `selftest`, `zero`, `clock`, `info`, another `bus-h` or nothing) and
+a gap of 0–2 s: **0 misses**, and all 161 sessions logged `sent 1, 0 with a
+packet open; heard 29 bytes, 1 frames, 0 CRC fails`, exactly one `'h'`
+reply. So no stray bytes and no open packet; the suspect has no support. If a
+miss comes back, the console's `passthrough OFF` line says whether the master
+heard the reply (then the loss is on USB or in the host) or not (the panel
+didn't answer, or the reply was lost on the bus).
+
+**Bearing on the master turnaround glitch (`docs/MASTER_BRINGUP.md`):** the
+Teensy core stores every received byte, framing error or not (its receive
+interrupt doesn't check `FE`), so the false start bit the panel saw would
+appear here as an extra byte after the master's own transmission. In those
+161 sessions the master heard nothing but the reply: **no glitch byte after
+161 transmissions**, through the same `sendPacket()` and `transmitterEnable`
+DE path as normal traffic. Not a framing-error count; that would still need
+`LPUART4->STAT`.
+
 **`leds` rate is host-limited (measured on this Mac).** `time.sleep(1/60)`
 sleeps a median 24 ms, and one LED frame (675 bytes = 12 packets) takes
 hidapi a median 10.2 ms to write (4.5–23.6 ms). The master isn't the limit,

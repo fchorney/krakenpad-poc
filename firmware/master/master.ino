@@ -1432,6 +1432,12 @@ uint8_t  vnd_stream_msg[1 + STREAM_MAX_RECORDS * STREAM_RECORD];
 uint8_t  vnd_stream_n = 0;         // records waiting in vnd_stream_msg
 bool     vnd_passthrough = false;
 uint32_t vnd_pt_last_ms = 0;
+// What one USB passthrough session heard, printed when it ends. Added
+// 2026-10-21 for `pad_cmd.py bus-h` replies that never arrived: was anything
+// heard, and was a packet still open in pt_bus when the next frame went out?
+uint16_t vnd_pt_sent = 0, vnd_pt_open_at_send = 0;
+uint32_t vnd_pt_bytes = 0, vnd_pt_frames = 0, vnd_pt_crc = 0;
+uint8_t  vnd_pt_last[32];          // the last bytes heard, oldest first once full
 uint8_t  host_frame[HOST_FRAME_LEN];
 uint32_t host_frame_ms = 0;
 bool     host_frame_seen = false;
@@ -1516,10 +1522,29 @@ void vndStreamRecord(uint8_t addr, uint32_t t_us, const uint8_t *f) {
 void vndPassthroughExit(const char *why) {
   RS485_SERIAL.flush();
   vnd_passthrough = false;
-  pt_bus = FrameParser();
   Serial.print("# USB passthrough OFF (");
   Serial.print(why);
-  Serial.println(")");
+  Serial.print("): sent ");
+  Serial.print(vnd_pt_sent);
+  Serial.print(", ");
+  Serial.print(vnd_pt_open_at_send);
+  Serial.print(" with a packet open; heard ");
+  Serial.print(vnd_pt_bytes);
+  Serial.print(" bytes, ");
+  Serial.print(vnd_pt_frames);
+  Serial.print(" frames, ");
+  Serial.print(vnd_pt_crc);
+  Serial.print(" CRC fails");
+  if (pt_bus.st != FrameParser::W_SYNC) Serial.print(", a packet still open");
+  Serial.print(". Last bytes:");
+  uint32_t n = vnd_pt_bytes < sizeof(vnd_pt_last) ? vnd_pt_bytes : sizeof(vnd_pt_last);
+  for (uint32_t i = vnd_pt_bytes - n; i < vnd_pt_bytes; i++) {
+    uint8_t b = vnd_pt_last[i % sizeof(vnd_pt_last)];
+    Serial.print(b < 0x10 ? " 0" : " ");
+    Serial.print(b, HEX);
+  }
+  Serial.println();
+  pt_bus = FrameParser();
 }
 
 // USB configured afresh (plugged in, host reset, reboot): the host side starts
@@ -1684,6 +1709,8 @@ void vndCommand(uint8_t txn, const uint8_t *m, uint16_t len) {
         parseRx();                      // the last reply is ours, not the host's
         pt_bus = FrameParser();
         rx = FrameParser();
+        vnd_pt_sent = vnd_pt_open_at_send = 0;
+        vnd_pt_bytes = vnd_pt_frames = vnd_pt_crc = 0;
         vnd_passthrough = true;
         vnd_pt_last_ms = millis();
         Serial.println("# USB passthrough ON: the master's own bus traffic stops");
@@ -1696,6 +1723,8 @@ void vndCommand(uint8_t txn, const uint8_t *m, uint16_t len) {
     case CMD_BUS_FRAME:
       if (!vnd_passthrough) { vnd_bad++; vndError(txn, code, ERR_BUSY); break; }
       if (n < 2 || n - 2 > PKT_MAX_PAYLOAD) { vnd_bad++; vndError(txn, code, ERR_LENGTH); break; }
+      vnd_pt_sent++;
+      if (pt_bus.st != FrameParser::W_SYNC) vnd_pt_open_at_send++;
       sendPacket(a[0], a[1], a + 2, (uint8_t)(n - 2));
       r[1] = 0;
       vndRespond(txn, r, 2);
@@ -1775,7 +1804,13 @@ void vndService() {
 // after PT_IDLE_MS with nothing from the host.
 void vndPassthroughService() {
   while (RS485_SERIAL.available()) {
-    if (!pt_bus.feed((uint8_t)RS485_SERIAL.read())) continue;
+    uint8_t c = (uint8_t)RS485_SERIAL.read();
+    vnd_pt_last[vnd_pt_bytes++ % sizeof(vnd_pt_last)] = c;
+    if (!pt_bus.feed(c)) {
+      if (pt_bus.crc_failed) vnd_pt_crc++;
+      continue;
+    }
+    vnd_pt_frames++;
     uint8_t ev[3 + PKT_MAX_PAYLOAD] = {EVT_BUS_FRAME, pt_bus.cmd, pt_bus.addr};
     memcpy(ev + 3, pt_bus.pay, pt_bus.len);
     vndEvent(ev, 3 + pt_bus.len);
