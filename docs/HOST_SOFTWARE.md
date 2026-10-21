@@ -5,8 +5,8 @@ fake master; it has not talked to a real pad yet.** The C interface and the
 apps are not built. What runs on the PC: the SDK that games link, and the apps
 built on it. What exists: "Built (2026-10-20)" below. The USB interface they talk to is
 `docs/USB_PROTOCOL.md`: the joystick report works on the bench, and the vendor
-interface the SDK uses was built in the master 2026-10-20 but has not yet run
-on hardware. Until the SDK exists, **`tools/pad_cmd.py` speaks every vendor
+interface the SDK uses was built in the master 2026-10-20 and first ran on
+master #2 the same evening. Until the SDK exists, **`tools/pad_cmd.py` speaks every vendor
 command**, as a bench tool and as a working reference for the framing.
 
 ## Decisions
@@ -72,6 +72,13 @@ software/             Cargo workspace (separate from firmware/ and hardware/)
 - **Updates live in the config app** (a tab or a "check for updates" dialog),
   not a separate app. Command-line tools for power users may follow if people
   want them.
+- **The config app shows the USB connection** (the user, 2026-10-21): the
+  negotiated speed, the report sizes, and what that allows in practice, such
+  as the LED frame rate and telemetry rate the pad can hold on this computer.
+  At Full Speed it says what is reduced (e.g. "LED frames limited to ~N fps").
+  The numbers come from tests at both speeds, not yet run; whether Full Speed
+  drops or degrades any feature is decided from those tests
+  (`docs/USB_PROTOCOL.md` → packet size).
 
 **DECIDED 2026-10-20: how the SDK delivers data.** The stock SDK is a template,
 not a spec; this was chosen against the alternatives below.
@@ -159,7 +166,7 @@ is built: the release's contents and a manifest (versions, which master goes
 with which panel firmware, config format version, checksums), and how the app
 finds the latest release.
 
-## Built (2026-10-20, not yet run against a pad)
+## Built (2026-10-20; the `monitor` example ran against master #2 the same evening)
 
 The skeleton of the Rust SDK: crate **`krakenpad`** in `software/sdk`, in the
 `software/` Cargo workspace. Its only dependency is `hidapi` 2.6.7 (the pinned
@@ -177,7 +184,7 @@ the same day): tests, clippy and fmt clean without the flag.
 | `protocol.rs` | Packet framing and reassembly, command and event codes. The firmware's and `tools/pad_cmd.py`'s framing, a third time |
 | `config.rs` | `PadConfig` / `PanelConfig` / `ChannelConfig`, the validity rule, the `'W'` CRC |
 | `messages.rs` | The master's answers, decoded: device info, pad status, telemetry samples, self-test, clock probe, LED frame |
-| `transport.rs` | hidapi behind a small trait: finds the vendor interface by VID/PID, usage page `0xFF00`, usage 1 and the product string |
+| `transport.rs` | hidapi behind a small trait: finds the vendor interface by VID/PID, usage page `0xFF00`, usage 1 and the product string, and reads the OUT packet size from its report descriptor (1,024 at High Speed, 64 at Full Speed; 2026-10-21) |
 | `pad.rs` | One pad: its reader thread, commands, state, the public `Pad` |
 | `context.rs` | `Context`: the manager thread, the pads by player ID, the event queue |
 | `events.rs` | `Event` and the queue |
@@ -192,9 +199,12 @@ the same day): tests, clippy and fmt clean without the flag.
   handshake (device info, then the config and pad status, so its first
   snapshot is complete) and is registered under its player ID, and then
   `PadConnected` goes out. **Refused, with `PadRejected`**: a master whose
-  protocol version or packet size differs from the SDK's, a duplicate player
+  protocol version differs from the SDK's (its player is then `None`: the
+  rest of its device info isn't read), a duplicate player
   ID, or a **reserved player ID (4–7). A master straight from assembly reads 7**
   (all switches off). A refused master stays refused until it is replugged.
+- **USB speed:** `DeviceInfo` carries the negotiated speed and both packet
+  sizes, for the config app's connection status (protocol 2, 2026-10-21).
 - **Stale input:** at open the reader discards whatever the master queued
   earlier (up to 200 ms), and transaction IDs start at an unpredictable value.
   A test confirms the discard matters: without it, a stale response made the
@@ -236,8 +246,7 @@ monitor` from `software/` prints events and live FSR values
 **Not built yet:** `krakenpad-c` (the C interface and its `cbindgen` header;
 **not needed yet**, the user, 2026-10-20: it waits for a C or C++ program that
 uses the SDK);
-reading the packet size from the HID descriptor (the SDK assumes 64 and
-refuses a master that says otherwise); the row-by-row image helper for LED
+the row-by-row image helper for LED
 frames; sample history for graphs (the snapshot keeps only the latest);
 passthrough and panel updates; writing master firmware over HID; clock sync
 (only the probe exists); underglow; reset animations; timestamped input.
@@ -262,5 +271,6 @@ passthrough and panel updates; writing master firmware over HID; clock sync
 
 - How the SDK takes over bus updates (`docs/FIELD_UPDATE.md`), which today go
   through the master's text-console passthrough. The master's side is built
-  (USB bus passthrough, commands 0x0D/0x0E, 2026-10-20, not yet run); what
+  (USB bus passthrough, commands 0x0D/0x0E, 2026-10-20; `pad_cmd.py bus-h`
+  works, with two early misses not reproduced since, `docs/BRINGUP_LOG.md`); what
   remains is porting `tools/panel_update.py`'s logic onto it.

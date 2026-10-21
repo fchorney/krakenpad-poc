@@ -2,7 +2,8 @@
 
 Status: **the input report is built and works on the bench** (2026-10-19, below).
 **The vendor interface (command, response, event and stream packets) is built
-(2026-10-20) and has not yet run on hardware**: every command in the table
+(2026-10-20) and ran on master #2 the same evening** (`docs/BRINGUP_LOG.md`;
+the press, cable-pull and visual LED checks not yet): every command in the table
 below except underglow and reset animations, which answer "not supported yet".
 What changed while building it: "As built" under the command table. Bench
 tool: `tools/pad_cmd.py`. "Command inventory" further down is the older
@@ -18,7 +19,7 @@ descriptor; no software expecting an SMX pad will (or should) talk to us.
 | VID/PID | Teensyduino default (0x16C0 + USB-Type-dependent PID) during development. **As built 2026-10-19: 0x16C0:0x0487**, borrowed from Teensyduino's Serial + Keyboard + Mouse + Joystick type, which keeps `arduino-cli upload` and the Teensy auto-reboot working. ⚠ Our interface set differs from the one Windows may have cached for that PID; if Windows ever shows the pad wrongly, remove the cached device first. Plan: register a real PID under pid.codes' shared VID 0x1209 (see below) once eligible. |
 | Product string | "KrakenPad" — **working name, not final**, may still change |
 | Interfaces (as built 2026-10-20) | 0–1 CDC serial (the bench console, unchanged), **2 vendor HID** (command/data: usage page `0xFF00`, usage `0x0001`, interrupt IN `0x85` + OUT `0x05`, 64 bytes, `bInterval` 1), **3 HID joystick** (pad input, IN `0x84`). The joystick was interface 2 until 2026-10-20: the Teensy core writes the RawHID block before the joystick's, and the numbers follow that order. Only the number changed; the joystick's descriptor and report did not |
-| Transport | USB HID, 64-byte packets |
+| Transport | USB HID. Packets to the host 64 bytes; from the host 1,024 at High Speed, 64 at Full Speed (protocol 2, 2026-10-21) |
 | USB speed | High Speed 480 Mbps (Teensy 4.x native) |
 | Input polling | **8000Hz offered** (`bInterval = 1` at High Speed, as built). Host-side achieved rate not measured |
 
@@ -77,8 +78,8 @@ both directions:
 | 0 | kind: `cmd` (host → master), `resp` (reply to a command), `event` (unasked: panel state, per-panel config results, update progress, panel connect/disconnect), `stream` (telemetry) |
 | 1 | transaction ID: set by the host on each command, echoed on every packet of its response; 0 for `event` and `stream` |
 | 2 | flags: START, END (stock's fragmentation) |
-| 3 | payload bytes in this packet |
-| 4… | payload |
+| 3–4 | payload bytes in this packet, u16 (protocol 2, 2026-10-21; ~~byte 3 alone, u8~~ in protocol 1) |
+| 5… | payload: up to 59 in a 64-byte packet, 1,019 in a 1,024-byte one |
 
 - **One command in flight**, as stock. `event` and `stream` packets flow at any
   time between response packets; the kind byte lets the SDK's reader thread
@@ -95,10 +96,51 @@ both directions:
   states it and the SDK never assumes 64. **Shipped as 64 bytes at both
   speeds** (60 payload), which Full Speed requires. At High Speed, 64-byte
   packets carry ~500 KB/s each way against a planned peak of ~40 KB/s (60 Hz
-  LED frames of 675 bytes, 12 packets / ~1.5 ms each), so ~10× headroom. A
+  LED frames of 675 bytes, 12 packets / ~1.5 ms each), so ~10× headroom.
+  ⚠ **The ~1.5 ms per frame was wrong** (measured 2026-10-21, macOS, hidapi):
+  each write blocks for its transfer, ~0.38 ms per 64-byte write at `bInterval
+  = 1`, so a frame takes ~4.2 ms with the master idle and ~9 ms with the bus
+  running. One 1024-byte report takes ~0.47 ms (`docs/BRINGUP_LOG.md`). A
   larger High Speed report (up to 1,024 bytes, chosen by negotiated speed at
   enumeration) is a later option if a measured need appears; it would change
   the firmware descriptor, not the SDK's logic.
+
+**DECIDED 2026-10-21: both speeds, bigger reports at High Speed** (the user),
+because the measured need appeared (above) and a Full Speed link (a USB 1.1
+hub, a KVM, an extender, most cheap USB isolators) should leave a slower pad,
+not a dead one.
+- **High Speed: 1,024-byte OUT reports**; **Full Speed: 64 bytes**, as now.
+  The firmware picks by the negotiated speed (`usb_high_speed`); the core
+  patch gains a second HID report descriptor and writes report count and
+  `wMaxPacketSize` as two bytes (the stock core writes one, so it can't
+  describe more than 255).
+- The packet header's **payload length becomes 2 bytes** at both speeds, and
+  the **protocol version is bumped**. No installed base to keep.
+- The SDK takes the size from the HID descriptor as decided (item 5 below);
+  "refuse anything but 64" goes.
+- Full Speed still does everything, at stock-like rates: joystick 1 kHz, an
+  LED frame ~12 ms (60 Hz just fits), telemetry ~64 KB/s.
+- **IN (master → host) stays 64 bytes at both speeds** (the user,
+  2026-10-21): a HID report is fixed-size, so a bigger IN report pads every
+  event and response. Grow it later if the telemetry stream needs it.
+- **Device info has to change with it:** its packet size is one `u8` and
+  assumes one size both ways. It needs the OUT and IN sizes separately (OUT
+  as `u16`) and the **negotiated speed**, which hidapi can't report, for the
+  config app's connection status (`docs/HOST_SOFTWARE.md`).
+- **Whether to drop or degrade features at Full Speed is not decided**: it
+  waits on tests at Full Speed (the LED frame rate it really holds, the
+  telemetry rate, the joystick under load).
+- **Built 2026-10-21, protocol 2.** Core patch: the Full Speed report
+  descriptor served from `usb.c`, two-byte report count and `wMaxPacketSize`,
+  receive transfers sized by speed. Master, `tools/pad_cmd.py` and the SDK
+  read the OUT size from the report descriptor. A bench build that forces
+  Full Speed: `FULL_SPEED=1 firmware/master/build.sh upload`.
+- **Measured 2026-10-21** (macOS, master #2, bus running): one LED frame
+  **0.70 ms** median at High Speed (one packet; was ~9 ms as 12 × 64), and
+  **15.5 ms** median, p95 19.9 ms, at forced Full Speed, so 60 Hz host LED
+  frames at Full Speed have no headroom. Telemetry 12.7 Hz per panel at both;
+  clock probe round trip ~0.5 ms High Speed, ~2 ms Full Speed
+  (`docs/BRINGUP_LOG.md`).
 
 **DECIDED 2026-10-20: telemetry stream.**
 - **Each panel's `'f'` reply is forwarded as it arrives** (no fixed-rate
@@ -279,12 +321,16 @@ byte 0 is a code saying which one it is; the tables below give the rest.
 | 0x0F | Reboot to bootloader | magic u32 (guards against a stray byte) | status u8, then the master reboots into HalfKay |
 | 0x10 | Clock probe | host time u64 (host's units) | host time echoed u64, master receive µs u32, master send µs u32 |
 
-**Device info** (`resp` to 0x01): protocol version u8, packet size u8 (64),
-firmware version major/minor/patch u8 ×3 + build tag u32, config format
+**Device info** (`resp` to 0x01; protocol 2 layout, 2026-10-21): protocol
+version u8, **USB speed u8 (0 Full, 1 High), IN packet size u16 (64), OUT
+packet size u16 (1,024 or 64)**, firmware version major/minor/patch u8 ×3 +
+build tag u32, config format
 version u8 (highest it speaks), player ID u8 (DIP), flags u8 (bit0 config was
 reset at boot, bit1 stream on, bit2 passthrough active), panel presence u16
 (bit n = panel n answering), termination check u8 (0 OK, 1 none, 2 several,
-3 wrong panel) + the terminated panel's ID u8.
+3 wrong panel) + the terminated panel's ID u8. 21 bytes. (Protocol 1 had one
+packet size u8 at byte 2 and no speed: 17 bytes.) A host must check byte 1
+before reading the rest: another version may lay it out differently.
 
 ### Events (`event`, master → host, unasked)
 
@@ -304,7 +350,7 @@ reset at boot, bit1 stream on, bit2 passthrough active), panel presence u16
 Master timestamps are u32 µs and wrap every ~71.6 minutes; the SDK unwraps
 them.
 
-### As built (2026-10-20, not yet run on hardware)
+### As built (2026-10-20; first run on master #2 + nine panels 2026-10-20, everything without a person at the bench)
 
 Where the build fills in or shifts the table above. Implemented in
 `firmware/master/master.ino` → "USB vendor interface"; `tools/pad_cmd.py`
@@ -358,7 +404,8 @@ speaks all of it.
 - **A USB reset or replug** ends the stream, passthrough and host LED frames;
   the next host starts clean. The SDK should still discard whatever it reads
   before its first response (`tools/pad_cmd.py` drains for 200 ms).
-- Packet size stays 64 at both speeds, as planned.
+- ~~Packet size stays 64 at both speeds, as planned.~~ Protocol 2 (2026-10-21):
+  OUT packets are 1,024 bytes at High Speed (above).
 
 ### Choices in this table
 

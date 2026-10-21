@@ -4,9 +4,11 @@
 A bench tool and a reference for the packet framing, until the Rust SDK
 exists: every command in the master's command table has a subcommand here.
 
-Packets are 64 bytes both ways: kind, transaction ID, flags (START 0x01,
-END 0x02), payload length, then up to 60 payload bytes. A message longer than
-one packet spans several, and its byte 0 is its code.
+Every packet is a 5-byte header (kind, transaction ID, flags START 0x01 /
+END 0x02, payload length u16) and then the payload. Packets to the host are
+64 bytes; packets from the host are 1024 bytes at High Speed and 64 at Full
+Speed, read from the HID report descriptor before the first write. A message
+longer than one packet spans several, and its byte 0 is its code.
 
 Needs hidapi: `brew install hidapi` and `pip install hid`.
 
@@ -49,7 +51,10 @@ PRODUCT = "KrakenPad"
 VENDOR_PAGE, VENDOR_USAGE = 0xFF00, 0x0001
 PANEL_NAME = ["UL", "U", "UR", "L", "C", "R", "DL", "D", "DR"]
 
-PACKET, PAYLOAD = 64, 60
+PROTOCOL = 2
+HEADER = 5
+IN_PACKET = 64                 # master -> host, both speeds
+SPEED = {0: "Full Speed (12 Mbit/s)", 1: "High Speed (480 Mbit/s)"}
 CMD, RESP, EVENT, STREAM = 1, 2, 3, 4
 START, END = 0x01, 0x02
 
@@ -85,6 +90,7 @@ class Pad:
             sys.exit(f"no {PRODUCT} vendor interface ({VID:04x}:{PID:04x}, usage page "
                      f"{VENDOR_PAGE:04x}). Master firmware built with firmware/master/build.sh?")
         self.dev = hid.Device(path=path)
+        self.out_packet = out_report_size(self.dev.get_report_descriptor())
         self.txn = 0
         self.partial = None   # (kind, txn, bytearray) while a message is open
         self.drain()
@@ -93,16 +99,17 @@ class Pad:
         """Whatever the master queued before we opened it is stale. Bounded,
         in case a stream left on by a crashed run is still arriving."""
         t_end = time.monotonic() + 0.2
-        while time.monotonic() < t_end and self.dev.read(PACKET, timeout=20):
+        while time.monotonic() < t_end and self.dev.read(IN_PACKET, timeout=20):
             pass
 
     def _write(self, kind, txn, msg):
-        chunks = [msg[i:i + PAYLOAD] for i in range(0, len(msg), PAYLOAD)] or [b""]
+        payload = self.out_packet - HEADER
+        chunks = [msg[i:i + payload] for i in range(0, len(msg), payload)] or [b""]
         for k, chunk in enumerate(chunks):
             flags = (START if k == 0 else 0) | (END if k == len(chunks) - 1 else 0)
-            pkt = bytes([kind, txn, flags, len(chunk)]) + chunk
+            pkt = bytes([kind, txn, flags]) + struct.pack("<H", len(chunk)) + chunk
             # hidapi wants the report ID first; this interface has none, so 0.
-            self.dev.write(b"\x00" + pkt.ljust(PACKET, b"\x00"))
+            self.dev.write(b"\x00" + pkt.ljust(self.out_packet, b"\x00"))
 
     def read_message(self, timeout_ms):
         """One whole message as (kind, txn, bytes), or None on timeout."""
@@ -111,11 +118,11 @@ class Pad:
             left = int((deadline - time.monotonic()) * 1000)
             if left <= 0:
                 return None
-            pkt = self.dev.read(PACKET, timeout=left)
+            pkt = self.dev.read(IN_PACKET, timeout=left)
             if not pkt:
                 return None
-            kind, txn, flags, n = pkt[0], pkt[1], pkt[2], pkt[3]
-            data = bytes(pkt[4:4 + n])
+            kind, txn, flags, n = pkt[0], pkt[1], pkt[2], u16(pkt, 3)
+            data = bytes(pkt[HEADER:HEADER + n])
             if flags & START:
                 self.partial = (kind, txn, bytearray())
             if self.partial is None or self.partial[:2] != (kind, txn):
@@ -147,6 +154,26 @@ class Pad:
     def send(self, code, payload=b""):
         """Fire-and-forget (transaction 0): frames only."""
         self._write(CMD, 0, bytes([code]) + payload)
+
+
+def out_report_size(desc):
+    """Bytes in the interface's output report, from its HID report descriptor:
+    the report count and size in force at the Output item. Walks short items
+    only (the descriptor has no long ones)."""
+    i = count = size = 0
+    while i < len(desc):
+        prefix = desc[i]
+        n = (0, 1, 2, 4)[prefix & 3]
+        value = int.from_bytes(bytes(desc[i + 1:i + 1 + n]), "little")
+        tag = prefix & 0xFC
+        if tag == 0x94:
+            count = value
+        elif tag == 0x74:
+            size = value
+        elif tag == 0x90:
+            return count * size // 8
+        i += 1 + n
+    sys.exit("no output report in the vendor interface's report descriptor")
 
 
 def u16(b, o):
@@ -227,17 +254,21 @@ def wait_config_results(pad, results, seconds=2.0):
 
 def cmd_info(pad, a):
     m = pad.command(DEVICE_INFO)
-    flags = m[12]
-    present = u16(m, 13)
-    print(f"protocol {m[1]}, packet {m[2]} bytes")
-    print(f"firmware {m[3]}.{m[4]}.{m[5]}, build {u32(m, 6):08X}")
-    print(f"config version {m[10]}, player ID {m[11]} (P{m[11] + 1})")
+    if m[1] != PROTOCOL:
+        sys.exit(f"master speaks protocol {m[1]}, this tool {PROTOCOL}: update one of them")
+    flags = m[16]
+    present = u16(m, 17)
+    print(f"protocol {m[1]}, USB {SPEED.get(m[2], m[2])}")
+    print(f"packets: to host {u16(m, 3)} bytes, from host {u16(m, 5)} bytes"
+          f" (report descriptor says {pad.out_packet})")
+    print(f"firmware {m[7]}.{m[8]}.{m[9]}, build {u32(m, 10):08X}")
+    print(f"config version {m[14]}, player ID {m[15]} (P{m[15] + 1})")
     print("flags:", ", ".join(n for b, n in [(1, "config was reset at boot"), (2, "stream on"),
                                              (4, "passthrough"), (8, "unsaved console edits")]
                               if flags & b) or "none")
     print("panels answering:", " ".join(PANEL_NAME[p] for p in range(9) if present >> p & 1) or "none")
-    term = TERMINATION.get(m[15], m[15])
-    print(f"termination: {term}" + (f" (panel {m[16]})" if m[16] != 0xFF else ""))
+    term = TERMINATION.get(m[19], m[19])
+    print(f"termination: {term}" + (f" (panel {m[20]})" if m[20] != 0xFF else ""))
 
 
 def cmd_config(pad, a):
@@ -375,15 +406,30 @@ def cmd_clock(pad, a):
           f"(arbitrary epochs: only its drift between runs means anything)")
 
 
+def sleep_until(t):
+    """time.sleep() oversleeps on macOS by ~20% of the request (measured: 16.7 ms
+    asked, 19.9 ms median), so sleep to 2 ms short and spin the rest."""
+    left = t - time.perf_counter()
+    if left > 0.002:
+        time.sleep(left - 0.002)
+    while time.perf_counter() < t:
+        pass
+
+
 def cmd_leds(pad, a):
     frame = bytes([a.r, a.g, a.b]) * (25 * 9)
-    t_end = time.monotonic() + a.seconds
+    period = 1 / 60
+    t0 = time.perf_counter()
     n = 0
-    while time.monotonic() < t_end:
+    # Each frame is due at t0 + n * period, so the time spent writing it (~4-10
+    # ms through hidapi) and any oversleep come out of the next wait.
+    while n * period < a.seconds:
+        sleep_until(t0 + n * period)
         pad.send(LED_FRAME, frame)
         n += 1
-        time.sleep(1 / 60)
-    print(f"sent {n} frames; the master's own pattern returns 1 s after the last")
+    elapsed = time.perf_counter() - t0
+    print(f"sent {n} frames in {elapsed:.2f} s ({n / elapsed:.1f}/s); "
+          "the master's own pattern returns 1 s after the last")
 
 
 def cmd_bus_h(pad, a):

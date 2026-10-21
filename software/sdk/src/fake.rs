@@ -11,8 +11,8 @@ use std::time::{Duration, Instant};
 use crate::config::{BLOCK_LEN, CONFIG_VERSION, PANEL_LEN, PadConfig, PanelConfig};
 use crate::error::{Error, Result};
 use crate::protocol::{
-    self, Feed, KIND_CMD, KIND_EVENT, KIND_RESP, KIND_STREAM, PACKET_SIZE, RESP_ERROR, Reassembler,
-    STREAM_FSR_RAW, cmd, evt,
+    self, Feed, IN_PACKET, KIND_CMD, KIND_EVENT, KIND_RESP, KIND_STREAM, OUT_PACKET_MAX,
+    OUT_PACKET_MIN, RESP_ERROR, Reassembler, STREAM_FSR_RAW, cmd, evt,
 };
 use crate::transport::{Link, Opener};
 
@@ -22,6 +22,9 @@ pub(crate) struct FakeMaster {
     pub present: u16,
     pub was_reset: bool,
     pub protocol: u8,
+    /// Enumerated at High Speed (1024-byte packets from the host) or Full
+    /// Speed (64).
+    pub high_speed: bool,
     /// Stop answering commands.
     pub silent: bool,
     pub led_frames: usize,
@@ -31,7 +34,9 @@ pub(crate) struct FakeMaster {
     pub stream_on: bool,
     pub unplugged: bool,
     pub clock_us: u32,
-    pub to_host: VecDeque<[u8; PACKET_SIZE]>,
+    pub to_host: VecDeque<Vec<u8>>,
+    /// Packets the host wrote, by size: a check that it used the right one.
+    pub packets_from_host: Vec<usize>,
     pub reassembler: Reassembler,
 }
 
@@ -41,7 +46,8 @@ impl Default for FakeMaster {
             player: 0,
             present: 0x1FF,
             was_reset: false,
-            protocol: 1,
+            protocol: protocol::PROTOCOL_VERSION,
+            high_speed: true,
             silent: false,
             led_frames: 0,
             config: PadConfig::default().to_bytes(),
@@ -50,6 +56,7 @@ impl Default for FakeMaster {
             unplugged: false,
             clock_us: 10_000,
             to_host: VecDeque::new(),
+            packets_from_host: Vec::new(),
             reassembler: Reassembler::default(),
         }
     }
@@ -57,7 +64,16 @@ impl Default for FakeMaster {
 
 impl FakeMaster {
     fn send(&mut self, kind: u8, txn: u8, msg: &[u8]) {
-        self.to_host.extend(protocol::encode(kind, txn, msg));
+        self.to_host
+            .extend(protocol::encode(kind, txn, msg, IN_PACKET));
+    }
+
+    fn out_packet(&self) -> usize {
+        if self.high_speed {
+            OUT_PACKET_MAX
+        } else {
+            OUT_PACKET_MIN
+        }
     }
 
     /// Events only after the host's first command, as the master.
@@ -68,7 +84,10 @@ impl FakeMaster {
     }
 
     fn device_info(&self, player: u8) -> Vec<u8> {
-        let mut r = vec![cmd::DEVICE_INFO, self.protocol, PACKET_SIZE as u8, 0, 1, 0];
+        let mut r = vec![cmd::DEVICE_INFO, self.protocol, self.high_speed as u8];
+        r.extend((IN_PACKET as u16).to_le_bytes());
+        r.extend((self.out_packet() as u16).to_le_bytes());
+        r.extend([0, 1, 0]);
         r.extend(0xC0FF_EE00u32.to_le_bytes());
         r.extend([
             CONFIG_VERSION,
@@ -312,8 +331,8 @@ impl Link for FakeLink {
                 if self.reads
                     && let Some(p) = m.to_host.pop_front()
                 {
-                    buf[..PACKET_SIZE].copy_from_slice(&p);
-                    return Ok(PACKET_SIZE);
+                    buf[..IN_PACKET].copy_from_slice(&p);
+                    return Ok(IN_PACKET);
                 }
             }
             if Instant::now() >= deadline {
@@ -323,11 +342,12 @@ impl Link for FakeLink {
         }
     }
 
-    fn write(&mut self, packet: &[u8; PACKET_SIZE]) -> Result<()> {
+    fn write(&mut self, packet: &[u8]) -> Result<()> {
         let mut m = self.master.lock().unwrap();
         if m.unplugged {
             return Err(Error::Hid("unplugged".into()));
         }
+        m.packets_from_host.push(packet.len());
         if let Feed::Complete(msg) = m.reassembler.feed(packet)
             && msg.kind == KIND_CMD
             && !msg.data.is_empty()
@@ -335,5 +355,9 @@ impl Link for FakeLink {
             m.handle(msg.txn, &msg.data);
         }
         Ok(())
+    }
+
+    fn out_packet(&self) -> usize {
+        self.master.lock().unwrap().out_packet()
     }
 }

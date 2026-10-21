@@ -43,11 +43,36 @@ impl Termination {
     }
 }
 
+/// The USB speed the master negotiated with this computer. Full Speed still
+/// does everything, more slowly (`docs/USB_PROTOCOL.md` → packet size); a
+/// config app shows which one a pad got.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UsbSpeed {
+    /// 12 Mbit/s: 64-byte packets both ways, joystick at 1 kHz.
+    Full,
+    /// 480 Mbit/s: 1024-byte packets to the master, joystick at 8 kHz.
+    High,
+    Other(u8),
+}
+
+impl UsbSpeed {
+    fn from_code(c: u8) -> Self {
+        match c {
+            0 => UsbSpeed::Full,
+            1 => UsbSpeed::High,
+            other => UsbSpeed::Other(other),
+        }
+    }
+}
+
 /// The master's answer to Device info.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DeviceInfo {
     pub protocol_version: u8,
-    pub packet_size: u8,
+    pub usb_speed: UsbSpeed,
+    /// Packet sizes on the vendor interface: master → host, and host → master.
+    pub in_packet: u16,
+    pub out_packet: u16,
     /// Master firmware (major, minor, patch).
     pub firmware_version: (u8, u8, u8),
     /// Tells two builds of one version apart.
@@ -72,22 +97,50 @@ pub struct DeviceInfo {
 
 impl DeviceInfo {
     pub(crate) fn parse(m: &[u8]) -> Result<Self> {
-        need(m, 17, "device info too short")?;
+        // A master on another protocol version may lay out the rest
+        // differently: report only its version, and the context refuses it.
+        need(m, 2, "device info too short")?;
+        if m[1] != crate::protocol::PROTOCOL_VERSION {
+            return Ok(DeviceInfo::other_version(m[1]));
+        }
+        need(m, 21, "device info too short")?;
         Ok(DeviceInfo {
             protocol_version: m[1],
-            packet_size: m[2],
-            firmware_version: (m[3], m[4], m[5]),
-            build_tag: u32_at(m, 6),
-            config_version: m[10],
-            player_id: m[11],
-            config_was_reset: m[12] & 0x01 != 0,
-            telemetry_on: m[12] & 0x02 != 0,
-            passthrough: m[12] & 0x04 != 0,
-            unsaved_edits: m[12] & 0x08 != 0,
-            panels_present: u16_at(m, 13),
-            termination: Termination::from_code(m[15]),
-            terminated_panel: (m[16] != 0xFF).then_some(m[16]),
+            usb_speed: UsbSpeed::from_code(m[2]),
+            in_packet: u16_at(m, 3),
+            out_packet: u16_at(m, 5),
+            firmware_version: (m[7], m[8], m[9]),
+            build_tag: u32_at(m, 10),
+            config_version: m[14],
+            player_id: m[15],
+            config_was_reset: m[16] & 0x01 != 0,
+            telemetry_on: m[16] & 0x02 != 0,
+            passthrough: m[16] & 0x04 != 0,
+            unsaved_edits: m[16] & 0x08 != 0,
+            panels_present: u16_at(m, 17),
+            termination: Termination::from_code(m[19]),
+            terminated_panel: (m[20] != 0xFF).then_some(m[20]),
         })
+    }
+
+    fn other_version(version: u8) -> Self {
+        DeviceInfo {
+            protocol_version: version,
+            usb_speed: UsbSpeed::Other(0xFF),
+            in_packet: 0,
+            out_packet: 0,
+            firmware_version: (0, 0, 0),
+            build_tag: 0,
+            config_version: 0,
+            player_id: 0,
+            config_was_reset: false,
+            telemetry_on: false,
+            passthrough: false,
+            unsaved_edits: false,
+            panels_present: 0,
+            termination: Termination::Unknown,
+            terminated_panel: None,
+        }
     }
 }
 
@@ -305,13 +358,15 @@ mod tests {
     #[test]
     fn device_info_layout() {
         let m = [
-            0x01, 1, 64, 0, 1, 0, 0x78, 0x56, 0x34, 0x12, 1, 2, 0x09, 0xFF, 0x01, 0, 8,
+            0x01, 2, 1, 64, 0, 0x00, 0x04, 0, 1, 0, 0x78, 0x56, 0x34, 0x12, 1, 2, 0x09, 0xFF, 0x01,
+            0, 8,
         ];
         let d = DeviceInfo::parse(&m).unwrap();
         assert_eq!(
-            (d.protocol_version, d.packet_size, d.firmware_version),
-            (1, 64, (0, 1, 0))
+            (d.protocol_version, d.usb_speed, d.firmware_version),
+            (2, UsbSpeed::High, (0, 1, 0))
         );
+        assert_eq!((d.in_packet, d.out_packet), (64, 1024));
         assert_eq!(d.build_tag, 0x12345678);
         assert_eq!((d.config_version, d.player_id), (1, 2));
         assert!(d.config_was_reset && d.unsaved_edits && !d.telemetry_on && !d.passthrough);
@@ -320,7 +375,10 @@ mod tests {
             (d.termination, d.terminated_panel),
             (Termination::Ok, Some(8))
         );
-        assert!(DeviceInfo::parse(&m[..16]).is_err());
+        assert!(DeviceInfo::parse(&m[..20]).is_err());
+        // Another version: only the version is read.
+        let old = DeviceInfo::parse(&[0x01, 1, 64]).unwrap();
+        assert_eq!(old.protocol_version, 1);
     }
 
     #[test]

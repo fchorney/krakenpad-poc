@@ -143,6 +143,21 @@ to `(footprint …)` when adding to a project library. Preview headless with
 - **`micros()` undercounts while interrupts are off** for over a millisecond:
   it is built on the SysTick count. Time such stretches with `ARM_DWT_CYCCNT`
   (enabled by the core at startup).
+- **The core can't describe a RawHID report over 255 bytes** (Teensyduino
+  1.62): `usb_desc.c` writes the report count as one byte (`0x95, size`) and
+  `wMaxPacketSize` as `size, 0`, so 1,024 silently becomes 0. The core patch
+  writes both as two bytes (2026-10-21). Over 64 bytes is High Speed only.
+- **A receive transfer must be one report long.** A transfer larger than the
+  endpoint's packet keeps collecting full-size packets until it fills, so at
+  Full Speed a 1,024-byte transfer would join 16 reports. The patch sizes the
+  RawHID receive transfers by the negotiated speed.
+- **`USB1_PORTSC1 |= USB_PORTSC1_PFSC` forces Full Speed** (a commented-out
+  line in the core's `usb.c`). `FULL_SPEED=1 firmware/master/build.sh` turns
+  it on for testing the fallback.
+- **hidapi writes on macOS block until the transfer completes** (measured
+  2026-10-21): ~0.38 ms per write at `bInterval = 1` whatever the size up to
+  512 bytes, 0.50 ms at `bInterval = 2`, 1.0 ms at 4. Send fewer, bigger
+  reports, not many small ones.
 
 ## Rust (host software)
 

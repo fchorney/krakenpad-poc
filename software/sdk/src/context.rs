@@ -8,7 +8,7 @@ use std::time::Duration;
 use crate::error::{Error, Result};
 use crate::events::{Event, EventQueue, RejectReason};
 use crate::pad::{Pad, PadShared};
-use crate::protocol::{PACKET_SIZE, PROTOCOL_VERSION};
+use crate::protocol::PROTOCOL_VERSION;
 use crate::transport::{HidOpener, Opener};
 
 /// How often the context looks for pads plugged in since.
@@ -190,25 +190,24 @@ fn connect(shared: &Shared, opener: &mut dyn Opener, path: &str) -> bool {
 
     let player = info.player_id;
     let mut pads = shared.pads.lock().unwrap();
-    let reason =
-        if info.protocol_version != PROTOCOL_VERSION || info.packet_size as usize != PACKET_SIZE {
-            Some(RejectReason::Protocol {
-                version: info.protocol_version,
-                packet_size: info.packet_size,
-            })
-        } else if player >= MAX_PLAYERS {
-            Some(RejectReason::ReservedPlayer)
-        } else if pads
-            .iter()
-            .any(|p| p.player() == Some(player) && !p.finished())
-        {
-            Some(RejectReason::DuplicatePlayer)
-        } else {
-            None
-        };
+    let reason = if info.protocol_version != PROTOCOL_VERSION {
+        Some(RejectReason::Protocol {
+            version: info.protocol_version,
+        })
+    } else if player >= MAX_PLAYERS {
+        Some(RejectReason::ReservedPlayer)
+    } else if pads
+        .iter()
+        .any(|p| p.player() == Some(player) && !p.finished())
+    {
+        Some(RejectReason::DuplicatePlayer)
+    } else {
+        None
+    };
     if let Some(reason) = reason {
         drop(pads);
         pad.shutdown();
+        let player = (!matches!(reason, RejectReason::Protocol { .. })).then_some(player);
         shared.events.push(Event::PadRejected { player, reason });
         shared.events.wake();
         return false;
@@ -476,6 +475,30 @@ mod tests {
     }
 
     #[test]
+    fn packet_size_follows_the_usb_speed() {
+        for (high_speed, speed, packets) in [
+            (true, crate::UsbSpeed::High, vec![1024]),
+            (false, crate::UsbSpeed::Full, vec![64; 12]),
+        ] {
+            let bus = FakeBus::new();
+            bus.plug(
+                "a",
+                FakeMaster {
+                    high_speed,
+                    ..Default::default()
+                },
+            );
+            let ctx = context(&bus);
+            next(&ctx);
+            let pad = ctx.pad(0).unwrap();
+            assert_eq!(pad.info().usb_speed, speed);
+            bus.with("a", |m| m.packets_from_host.clear());
+            pad.send_led_frame(&LedFrame::new()).unwrap();
+            assert_eq!(bus.with("a", |m| m.packets_from_host.clone()), packets);
+        }
+    }
+
+    #[test]
     fn unplug_and_replug() {
         let bus = FakeBus::new();
         bus.plug(
@@ -526,7 +549,7 @@ mod tests {
         assert_eq!(
             next(&ctx),
             Event::PadRejected {
-                player: 0,
+                player: Some(0),
                 reason: RejectReason::DuplicatePlayer
             }
         );
@@ -540,7 +563,7 @@ mod tests {
         assert_eq!(
             next(&ctx),
             Event::PadRejected {
-                player: 7,
+                player: Some(7),
                 reason: RejectReason::ReservedPlayer
             }
         );
@@ -548,18 +571,15 @@ mod tests {
             "d",
             FakeMaster {
                 player: 1,
-                protocol: 2,
+                protocol: 1,
                 ..Default::default()
             },
         );
         assert_eq!(
             next(&ctx),
             Event::PadRejected {
-                player: 1,
-                reason: RejectReason::Protocol {
-                    version: 2,
-                    packet_size: 64
-                }
+                player: None,
+                reason: RejectReason::Protocol { version: 1 }
             }
         );
         // Each refused once, not again on every scan.

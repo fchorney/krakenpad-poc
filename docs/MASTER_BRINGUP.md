@@ -14,6 +14,7 @@ the real firmware rather than a second sketch.
 ```sh
 firmware/master/build.sh            # compile
 firmware/master/build.sh upload     # compile + upload
+FULL_SPEED=1 firmware/master/build.sh upload   # bench only: force USB Full Speed
 ```
 
 **Since 2026-10-19 the master builds through `build.sh`**, which compiles
@@ -300,9 +301,11 @@ unterminated, terminated mid-chain, at the wrong end, and doubled to 40 Ω
 - the chain order is documented, not measured. A pad cabled in another order
   gets the wrong expected panel.
 
-## Config and the USB vendor interface (built 2026-10-20, not yet run)
+## Config and the USB vendor interface (built 2026-10-20, first run the same evening)
 
-Both were written and compiled without the pad. Nothing below has been run.
+Both were written and compiled without the pad. **First run 2026-10-20 on
+master #2 with nobody at the bench** (`docs/BRINGUP_LOG.md`): everything
+below except presses, step 7, cable pulls, the visual LED checks and `w`.
 Results go in `docs/BRINGUP_LOG.md` under the master that ran them.
 
 **Order: master first, then panels**, as for any update (`docs/USB_PROTOCOL.md`
@@ -325,7 +328,8 @@ defaults and the old master's `S` would do nothing.
    console `s` shows "from the master" and the CRC `FD704831` for defaults.
 4. **`S`.** `S 3 600 450`, then `c`: panel 3 matches at the new values, "UNSAVED
    edits". Optionally feel the extra force on panel 3; panel 3's `s` shows them.
-   `S 3 600 450 2` changes channel 2 only.
+   `S 3 650 500 2` changes channel 2 only (with the same values as before
+   it would change nothing).
 5. **`F`.** `F 3 0 1 0`: pressing panel 3's channel 0 sensor no longer presses
    (no INT, no USB button), while `t` or `pad_cmd.py stream` still shows its raw
    value. `F 3 0 1 1` restores it.

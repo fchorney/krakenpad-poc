@@ -1339,6 +1339,131 @@ After `z` and 30 s: 0 errors on all nine, `tmo 0`; `b` test 9/9.
 bit) while the tag was the CRC of slot A alone, so the tag would not have
 changed. Caught before it was used; the tag now covers both slot builds.
 
+### 2026-10-20 (evening) — config on the bus and the USB vendor interface, first run
+
+Run by Claude with nobody at the bench (master #2 on USB, nine panels on 12 V),
+following `docs/MASTER_BRINGUP.md` → "Config and the USB vendor interface".
+So **everything that needs a hand, an eye or a meter was not run** (list at
+the end). Firmware from `d14ee0b`: master build `770CB928` (the tag changes
+with every build), panel image CRC `5197D3AF`, build tag **`DA2F106C`**.
+
+**Before the change, old firmware:** `H` 9/9, all `crc 0 … tmo 0`, panels on
+`E3707C2E`.
+
+| step | result |
+|---|---|
+| 1. master alone | ✅ banner `Master firmware 0.1.0`, `config: NO valid saved config`. `pad_cmd.py info`: protocol 1, packet 64, config version 1, player ID 1 (P2, as set), flag "config was reset". A second `build.sh upload` found the Teensy through the new interface set. `hid_monitor.py` opens the joystick, ~91 reports/s idle; **presses not tried** |
+| 2. old panels | ✅ all nine "sent, waiting for the panel"; heartbeat `0/9 answering panels match` |
+| 3. panel update | ✅ `panel_update.py`, nine at once, 0.6 s stream. One `config matches` line per panel, `c` 9/9 "matches", heartbeat `9/9`. The panel console's `s` not checked (no brain on USB), but the master's config events report CRC **`FD704831`** for defaults, the figure the procedure expects |
+| 4. `S` | ✅ `S 3 600 450`: panel 3 matches at 600/450, "UNSAVED edits". The procedure's `S 3 600 450 2` changes nothing after that (same values), so ran `S 3 650 500 2`: only channel 2 changed. **Not felt** |
+| 5. `F` | ✅ `F 3 0 1 0`: `c` shows `d` on channel 0, panel matches; `F 3 0 1 1` clears it. **Press with the channel disabled not tried** |
+| 6. `save` + reboot | ✅ slot A seq 1 (**3045 µs**, the first write to blank EEPROM); reboot → `loaded from slot A, sequence 1`, edits intact, all nine matched straight away; second save → slot B seq 2 (3107 µs). The reboot was a re-upload, **not a power replug** |
+| 7. panel 12 V cut | **not run** |
+| 8. `reset config` | ✅ defaults, saved, nine "matches" |
+| 9. `config`, `status` | ✅ agree with `c` and `H`; build tag and termination shown per panel (DR `ON`) |
+| 9. `set 3 550 420` | ✅ "saved", waiting → matches events, panel 3 CRC `205F37F2`; `c` agrees, nothing unsaved |
+| 9. `stream 30` | ✅ **12.6 Hz per panel**, all nine (378–379 records). Expected ~12.7 |
+| 9. `mode 1 3`, `mode 2 5 --panels 4` | answered "queued"; **LEDs not seen** |
+| 9. `selftest` | ✅ every slot names its own panel |
+| 9. `zero`, `H` | ✅ counters 0 |
+| 9. `clock` | round trip **min 452 µs, median 504 µs, max 7714 µs** over 50 |
+| 9. `leds 0 0 64 3` | ran; **not seen**. Sent only 92–97 frames in 3 s: host side, see below |
+| 9. `bus-h 4` | ⚠ the first run printed `no 'h' reply`; see below |
+| 9. `events` with a cable pull | **not run** |
+| 9. `bootloader --yes` | ✅ the Teensy enumerates as HalfKay (`16C0:0478`), then comes back on its own ~2 s later, because the Teensy Loader app, still open from the last upload, reflashes it automatically |
+| 9. SDK `cargo run --example monitor` | ✅ `PadConnected { player: 1 }`, `master 0.1.0 build 770CB928, panels 111111111, termination Ok`, then live values for all nine. **Press and cable pull not tried** |
+| 10. `I`, `b`, `H`, `P` | ✅ `I` 9/9 (2.02 ms each); `b` 9/9 PASS (`tmo 1` each); `H` 0 errors; `P` is what step 3 used |
+| 10. `w`, presses | **not run** (`w` is ~3.4 A with no trunk fuse fitted, and nobody was there) |
+
+**Save stall, with compaction (measured).** 8,000 saves from the console,
+alternating panel 0's press threshold 500/501 so each save changes a few
+bytes: **median 914 µs, p99 1.57 ms**, min 215 µs; **18 saves took 30.0–34.5
+ms**, which is a sector being erased and compacted (first one at save ~1,350).
+So a save can stall INT, USB and the bus for **up to ~35 ms**. A save that
+changes more bytes reaches a compaction sooner. The config was reset to
+defaults afterwards (slot A, sequence 8055).
+
+**`bus-h` miss, not reproduced.** Two of the first ~15 `bus-h` runs printed
+`no 'h' reply` (panel 4 just after `mode`/`leds`, and panel 1). A debug run
+saw the reply arrive as a bus-frame event ~1 ms after the frame command was
+acknowledged, so the master's passthrough works. Since then: 0 misses in 40
+debug runs and ~45 `pad_cmd.py bus-h` runs at random gaps, including right
+after `mode` and `leds` and with panel 4 in sensor-test mode. Panel counters
+afterwards were clean. Cause unknown.
+
+**`leds` rate is host-limited (measured on this Mac).** `time.sleep(1/60)`
+sleeps a median 24 ms, and one LED frame (675 bytes = 12 packets) takes
+hidapi a median 10.2 ms to write (4.5–23.6 ms). The master isn't the limit,
+but **60 Hz from the host through hidapi on macOS leaves ~6 ms per frame**,
+which matters for the SDK's LED path.
+
+**Follow-up, 2026-10-21 (measured on this Mac, Python 3.13.2, hidapi):**
+- **Sleep:** the oversleep grows with the request: 1 ms → 1.26, 5 → 6.27,
+  16.67 → 19.9 ms (medians). It isn't a resolution limit. `pad_cmd.py leds` now
+  schedules each frame at `t0 + n/60` and sleeps to 2 ms short, then spins:
+  **60.0 frames/s** over 10 s.
+- **Where a frame's write time goes:** per 64-byte write, **~0.48 ms**, and the
+  5th packet of each frame waits **~3 ms** more. With bus traffic paused (`x`)
+  that 3 ms wait is gone (frame 9.0 → 6.0 ms median). So the master's loop
+  goes ~3 ms without emptying its 4 RawHID receive buffers while the bus runs.
+  The blocking LED-frame transmit is the likely cause; not confirmed.
+- **Polling vs packet size**, with a test sketch that only empties RawHID
+  (scratch core copy, not committed; 300 writes each, all received):
+
+  | OUT report | `bInterval` | median per write | 675-byte LED frame |
+  |---|---|---|---|
+  | 64 B | 4 (1 ms) | 1.00 ms | ~11 ms |
+  | 64 B | 2 (250 µs) | 0.50 ms | ~5.5 ms |
+  | 64 B | 1 (125 µs, as built) | 0.38 ms | ~4.2 ms |
+  | 512 B | 1 | 0.38 ms | ~0.76 ms |
+  | 1024 B | 1 | 0.47 ms | ~0.47 ms |
+
+  Each write waits for its transfer to complete, and `bInterval = 1` is
+  already the fastest poll; at that point the Mac's per-write cost (~0.38 ms)
+  is the floor. **Bigger OUT reports are the lever**: one 1024-byte report
+  carries a whole LED frame in under 0.5 ms. Reports over 255 bytes need the
+  core's descriptor to write the size as two bytes (`0x96` report count and a
+  16-bit `wMaxPacketSize`), and over 64 bytes is High Speed only.
+
+**Protocol 2 built and run, 2026-10-21** (decided the same day: 1,024-byte OUT
+reports at High Speed, 64 at Full Speed, IN 64 at both; `docs/USB_PROTOCOL.md`).
+Master build `3BA990F2`, panels unchanged (`DA2F106C`).
+
+| | High Speed | Full Speed (`FULL_SPEED=1` build) |
+|---|---|---|
+| `pad_cmd.py info` | protocol 2, OUT 1024, IN 64; the report descriptor agrees | protocol 2, OUT 64, IN 64; the descriptor agrees |
+| one LED frame write, bus running (200) | **median 0.70 ms**, p95 1.50, max 6.77 | **median 15.5 ms**, p95 19.9, max 22.5 |
+| `leds` for 3–5 s | 60.3/s | 59.8/s, writing back to back |
+| `stream` | 12.7 Hz per panel | 12.7 Hz per panel |
+| `clock` round trip | min 453, median 502, max 7577 µs | min 1808, median 1992, max 8216 µs |
+| joystick (`hid_monitor.py`, idle) | — | ~91 reports/s, as at High Speed; `j` says `Full Speed` |
+
+Also on protocol 2 at High Speed: `config`, `status`, `set`, `reset-config`,
+`selftest`, `bus-h`, `mode`, `zero`, and the SDK's `monitor` (prints `USB High
+speed, packets 1024 B to the master, 64 B back`). SDK tests 28/28, including a
+fake master at each speed. Not yet: the SDK against a real master at Full
+Speed, and Windows or Linux at either speed.
+
+At Full Speed an LED frame takes ~15 ms of each 16.7 ms frame, so 60 Hz host
+frames there have no room for anything else; what Full Speed should drop or
+degrade is still to be decided from tests like these.
+
+**Observations, nothing broken:**
+- Any edit re-pushes all nine panels (`cfgChanged()`), so the console prints
+  nine `config matches` lines and USB gets nine waiting → matches pairs, not
+  just the edited panel's.
+- `status` once showed one panel at `101%` polls answered.
+- Killing the SDK `monitor` leaves the master's stream on (`j`: `stream ON`)
+  until the next USB reset. Nothing dropped.
+- After USB passthrough ends, the master reports every panel as having stopped
+  and restarted replying, and re-pushes the config to each. That is the silence
+  during passthrough, not panels resetting: their uptimes carried on.
+
+**Not run, needs someone at the bench:** presses (`hid_monitor.py`, the SDK's
+`*`), a press on a disabled channel, the panel 12 V cut (step 7), cable pulls
+with `events` and in the SDK, every visual LED check, full white, and **the
+parser resync test**, which needs a panel's USB console for `g`.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

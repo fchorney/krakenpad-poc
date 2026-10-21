@@ -1,7 +1,44 @@
+diff -u a/usb.c b/usb.c
+--- a/usb.c	2026-10-20 20:34:41
++++ b/usb.c
+@@ -127,6 +127,9 @@
+ extern uint8_t usb_descriptor_buffer[]; // defined in usb_desc.c
+ extern const uint8_t usb_config_descriptor_480[];
+ extern const uint8_t usb_config_descriptor_12[];
++#ifdef RAWHID_RX_SIZE_12
++extern const uint8_t rawhid_report_desc_12[];
++#endif
+ 
+ void (*usb_timer0_callback)(void) = NULL;
+ void (*usb_timer1_callback)(void) = NULL;
+@@ -235,6 +238,10 @@
+ 	//transfer_log_head = 0;
+ 	//transfer_log_count = 0;
+ 	//USB1_PORTSC1 |= USB_PORTSC1_PFSC; // force 12 Mbit/sec
++#ifdef KRAKENPAD_FORCE_FULL_SPEED
++	// Bench builds only (FULL_SPEED=1 build.sh): test the Full Speed fallback.
++	USB1_PORTSC1 |= USB_PORTSC1_PFSC;
++#endif
+ }
+ 
+ 
+@@ -592,6 +599,12 @@
+ 					if (usb_high_speed) src = usb_config_descriptor_12;
+ 					memcpy(usb_descriptor_buffer, src, datalen);
+ 					usb_descriptor_buffer[1] = 7;
++#ifdef RAWHID_RX_SIZE_12
++				} else if (setup.wValue == 0x2200 && setup.wIndex == RAWHID_INTERFACE
++				    && !usb_high_speed) {
++					// the RawHID OUT report is smaller at Full Speed
++					memcpy(usb_descriptor_buffer, rawhid_report_desc_12, datalen);
++#endif
+ 				} else {
+ 					memcpy(usb_descriptor_buffer, list->addr, datalen);
+ 				}
 diff -u a/usb_desc.c b/usb_desc.c
---- a/usb_desc.c
+--- a/usb_desc.c	2026-10-20 20:34:41
 +++ b/usb_desc.c
-@@ -292,7 +292,36 @@
+@@ -292,14 +292,43 @@
  #endif
  
  #ifdef JOYSTICK_INTERFACE
@@ -10,17 +47,17 @@ diff -u a/usb_desc.c b/usb_desc.c
 +// KrakenPad pad input, report ID 1: panels 0-8 as buttons 1-9, then a
 +// vendor-page sequence number that games ignore. No axes on purpose: a
 +// declared axis that never moves reads as held at one end in some games.
-+static uint8_t joystick_report_desc[] = {
-+        0x05, 0x01,                     // Usage Page (Generic Desktop)
-+        0x09, 0x04,                     // Usage (Joystick)
-+        0xA1, 0x01,                     // Collection (Application)
+ static uint8_t joystick_report_desc[] = {
+         0x05, 0x01,                     // Usage Page (Generic Desktop)
+         0x09, 0x04,                     // Usage (Joystick)
+         0xA1, 0x01,                     // Collection (Application)
 +        0x85, 0x01,                     //   Report ID (1)
 +        0x05, 0x09,                     //   Usage Page (Button)
 +        0x19, 0x01,                     //   Usage Minimum (Button #1)
 +        0x29, 0x09,                     //   Usage Maximum (Button #9)
-+        0x15, 0x00,                     //   Logical Minimum (0)
-+        0x25, 0x01,                     //   Logical Maximum (1)
-+        0x75, 0x01,                     //   Report Size (1)
+         0x15, 0x00,                     //   Logical Minimum (0)
+         0x25, 0x01,                     //   Logical Maximum (1)
+         0x75, 0x01,                     //   Report Size (1)
 +        0x95, 0x09,                     //   Report Count (9)
 +        0x81, 0x02,                     //   Input (Data, Variable, Absolute)
 +        0x75, 0x07,                     //   Report Size (7)
@@ -36,13 +73,82 @@ diff -u a/usb_desc.c b/usb_desc.c
 +        0xC0                            // End Collection
 +};
 +#elif JOYSTICK_SIZE == 12
- static uint8_t joystick_report_desc[] = {
-         0x05, 0x01,                     // Usage Page (Generic Desktop)
-         0x09, 0x04,                     // Usage (Joystick)
++static uint8_t joystick_report_desc[] = {
++        0x05, 0x01,                     // Usage Page (Generic Desktop)
++        0x09, 0x04,                     // Usage (Joystick)
++        0xA1, 0x01,                     // Collection (Application)
++        0x15, 0x00,                     //   Logical Minimum (0)
++        0x25, 0x01,                     //   Logical Maximum (1)
++        0x75, 0x01,                     //   Report Size (1)
+         0x95, 0x20,                     //   Report Count (32)
+         0x05, 0x09,                     //   Usage Page (Button)
+         0x19, 0x01,                     //   Usage Minimum (Button #1)
+@@ -486,6 +515,29 @@
+ #endif
+ 
+ #ifdef RAWHID_INTERFACE
++#ifdef RAWHID_RX_SIZE_480
++// The OUT report's size depends on the negotiated speed, so there are two
++// report descriptors; usb.c serves the Full Speed one when not at High Speed.
++// Both write the OUT report count as two bytes (0x96), so they are the same
++// length and one wDescriptorLength fits either.
++#define RAWHID_REPORT_DESC(rx_size) { \
++        0x06, LSB(RAWHID_USAGE_PAGE), MSB(RAWHID_USAGE_PAGE), \
++        0x0A, LSB(RAWHID_USAGE), MSB(RAWHID_USAGE), \
++        0xA1, 0x01,                     /* Collection 0x01 */ \
++        0x75, 0x08,                     /*   report size = 8 bits */ \
++        0x15, 0x00,                     /*   logical minimum = 0 */ \
++        0x26, 0xFF, 0x00,               /*   logical maximum = 255 */ \
++        0x95, RAWHID_TX_SIZE,           /*   report count */ \
++        0x09, 0x01,                     /*   usage */ \
++        0x81, 0x02,                     /*   Input (array) */ \
++        0x96, LSB(rx_size), MSB(rx_size), /* report count */ \
++        0x09, 0x02,                     /*   usage */ \
++        0x91, 0x02,                     /*   Output (array) */ \
++        0xC0                            /* end collection */ \
++}
++static uint8_t rawhid_report_desc[] = RAWHID_REPORT_DESC(RAWHID_RX_SIZE_480);
++const uint8_t rawhid_report_desc_12[] = RAWHID_REPORT_DESC(RAWHID_RX_SIZE_12);
++#else
+ static uint8_t rawhid_report_desc[] = {
+         0x06, LSB(RAWHID_USAGE_PAGE), MSB(RAWHID_USAGE_PAGE),
+         0x0A, LSB(RAWHID_USAGE), MSB(RAWHID_USAGE),
+@@ -502,6 +554,7 @@
+         0xC0                            // end collection
+ };
+ #endif
++#endif
+ 
+ #ifdef FLIGHTSIM_INTERFACE
+ static uint8_t flightsim_report_desc[] = {
+@@ -1242,7 +1295,11 @@
+         5,                                      // bDescriptorType
+         RAWHID_RX_ENDPOINT,                     // bEndpointAddress
+         0x03,                                   // bmAttributes (0x03=intr)
++#ifdef RAWHID_RX_SIZE_480
++        LSB(RAWHID_RX_SIZE_480), MSB(RAWHID_RX_SIZE_480), // wMaxPacketSize
++#else
+         RAWHID_RX_SIZE, 0,                      // wMaxPacketSize
++#endif
+         RAWHID_RX_INTERVAL,			// bInterval
+ #endif // RAWHID_INTERFACE
+ 
+@@ -2256,7 +2313,11 @@
+         5,                                      // bDescriptorType
+         RAWHID_RX_ENDPOINT,                     // bEndpointAddress
+         0x03,                                   // bmAttributes (0x03=intr)
++#ifdef RAWHID_RX_SIZE_12
++        RAWHID_RX_SIZE_12, 0,                   // wMaxPacketSize
++#else
+         RAWHID_RX_SIZE, 0,                      // wMaxPacketSize
++#endif
+         RAWHID_RX_INTERVAL,			// bInterval
+ #endif // RAWHID_INTERFACE
+ 
 diff -u a/usb_desc.h b/usb_desc.h
---- a/usb_desc.h
+--- a/usb_desc.h	2026-10-20 20:34:41
 +++ b/usb_desc.h
-@@ -324,6 +324,55 @@
+@@ -324,6 +324,59 @@
    #define ENDPOINT6_CONFIG      ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
    #define ENDPOINT7_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
  
@@ -84,7 +190,11 @@ diff -u a/usb_desc.h b/usb_desc.h
 +  #define RAWHID_TX_SIZE        64
 +  #define RAWHID_TX_INTERVAL    1	// 125 us at High Speed, 1 ms at Full Speed
 +  #define RAWHID_RX_ENDPOINT    5
-+  #define RAWHID_RX_SIZE        64
++  // OUT reports: 1024 bytes at High Speed, 64 at Full Speed (the most it
++  // allows). Chosen at enumeration; buffers are sized for the larger.
++  #define RAWHID_RX_SIZE_480    1024
++  #define RAWHID_RX_SIZE_12     64
++  #define RAWHID_RX_SIZE        RAWHID_RX_SIZE_480
 +  #define RAWHID_RX_INTERVAL    1
 +  #define JOYSTICK_INTERFACE    3	// Pad input
 +  #define JOYSTICK_ENDPOINT     4
@@ -99,7 +209,7 @@ diff -u a/usb_desc.h b/usb_desc.h
    #define VENDOR_ID		0x16C0
    #define PRODUCT_ID		0x04D3
 diff -u a/usb_joystick.c b/usb_joystick.c
---- a/usb_joystick.c
+--- a/usb_joystick.c	2026-10-20 20:34:41
 +++ b/usb_joystick.c
 @@ -107,4 +107,24 @@
  }
@@ -127,7 +237,7 @@ diff -u a/usb_joystick.c b/usb_joystick.c
 +
  #endif // JOYSTICK_INTERFACE
 diff -u a/usb_joystick.h b/usb_joystick.h
---- a/usb_joystick.h
+--- a/usb_joystick.h	2026-10-20 20:34:41
 +++ b/usb_joystick.h
 @@ -43,6 +43,7 @@
  #endif
@@ -138,9 +248,61 @@ diff -u a/usb_joystick.h b/usb_joystick.h
  extern volatile uint8_t usb_configuration;
  #ifdef __cplusplus
 diff -u a/usb_rawhid.c b/usb_rawhid.c
---- a/usb_rawhid.c
+--- a/usb_rawhid.c	2026-10-20 20:34:41
 +++ b/usb_rawhid.c
-@@ -143,6 +143,24 @@
+@@ -54,8 +54,17 @@
+ static void rx_queue_transfer(int i);
+ static void rx_event(transfer_t *t);
+ extern volatile uint8_t usb_configuration;
++extern volatile uint8_t usb_high_speed;
+ 
++// The OUT report size in use. Each receive transfer must be exactly one
++// report: a larger transfer would keep collecting full-size packets.
++#ifdef RAWHID_RX_SIZE_480
++#define RX_SIZE (usb_high_speed ? RAWHID_RX_SIZE_480 : RAWHID_RX_SIZE_12)
++#else
++#define RX_SIZE RAWHID_RX_SIZE
++#endif
+ 
++
+ void usb_rawhid_configure(void)
+ {
+ 	printf("usb_rawhid_configure\n");
+@@ -65,7 +74,7 @@
+ 	rx_head = 0;
+ 	rx_tail = 0;
+ 	usb_config_tx(RAWHID_TX_ENDPOINT, RAWHID_TX_SIZE, 0, NULL);
+-	usb_config_rx(RAWHID_RX_ENDPOINT, RAWHID_RX_SIZE, 0, rx_event);
++	usb_config_rx(RAWHID_RX_ENDPOINT, RX_SIZE, 0, rx_event);
+ 	int i;
+ 	for (i=0; i < RX_NUM; i++) rx_queue_transfer(i);
+ }
+@@ -80,7 +89,7 @@
+ 	arm_dcache_delete(buffer, RAWHID_RX_SIZE);
+ 	//memset(buffer, )
+ 	NVIC_DISABLE_IRQ(IRQ_USB1);
+-	usb_prepare_transfer(rx_transfer + i, buffer, RAWHID_RX_SIZE, i);
++	usb_prepare_transfer(rx_transfer + i, buffer, RX_SIZE, i);
+ 	usb_receive(RAWHID_RX_ENDPOINT, rx_transfer + i);
+ 	NVIC_ENABLE_IRQ(IRQ_USB1);
+ }
+@@ -114,12 +123,13 @@
+ 	uint32_t i = rx_list[tail];
+ 	rx_tail = tail;
+ 
+-	memcpy(buffer,  rx_buffer + i * RAWHID_RX_SIZE, RAWHID_RX_SIZE);
++	uint32_t size = RX_SIZE;
++	memcpy(buffer,  rx_buffer + i * RAWHID_RX_SIZE, size);
+ 	rx_queue_transfer(i);
+ 	//memset(rx_transfer, 0, sizeof(rx_transfer));
+ 	//usb_prepare_transfer(rx_transfer + 0, rx_buffer, RAWHID_RX_SIZE, 0);
+ 	//usb_receive(RAWHID_RX_ENDPOINT, rx_transfer + 0);
+-	return RAWHID_RX_SIZE;
++	return size;
+ }
+ 
+ int usb_rawhid_send(const void *buffer, uint32_t timeout)
+@@ -143,10 +153,28 @@
  	return RAWHID_TX_SIZE;
  }
  
@@ -165,8 +327,13 @@ diff -u a/usb_rawhid.c b/usb_rawhid.c
  int usb_rawhid_available(void)
  {
  	if (!usb_configuration) return 0;
+-	if (rx_head != rx_tail) return RAWHID_RX_SIZE;
++	if (rx_head != rx_tail) return RX_SIZE;
+ 	//if (!(usb_transfer_status(rx_transfer) & 0x80)) return RAWHID_RX_SIZE;
+ 	return 0;
+ }
 diff -u a/usb_rawhid.h b/usb_rawhid.h
---- a/usb_rawhid.h
+--- a/usb_rawhid.h	2026-10-20 20:34:41
 +++ b/usb_rawhid.h
 @@ -44,6 +44,7 @@
  int usb_rawhid_recv(void *buffer, uint32_t timeout);

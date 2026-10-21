@@ -31,6 +31,10 @@ fn main() -> krakenpad::Result<()> {
                     i.panels_present,
                     i.termination
                 );
+                println!(
+                    "  USB {:?} speed, packets {} B to the master, {} B back",
+                    i.usb_speed, i.out_packet, i.in_packet
+                );
                 if let Err(err) = pad.set_telemetry(true) {
                     println!("  telemetry: {err}");
                 }

@@ -129,6 +129,7 @@ constexpr uint32_t HID_HEARTBEAT_US = 10000;
 constexpr uint8_t  HID_IRQ_PRIORITY = 128;     // Teensy default for GPIO and USB
 
 extern "C" volatile uint8_t usb_configuration;   // core usb.c; not in a header for this type
+extern "C" volatile uint8_t usb_high_speed;      // core usb.c: set at enumeration
 
 IntervalTimer hidTimer;
 volatile uint16_t hid_mask = 0;        // qualified press state
@@ -196,7 +197,8 @@ void hidReport() {
   Serial.print("  resyncs ");
   Serial.print(hid_resyncs);
   Serial.print("  USB ");
-  Serial.println(usb_configuration ? "configured" : "NOT configured");
+  Serial.print(usb_configuration ? "configured" : "NOT configured");
+  Serial.println(usb_high_speed ? ", High Speed" : ", Full Speed");
 }
 
 // attachInterrupt needs a plain function pointer per pin — no capture, so one
@@ -1373,10 +1375,13 @@ void passthroughService() {
 
 // ── USB vendor interface (docs/USB_PROTOCOL.md → "Command table") ────────────
 // The second HID interface (usage page 0xFF00, interface 2): commands from the
-// host; responses, events and the telemetry stream back. Every packet is 64
-// bytes: kind, transaction ID, flags, payload length, then up to 60 payload
-// bytes. A message longer than one packet spans several, START on the first
-// and END on the last, and byte 0 of a message is its code.
+// host; responses, events and the telemetry stream back. Every packet is a
+// 5-byte header (kind, transaction ID, flags, payload length u16) and then
+// the payload. IN packets (to the host) are 64 bytes at both speeds; OUT
+// packets (from the host) are 1024 bytes at High Speed and 64 at Full Speed,
+// set by the core at enumeration. A message longer than one packet spans
+// several, START on the first and END on the last, and byte 0 of a message is
+// its code.
 //
 // It all runs from loop() and never waits on the host. Outgoing packets queue
 // here until the core has a free transmit slot; a message that doesn't fit is
@@ -1384,9 +1389,11 @@ void passthroughService() {
 // a slow host loses telemetry, not responses. Events start with the host's
 // first command after USB configures, so a pad no program has opened doesn't
 // fill up with stale ones.
-constexpr uint8_t  VND_PROTOCOL = 1;
-constexpr uint8_t  VND_PACKET = RAWHID_TX_SIZE;     // 64
-constexpr uint8_t  VND_PAYLOAD = VND_PACKET - 4;    // 60
+constexpr uint8_t  VND_PROTOCOL = 2;   // 2: u16 length, OUT size by speed (2026-10-21)
+constexpr uint8_t  VND_HEADER = 5;
+constexpr uint16_t VND_PACKET = RAWHID_TX_SIZE;     // IN: 64
+constexpr uint16_t VND_PAYLOAD = VND_PACKET - VND_HEADER;   // 59
+constexpr uint16_t VND_OUT_MAX = RAWHID_RX_SIZE_480;        // OUT at High Speed
 constexpr uint8_t  VND_CMD = 1, VND_RESP = 2, VND_EVENT = 3, VND_STREAM = 4;   // kind
 constexpr uint8_t  VND_START = 0x01, VND_END = 0x02;                           // flags
 
@@ -1445,13 +1452,13 @@ bool vndSend(uint8_t kind, uint8_t txn, const uint8_t *msg, uint16_t len) {
   for (uint16_t k = 0; k < npk; k++) {
     uint8_t *pk = vnd_txq[(vnd_txq_tail + vnd_txq_count) % VND_TXQ];
     uint16_t off = k * VND_PAYLOAD;
-    uint8_t n = (uint8_t)((len - off) > VND_PAYLOAD ? VND_PAYLOAD : (len - off));
+    uint16_t n = (len - off) > VND_PAYLOAD ? VND_PAYLOAD : (len - off);
     pk[0] = kind;
     pk[1] = txn;
     pk[2] = (k == 0 ? VND_START : 0) | (k == npk - 1 ? VND_END : 0);
-    pk[3] = n;
-    memcpy(pk + 4, msg + off, n);
-    memset(pk + 4 + n, 0, VND_PAYLOAD - n);
+    kp_put_u16(pk + 3, n);
+    memcpy(pk + VND_HEADER, msg + off, n);
+    memset(pk + VND_HEADER + n, 0, VND_PAYLOAD - n);
     vnd_txq_count++;
   }
   vndPump();
@@ -1568,16 +1575,18 @@ void vndCommand(uint8_t txn, const uint8_t *m, uint16_t len) {
         if (panel_online[i]) present |= 1u << PANEL_IDS[i];
       }
       r[1] = VND_PROTOCOL;
-      r[2] = VND_PACKET;
-      r[3] = FW_VERSION_MAJOR; r[4] = FW_VERSION_MINOR; r[5] = FW_VERSION_PATCH;
-      putU32(r + 6, build_tag);
-      r[10] = KP_CONFIG_VERSION;
-      r[11] = readPlayerId();
-      r[12] = (cfg_was_reset ? 0x01 : 0) | (vnd_stream_on ? 0x02 : 0) |
+      r[2] = usb_high_speed ? 1 : 0;
+      kp_put_u16(r + 3, VND_PACKET);
+      kp_put_u16(r + 5, usb_high_speed ? RAWHID_RX_SIZE_480 : RAWHID_RX_SIZE_12);
+      r[7] = FW_VERSION_MAJOR; r[8] = FW_VERSION_MINOR; r[9] = FW_VERSION_PATCH;
+      putU32(r + 10, build_tag);
+      r[14] = KP_CONFIG_VERSION;
+      r[15] = readPlayerId();
+      r[16] = (cfg_was_reset ? 0x01 : 0) | (vnd_stream_on ? 0x02 : 0) |
               (vnd_passthrough ? 0x04 : 0) | (cfg_unsaved ? 0x08 : 0);
-      kp_put_u16(r + 13, present);
-      r[15] = terminationCode(got, term, &r[16]);
-      vndRespond(txn, r, 17);
+      kp_put_u16(r + 17, present);
+      r[19] = terminationCode(got, term, &r[20]);
+      vndRespond(txn, r, 21);
       break;
     }
     case CMD_GET_CONFIG:
@@ -1726,12 +1735,14 @@ void vndService() {
     vnd_usb_config = usb_configuration;
     vndReset();
   }
-  uint8_t pk[VND_PACKET];
-  while (usb_rawhid_available() && usb_rawhid_recv(pk, 0) > 0) {
+  static uint8_t pk[VND_OUT_MAX];
+  int size;
+  while (usb_rawhid_available() && (size = usb_rawhid_recv(pk, 0)) > 0) {
     vnd_rx_us = micros();
     vnd_pt_last_ms = millis();
-    uint8_t flags = pk[2], n = pk[3];
-    if (pk[0] != VND_CMD || n > VND_PAYLOAD) { vnd_bad++; continue; }
+    uint8_t flags = pk[2];
+    uint16_t n = kp_get_u16(pk + 3);
+    if (pk[0] != VND_CMD || n > size - VND_HEADER) { vnd_bad++; continue; }
     if (flags & VND_START) {
       vnd_rx_open = true;
       vnd_rx_txn = pk[1];
@@ -1746,7 +1757,7 @@ void vndService() {
       vndError(vnd_rx_txn, vnd_rx_msg[0], ERR_LENGTH);
       continue;
     }
-    memcpy(vnd_rx_msg + vnd_rx_len, pk + 4, n);
+    memcpy(vnd_rx_msg + vnd_rx_len, pk + VND_HEADER, n);
     vnd_rx_len += n;
     if (flags & VND_END) {
       vnd_rx_open = false;

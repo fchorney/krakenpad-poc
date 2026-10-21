@@ -4,6 +4,8 @@
 #   firmware/master/build.sh                  compile
 #   firmware/master/build.sh upload [port]    compile, then upload (port from
 #                                             `arduino-cli board list` if omitted)
+#   FULL_SPEED=1 firmware/master/build.sh ...  bench build that forces USB Full
+#                                             Speed, to test the 64-byte fallback
 #
 # Teensyduino has no hook for a custom HID descriptor, so this copies the
 # installed Teensy 4 core into build/, applies core-patch/, and compiles against
@@ -47,7 +49,7 @@ fi
 arduino-cli compile --fqbn "$fqbn" --build-path "$out/sketch" \
     --build-property "build.core.path=$out/core" \
     --build-property "build.usbtype=USB_KRAKENPAD" \
-    --build-property "build.flags.defs=$defs -I$shared" \
+    --build-property "build.flags.defs=$defs -I$shared${FULL_SPEED:+ -DKRAKENPAD_FORCE_FULL_SPEED}" \
     --build-property "recipe.hooks.sketch.prebuild.1.pattern=true" \
     "$here"
 

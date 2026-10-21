@@ -20,7 +20,7 @@ use crate::messages::{
     parse_fsr_records,
 };
 use crate::protocol::{
-    self, Feed, KIND_CMD, KIND_EVENT, KIND_RESP, KIND_STREAM, Message, PACKET_SIZE, RESP_ERROR,
+    self, Feed, IN_PACKET, KIND_CMD, KIND_EVENT, KIND_RESP, KIND_STREAM, Message, RESP_ERROR,
     Reassembler, STREAM_FSR_RAW, cmd, evt, u32_at,
 };
 use crate::transport::Link;
@@ -224,9 +224,7 @@ impl PadShared {
     /// can't speak to; the context then refuses it.
     pub fn handshake(&self) -> Result<DeviceInfo> {
         let info = self.device_info()?;
-        if info.protocol_version != protocol::PROTOCOL_VERSION
-            || info.packet_size as usize != PACKET_SIZE
-        {
+        if info.protocol_version != protocol::PROTOCOL_VERSION {
             return Ok(info);
         }
         if info.config_version == CONFIG_VERSION {
@@ -273,7 +271,8 @@ impl PadShared {
     /// another thread can't land between them.
     fn write_message(&self, kind: u8, txn: u8, msg: &[u8]) -> Result<()> {
         let mut w = self.writer.lock().unwrap();
-        for p in protocol::encode(kind, txn, msg) {
+        let size = w.out_packet();
+        for p in protocol::encode(kind, txn, msg, size) {
             w.write(&p)?;
         }
         Ok(())
@@ -445,7 +444,7 @@ impl PadShared {
 }
 
 fn reader_loop(pad: Arc<PadShared>, mut link: Box<dyn Link>) {
-    let mut buf = [0u8; PACKET_SIZE + 1];
+    let mut buf = [0u8; IN_PACKET + 1];
     // Whatever the master queued before this open is stale: responses to an
     // earlier program's commands, events nobody read.
     let mut alive = true;

@@ -1,6 +1,6 @@
 # Project status
 
-**Last updated 2026-10-20.** This is the one page for "where is the project right
+**Last updated 2026-10-21.** This is the one page for "where is the project right
 now". Update it alongside any change that moves it (rules in `CLAUDE.md`).
 Detail lives in the docs it links.
 
@@ -23,7 +23,7 @@ Settled; every quantity in the project is sized to it.
 Also in progress: the master enclosure (`hardware/Master-Case/`, 3D-print
 models).
 
-## What works on the bench (master #2 + nine panels, 2026-10-19)
+## What works on the bench (master #2 + nine panels, 2026-10-20)
 
 - **Press path:** FSR → panel threshold → INT wire → master ISR → **USB joystick**
   (9 buttons, 8 kHz offered at High Speed). Checked on a Mac with
@@ -37,14 +37,19 @@ models).
 - **Panel LED modes:** master `'L'` frames, the ID image, and the on-panel sensor
   test, switchable from the master with `m`. LED stutter fixed 2026-10-19.
 - **Underglow:** all 44 groups addressable from bench commands (byte order BRG).
+- **Config on the bus, the USB vendor interface and the Rust SDK's `monitor`**
+  (first run 2026-10-20, evening, nobody at the bench): every panel matches the
+  master's copy, edits/save/reload/reset work, every `pad_cmd.py` command
+  answers, telemetry **12.6 Hz per panel**, a save stalls up to **~35 ms**
+  (sector compaction). Steps needing a hand or an eye still to do (below).
 
 ## Firmware: built vs not built
 
 | | Built | Not built |
 |---|---|---|
-| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, not yet run on a board:** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed | Local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
-| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check. **Built 2026-10-20, not yet run on hardware:** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry is ~14 Hz/panel, ~12.7 expected with the re-push) |
-| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, not yet run against a master). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; tested against a fake master only | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
+| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, runs on all nine (2026-10-20):** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed | Local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
+| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check. **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20) |
+| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 `docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. A future idea, not scheduled:
@@ -52,18 +57,28 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Known open items
 
-- **Config on the bus and the USB vendor interface have never run on
-  hardware.** Both were built and compiled clean on 2026-10-20 without the pad.
-  Bench procedure: `docs/MASTER_BRINGUP.md` → "Config and the USB vendor
-  interface". It also records the two numbers still missing: how long a save
-  stalls the master, and the telemetry rate with the re-push.
+- **Config and the USB vendor interface: the hands-on steps are not run yet.**
+  Everything else passed on 2026-10-20 with nobody at the bench
+  (`docs/BRINGUP_LOG.md`). Still to do: presses (`hid_monitor.py`, the SDK's
+  `*`), a press on a disabled channel (`F`), a panel 12 V cut (step 7), cable
+  pulls with `events` and in the SDK, and looking at the LEDs for `mode` and
+  `leds`.
+- **`pad_cmd.py bus-h` missed a reply twice** in its first ~15 runs, then 0 in
+  ~85. Cause unknown; the master's passthrough was seen working.
+- **Host LED frames, fixed 2026-10-21 at High Speed:** 12 × 64-byte writes
+  took ~9 ms per frame with the bus running; protocol 2's one 1,024-byte
+  packet takes 0.70 ms. At Full Speed it is still 15.5 ms (no headroom at
+  60 Hz). The master's loop still leaves its RawHID buffers full for ~3 ms at
+  a time while the bus runs; it matters only at Full Speed now
+  (`docs/BRINGUP_LOG.md`).
 - **The master's two EEPROM slots share the emulation's flash sectors**, so a
   power cut during a sector compaction can lose both: the result is defaults
   plus "config was reset", never a wrong config. Found reading the core
   (`docs/PANEL_CONFIG.md` → "As built").
 - **Connect USB before 12 V** on any panel. A powered brain back-drives its VBUS,
   so a host won't attach (rev-2 candidate #3).
-- **The master's RS-485 parser resync is built (2026-10-20) but not yet run.**
+- **The master's RS-485 parser resync is built (2026-10-20) but not yet run**
+  (needs a panel's USB console for `g`).
   Instead of an inter-byte timeout (the panel app and bootloader have one), the
   master drops a half-parsed packet before each of its own transmissions.
   Bench test with the panel console's new `g`: `docs/MASTER_BRINGUP.md` →
@@ -87,14 +102,25 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Next steps (firmware/software)
 
+> **NEXT SESSION: test on the hardware** (the user, 2026-10-20). **Partly done
+> the same evening** with nobody at the bench: master and all nine panels on
+> the new firmware, everything in `docs/MASTER_BRINGUP.md` → "Config and the
+> USB vendor interface" that needs no hand or eye, and both missing numbers
+> (save stall up to ~35 ms, telemetry 12.6 Hz). Results: `docs/BRINGUP_LOG.md`.
+> Still to do at the bench:
+> 1. The hands-on steps of that section: presses, `F` with a press, a panel
+>    12 V cut, cable pulls with `events` and the SDK `monitor`, the LEDs for
+>    `mode` and `leds`, then `w` and `hid_monitor.py` presses (step 10).
+> 2. "Parser resync": a brain on USB for the panel console's `g`, on the old
+>    master and the new.
+
 **The user's plan (2026-10-20): (a) config on the bus, (b) the master's vendor
 HID interface, (c) the Rust SDK skeleton in `software/sdk` against (b)**
 (`docs/HOST_SOFTWARE.md`). **All three were built 2026-10-20, plus the master's
-parser resync, and none has run on the pad yet.** (b) covers the whole command
-table except underglow and reset animations (the user's call); (c) is tested
-against a fake master. **Next: the bench procedure** in
-`docs/MASTER_BRINGUP.md` → "Config and the USB vendor interface" (it ends with
-the SDK's `monitor` example) and → "Parser resync", with the pad plugged in.
+parser resync.** (a), (b) and (c)'s `monitor` example ran on the pad the same
+evening, apart from the hands-on steps; the parser resync hasn't run. (b) covers
+the whole command table except underglow and reset animations (the user's
+call). **Next: the rest of the bench procedure** (the box above).
 The SDK's C interface (`krakenpad-c`) isn't needed yet (the user, 2026-10-20).
 How the SDK and firmware share values after the repos split is open
 (`docs/HOST_SOFTWARE.md` → "Not decided").
@@ -103,13 +129,13 @@ How the SDK and firmware share values after the repos split is open
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
 3. Robustness: cable pull, panel power cycle, poll/LED interleave under load.
-4. Config: **built 2026-10-20, not yet run on hardware.** Panels RAM-only; the
+4. Config: **built 2026-10-20, run on the pad the same evening (hands-on steps to do).** Panels RAM-only; the
    master's two-slot EEPROM record, `'W'`/`'w'` and the "not configured" bit
    (`docs/RS485_PROTOCOL.md`), the version check, reset config, console `S`/`F`
    editing the master's copy with a separate `save` (the user's call,
    2026-10-20). Shared format: `firmware/shared/panel_config.h`.
    Auto-calibration deferred until installed-pad data.
-5. USB vendor interface: **built 2026-10-20, not yet run on hardware.** Packet
+5. USB vendor interface: **built 2026-10-20, run on the pad the same evening (hands-on steps to do).** Packet
    framing, the command table except underglow (deferred) and reset animations
    (waits on step 6), the telemetry stream, host LED frames (hand back after
    1 s, the user's call), the bus passthrough for updates, reboot to the Teensy
@@ -120,7 +146,13 @@ How the SDK and firmware share values after the repos split is open
    length+CRC and the gif-maker fork decided 2026-10-20; max LED rate, ms vs
    frame units, loop counts and the panel layout still open
    (`docs/ANIMATIONS.md` → "Decisions and open questions").
-7. Underglow: periodic re-send, then the host command. (Deferred by the user on
+7. **Bigger USB reports at High Speed, 64 at Full Speed:** decided and **built
+   2026-10-21 (protocol 2)**, run at both speeds on master #2: an LED frame
+   0.70 ms at High Speed, 15.5 ms at Full Speed (`docs/USB_PROTOCOL.md`). Device
+   info carries the speed and both sizes for the config app's connection
+   status. Still open: what Full Speed drops or degrades, from more tests
+   (`FULL_SPEED=1 build.sh` forces it); Windows and Linux not tried.
+8. Underglow: periodic re-send, then the host command. (Deferred by the user on
    2026-10-08: noted, not to be built yet.)
 
 ## Long-run tests (planned, none run yet)

@@ -18,9 +18,11 @@ pub enum Event {
     PadDisconnected {
         player: u8,
     },
-    /// A master was found but not taken on.
+    /// A master was found but not taken on. `player` is `None` for a master
+    /// on another protocol version, whose device info isn't read past the
+    /// version.
     PadRejected {
-        player: u8,
+        player: Option<u8>,
         reason: RejectReason,
     },
     /// The master found no valid saved config at boot and runs on defaults
@@ -52,9 +54,9 @@ pub enum RejectReason {
     /// Player IDs 4–7 are reserved. A master straight from assembly reads 7
     /// (all switches off); P1 is all three on.
     ReservedPlayer,
-    /// The master speaks another protocol version or packet size than this
-    /// SDK: update one of them.
-    Protocol { version: u8, packet_size: u8 },
+    /// The master speaks another protocol version than this SDK: update one
+    /// of them.
+    Protocol { version: u8 },
 }
 
 pub(crate) type WakeFn = dyn Fn() + Send + Sync;

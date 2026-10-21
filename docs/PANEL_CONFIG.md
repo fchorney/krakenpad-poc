@@ -1,7 +1,9 @@
 # Panel configuration — design
 
-Status: **config on the bus is built (2026-10-20) and has not yet run on a
-board.** Panels keep config in RAM only; the master keeps the only saved copy
+Status: **config on the bus is built (2026-10-20) and ran on master #2 and
+nine panels the same evening** (`docs/BRINGUP_LOG.md`); the steps that need
+someone at the bench (a press on a disabled channel, a panel 12 V cut) are not
+run yet. Panels keep config in RAM only; the master keeps the only saved copy
 and pushes it with `'W'`. What was built and how it behaves: "As built" below.
 
 **Built in the gameplay firmware (`firmware/panel/c/main.c`):**
@@ -11,15 +13,15 @@ and pushes it with `'W'`. What was built and how it behaves: "As built" below.
 - **DIP 10:** the sensor test runs standalone. The other diagnostic codes in the
   table below (9, 11, 12, 13) are not built.
 - The three **LED modes** (normal, ID, sensor test), set by `'M'`. See below.
-- **Config from the master's `'W'`** (2026-10-20, not yet run on a board): per
+- **Config from the master's `'W'`** (2026-10-20, runs on all nine panels): per
   channel press/release thresholds and the `populated`/`enabled` flags, boot
   defaults 500/400 with both flags set (`firmware/shared/panel_config.h`).
   **RAM only, by design**: a reboot returns to the defaults until the next
   `'W'`, and the "not configured" bit in `'f'` tells the master. `'C'` is gone.
 - The debug LED `D202` lights on press in DIP 10 only, and stays dark otherwise.
 
-**Built in the master (`firmware/master/master.ino`), 2026-10-20, not yet run
-on hardware:** the canonical copy with its two-slot EEPROM record, the pushes
+**Built in the master (`firmware/master/master.ino`), 2026-10-20, run on
+master #2 the same evening:** the canonical copy with its two-slot EEPROM record, the pushes
 and re-push, per-panel config state, the console commands, and USB get/set/reset
 config (`docs/USB_PROTOCOL.md`).
 
@@ -283,7 +285,10 @@ after 2,048 entries, unchanged bytes skipped. **Every byte write disables all
 interrupts and busy-waits for the flash**, and the occasional sector erase holds
 them off for the whole erase. So while the master saves, its INT interrupt, USB
 and the RS-485 UART stall in bursts. Covered by the no-saves-during-gameplay
-rule; worth measuring once saving exists.
+rule. **Measured 2026-10-20** (master #2, 8,000 saves of a few changed bytes
+each): median 0.9 ms, p99 1.6 ms, and **30–34.5 ms when the save triggers a
+sector compaction** (18 of the 8,000). Plan on a save stalling everything for
+up to ~35 ms (`docs/BRINGUP_LOG.md`).
 
 ### The master's EEPROM record (decided 2026-10-20, not built)
 
@@ -308,7 +313,7 @@ a version bump when they are built. Among them: the **underglow byte order**
 (RGB / GRB / BRG…), per pad, because different pads' strips differ; the master
 converts from USB's RGB with it (`docs/USB_PROTOCOL.md`).
 
-### As built (2026-10-20, not yet run on hardware)
+### As built (2026-10-20; first run on master #2 + nine panels 2026-10-20, everything without a person at the bench)
 
 **Shared definition.** `firmware/shared/panel_config.h` holds the format
 version, the `'W'` layout, the validity rule (`release < press ≤ 4095`,
@@ -345,8 +350,8 @@ is not re-sent at once on every poll, only on the ~1 Hz re-push.
 **Pushes**, each in a poll slot with a reply window: when a panel appears
 (this covers the master's own boot), when a panel that matched reports "not
 configured" (it rebooted), when the copy changes, and the re-push, one
-answering panel every ~111 ms. Expected cost, not measured: telemetry drops
-from ~14 Hz to ~12.7 Hz per panel (`docs/RS485_PROTOCOL.md` → timing).
+answering panel every ~111 ms. Cost: telemetry drops from ~14 Hz to ~12.7 Hz
+per panel expected, **12.6 Hz measured** (2026-10-20, nine panels) (`docs/RS485_PROTOCOL.md` → timing).
 
 **At boot** the master prints which slot it loaded, or that it found no valid
 record and runs on defaults ("config was reset", also in USB device info until

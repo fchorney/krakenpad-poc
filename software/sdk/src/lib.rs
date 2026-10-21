@@ -57,7 +57,7 @@ pub use error::{DeviceError, Error, Result};
 pub use events::{Event, RejectReason};
 pub use messages::{
     ClockProbe, ConfigState, DeviceInfo, FsrSample, LedFrame, LedMode, PadStatus, PanelStatus,
-    SelfTest, Termination,
+    SelfTest, Termination, UsbSpeed,
 };
 pub use pad::{Pad, PadSnapshot, PadStats, PanelSnapshot};
 
