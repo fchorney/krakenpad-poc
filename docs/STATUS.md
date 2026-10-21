@@ -57,12 +57,16 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Known open items
 
-- **Config and the USB vendor interface: the hands-on steps are not run yet.**
-  Everything else passed on 2026-10-20 with nobody at the bench
-  (`docs/BRINGUP_LOG.md`). Still to do: presses (`hid_monitor.py`, the SDK's
-  `*`), a press on a disabled channel (`F`), a panel 12 V cut (step 7), cable
-  pulls with `events` and in the SDK, and looking at the LEDs for `mode` and
-  `leds`.
+- **Config and the USB vendor interface: all passed except presses on every
+  panel**, which wait until the panels are in the pad with a sensor each (the
+  user, 2026-10-21). The `F` press test, a panel 12 V cut, a bus cable pull
+  (USB events and the SDK), the LED commands and `w` passed at the bench on
+  2026-10-21 (`docs/BRINGUP_LOG.md`).
+- **Small firmware/tool nits found 2026-10-21:** the duplicate-ID warning
+  fires after a panel drops out (and poll rates read over 100%); the SDK
+  `monitor` example prints a missing panel's last values; `pad_cmd.py` holds
+  the vendor interface exclusively on macOS, so nothing else can open the pad
+  while it runs.
 - **`pad_cmd.py bus-h` missed a reply twice** in its first ~15 runs, then 0 in
   ~250 since, including 150 after random commands (2026-10-21). Cause
   unknown. The master now logs what each passthrough session heard, so a
@@ -79,12 +83,6 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   (`docs/PANEL_CONFIG.md` → "As built").
 - **Connect USB before 12 V** on any panel. A powered brain back-drives its VBUS,
   so a host won't attach (rev-2 candidate #3).
-- **The master's RS-485 parser resync is built (2026-10-20) but not yet run**
-  (needs a panel's USB console for `g`).
-  Instead of an inter-byte timeout (the panel app and bootloader have one), the
-  master drops a half-parsed packet before each of its own transmissions.
-  Bench test with the panel console's new `g`: `docs/MASTER_BRINGUP.md` →
-  "Parser resync".
 - **Bootloader-over-bus, six checks not yet run on a board** (V1–V6 in
   `docs/FIELD_UPDATE.md` → "Validation"): the USB image, both BOOTSEL
   fallbacks, SWD restore, power cuts mid-update and mid-conversion. V1–V4 go
@@ -106,25 +104,18 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Next steps (firmware/software)
 
-> **NEXT SESSION: test on the hardware** (the user, 2026-10-20). **Partly done
-> the same evening** with nobody at the bench: master and all nine panels on
-> the new firmware, everything in `docs/MASTER_BRINGUP.md` → "Config and the
-> USB vendor interface" that needs no hand or eye, and both missing numbers
-> (save stall up to ~35 ms, telemetry 12.6 Hz). Results: `docs/BRINGUP_LOG.md`.
-> Still to do at the bench:
-> 1. The hands-on steps of that section: presses, `F` with a press, a panel
->    12 V cut, cable pulls with `events` and the SDK `monitor`, the LEDs for
->    `mode` and `leds`, then `w` and `hid_monitor.py` presses (step 10).
-> 2. "Parser resync": a brain on USB for the panel console's `g`, on the old
->    master and the new.
+> **The 2026-10-20 bench procedure is done** (2026-10-21), except presses on
+> every panel, which wait for the panels to be in the pad with a sensor each.
+> The parser resync passed on the current master and failed on the old one, as
+> designed. Results: `docs/BRINGUP_LOG.md`.
 
 **The user's plan (2026-10-20): (a) config on the bus, (b) the master's vendor
 HID interface, (c) the Rust SDK skeleton in `software/sdk` against (b)**
 (`docs/HOST_SOFTWARE.md`). **All three were built 2026-10-20, plus the master's
-parser resync.** (a), (b) and (c)'s `monitor` example ran on the pad the same
-evening, apart from the hands-on steps; the parser resync hasn't run. (b) covers
+parser resync.** All ran on the pad (2026-10-20 and 21), apart from presses on
+every panel. (b) covers
 the whole command table except underglow and reset animations (the user's
-call). **Next: the rest of the bench procedure** (the box above).
+call). Presses on every panel wait for the installed pad.
 The SDK's C interface (`krakenpad-c`) isn't needed yet (the user, 2026-10-20).
 How the SDK and firmware share values after the repos split is open
 (`docs/HOST_SOFTWARE.md` → "Not decided").
@@ -133,13 +124,13 @@ How the SDK and firmware share values after the repos split is open
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
 3. Robustness: cable pull, panel power cycle, poll/LED interleave under load.
-4. Config: **built 2026-10-20, run on the pad the same evening (hands-on steps to do).** Panels RAM-only; the
+4. Config: **built 2026-10-20, passed on the pad 2026-10-20/21 (presses on every panel wait for the installed pad).** Panels RAM-only; the
    master's two-slot EEPROM record, `'W'`/`'w'` and the "not configured" bit
    (`docs/RS485_PROTOCOL.md`), the version check, reset config, console `S`/`F`
    editing the master's copy with a separate `save` (the user's call,
    2026-10-20). Shared format: `firmware/shared/panel_config.h`.
    Auto-calibration deferred until installed-pad data.
-5. USB vendor interface: **built 2026-10-20, run on the pad the same evening (hands-on steps to do).** Packet
+5. USB vendor interface: **built 2026-10-20, passed on the pad 2026-10-20/21 (presses on every panel wait for the installed pad).** Packet
    framing, the command table except underglow (deferred) and reset animations
    (waits on step 6), the telemetry stream, host LED frames (hand back after
    1 s, the user's call), the bus passthrough for updates, reboot to the Teensy

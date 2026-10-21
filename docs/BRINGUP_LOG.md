@@ -1488,6 +1488,43 @@ degrade is still to be decided from tests like these.
 with `events` and in the SDK, every visual LED check, full white, and **the
 parser resync test**, which needs a panel's USB console for `g`.
 
+### 2026-10-21 — hands-on steps at the bench (the user at the pad)
+
+Master #2 on protocol 2 (`90623f6`), nine panels on `DA2F106C`. Sensors
+fitted on the bench pad: one each on **U** (channel 2), **L** (channel 1),
+**R** (channel 3) and **D** (channel 0), each ~100 at rest; the other five
+panels have none.
+
+| test | result |
+|---|---|
+| presses on every panel (`hid_monitor.py`, the SDK's `*`) | **deferred** until the panels are in the pad with at least one sensor each (the user) |
+| `F` with a press | ✅ `F 3 1 1 0` (L's fitted channel): four presses to 3,262–3,832 raw in `stream`, no pressed flag, **no L button**; a U press as control: pressed flag, button U press/release (seq 32/33, no gap). `F 3 1 1 1`: L presses again (seq 34/35) |
+| `mode 1 3`, `mode 2 8 --panels 3`, `leds 0 0 64 3` | ✅ seen by the user: all nine show their ID for 3 s; only L in the sensor test, reacting to its sensor; all dim blue for 3 s, then the master's pattern back |
+| one panel's 12 V cut (D, end of the centre column, ~15 s off) | ✅ `STOPPED REPLYING`, USB `GONE` + `absent`; back: `present`, `not configured`, `sent, waiting`, `matches`, all within the same second. D: `reset power-on`, 0 bus errors. The other eight: 0 errors throughout, so an unpowered panel mid-chain doesn't disturb the bus |
+| bus cable pull (DR's RS-485 IN, ~9 s) | ✅ SDK `monitor`: `PanelPresence` false, `ConfigResult` `Absent`; back: present, `Waiting`, `Matches` (no "not configured": DR didn't reboot). Console likewise. The console only checks termination at the end of an `H` sweep, so nothing about termination printed during the pull |
+| full white `w`, ~10 s, no meter | ✅ every LED white (seen), nothing more than usually warm; `H` at full white: 0 errors on all nine, termination OK. No current figure: the user has no clamp meter, and a DMM's high-current range may have an on-time limit (check its manual). The fused re-run stays open |
+| DL's own console (brain `DE6558A69776582F`, sticker 582F, on USB) | ✅ `config: from the master, CRC FD704831 (26 'W' accepted, 0 rejected)` |
+| parser resync, current master | ✅ `1 partial packets dropped`, `0 crc errs`, polls kept pace (448/449 with one in flight, then 1020/1020); the other eight `tmo 1`, DL (the sender) 0 |
+| parser resync, old master (`f138ece`) | ❌ as predicted: `1 crc errs` and **6 `'f'` replies missing** (195/201). So the test fails without the fix and passes with it |
+
+**Found, none blocking:**
+- **The duplicate-ID warning fires after a panel drops out** (twice: `panel 7
+  poll reply rate is only 25%` just after D came back, `panel 8 … 42% while
+  panel 2 is 101%` while DR was out). The heartbeat window counts the time
+  the panel was gone. The `101%` is the same over-100% nit seen in `status`.
+- **The SDK `monitor` example prints a missing panel's last values** (DR frozen
+  at `22,13,13,13` for the whole pull); the snapshot's `present` flag isn't
+  used.
+- **On macOS, `pad_cmd.py` holds the vendor interface exclusively**: the SDK
+  `monitor` found no pad while `pad_cmd.py events` ran, and connected within a
+  second of it stopping. The SDK itself opens shared (`macos-shared-device`).
+- **Bench-method slip:** with a brain on USB, the console helper's default
+  port picked the brain's `/dev/cu.usbmodem1101` over the master's, and one
+  `j` went to DL's console (no such key there: no effect). Name the port
+  explicitly whenever a brain is plugged in.
+- `c` says "UNSAVED edits" after `F` off then on, with the values back as
+  saved: the flag means "edited since the last save", by definition.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

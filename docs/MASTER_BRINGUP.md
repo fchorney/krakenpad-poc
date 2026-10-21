@@ -372,7 +372,11 @@ defaults and the old master's `S` would do nothing.
 On Windows, remove the cached `16C0:0487` device first: its interface set
 changed again (`docs/USB_PROTOCOL.md` → device identification).
 
-## Parser resync (built 2026-10-20, not yet run)
+## Parser resync (built 2026-10-20, passed 2026-10-21)
+
+**Run 2026-10-21** (`docs/BRINGUP_LOG.md`): the current master `1 partial packets
+dropped`, `0 crc errs`; the old master `1 crc errs` and 6 replies missing, as
+the table below predicts.
 
 The master drops a half-parsed packet before each of its transmissions
 (`docs/RS485_PROTOCOL.md` → "Framing"). To make one, the gameplay panel
