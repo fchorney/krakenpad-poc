@@ -154,6 +154,11 @@ to `(footprint …)` when adding to a project library. Preview headless with
 - **`USB1_PORTSC1 |= USB_PORTSC1_PFSC` forces Full Speed** (a commented-out
   line in the core's `usb.c`). `FULL_SPEED=1 firmware/master/build.sh` turns
   it on for testing the fallback.
+- **hidapi on macOS opens devices exclusively by default**: `hid_init()` turns
+  it on, so while one program has the pad open, another finds nothing.
+  `hid_darwin_set_open_exclusive(0)` after `hid_init()` opens shared; the
+  Python `hid` module calls `hid_init()` on import, so the tools call it right
+  after. The SDK gets the same through hidapi-rs's `macos-shared-device`.
 - **hidapi writes on macOS block until the transfer completes** (measured
   2026-10-21): ~0.38 ms per write at `bInterval = 1` whatever the size up to
   512 bytes, 0.50 ms at `bInterval = 2`, 1.0 ms at 4. Send fewer, bigger

@@ -49,6 +49,11 @@ fn main() -> krakenpad::Result<()> {
                     .iter()
                     .zip(NAMES)
                     .filter_map(|(p, name)| {
+                        // The snapshot keeps a panel's last sample after it
+                        // stops answering; `present` says whether it is current.
+                        if !p.present {
+                            return Some(format!("{name}:gone"));
+                        }
                         let x = p.sample?;
                         let raw = x.raw.map(|v| v.to_string()).join(",");
                         let pressed = if x.pressed != 0 { "*" } else { "" };

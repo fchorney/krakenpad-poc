@@ -20,6 +20,12 @@ try:
 except ImportError:
     sys.exit("needs the hid module: brew install hidapi && pip install hid")
 
+# On macOS hidapi opens devices exclusively by default (hid_init() sets it), so
+# while this tool runs no other program could open the pad. Open shared, as the
+# SDK does. The hid module has already called hid_init() on import.
+if hasattr(hid.hidapi, "hid_darwin_set_open_exclusive"):
+    hid.hidapi.hid_darwin_set_open_exclusive(0)
+
 VID, PID = 0x16C0, 0x0487
 PRODUCT = "KrakenPad"
 PANEL_NAME = ["UL", "U", "UR", "L", "C", "R", "DL", "D", "DR"]

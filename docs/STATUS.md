@@ -62,11 +62,12 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   user, 2026-10-21). The `F` press test, a panel 12 V cut, a bus cable pull
   (USB events and the SDK), the LED commands and `w` passed at the bench on
   2026-10-21 (`docs/BRINGUP_LOG.md`).
-- **Small firmware/tool nits found 2026-10-21:** the duplicate-ID warning
-  fires after a panel drops out (and poll rates read over 100%); the SDK
-  `monitor` example prints a missing panel's last values; `pad_cmd.py` holds
-  the vendor interface exclusively on macOS, so nothing else can open the pad
-  while it runs.
+- **Small nits found 2026-10-21, fixed the same evening:** the duplicate-ID
+  warning no longer fires when a panel drops out (rates capped at 100%); the
+  SDK `monitor` shows a missing panel as `gone`; the Python tools open the pad
+  shared on macOS. **Still to test: that a real duplicate ID still warns.**
+  Two programs *driving* the pad at once can mix up responses (one command at
+  a time, matched by transaction ID); watching alongside a game is fine.
 - **`pad_cmd.py bus-h` missed a reply twice** in its first ~15 runs, then 0 in
   ~250 since, including 150 after random commands (2026-10-21). Cause
   unknown. The master now logs what each passthrough session heard, so a
@@ -104,6 +105,11 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Next steps (firmware/software)
 
+> **NEXT (the user, 2026-10-21): move everything into the pad**, with at
+> least one sensor on every panel. Then: presses on every panel
+> (`hid_monitor.py`, the SDK `monitor`), the real-duplicate-ID warning check,
+> and the installed-pad items below (harness lengths, bus scope, FSR logging).
+>
 > **The 2026-10-20 bench procedure is done** (2026-10-21), except presses on
 > every panel, which wait for the panels to be in the pad with a sensor each.
 > The parser resync passed on the current master and failed on the old one, as

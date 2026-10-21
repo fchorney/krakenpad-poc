@@ -332,6 +332,9 @@ uint32_t stat_replies = 0, stat_crc_errs = 0, stat_polls_sent = 0, stat_frames_s
 // just in aggregate, is what makes that distinguishable.
 uint32_t poll_sent_window[NUM_PANELS] = {};
 uint32_t poll_ok_window[NUM_PANELS] = {};
+// The panel went offline or came back during this window. A window like that
+// says nothing about collisions, so it is never judged (checkPanelHealth()).
+bool     presence_changed_window[NUM_PANELS] = {};
 // Lifetime per-panel reply count. The windowed counters reset every heartbeat,
 // so they cannot answer "has this panel EVER answered" — which is what decides
 // whether a panel is worth printing a line for.
@@ -720,6 +723,7 @@ void cfgAck(int pidx, const uint8_t *p) {
 void panelSeen(int pidx, bool not_configured) {
   if (!panel_online[pidx]) {
     panel_online[pidx] = true;
+    presence_changed_window[pidx] = true;
     Serial.print("# panel ");
     Serial.print(PANEL_IDS[pidx]);
     Serial.print(" (");
@@ -743,6 +747,7 @@ void updatePresence(uint32_t now_ms) {
   for (int i = 0; i < NUM_PANELS; i++) {
     if (!panel_online[i] || (now_ms - last_reply_ms[i]) < PANEL_TIMEOUT_MS) continue;
     panel_online[i] = false;
+    presence_changed_window[i] = true;
     Serial.print("# !! panel ");
     Serial.print(PANEL_IDS[i]);
     Serial.print(" (");
@@ -2053,6 +2058,24 @@ void pollSerialCommands() {
 // mean many things; a single address with a much worse reply rate than the
 // rest is specifically the signature of two boards sharing that panel ID
 // (their replies collide on the bus). Resets the window either way.
+//
+// It judges the window before the one just ended, skipping any panel whose
+// presence changed in either: a panel that dies near the end of a window is
+// only declared gone PANEL_TIMEOUT_MS later, in the next one. Until 2026-10-21
+// it judged the window just ended, and every panel that dropped out or came
+// back during play set off this warning.
+//
+// A rate is capped at 100%: a reply to the last poll of one window is counted
+// in the next.
+uint32_t poll_sent_prev[NUM_PANELS] = {}, poll_ok_prev[NUM_PANELS] = {};
+bool     presence_changed_prev[NUM_PANELS] = {};
+
+uint8_t pollPct(uint32_t ok, uint32_t sent) {
+  if (!sent) return 0;
+  uint32_t pct = ok * 100 / sent;
+  return pct > 100 ? 100 : (uint8_t)pct;
+}
+
 void checkPanelHealth() {
   constexpr uint32_t MIN_SAMPLE = 20;   // don't judge on too few polls
   constexpr uint32_t BAD_PCT = 50;
@@ -2069,10 +2092,11 @@ void checkPanelHealth() {
   // it would equally mislabel one genuinely dead panel in a full pad.
   int present = 0;
   for (int i = 0; i < NUM_PANELS; i++) {
-    if (poll_sent_window[i] < MIN_SAMPLE) continue;
-    if (poll_ok_window[i] == 0) continue;          // absent, not colliding
+    if (presence_changed_prev[i] || presence_changed_window[i]) continue;
+    if (poll_sent_prev[i] < MIN_SAMPLE) continue;
+    if (poll_ok_prev[i] == 0) continue;            // absent, not colliding
     present++;
-    uint32_t rate = (poll_ok_window[i] * 100) / poll_sent_window[i];
+    uint32_t rate = pollPct(poll_ok_prev[i], poll_sent_prev[i]);
     if (rate < worst_rate) { worst_rate = rate; worst = i; }
     if (rate > best_rate)  { best_rate = rate; best = i; }
   }
@@ -2096,9 +2120,13 @@ void checkPanelHealth() {
   }
 
   for (int i = 0; i < NUM_PANELS; i++) {
-    poll_pct[i] = poll_sent_window[i] ? (uint8_t)((poll_ok_window[i] * 100) / poll_sent_window[i]) : 0;
+    poll_pct[i] = pollPct(poll_ok_window[i], poll_sent_window[i]);
+    poll_sent_prev[i] = poll_sent_window[i];
+    poll_ok_prev[i] = poll_ok_window[i];
+    presence_changed_prev[i] = presence_changed_window[i];
     poll_sent_window[i] = 0;
     poll_ok_window[i] = 0;
+    presence_changed_window[i] = false;
   }
 }
 

@@ -1525,6 +1525,23 @@ panels have none.
 - `c` says "UNSAVED edits" after `F` off then on, with the values back as
   saved: the flag means "edited since the last save", by definition.
 
+**The three fixed the same evening:**
+- **Duplicate-ID warning:** the master now judges a heartbeat window one
+  heartbeat late, skipping any panel whose presence changed in that window or
+  the next (a dead panel is declared gone up to 1 s later), and caps rates at
+  100%. Re-test, DR's bus cable out 26 s: **0 warnings** (before: one per
+  drop-out). **Not yet re-tested: that a real duplicate ID still warns** (set
+  one panel's DIP to another's ID and power-cycle it).
+- **SDK `monitor`:** prints `DR:gone` while a panel isn't present (19 lines
+  during the re-test).
+- **`pad_cmd.py` and `hid_monitor.py` open the pad shared**
+  (`hid_darwin_set_open_exclusive(0)`, after the `hid` module's `hid_init()`).
+  Re-test: `pad_cmd.py events`, the SDK `monitor` and `pad_cmd.py info` all
+  open at once. ⚠ Shared means two programs *can* both send commands; the
+  master takes one at a time and matches responses by transaction ID, so two
+  programs driving the pad at once can mix up responses (and, at Full Speed,
+  interleave multi-packet commands). Watching alongside a game is fine.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
