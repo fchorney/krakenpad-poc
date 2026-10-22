@@ -77,10 +77,10 @@ static const char *FSR_NAME[NUM_FSR] = {"South", "West", "North", "East"};
 #define ID_WHITE          96
 
 // Test mode: off at or below this, linear to full at 4095. Deliberately NOT the
-// press threshold, which the user can move. Board 1 rests at 94-98, so this sits
-// just above the noise floor and may flicker on a noisy channel; once tare
-// exists this becomes "0-5 counts above tare is off".
-#define TEST_FLOOR        100
+// press threshold, which the user can move. Raised from 100 on 2026-10-22: in
+// the pad, sensors rest at 88-114 and full weight reaches ~4090, so 100 lit some
+// edges faintly at rest. Once tare exists this becomes "a margin above tare".
+#define TEST_FLOOR        200
 
 #define SENSE_RISE_STABLE_MS   30   // slow to trust the rail, fast to give up on it
 #define SENSE_FALL_STABLE_MS   2
@@ -119,11 +119,12 @@ static const uint8_t *const EDGE_IMAGE[NUM_FSR] = {
     [FSR_NORTH] = ID_IMAGE[1],
     [FSR_EAST]  = ID_IMAGE[5],
 };
+// The stock pad's sensor-test colours (docs/PANEL_CONFIG.md → "Sensor test").
 static const uint8_t EDGE_RGB[NUM_FSR][3] = {
-    [FSR_SOUTH] = {0, 1, 0},   // green
+    [FSR_SOUTH] = {1, 1, 0},   // yellow
     [FSR_WEST]  = {1, 0, 0},   // red
     [FSR_NORTH] = {0, 0, 1},   // blue
-    [FSR_EAST]  = {1, 1, 0},   // yellow
+    [FSR_EAST]  = {0, 1, 0},   // green
 };
 
 enum { MODE_NORMAL = 0, MODE_ID = 1, MODE_TEST = 2, MODE_COUNT };

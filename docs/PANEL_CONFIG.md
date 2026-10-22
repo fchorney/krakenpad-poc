@@ -122,12 +122,19 @@ eight panels 2026-10-19 and accepted by the user** (stage 3 bench, panels 0–7)
 They have not been compared against stock.
 
 **Sensor test:** each edge uses the ID image of the panel on that side:
-**North = U, blue; East = R, yellow; South = D, green; West = L, red.** No two
-sets overlap, so nothing needs blending. Brightness is off at or below
-**100 counts** and linear from there to full at 4095. That floor is **NOT the
+**North = U, blue; East = R, green; South = D, yellow; West = L, red.** These
+match the stock pad's own sensor test (compared on a stock pad 2026-10-22: the
+same inward triangles, black at rest, brightness rising with pressure, no
+threshold shown). ~~East = R, yellow; South = D, green~~ was the first
+version, with those two swapped against stock; changed 2026-10-22 (the user).
+No two sets overlap, so nothing needs blending. Brightness is off at or below
+**200 counts** and linear from there to full at 4095. That floor is **NOT the
 press threshold**, on purpose, because the user can change the press threshold.
-Board 1 rests at 94–98, so 100 sits right at the noise floor and may need
-raising. Once tare exists, this becomes "0–5 counts above tare is off".
+~~**100 counts**; board 1 rests at 94–98, so 100 sits right at the noise floor
+and may need raising.~~ Raised to 200 on 2026-10-22 (the user): in the pad the
+sensors rest at 88–114, so 100 left some edges glowing faintly at rest, and
+full weight reaches ~4090, so the extra floor costs nothing. Once tare exists,
+this becomes "a margin above tare is off".
 
 This reverses `docs/USB_PROTOCOL.md`'s 2026-07 call to drop stock's `'t'` panel
 test mode from firmware and draw it host-side.
