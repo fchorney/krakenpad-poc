@@ -114,7 +114,12 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   master's receive buffer after 161 of its own transmissions (2026-10-21,
   passthrough logging), and the core keeps bytes with framing errors. No
   framing-error count yet (`docs/MASTER_BRINGUP.md`).
-- **Not yet measured:** the joystick in a real game (ITGmania), the host-side
+- **Fast re-presses in real play** (first ITGmania session, 2026-10-22): ~5%
+  of presses re-pressed under 30 ms after releasing, down to 0 ms gaps.
+  Cause not established; a panel-level release debounce is the candidate fix,
+  not decided (`docs/BRINGUP_LOG.md`).
+- **Not yet measured:** ~~the joystick in a real game (ITGmania)~~ (first
+  session 2026-10-22: no missed reports, 0 bus errors), the host-side
   achieved poll rate, and the report rate under many simultaneous presses.
 - **Not yet tested:** cable pulls and panel power cycles during play.
 - **11 panels still to assemble** (`docs/BUILD_CHECKLIST.md`).
@@ -235,7 +240,9 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
    bench "~4000" was finger presses). Resting in the pad 88–114. Known
    resistors read ~20–25 counts above the divider model, with a 13–18 floor
    on an empty input. Channels S/W/N/E match the physical edges on all five
-   sensored panels. Still to do: the resting value over time and play.
+   sensored panels. ~~Still to do: the resting value over time and play.~~
+   **First play session 2026-10-22 (16 min, ITGmania): every tare held to ±1
+   count.** Still to do: longer sessions, a cold start, a warm room.
 5. Some of the open items above may also have been on the list: cable pulls and
    power cycles during play, and polling plus LED frames under load.
 

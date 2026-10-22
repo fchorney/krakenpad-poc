@@ -380,6 +380,8 @@ def cmd_stream(pad, a):
                 print("  " + "  ".join(f"{PANEL_NAME[p]}:{fmt(raw, tare)}"
                                        f"{'*' if mask & 0x0F else ''}{'!' if mask & 0x80 else ''}"
                                        for p, (raw, tare, mask) in sorted(latest.items())))
+    except KeyboardInterrupt:
+        pass   # Ctrl-C ends a long log early; still stop the stream and summarise
     finally:
         pad.command(STREAM_CTL, bytes([0, 0]), on_other=on_other)
         if log:

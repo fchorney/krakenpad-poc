@@ -1711,9 +1711,36 @@ Design and constants: `docs/PANEL_CONFIG.md` → "Tare and calibrated values".
 - **The user, stepping on it:** the sensitivity at 930/905 "seems pretty
   good"; test mode from tare + 20 looks closer to the stock sensor test, good
   enough for now.
-- **Still to do:** a logged play session in ITGmania to tune the tracking
-  (the user is mapping the pad; a problem seen there once before, not yet
-  written down, may come back).
+- **Still to do:** ~~a logged play session in ITGmania to tune the tracking~~
+  (first session the same evening, below).
+
+### 2026-10-22 — first logged play session (ITGmania)
+
+The user played a few songs in ITGmania on the installed pad (their second
+session of the day). Logged on the Mac alongside the game: every telemetry
+record with tares (`pad_cmd.py stream --csv`) and every joystick report
+(`hid_monitor.py`). Bus counters zeroed first. **15.8 minutes.**
+
+- **Bus:** 0 CRC errors on all nine, 100% polls, 12.7 Hz per panel throughout.
+- **Joystick:** ~12,100 state changes, **no sequence gaps**; presses only on
+  the five sensored panels (U 856, L 1,360, C 1,304, R 1,547, D 1,005).
+- **Tares held to ±1 count on every sensor for the whole session** (e.g. U
+  N 102–103, L N 86–88, D all unchanged). No drift to track over 16 minutes
+  of play; the ±1 flips are rounding. Longer sessions, a cold start and a
+  warm room are still unmeasured.
+- **Found: fast re-presses.** **307 times (~5% of presses)** a panel pressed
+  again **less than 30 ms after releasing** (C 129, R 70, L 60, U 35, D 13).
+  Gaps: 17 under 1 ms, 31 of 1–3 ms, 79 of 3–10 ms, 180 of 10–30 ms. None of
+  that is a human re-step. 214 followed an ordinary 50–300 ms step, 79 a
+  sub-50 ms blip, 14 a hold of over 300 ms. 128 presses were held under
+  15 ms. The panel commits a channel's release after ~0.1 ms of persistence
+  and its press output is the OR of its channels, so a foot unloading for a
+  moment (landing bounce, or weight passing from one sensor to another) shows
+  up as release + press. **Cause not established**: 12.7 Hz telemetry can't
+  resolve it. Whether ITGmania was affected isn't known yet (the user). A
+  panel-level release debounce is the obvious candidate fix (stock's config
+  carries a 15 ms debounce and a 4 ms panel debounce, semantics unverified);
+  not decided.
 
 ### Still open for this board
 
