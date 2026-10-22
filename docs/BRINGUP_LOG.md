@@ -1741,6 +1741,21 @@ record with tares (`pad_cmd.py stream --csv`) and every joystick report
   panel-level release debounce is the obvious candidate fix (stock's config
   carries a 15 ms debounce and a 4 ms panel debounce, semantics unverified);
   not decided.
+- **~~~5% of presses are artefacts~~ — most are probably real jacks** (the
+  user's point: charts have 16ths and faster at 180+ BPM, and 16th jacks at
+  180 BPM are an 83 ms cycle). Re-checked by the press-to-press cycle on the
+  same panel: **218 of the 307 had a cycle of 75 ms or more**, which fits real
+  fast jacks; the release threshold (905) is a firm force, so a jack only
+  has to unload a little to release, and a 10–30 ms dip is plausible. **About
+  100 (~1.6% of presses) still look like artefacts:** 66 with a whole cycle
+  under 50 ms (over 20 presses a second on one panel) and 34 more with a
+  release under 3 ms. Without the charts this stays an estimate. The user
+  noticed nothing odd while playing.
+- **DeadSync** (the user, from an earlier try, not yet re-checked): its input
+  checker seemed to treat each change of the joystick report's **sequence
+  number** as a new button. The report puts the sequence on vendor page
+  0xFF00 so games ignore it (`docs/USB_PROTOCOL.md` → "Input state report");
+  how DeadSync reads the report is not known yet.
 
 ### Still open for this board
 

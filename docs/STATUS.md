@@ -115,9 +115,14 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   passthrough logging), and the core keeps bytes with framing errors. No
   framing-error count yet (`docs/MASTER_BRINGUP.md`).
 - **Fast re-presses in real play** (first ITGmania session, 2026-10-22): ~5%
-  of presses re-pressed under 30 ms after releasing, down to 0 ms gaps.
-  Cause not established; a panel-level release debounce is the candidate fix,
-  not decided (`docs/BRINGUP_LOG.md`).
+  of presses re-pressed under 30 ms after releasing, but most fit real fast
+  jacks (a press-to-press cycle of 75 ms or more). **About 1.6% still look
+  like artefacts** (cycles under 50 ms, or releases under 3 ms). The user
+  noticed nothing odd. A panel-level release debounce is the candidate fix if
+  it matters; not decided (`docs/BRINGUP_LOG.md`).
+- **DeadSync's input checker may treat the joystick report's sequence number
+  as buttons** (the user, from an earlier try; to re-check). The sequence is
+  on vendor page 0xFF00 so games ignore it; how DeadSync reads it is unknown.
 - **Not yet measured:** ~~the joystick in a real game (ITGmania)~~ (first
   session 2026-10-22: no missed reports, 0 bus errors), the host-side
   achieved poll rate, and the report rate under many simultaneous presses.
