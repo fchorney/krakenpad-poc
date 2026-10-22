@@ -164,6 +164,20 @@ How the SDK and firmware share values after the repos split is open
    (`FULL_SPEED=1 build.sh` forces it); Windows and Linux not tried.
 8. Underglow: periodic re-send, then the host command. (Deferred by the user on
    2026-10-08: noted, not to be built yet.)
+9. **Telemetry rate: find how fast polling can go without losing correctness**
+   (added 2026-10-22, the user: "part of another test at some point"). The
+   12.6 Hz per panel is set by the scheduler, not the bus.
+   `POLL_INTERVAL_MS = 5` caps polling at 200/s, about 22 Hz per panel even
+   with no LED traffic. The 60 Hz `'L'` burst then blocks `write()` for ~7 ms
+   per frame. A poll actually costs ~0.6 ms (request, `'f'` reply, silence
+   window), and since 2026-10-02 the guaranteed reply window is what protects
+   replies, not the interval. **Estimated, not measured:** a 1 ms interval would
+   give roughly 60 Hz per panel at 60 Hz LEDs. Interleaving polls into the LED
+   burst, or a TX path that doesn't block, would go further.
+   `docs/RS485_PROTOCOL.md` deferred interleaving "until all nine panels are on
+   the bus", and they have been since the install. Pass criteria to set: 0 CRC,
+   0 timeouts, every poll answered, LED frame rate held, over a long run (fits
+   long-run test 3).
 
 ## Long-run tests (planned, none run yet)
 
