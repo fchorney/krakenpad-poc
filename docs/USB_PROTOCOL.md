@@ -251,7 +251,15 @@ INT line gets hardware conditioning (per-end TVS + series R + 1 nF RC, see
 MASTER_PCB.md / DUAL_PANEL.md) **and** a firmware glitch-qualify (below). Do not
 design any part of the press path to depend on the FSR telemetry.
 
-#### Latency budget — keep the press path in µs, never ms
+#### Latency budget — ~~keep the press path in µs, never ms~~ keep it short and constant
+
+> **Revised 2026-10-22 (the user):** the panel now debounces its press output
+> by **2 ms on both edges** (`docs/PANEL_CONFIG.md` → "Press debounce"), so a
+> press reaches the host ~2 ms after the sensor crosses its threshold. What
+> matters for play is that the delay is **constant**: a game's global offset
+> absorbs it, as it does pad, monitor and audio latency. A *variable* delay
+> (jitter) is still the thing to avoid. The table below is the path without
+> the debounce.
 
 A press must reach the host as fast as possible; **1 ms is the "getting dicey"
 line**, and everything below is dominated by the USB poll quantization we

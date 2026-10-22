@@ -540,6 +540,30 @@ with sensors on U, L, C, R and D only; the other four panels can borrow
 sensors from the user's second pad if needed. Logging plan in
 `docs/STATUS.md` → "Long-run tests".
 
+## Press debounce (DECIDED and built 2026-10-22)
+
+- **2 ms on both edges, at panel level, on the press output (INT):** the OR
+  of the panel's channels must hold a new state for 2 ms before INT follows
+  it. Per channel there is still only hysteresis and the ~0.1 ms persistence
+  filter. The per-channel press bits in `'f'` (telemetry) are not debounced.
+- **Why:** the first logged play session (`docs/BRINGUP_LOG.md`) showed ~100
+  presses (~1.6%) re-pressing within a few ms of a release, or whole press
+  cycles under 50 ms: one step wobbling across the threshold. Panel level,
+  so weight passing between sensors doesn't release the panel either.
+- **Why both edges, and why the press delay is acceptable** (the user): the
+  delay is constant, so a game's global offset absorbs it, the same as pad,
+  monitor and audio latency. Charts get fast, so both edges get filtered.
+  ~~Press path in µs, never ms~~ (`docs/USB_PROTOCOL.md` → "Latency budget")
+  is revised to match.
+- **Why 2 ms:** a start (the user; ~~4 ms~~ was the first suggestion, and
+  stock's config carries a 4,000 µs panel debounce whose exact semantics are
+  unverified). Real jacks in the session lifted for 10–30 ms, so a release
+  debounce has to stay well under 10 ms or it merges fast jacks.
+- **Fixed for now** (`PRESS_DEBOUNCE_US`, `RELEASE_DEBOUNCE_US` in
+  `firmware/panel/c/main.c`). **Meant to become a pad config field** (the
+  user), not editable yet; adding it is a config version bump.
+- The self-test's INT pulses bypass it (they are 2 ms themselves).
+
 ## ~~Master-canonical config with panel flash as write-through cache~~ (decided 2026-07-09; panel-flash half superseded 2026-10-20, above)
 
 Master holds the single editable copy of config; ~~panels persist a flash copy purely as a

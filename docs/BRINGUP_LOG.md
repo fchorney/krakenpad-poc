@@ -1757,6 +1757,24 @@ record with tares (`pad_cmd.py stream --csv`) and every joystick report
   0xFF00 so games ignore it (`docs/USB_PROTOCOL.md` → "Input state report");
   how DeadSync reads the report is not known yet.
 
+### 2026-10-22 — 2 ms panel debounce on press and release
+
+Design: `docs/PANEL_CONFIG.md` → "Press debounce". Bus update to all nine:
+image `32BBFD7C`, build tag `D89F27B9`; after it 9/9 present, 100% polls,
+0 CRC errors, config matching. Master unchanged (`F93A0CC5`).
+
+- **Self-test:** 9/9 slots on their own IDs; its 2 ms pulses get through
+  (it first refused while the user stood on U, as designed).
+- **Tap check (the user: random taps on all five, then quick jacks on all
+  five; `hid_monitor.py`):** 88 presses, every one on the right panel, no
+  sequence gaps; jacks at 130–145 ms per press. "Looks good" (the user).
+- **Two quick re-presses got through, both longer than 2 ms:** R, a 9 ms
+  press, 7.8 ms released, then the real press (a landing bounce?); D, a
+  4 ms press, 28 ms released, then the real press (the foot grazing the panel
+  first?). A 2 ms debounce removes sub-2 ms wobble only; events like these
+  need a longer one or a different rule, and real jacks lift for 10–30 ms.
+  The next logged session will show how common they are.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

@@ -165,7 +165,8 @@ underneath in the frame cavity. Part choices and their history (USB-C, RS-485
 transceiver, flash, level shifter, LDO cascade, power-OR) are in
 `docs/DUAL_PANEL.md` → "Part choices and their history".
 
-- **Core 0:** tight FSR sampling loop (hysteresis + persistence) driving the
+- **Core 0:** tight FSR sampling loop (hysteresis + persistence, then a **2 ms
+  panel-level debounce on press and release**, since 2026-10-22) driving the
   open-drain INT line. Nothing else runs there, so the press path never waits.
 - **Core 1:** RS-485 responder, LED rendering (PIO fed by DMA), 12V sense, USB
   console.

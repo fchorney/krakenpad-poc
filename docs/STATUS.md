@@ -118,8 +118,10 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   of presses re-pressed under 30 ms after releasing, but most fit real fast
   jacks (a press-to-press cycle of 75 ms or more). **About 1.6% still look
   like artefacts** (cycles under 50 ms, or releases under 3 ms). The user
-  noticed nothing odd. A panel-level release debounce is the candidate fix if
-  it matters; not decided (`docs/BRINGUP_LOG.md`).
+  noticed nothing odd. ~~A panel-level release debounce is the candidate fix if
+  it matters; not decided~~ **Built 2026-10-22: a 2 ms panel-level debounce on
+  press and release** (the user), flashed to all nine; a second session will
+  show what's left (`docs/PANEL_CONFIG.md` → "Press debounce").
 - **DeadSync's input checker may treat the joystick report's sequence number
   as buttons** (the user, from an earlier try; to re-check). The sequence is
   on vendor page 0xFF00 so games ignore it; how DeadSync reads it is unknown.

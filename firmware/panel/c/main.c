@@ -4,7 +4,8 @@
 // bench tool). The breadboard version of this file used the prototype pin map
 // and is in git history before 2026-10-18.
 //
-//   Core 0  FSR sampling loop: hysteresis + persistence -> INT_OUT. Nothing else
+//   Core 0  FSR sampling loop: hysteresis + persistence, then a 2 ms panel
+//           debounce both ways -> INT_OUT. Nothing else
 //           runs here, so the press path never waits behind the bus or the LEDs.
 //   Core 1  RS-485 responder, LED rendering (PIO fed by DMA, so a paint never
 //           blocks a reply), SENSE_12V filter, USB console.
@@ -72,6 +73,15 @@ static const char *FSR_NAME[NUM_FSR] = {"South", "West", "North", "East"};
 // A state change must hold for this many consecutive samples (~0.1 ms at the
 // ~100 kHz loop rate) before it is committed.
 #define FSR_PERSISTENCE        10
+
+// Panel-level debounce on the press output (INT, the gameplay path), both
+// edges (the user, 2026-10-22): the OR of the channels must hold a new state
+// this long before INT follows it. At panel level, weight passing from one
+// sensor to another doesn't release the panel. A constant delay, so a game's
+// global offset absorbs the press side. Fixed for now; meant to become a pad
+// config field (docs/PANEL_CONFIG.md → "Press debounce").
+#define PRESS_DEBOUNCE_US      2000
+#define RELEASE_DEBOUNCE_US    2000
 
 #define LED_FALLBACK_MS   100   // no 'L' for this long -> normal mode goes dark
 #define LED_REFRESH_MS    16
@@ -244,6 +254,9 @@ static void fsr_loop(void) {
     bool     pressed[NUM_FSR] = {false};
     uint8_t  streak[NUM_FSR]  = {0};
     uint32_t ident_start = 0, ident_len = 0;
+    bool     panel_on = false;            // debounced: what INT shows
+    bool     panel_pending = false;       // the channels disagree with panel_on
+    uint32_t panel_pending_since = 0;
 
     while (true) {
         const thresholds_t *cfg = g_thr;
@@ -265,15 +278,27 @@ static void fsr_loop(void) {
             }
             if (pressed[i]) mask |= (uint8_t)(1u << i);
         }
-        g_pressed_mask = mask;
+        g_pressed_mask = mask;   // per channel, not debounced: telemetry
 
         uint32_t now = time_us_32();
+        bool raw_on = mask != 0;
+        if (raw_on == panel_on) {
+            panel_pending = false;
+        } else if (!panel_pending) {
+            panel_pending = true;
+            panel_pending_since = now;
+        } else if (now - panel_pending_since >=
+                   (raw_on ? PRESS_DEBOUNCE_US : RELEASE_DEBOUNCE_US)) {
+            panel_on = raw_on;
+            panel_pending = false;
+        }
+
         uint8_t req = g_ident_req_ms;
         if (req) { ident_start = now; ident_len = req * 1000u; g_ident_req_ms = 0; }
         bool ident = ident_len && (now - ident_start) < ident_len;
         if (!ident) ident_len = 0;
 
-        bool assert_int = g_int_enable && !g_int_hold && (mask || ident);
+        bool assert_int = g_int_enable && !g_int_hold && (panel_on || ident);
         if (assert_int != g_int_asserted) {
             gpio_set_dir(PIN_INT_OUT, assert_int ? GPIO_OUT : GPIO_IN);
             g_int_asserted = assert_int;
