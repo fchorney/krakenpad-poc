@@ -1,6 +1,6 @@
 # Project status
 
-**Last updated 2026-10-21.** This is the one page for "where is the project right
+**Last updated 2026-10-22.** This is the one page for "where is the project right
 now". Update it alongside any change that moves it (rules in `CLAUDE.md`).
 Detail lives in the docs it links.
 
@@ -18,7 +18,7 @@ Settled; every quantity in the project is sized to it.
 |---|---|---|---|
 | Panel (carrier + brain) | 20 | **9** | 9, through every stage plus SWD (`docs/BRINGUP_LOG.md`) |
 | Master | 5 | **2** (master #1, #2) | both. Master #2 runs the bench pad |
-| Harness | — | **both pads** (2026-10-12) | the bench pad's cabling is in use |
+| Harness | — | **both pads** (2026-10-12) | **installed in the bench pad, 2026-10-22**: the stock electronics are out and ours are in |
 
 Also in progress: the master enclosure (`hardware/Master-Case/`, 3D-print
 models).
@@ -37,6 +37,7 @@ models).
 - **Panel LED modes:** master `'L'` frames, the ID image, and the on-panel sensor
   test, switchable from the master with `m`. LED stutter fixed 2026-10-19.
 - **Underglow:** all 44 groups addressable from bench commands (byte order BRG).
+  Installed in the pad 2026-10-22; the `g` chase looked right there.
 - **Config on the bus, the USB vendor interface and the Rust SDK's `monitor`**
   (first run 2026-10-20, evening, nobody at the bench): every panel matches the
   master's copy, edits/save/reload/reset work, every `pad_cmd.py` command
@@ -48,7 +49,7 @@ models).
 | | Built | Not built |
 |---|---|---|
 | **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, runs on all nine (2026-10-20):** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed | Local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
-| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check. **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20) |
+| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check (the meter-only underglow test `U` removed 2026-10-22). **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20) |
 | **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
@@ -57,9 +58,10 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Known open items
 
-- **Config and the USB vendor interface: all passed except presses on every
-  panel**, which wait until the panels are in the pad with a sensor each (the
-  user, 2026-10-21). The `F` press test, a panel 12 V cut, a bus cable pull
+- **Config and the USB vendor interface: all passed except presses on four
+  panels.** In the pad (2026-10-22), presses passed on the five with a sensor
+  (U, L, C, R, D); **UL, UR, DL and DR are still to test**, with sensors
+  borrowed from the other pad for the test. The `F` press test, a panel 12 V cut, a bus cable pull
   (USB events and the SDK), the LED commands and `w` passed at the bench on
   2026-10-21 (`docs/BRINGUP_LOG.md`).
 - **Small nits found 2026-10-21, fixed the same evening:** the duplicate-ID
@@ -97,21 +99,28 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   achieved poll rate, and the report rate under many simultaneous presses.
 - **Not yet tested:** cable pulls and panel power cycles during play.
 - **11 panels still to assemble** (`docs/BUILD_CHECKLIST.md`).
-- **Harness install, last recorded open 2026-10-12:** choose which 6 power
-  cables are the column feeds; cut the trunk, master GND tie and underglow leads
-  to fit once the master and the Wago carrier are mounted.
+- **Harness, from the install (2026-10-22):** almost every cable is a little
+  long (INT quite long); RS-485 master → `UL` (60 cm) is too short; the INT
+  labels under heat-shrink make the panel end too stiff to plug in easily; the
+  unjacketed ends should be longer. New lengths and a label method are TODO
+  (`hardware/harness/README.md` → "Install findings").
+- ~~**Harness install:** column feeds chosen, trunk, master GND tie and
+  underglow leads cut to fit~~ done 2026-10-22, 12 V chain as designed.
+- **Underglow `u` may not work in the pad:** the user remembers pressing it
+  and seeing nothing (2026-10-22); `g` worked. Retest live.
 - **Scope the RS-485 bus once the panels are in a pad** (edge settling; carried
   from master #2's open list in `docs/BRINGUP_LOG.md`).
 
 ## Next steps (firmware/software)
 
-> **NEXT (the user, 2026-10-21): move everything into the pad**, with at
-> least one sensor on every panel. Then: presses on every panel
-> (`hid_monitor.py`, the SDK `monitor`), the real-duplicate-ID warning check,
-> and the installed-pad items below (harness lengths, bus scope, FSR logging).
+> **Moved into the pad 2026-10-22** (the user: everything worked so far;
+> harness findings in `hardware/harness/README.md` → "Install findings").
+> **NEXT:** presses on UL, UR, DL, DR (borrowed sensors; `hid_monitor.py`,
+> the SDK `monitor`), retest `u`, the real-duplicate-ID warning check, and the
+> installed-pad items below (harness lengths, bus scope, FSR logging).
 >
 > **The 2026-10-20 bench procedure is done** (2026-10-21), except presses on
-> every panel, which wait for the panels to be in the pad with a sensor each.
+> UL, UR, DL and DR (five of nine passed in the pad, 2026-10-22).
 > The parser resync passed on the current master and failed on the old one, as
 > designed. Results: `docs/BRINGUP_LOG.md`.
 

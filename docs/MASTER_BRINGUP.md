@@ -79,8 +79,8 @@ five need no panels and no 12V.
 | `N` | INT **external** pull-up (RN1) check — proves the 10k×9 is really there |
 | `r` | which GPIO port register and bit each INT pin lands on |
 | `D` | read the player-ID DIP |
-| `u` | underglow test pattern — **scope only** |
-| `U` | underglow steady levels + `R4` check — **the multimeter one** |
+| `u` | underglow colours: red, green, blue, dim white, then off (~3 s). A meter can't see it; use a scope or a strip |
+| ~~`U`~~ | ~~underglow steady levels + `R4` check, for a multimeter~~. **Removed 2026-10-22** (see below) |
 | `g` | underglow chase — one group lit at a time, 1 → 44 from the connector, 300 ms each |
 | `g <n>` | light underglow group *n* (1–44) alone and hold it |
 | `x` | pause/resume LED frames + FSR polling |
@@ -162,6 +162,14 @@ scattered** — one read, but a table rather than a shift.
 > number — **pin 3 is bit 2, pin 5 is bit 0**. So **player 0 (P1) means all
 > three switches ON**, and a factory-fresh all-OFF switch reads **7**, a
 > reserved code. Netlist-verified; the panel's ID DIP behaves identically.
+
+> **Archived 2026-10-22: `U` was removed from the master firmware** once the
+> underglow was installed in the pad, because it parks the strip's data line
+> HIGH for 6 s and LOW for 6 s, which nothing needs in normal use (the user's
+> call). The text below is kept because it is still the master-side underglow
+> check for bringing up another master (#3–#5): restore
+> `underglowStaticTest()` and its `U` command from commit `eab0e15`, or check
+> `R4` and `U3` by hand.
 
 **`U` — the meter-readable underglow test, and why `u` is not one.**
 

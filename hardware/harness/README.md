@@ -100,8 +100,36 @@ these totals.
 16 × 45 cm; INT per `int-home-run.yml`. A dry fit found the stock-derived power
 and RS-485 lengths a little long, and they were kept. Two INT pairs share a
 length (UL/C at 105 cm, L/D at 135 cm), so each pair was labelled one of each;
-they are interchangeable. On pad A, the INT cable first cut for `U` at 90 cm
-was relabelled `UR`.
+they are interchangeable. On one pad (which one isn't recorded; the pads have
+no A/B names), the INT cable first cut for `U` at 90 cm was relabelled `UR`.
+
+### Install findings, 2026-10-22 (the bench pad, master #2; reported by the user)
+
+All the stock electronics came out and the new set went in, in a few hours.
+Nothing failed, and the 12 V chain went in as designed (`docs/BRINGUP_LOG.md`
+→ master #2, 2026-10-22). What the install showed about the harness:
+
+1. **Almost every cable is a little long.** All nine INT cables are
+   *quite* long. Power and RS-485 could each be a little shorter, and the two
+   RS-485 jumpers that run between columns, `DL`→`D` and `U`→`UR`, could be
+   shorter still: they need no slack (confirmed by the user). **New lengths:
+   TODO, not measured yet.**
+2. **The one cable that was too short is RS-485 master → panel 0 (`UL`),
+   60 cm.** That is the length the dry fit said to check once the master was
+   in (`rs485-chain.yml`). **New length: TODO, not measured yet.**
+3. **The INT end labels make the panel end hard to plug in.** There is little
+   room at `J214`, and the printed label under clear heat-shrink stiffens
+   the end of the cable so it barely bends. The labelling scheme
+   (`WIRE_COLORS.md`, decided 2026-08-31) needs either a different method or a
+   different place for the label. **Open: not decided.**
+4. **The unjacketed length at each end should be longer.** At the
+   connectors there is little room to work, and the jacket's protection is
+   needed further along, where the cable runs through the pad. The current
+   strip length isn't recorded anywhere in this tree. **New length: TODO.**
+
+Whether either pad's harness gets rebuilt to these is the user's call; until
+new lengths are measured, the figures above (and in the `.yml` files) are
+still as built.
 
 **RS-485 and INT share one cable as of 2026-08-16.** Both are 2-core shielded
 twisted pair at signal-level current; only the shield termination differs

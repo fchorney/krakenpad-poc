@@ -219,7 +219,9 @@ which stays visible when mated, and the same tag on its carrier.
    kills `U3`'s 5 V rail with no other symptom.
 6. **Bench:** `N` (all nine external pull-ups — the test `n` cannot do), `n`
    (all HIGH), `D`, `U` (`R4` present; `TP10` follows `TP9` — this is what caught
-   bridged pins on `U3`), `u` with a scope.
+   bridged pins on `U3`), `u` with a scope. ⚠ **`U` was removed from the master
+   firmware 2026-10-22**: restore it from commit `eab0e15` for the bring-up
+   (`docs/MASTER_BRINGUP.md` → "`U`").
 
 ---
 

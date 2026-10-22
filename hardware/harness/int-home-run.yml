@@ -32,6 +32,9 @@ metadata:
     offset of 0 centre / 10 right / 30 left, in cm, which puts the MCU nearest
     panel 1 and slightly right of centre. Re-derive from that formula if the
     master moves rather than re-measuring all nine.
+    INSTALL 2026-10-22: all nine were quite long, and the labels under
+    heat-shrink stiffen the panel end so it is hard to plug into J214. New
+    lengths and the label method are TODO (README.md, "Install findings").
   status: PROPOSED -- this project's own design. Lengths now derived from the completed stock record.
   pn: HARNESS-INT-01
   qty_per_pad: 1

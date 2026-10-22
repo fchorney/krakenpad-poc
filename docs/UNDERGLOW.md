@@ -1,8 +1,9 @@
 # Platform / Underglow LED Strips (optional feature)
 
 Status: **optional — electrical spec fully resolved, hardware proven on a real
-strip (2026-10-05).** In the master firmware the underglow is driven only by the
-bench commands (`u`, `U`, `g`). The periodic re-send this doc calls for and the
+strip (2026-10-05), installed in the bench pad (2026-10-22).** In the master
+firmware the underglow is driven only by the bench commands (`u`, `g`, `g <n>`;
+`U` was removed 2026-10-22). The periodic re-send this doc calls for and the
 host's strip command are **not built yet**. Nice-to-have; if it isn't easy to
 fit, the plan is to just not connect it rather than force a fit.
 Trimmed 2026-07-23 — superseded speculation (5V-bus theories, Daygreen-reuse

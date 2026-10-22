@@ -19,6 +19,8 @@ metadata:
     15 mA is PER PIXEL, not per channel -- its three dies are in series and unlit
     ones are shorted out, so red draws the same as white. Corrected 2026-08-16;
     the earlier 47 mA and 36 mA figures both came from multiplying by three.
+    INSTALL 2026-10-22: every power cable was a little long. New lengths TODO
+    (README.md, "Install findings").
   status: PROPOSED -- source end and lengths settled 2026-08-16 against the completed stock record.
   pn: HARNESS-PWR-01
   qty_per_pad: 3

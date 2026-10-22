@@ -1542,6 +1542,24 @@ panels have none.
   programs driving the pad at once can mix up responses (and, at Full Speed,
   interleave multi-packet commands). Watching alongside a game is fine.
 
+### 2026-10-22 — installed in the pad
+
+The stock electronics came out and master #2, the nine panels and the harness
+went in (the user, a few hours). Sensors in the pad: one each on **U, L, C, R
+and D**; UL, UR, DL and DR have none.
+
+| test | result |
+|---|---|
+| 12 V chain | ✅ as designed: PSU, fuse, Wago fan-out; one Wago port per column; master GND tie on its own GND port; underglow 12 V + GND from the fan-out, DATA from master `J2` |
+| presses, the five panels with a sensor (U, L, C, R, D) | ✅ the user |
+| presses, UL, UR, DL, DR | **not run yet**: sensors to be borrowed from the other pad for the test, then returned |
+| underglow `g` chase | ✅ looked right, by eye |
+| underglow `u` | ❓ the user remembers pressing it and seeing nothing. Not confirmed either way; retest live |
+
+Harness findings (lengths, INT labels, unjacketed ends):
+`hardware/harness/README.md` → "Install findings". The meter-only underglow
+test `U` was removed from the firmware the same day (`docs/MASTER_BRINGUP.md`).
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
@@ -1557,5 +1575,6 @@ panels have none.
   panel terminated"; R + UL → "2 panels terminated: UL R"; UL only → "1 panel
   terminated: UL"; R alone → OK. Limits are in the comment on
   `checkTermination()` in `master.ino`.
+- **`u` appeared to do nothing in the pad** (2026-10-22, below). Retest.
 - ~~**Underglow with a real strip**~~ passed 2026-10-05 (above). Only the
   unreproduced first-run glitch remains, and the bit-bang has never been scoped.
