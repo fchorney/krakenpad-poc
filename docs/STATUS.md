@@ -38,8 +38,8 @@ models).
   test, switchable from the master with `m`. LED stutter fixed 2026-10-19.
   Sensor-test colours now match the stock pad's and its dark floor is 200
   (flashed to all nine with master build `D52740E2`, 2026-10-22). The stock
-  sensor test *feels* more responsive (the user); not measured yet
-  (`docs/BRINGUP_LOG.md`).
+  sensor test *feels* more responsive (the user); not chasing it now, revisit
+  with tare as "tare + a small margin" (`docs/BRINGUP_LOG.md`).
 - **Underglow:** all 44 groups addressable from bench commands (byte order BRG).
   Installed in the pad 2026-10-22; the `g` chase looked right there.
 - **Config on the bus, the USB vendor interface and the Rust SDK's `monitor`**

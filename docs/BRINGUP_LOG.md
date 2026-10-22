@@ -1681,11 +1681,13 @@ on all nine panels in the pad.**
   config matching.
 - **Test mode checked in the pad (the user):** dark at rest, colours right
   (top blue, right green, bottom yellow, left red).
-- **Open, not decided:** next to a stock pad in its own sensor test, the
-  stock one *feels* more responsive (the user), as if it starts lighting
-  sooner. Not measured. One way to compare like for like: the same resistor
-  (50–200 kΩ) in a corner socket of each pad, looked at side by side, and
-  quickly, since the stock pad's auto-tare would slowly absorb it.
+- **Next to a stock pad in its own sensor test, the stock one *feels* more
+  responsive** (the user), as if it starts lighting sooner. Not measured.
+  **DECIDED 2026-10-22: not chasing it now** (the user): it's minor, and a
+  like-for-like check (the same resistor in a corner socket of each pad)
+  means lifting panels. Revisit once tare and calibrated values exist: try
+  the floor as tare plus a small margin (the user's guess at what stock does:
+  tare + ~20; not verified).
 
 ### Still open for this board
 

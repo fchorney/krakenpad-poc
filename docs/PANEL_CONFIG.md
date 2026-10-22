@@ -134,7 +134,10 @@ press threshold**, on purpose, because the user can change the press threshold.
 and may need raising.~~ Raised to 200 on 2026-10-22 (the user): in the pad the
 sensors rest at 88–114, so 100 left some edges glowing faintly at rest, and
 full weight reaches ~4090, so the extra floor costs nothing. Once tare exists,
-this becomes "a margin above tare is off".
+this becomes "a margin above tare is off": try tare + ~20 first. Next to a
+stock pad, the stock sensor test feels like it starts lighting sooner (the
+user, 2026-10-22, not measured); the user's guess is that stock goes dark at
+about tare + 20.
 
 This reverses `docs/USB_PROTOCOL.md`'s 2026-07 call to drop stock's `'t'` panel
 test mode from firmware and draw it host-side.
