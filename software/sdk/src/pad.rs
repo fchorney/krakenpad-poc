@@ -21,7 +21,7 @@ use crate::messages::{
 };
 use crate::protocol::{
     self, Feed, IN_PACKET, KIND_CMD, KIND_EVENT, KIND_RESP, KIND_STREAM, Message, RESP_ERROR,
-    Reassembler, STREAM_FSR_RAW, cmd, evt, u32_at,
+    Reassembler, STREAM_FSR, cmd, evt, u32_at,
 };
 use crate::transport::Link;
 
@@ -421,7 +421,7 @@ impl PadShared {
     }
 
     fn on_stream(&self, d: &[u8]) {
-        if d.first() != Some(&STREAM_FSR_RAW) {
+        if d.first() != Some(&STREAM_FSR) {
             self.stats.malformed.fetch_add(1, Ordering::Relaxed);
             return;
         }

@@ -38,8 +38,10 @@ models).
   test, switchable from the master with `m`. LED stutter fixed 2026-10-19.
   Sensor-test colours now match the stock pad's and its dark floor is 200
   (flashed to all nine with master build `D52740E2`, 2026-10-22). The stock
-  sensor test *feels* more responsive (the user); not chasing it now, revisit
-  with tare as "tare + a small margin" (`docs/BRINGUP_LOG.md`).
+  sensor test *feels* more responsive (the user); ~~not chasing it now, revisit
+  with tare as "tare + a small margin"~~ built 2026-10-22 as tare + 20: "looks
+  closer", good enough for now (the user). Press feel at the new 930/905
+  default: "seems pretty good" (`docs/BRINGUP_LOG.md`).
 - **Underglow:** all 44 groups addressable from bench commands (byte order BRG).
   Installed in the pad 2026-10-22; the `g` chase looked right there.
 - **Config on the bus, the USB vendor interface and the Rust SDK's `monitor`**
@@ -52,9 +54,9 @@ models).
 
 | | Built | Not built |
 |---|---|---|
-| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, runs on all nine (2026-10-20):** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed | Local animations (normal mode goes **dark** when `'L'` stops); calibration / drift tracking; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
-| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check (the meter-only underglow test `U` removed 2026-10-22). **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20) |
-| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
+| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, runs on all nine (2026-10-20):** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed. **Built and flashed to all nine 2026-10-22: tare tracking and calibrated thresholds** (config version 2, 0–1000, default 930/905; tares in `'f'`; test mode from tare + 20) | Local animations (normal mode goes **dark** when `'L'` stops); ~~calibration / drift tracking~~ (built 2026-10-22; the tracking constants are first guesses to tune from logged play); a noise statistic and bad-sensor flag; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
+| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check (the meter-only underglow test `U` removed 2026-10-22). **2026-10-22: config version 2 (calibrated thresholds; a saved version 1 falls back to defaults), the 17-byte `'f'` with tares, USB protocol 3** (FSR stream `0xC2` with tares); flashed to master #2. **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20) |
+| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2; protocol 3, calibrated values and `stream --csv` logging, 2026-10-22). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20); protocol 3 with tares and calibrated values, `monitor` shows them (2026-10-22) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 `docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. A future idea, not scheduled:
@@ -168,7 +170,9 @@ How the SDK and firmware share values after the repos split is open
    (`docs/RS485_PROTOCOL.md`), the version check, reset config, console `S`/`F`
    editing the master's copy with a separate `save` (the user's call,
    2026-10-20). Shared format: `firmware/shared/panel_config.h`.
-   Auto-calibration deferred until installed-pad data.
+   ~~Auto-calibration deferred until installed-pad data.~~ Tare tracking and
+   calibrated thresholds built 2026-10-22 (`docs/PANEL_CONFIG.md` → "Tare and
+   calibrated values"); tuning waits on logged play.
 5. USB vendor interface: **built 2026-10-20, passed on the pad 2026-10-20/21; presses on every panel passed in the installed pad 2026-10-22.** Packet
    framing, the command table except underglow (deferred) and reset animations
    (waits on step 6), the telemetry stream, host LED frames (hand back after

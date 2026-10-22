@@ -14,7 +14,7 @@ pub enum Error {
     Protocol(&'static str),
     /// The master refused the command.
     Device { command: u8, reason: DeviceError },
-    /// A channel breaks `release < press <= 4095`. Checked before sending.
+    /// A channel breaks `release < press <= 1000`. Checked before sending.
     InvalidConfig { panel: u8, channel: u8 },
     /// The master speaks another config format version.
     ConfigVersion { master: u8, sdk: u8 },
@@ -61,7 +61,7 @@ impl fmt::Display for Error {
             Error::InvalidConfig { panel, channel } => {
                 write!(
                     f,
-                    "panel {panel} channel {channel}: release must be below press, press at most 4095"
+                    "panel {panel} channel {channel}: release must be below press, press at most 1000"
                 )
             }
             Error::ConfigVersion { master, sdk } => {

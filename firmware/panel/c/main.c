@@ -12,6 +12,8 @@
 // Config (thresholds and channel flags) is RAM only by design: the panel boots
 // on the defaults in firmware/shared/panel_config.h and runs whatever the
 // master's last 'W' carried. The master persists it (docs/PANEL_CONFIG.md).
+// Thresholds are calibrated units; core 1 tracks each sensor's tare and turns
+// them into raw counts, so the press loop still compares raw values.
 //
 // LED modes (docs/PANEL_CONFIG.md → "LED modes"):
 //   normal   paint the master's 'L' frames; dark if none for LED_FALLBACK_MS
@@ -76,11 +78,29 @@ static const char *FSR_NAME[NUM_FSR] = {"South", "West", "North", "East"};
 #define ID_BOOT_MS        3000
 #define ID_WHITE          96
 
-// Test mode: off at or below this, linear to full at 4095. Deliberately NOT the
-// press threshold, which the user can move. Raised from 100 on 2026-10-22: in
-// the pad, sensors rest at 88-114 and full weight reaches ~4090, so 100 lit some
-// edges faintly at rest. Once tare exists this becomes "a margin above tare".
-#define TEST_FLOOR        200
+// Test mode: an edge stays dark up to this many counts above its tare, then
+// brightness follows its calibrated value to full at 1000. Deliberately NOT the
+// press threshold, which the user can move. Was a fixed 200 raw before tare
+// existed (100 before that); tare + 20 is the user's guess at what the stock
+// pad's sensor test does (2026-10-22).
+#define TEST_MARGIN       20
+
+// Tare: each sensor's tracked rest value (docs/PANEL_CONFIG.md → "Tare and
+// calibrated values"). Core 1 samples every sensor once a millisecond and
+// judges it in windows. A window counts only when no channel on the panel is
+// pressed, nothing was released for TARE_HOLDOFF_MS, and the sensor is steady.
+// The tare then falls to a lower reading at once (an inflated tare makes
+// presses harder) and rises towards a higher one slowly, by at most
+// TARE_MAX_RISE above itself (more than that is a foot, not drift).
+#define TARE_WINDOW        64     // 1 ms samples per window
+#define TARE_MAX_SPAN      64     // max - min within a window: a spike, skip it
+#define TARE_MAX_STEP      8      // window mean vs the last one: still moving
+#define TARE_MAX_RISE      48
+#define TARE_RISE_SHIFT    7      // 1/128 of the gap per window: ~8 s to close it
+#define TARE_HOLDOFF_MS    1000
+#define TARE_BOOT_MS       500    // ADC and preload settle before the first tare
+#define TARE_DEFAULT       100    // until a sensor's first steady window (~rest in the pad)
+#define TARE_MAX           1000   // a sensor resting above this is faulty, not tared
 
 #define SENSE_RISE_STABLE_MS   30   // slow to trust the rail, fast to give up on it
 #define SENSE_FALL_STABLE_MS   2
@@ -134,6 +154,7 @@ static const char *MODE_NAME[MODE_COUNT] = {"normal", "ID", "test"};
 // Core 0 writes: raw values, mask, INT state. Core 1 writes: the config, the
 // INT enable/hold flags and identify requests. Each field has one writer.
 static volatile uint16_t g_fsr_raw[NUM_FSR];
+static volatile uint16_t g_tare[NUM_FSR];         // core 1 writes
 static volatile uint8_t  g_pressed_mask = 0;
 static volatile bool     g_int_asserted = false;
 static volatile bool     g_int_enable = false;  // set when bus mode starts
@@ -143,37 +164,57 @@ static volatile uint8_t  g_ident_req_ms = 0;    // core 1 sets, core 0 clears
 static uint8_t g_dip = 15;   // read once at boot
 
 // ── Config ──────────────────────────────────────────────────────────────────
-// The config in use: the boot defaults, then each accepted 'W'. Core 1 fills
-// the spare copy and only then swaps the pointer, and core 0 reads the pointer
-// once per pass, so a pass never mixes old and new values (a new press
-// threshold with the old release could put release above press). Two 'W's
-// can't land inside one ~10 us pass: one takes 260 us on the wire.
+// The config in use (calibrated thresholds): the boot defaults, then each
+// accepted 'W'. Only core 1 reads it.
 typedef struct {
-    uint16_t press[NUM_FSR];
+    uint16_t press[NUM_FSR];              // calibrated
     uint16_t rel[NUM_FSR];
     bool     active[NUM_FSR];             // populated && enabled: detects presses
     uint8_t  wire[KP_PANEL_CFG_LEN];      // as received, for the 'w' CRC
 } panel_cfg_t;
-static panel_cfg_t g_cfg_copy[2];
-static const panel_cfg_t *volatile g_cfg = &g_cfg_copy[0];
+static panel_cfg_t g_cfg;
 static bool g_configured = false;         // a 'W' accepted since boot (core 1)
+
+// What core 0 compares against: the config's thresholds in raw counts at the
+// current tares, rebuilt whenever either changes. Core 1 fills the spare copy
+// and only then swaps the pointer, and core 0 reads the pointer once per pass,
+// so a pass never mixes old and new values (a new press threshold with the old
+// release could put release above press). Rebuilds are at least one tare
+// window (64 ms) or one 'W' (260 us on the wire) apart, against a ~10 us pass.
+typedef struct {
+    uint16_t press[NUM_FSR];              // raw counts
+    uint16_t rel[NUM_FSR];
+    bool     active[NUM_FSR];
+} thresholds_t;
+static thresholds_t g_thr_copy[2];
+static const thresholds_t *volatile g_thr = &g_thr_copy[0];
+
+static void thresholds_rebuild(void) {
+    thresholds_t *next = (g_thr == &g_thr_copy[0]) ? &g_thr_copy[1] : &g_thr_copy[0];
+    for (int i = 0; i < NUM_FSR; i++) {
+        next->press[i]  = kp_cal_to_raw(g_cfg.press[i], g_tare[i]);
+        next->rel[i]    = kp_cal_to_raw(g_cfg.rel[i], g_tare[i]);
+        next->active[i] = g_cfg.active[i];
+    }
+    __dmb();   // the copy is complete before core 0 can see the pointer
+    g_thr = next;
+}
 
 // `wire` is one panel's 20 bytes, already checked by kp_panel_cfg_bad_channel().
 static void config_apply(const uint8_t *wire) {
-    panel_cfg_t *next = (g_cfg == &g_cfg_copy[0]) ? &g_cfg_copy[1] : &g_cfg_copy[0];
-    memcpy(next->wire, wire, KP_PANEL_CFG_LEN);
+    memcpy(g_cfg.wire, wire, KP_PANEL_CFG_LEN);
     for (int i = 0; i < NUM_FSR; i++) {
         const uint8_t *ch = wire + i * KP_CH_LEN;
-        next->press[i]  = kp_get_u16(ch);
-        next->rel[i]    = kp_get_u16(ch + 2);
-        next->active[i] = (ch[4] & (KP_CH_POPULATED | KP_CH_ENABLED)) ==
+        g_cfg.press[i]  = kp_get_u16(ch);
+        g_cfg.rel[i]    = kp_get_u16(ch + 2);
+        g_cfg.active[i] = (ch[4] & (KP_CH_POPULATED | KP_CH_ENABLED)) ==
                           (KP_CH_POPULATED | KP_CH_ENABLED);
     }
-    __dmb();   // the copy is complete before core 0 can see the pointer
-    g_cfg = next;
+    thresholds_rebuild();
 }
 
 static void config_init_defaults(void) {
+    for (int i = 0; i < NUM_FSR; i++) g_tare[i] = TARE_DEFAULT;
     uint8_t wire[KP_PANEL_CFG_LEN];
     kp_panel_cfg_default(wire);
     config_apply(wire);
@@ -205,7 +246,7 @@ static void fsr_loop(void) {
     uint32_t ident_start = 0, ident_len = 0;
 
     while (true) {
-        const panel_cfg_t *cfg = g_cfg;
+        const thresholds_t *cfg = g_thr;
         uint8_t mask = 0;
         for (int i = 0; i < NUM_FSR; i++) {
             adc_select_input(i);
@@ -278,6 +319,50 @@ static void put_u32(uint8_t *p, uint32_t v) {
 }
 
 // ── Everything below runs on core 1 ─────────────────────────────────────────
+
+// ── Tare tracking (see the TARE_ tunables) ──────────────────────────────────
+static uint32_t g_tare_q4[NUM_FSR];       // tare in 1/16 counts, for slow rises
+static bool     g_tare_set[NUM_FSR];      // a steady window has been seen
+static uint32_t g_last_pressed_ms = 0;
+
+static void tare_tick(uint32_t now_ms) {
+    static uint32_t sum[NUM_FSR];
+    static uint16_t lo[NUM_FSR], hi[NUM_FSR], prev_mean[NUM_FSR];
+    static uint16_t n = 0;
+
+    if (g_pressed_mask) g_last_pressed_ms = now_ms;
+    for (int i = 0; i < NUM_FSR; i++) {
+        uint16_t v = g_fsr_raw[i];
+        if (n == 0) { sum[i] = 0; lo[i] = hi[i] = v; }
+        sum[i] += v;
+        if (v < lo[i]) lo[i] = v;
+        if (v > hi[i]) hi[i] = v;
+    }
+    if (++n < TARE_WINDOW) return;
+    n = 0;
+
+    bool idle = !g_pressed_mask && now_ms >= TARE_BOOT_MS &&
+                (now_ms - g_last_pressed_ms) >= TARE_HOLDOFF_MS;
+    bool changed = false;
+    for (int i = 0; i < NUM_FSR; i++) {
+        uint16_t mean = (uint16_t)(sum[i] / TARE_WINDOW);
+        uint16_t step = mean > prev_mean[i] ? mean - prev_mean[i] : prev_mean[i] - mean;
+        prev_mean[i] = mean;
+        if (!idle || hi[i] - lo[i] > TARE_MAX_SPAN || step > TARE_MAX_STEP ||
+            mean > TARE_MAX) continue;
+        uint32_t target = (uint32_t)mean << 4;
+        if (!g_tare_set[i] || target <= g_tare_q4[i]) {
+            g_tare_q4[i] = target;
+            g_tare_set[i] = true;
+        } else if (mean - g_tare[i] <= TARE_MAX_RISE) {
+            uint32_t inc = (target - g_tare_q4[i]) >> TARE_RISE_SHIFT;
+            g_tare_q4[i] += inc ? inc : 1;
+        }
+        uint16_t t = (uint16_t)(g_tare_q4[i] >> 4);
+        if (t != g_tare[i]) { g_tare[i] = t; changed = true; }
+    }
+    if (changed) thresholds_rebuild();
+}
 
 // ── SENSE_12V filter (polled from the core 1 loop) ──────────────────────────
 static bool g_12v_present = false;
@@ -449,14 +534,13 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
 
     switch (cmd) {
     case 'F': {
-        uint8_t r[9];
+        uint8_t r[KP_F_LEN];
         for (int i = 0; i < NUM_FSR; i++) {
-            uint16_t v = g_fsr_raw[i];
-            r[i * 2]     = (uint8_t)(v & 0xFF);
-            r[i * 2 + 1] = (uint8_t)(v >> 8);
+            kp_put_u16(&r[i * 2], g_fsr_raw[i]);
+            kp_put_u16(&r[KP_F_TARE + i * 2], g_tare[i]);
         }
-        r[8] = (uint8_t)(g_pressed_mask | (g_configured ? 0 : KP_F_NOT_CONFIGURED));
-        rs485_send('f', me, r, 9);
+        r[KP_F_MASK] = (uint8_t)(g_pressed_mask | (g_configured ? 0 : KP_F_NOT_CONFIGURED));
+        rs485_send('f', me, r, sizeof(r));
         rs_polls++;
         break;
     }
@@ -493,7 +577,7 @@ static void rs485_handle(uint8_t cmd, uint8_t addr, const uint8_t *pay, uint8_t 
         uint8_t r[KP_WACK_LEN];
         r[0] = status;
         r[1] = KP_CONFIG_VERSION;
-        put_u32(&r[2], kp_w_crc(g_cfg->wire));
+        put_u32(&r[2], kp_w_crc(g_cfg.wire));
         rs485_send('w', me, r, sizeof(r));
         break;
     }
@@ -610,9 +694,9 @@ static void render(uint32_t now_ms) {
         break;
     case MODE_TEST:
         for (int i = 0; i < NUM_FSR; i++) {
-            uint16_t v = g_fsr_raw[i];
-            if (v <= TEST_FLOOR) continue;
-            uint8_t lvl = (uint8_t)((uint32_t)(v - TEST_FLOOR) * 255u / (4095u - TEST_FLOOR));
+            uint16_t v = g_fsr_raw[i], t = g_tare[i];
+            if (v <= t + TEST_MARGIN) continue;
+            uint8_t lvl = (uint8_t)((uint32_t)kp_raw_to_cal(v, t) * 255u / KP_CAL_MAX);
             draw_image(EDGE_IMAGE[i], EDGE_RGB[i][0] * lvl, EDGE_RGB[i][1] * lvl,
                        EDGE_RGB[i][2] * lvl);
         }
@@ -677,19 +761,22 @@ static void status(void) {
            !gpio_get(PIN_TERM_SENSE) ? "terminated" : "not terminated",
            g_rs485_on ? "on" : "off", g_int_enable ? "enabled" : "off",
            g_int_asserted ? " (asserted)" : "", MODE_NAME[g_mode]);
-    printf("  FSR       :");
+    printf("  FSR       : raw / tare / calibrated\n");
     for (int i = 0; i < NUM_FSR; i++)
-        printf(" %s=%4u%s", FSR_NAME[i], g_fsr_raw[i],
-               (g_pressed_mask >> i) & 1 ? "*" : "");
-    printf("\n  config    : %s, CRC %08lX (%lu 'W' accepted, %lu rejected)\n",
+        printf("    %-5s %4u / %4u%s / %5d%s\n", FSR_NAME[i], g_fsr_raw[i], g_tare[i],
+               g_tare_set[i] ? "" : " (default, no steady window yet)",
+               kp_raw_to_cal(g_fsr_raw[i], g_tare[i]),
+               (g_pressed_mask >> i) & 1 ? "  PRESSED" : "");
+    printf("  config    : %s, CRC %08lX (%lu 'W' accepted, %lu rejected)\n",
            g_configured ? "from the master" : "boot defaults, no 'W' yet",
-           (unsigned long)kp_w_crc(g_cfg->wire), (unsigned long)rs_cfg_ok,
+           (unsigned long)kp_w_crc(g_cfg.wire), (unsigned long)rs_cfg_ok,
            (unsigned long)rs_cfg_rejected);
-    const panel_cfg_t *cfg = g_cfg;
+    const thresholds_t *thr = g_thr;
     for (int i = 0; i < NUM_FSR; i++) {
-        uint8_t fl = cfg->wire[i * KP_CH_LEN + 4];
-        printf("    %-5s press %4u release %4u  %s%s\n", FSR_NAME[i], cfg->press[i],
-               cfg->rel[i], fl & KP_CH_POPULATED ? "populated" : "NOT populated",
+        uint8_t fl = g_cfg.wire[i * KP_CH_LEN + 4];
+        printf("    %-5s press %4u release %4u (raw %4u / %4u)  %s%s\n", FSR_NAME[i],
+               g_cfg.press[i], g_cfg.rel[i], thr->press[i], thr->rel[i],
+               fl & KP_CH_POPULATED ? "populated" : "NOT populated",
                fl & KP_CH_ENABLED ? "" : ", disabled");
     }
     printf("  bus       : %lu frames, %lu crc, %lu uart, %lu overrun, %lu turnaround,"
@@ -738,11 +825,12 @@ static void console_poll(void) {
 // ── Core 1 main loop ────────────────────────────────────────────────────────
 static void core1_main(void) {
     bool     bus_started = false;
-    uint32_t next_refresh_ms = 0, next_console_ms = 0;
+    uint32_t next_refresh_ms = 0, next_console_ms = 0, last_tare_ms = 0;
 
     while (true) {
         uint32_t now_ms = to_ms_since_boot(get_absolute_time());
         sense_12v_poll(now_ms);
+        if (now_ms != last_tare_ms) { last_tare_ms = now_ms; tare_tick(now_ms); }
 
         // Once 12V arrives: show the ID image, and start bus mode if the DIP
         // is a panel ID. DIP 10 runs the sensor test standalone instead.

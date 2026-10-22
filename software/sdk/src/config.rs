@@ -8,15 +8,28 @@
 /// The config format version this SDK reads and writes. The master states the
 /// highest one it speaks in device info; the SDK won't write to a master that
 /// speaks another.
-pub const CONFIG_VERSION: u8 = 1;
+pub const CONFIG_VERSION: u8 = 2;
 pub const NUM_PANELS: usize = 9;
 /// FSR channels per panel, in the panel's `'f'` order: ADC 0–3. On rev-1
 /// panels that is South, West, North, East (`docs/DUAL_PANEL.md`).
 pub const NUM_CHANNELS: usize = 4;
-/// Highest 12-bit ADC reading, and the highest legal press threshold.
+/// Highest 12-bit ADC reading.
 pub const ADC_MAX: u16 = 4095;
-pub const DEFAULT_PRESS: u16 = 500;
-pub const DEFAULT_RELEASE: u16 = 400;
+/// Calibrated units: 0 at a sensor's tare (its tracked rest value), this at
+/// full scale, linear in raw counts between. Thresholds are in these units,
+/// and this is the highest legal press threshold (`docs/PANEL_CONFIG.md` →
+/// "Tare and calibrated values").
+pub const CAL_MAX: u16 = 1000;
+/// A firm press, chosen to feel like a stock pad on its lowest sensitivity.
+pub const DEFAULT_PRESS: u16 = 930;
+pub const DEFAULT_RELEASE: u16 = 905;
+
+/// A raw reading in calibrated units at this tare, as the firmware computes it
+/// (`kp_raw_to_cal`): rounded toward zero, negative below the tare.
+pub fn raw_to_calibrated(raw: u16, tare: u16) -> i16 {
+    let span = ADC_MAX as i32 - tare as i32;
+    ((raw as i32 - tare as i32) * CAL_MAX as i32 / span) as i16
+}
 
 const CH_POPULATED: u8 = 0x01;
 const CH_ENABLED: u8 = 0x02;
@@ -27,9 +40,9 @@ pub(crate) const BLOCK_LEN: usize = NUM_PANELS * PANEL_LEN; // 180
 /// One FSR channel.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ChannelConfig {
-    /// Raw ADC counts at or above which the channel presses.
+    /// Calibrated value (0–1000) at or above which the channel presses.
     pub press: u16,
-    /// Raw ADC counts at or below which a pressed channel releases.
+    /// Calibrated value at or below which a pressed channel releases.
     pub release: u16,
     /// A sensor is physically fitted to this connector.
     pub populated: bool,
@@ -49,9 +62,9 @@ impl Default for ChannelConfig {
 }
 
 impl ChannelConfig {
-    /// The rule a panel and the master both enforce: `release < press <= 4095`.
+    /// The rule a panel and the master both enforce: `release < press <= 1000`.
     pub fn is_valid(&self) -> bool {
-        self.release < self.press && self.press <= ADC_MAX
+        self.release < self.press && self.press <= CAL_MAX
     }
 
     /// Whether the panel uses this channel for presses: populated and enabled.
@@ -178,15 +191,25 @@ mod tests {
     }
 
     /// The same check value firmware/shared/test asserts: defaults on every
-    /// channel, as a 'W' payload, have CRC 0xFD704831.
+    /// channel, as a 'W' payload, have CRC 0x61F3A50A.
     #[test]
     fn default_panel_bytes_and_crc() {
         let p = PanelConfig::default();
         assert_eq!(
             p.to_bytes(),
-            [0xF4, 0x01, 0x90, 0x01, 0x03].repeat(4).as_slice()
+            [0xA2, 0x03, 0x89, 0x03, 0x03].repeat(4).as_slice()
         );
-        assert_eq!(p.crc(), 0xFD704831);
+        assert_eq!(p.crc(), 0x61F3A50A);
+    }
+
+    /// The same values firmware/shared/test asserts for kp_raw_to_cal.
+    #[test]
+    fn calibrated_values() {
+        assert_eq!(raw_to_calibrated(100, 100), 0);
+        assert_eq!(raw_to_calibrated(4095, 100), 1000);
+        assert_eq!(raw_to_calibrated(3816, 100), 930);
+        assert_eq!(raw_to_calibrated(3815, 100), 929);
+        assert_eq!(raw_to_calibrated(90, 100), -2);
     }
 
     #[test]
@@ -213,9 +236,9 @@ mod tests {
             release,
             ..Default::default()
         };
-        assert!(ch(4095, 4094).is_valid());
+        assert!(ch(1000, 999).is_valid());
         assert!(ch(1, 0).is_valid());
-        assert!(!ch(4096, 400).is_valid());
+        assert!(!ch(1001, 400).is_valid());
         assert!(!ch(500, 500).is_valid());
         assert!(!ch(500, 600).is_valid());
         let mut pad = PadConfig::default();
@@ -246,6 +269,7 @@ mod tests {
         assert_eq!(define("KP_CONFIG_VERSION"), CONFIG_VERSION as u32);
         assert_eq!(define("KP_NUM_FSR"), NUM_CHANNELS as u32);
         assert_eq!(define("KP_ADC_MAX"), ADC_MAX as u32);
+        assert_eq!(define("KP_CAL_MAX"), CAL_MAX as u32);
         assert_eq!(define("KP_DEFAULT_PRESS"), DEFAULT_PRESS as u32);
         assert_eq!(define("KP_DEFAULT_RELEASE"), DEFAULT_RELEASE as u32);
         assert_eq!(define("KP_CH_POPULATED"), CH_POPULATED as u32);

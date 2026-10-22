@@ -361,7 +361,7 @@ mod tests {
             Some(ConfigState::Matches)
         );
 
-        c.panels[4].channels[0].release = 900;
+        c.panels[4].channels[0].release = 940;
         assert_eq!(
             pad.set_config(&c),
             Err(Error::InvalidConfig {
@@ -388,7 +388,7 @@ mod tests {
         let pad = ctx.pad(0).unwrap();
         assert_eq!(pad.snapshot().panels[4].sample, None);
         pad.set_telemetry(true).unwrap();
-        bus.with("a", |m| m.stream(4, [95, 4000, 99, 97], 0x02));
+        bus.with("a", |m| m.stream(4, [95, 4000, 99, 97], [95, 100, 99, 97], 0x02));
         let deadline = Instant::now() + WAIT;
         while pad.snapshot().panels[4].sample.is_none() {
             assert!(Instant::now() < deadline, "no sample");
@@ -396,8 +396,8 @@ mod tests {
         }
         let s = pad.snapshot().panels[4].sample.unwrap();
         assert_eq!(
-            (s.raw, s.pressed, s.configured),
-            ([95, 4000, 99, 97], 0x02, true)
+            (s.raw, s.tare, s.pressed, s.configured),
+            ([95, 4000, 99, 97], [95, 100, 99, 97], 0x02, true)
         );
         assert_eq!(pad.stats().telemetry_samples, 1);
     }

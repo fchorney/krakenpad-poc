@@ -287,10 +287,10 @@ struct FrameParser {
 //
 // The window is sized per request from the reply it expects: 10us per byte at
 // 1 Mbps for the whole frame (5 bytes of framing + payload), plus a fixed
-// margin for the panel's turnaround. For 'f' (14 bytes) that is the original
-// 400us; 'h' (29 bytes) gets 550us.
+// margin for the panel's turnaround. For 'f' (22 bytes since it carries the
+// tares, 2026-10-22; 14 before) that is 480us; 'h' (29 bytes) gets 550us.
 constexpr uint32_t REPLY_MARGIN_US = 260;
-constexpr uint8_t  REPLY_F_LEN = 9;    // 'f' payload
+constexpr uint8_t  REPLY_F_LEN = KP_F_LEN;    // 'f' payload: raw x4, tare x4, mask
 constexpr uint8_t  REPLY_W_LEN = KP_WACK_LEN;   // 'w' payload
 constexpr uint8_t  REPLY_M_LEN = 2;    // 'm' echoes an addressed 'M'
 constexpr uint8_t  REPLY_H_LEN = 24;   // 'h' payload (gameplay firmware)
@@ -321,6 +321,7 @@ void waitBusQuiet() {
 
 // ── RX parser (panel replies) ────────────────────────────────────────────────
 uint16_t panel_fsr[NUM_PANELS][4] = {};
+uint16_t panel_tare[NUM_PANELS][4] = {};     // 0xFFFF: a panel too old to send one
 uint8_t  panel_pressed_mask[NUM_PANELS] = {};
 bool     stream_telemetry = false;
 uint32_t stat_replies = 0, stat_crc_errs = 0, stat_polls_sent = 0, stat_frames_sent = 0;
@@ -614,7 +615,10 @@ bool cfgReadSlot(int slot, uint8_t *rec) {
   for (uint16_t i = 0; i < CFG_REC_LEN; i++) rec[i] = EEPROM.read(CFG_SLOT_ADDR[slot] + i);
   if (memcmp(rec, CFG_MAGIC, 4) != 0 || getU32(rec + CFG_REC_CRC) != kp_crc32_from(0, rec, CFG_REC_CRC))
     return false;
-  // Version 1 is the only one so far, so there is nothing older to convert.
+  // Version 1 (raw-count thresholds) is deliberately not converted: version 2
+  // changed the units to calibrated ones, and a converted 500/400 would keep
+  // the old, very light press point. A version-1 record therefore reads as
+  // no valid record: defaults, flagged "config was reset" (2026-10-22).
   if (rec[4] != KP_CONFIG_VERSION) return false;
   for (int i = 0; i < NUM_PANELS; i++)
     if (kp_panel_cfg_bad_channel(rec + CFG_REC_BLOCK + i * KP_PANEL_CFG_LEN) >= 0) return false;
@@ -773,7 +777,7 @@ void printConfig() {
   if (cfg_was_reset) Serial.print(", RESET at boot: no valid saved config, on defaults");
   if (cfg_unsaved) Serial.print(", UNSAVED edits (`save` keeps them)");
   Serial.println();
-  Serial.println("  channels 0-3 in 'f' order: press/release, then p = not populated, d = disabled");
+  Serial.println("  channels 0-3 in 'f' order: press/release (calibrated, 0-1000), then p = not populated, d = disabled");
   for (int i = 0; i < NUM_PANELS; i++) {
     Serial.print("  ");
     Serial.print(PANEL_NAME[i]);
@@ -814,16 +818,25 @@ void parseRx() {
     uint8_t cmd = rx.cmd, addr = rx.addr, len = rx.len;
     const uint8_t *pay = rx.pay;
     int pidx = panelIndex(addr);
-    if (cmd == 'f' && len == 9 && pidx >= 0) {
-      for (int i = 0; i < 4; i++)
-        panel_fsr[pidx][i] = (uint16_t)pay[2 * i] | ((uint16_t)pay[2 * i + 1] << 8);
-      panel_pressed_mask[pidx] = pay[8] & KP_F_PRESSED_MASK;
+    if (cmd == 'f' && (len == KP_F_LEN || len == KP_F_LEN_V1) && pidx >= 0) {
+      // Normalised to the current form: a panel from before config version 2
+      // sends no tares (9 bytes) and gets 0xFFFF for them.
+      uint8_t f[KP_F_LEN];
+      memcpy(f, pay, 8);
+      if (len == KP_F_LEN) memcpy(f + KP_F_TARE, pay + KP_F_TARE, 8);
+      else                 memset(f + KP_F_TARE, 0xFF, 8);
+      f[KP_F_MASK] = pay[len - 1];
+      for (int i = 0; i < 4; i++) {
+        panel_fsr[pidx][i]  = kp_get_u16(f + 2 * i);
+        panel_tare[pidx][i] = kp_get_u16(f + KP_F_TARE + 2 * i);
+      }
+      panel_pressed_mask[pidx] = f[KP_F_MASK] & KP_F_PRESSED_MASK;
       stat_replies++;
       poll_ok_window[pidx]++;
       poll_ok_total[pidx]++;
       last_reply_ms[pidx] = millis();
-      panelSeen(pidx, pay[8] & KP_F_NOT_CONFIGURED);
-      vndStreamRecord(addr, micros(), pay);
+      panelSeen(pidx, f[KP_F_MASK] & KP_F_NOT_CONFIGURED);
+      vndStreamRecord(addr, micros(), f);
     } else if (cmd == 'h' && (len == REPLY_H_LEN || len == REPLY_H_LEN_OLD)) {
       if (pidx >= 0) storeStatusReply(pidx, pay);
       if (status_verbose) printStatusReply(addr, pay, len);
@@ -1343,7 +1356,7 @@ void passthroughService() {
 // a slow host loses telemetry, not responses. Events start with the host's
 // first command after USB configures, so a pad no program has opened doesn't
 // fill up with stale ones.
-constexpr uint8_t  VND_PROTOCOL = 2;   // 2: u16 length, OUT size by speed (2026-10-21)
+constexpr uint8_t  VND_PROTOCOL = 3;   // 2: u16 length, OUT size by speed (2026-10-21); 3: tares in the FSR stream (2026-10-22)
 constexpr uint8_t  VND_HEADER = 5;
 constexpr uint16_t VND_PACKET = RAWHID_TX_SIZE;     // IN: 64
 constexpr uint16_t VND_PAYLOAD = VND_PACKET - VND_HEADER;   // 59
@@ -1363,9 +1376,9 @@ constexpr uint8_t  RESP_ERROR = 0x7F;
 constexpr uint8_t  ERR_UNKNOWN = 1, ERR_LENGTH = 2, ERR_BUSY = 3, ERR_UNSUPPORTED = 4;
 constexpr uint8_t  EVT_PRESENCE = 0x81, EVT_CONFIG_RESULT = 0x82, EVT_CONFIG_RESET = 0x83,
                    EVT_BUS_FRAME = 0x84;
-constexpr uint8_t  STREAM_FSR_RAW = 0xC1;
-constexpr uint8_t  STREAM_RECORD = 14;   // panel u8, master us u32, then the 'f' payload (9)
-constexpr uint8_t  STREAM_MAX_RECORDS = (VND_PAYLOAD - 1) / STREAM_RECORD;   // 4
+constexpr uint8_t  STREAM_FSR = 0xC2;   // 0xC1 (raw only, 14-byte records) until protocol 3
+constexpr uint8_t  STREAM_RECORD = 5 + KP_F_LEN;   // panel u8, master us u32, then the 'f' payload (17)
+constexpr uint8_t  STREAM_MAX_RECORDS = (VND_PAYLOAD - 1) / STREAM_RECORD;   // 2
 
 constexpr uint32_t REBOOT_MAGIC = 0x544F4F42;      // "BOOT" as little-endian bytes
 constexpr uint16_t HOST_FRAME_LEN = NUM_PANELS * NUM_LEDS * 3;   // 675
@@ -1457,11 +1470,12 @@ void vndStreamFlush() {
   if (!vnd_stream_n) return;
   vndPump();
   if (vnd_txq_count) return;
-  vnd_stream_msg[0] = STREAM_FSR_RAW;
+  vnd_stream_msg[0] = STREAM_FSR;
   if (vndSend(VND_STREAM, 0, vnd_stream_msg, 1 + vnd_stream_n * STREAM_RECORD)) vnd_stream_n = 0;
 }
 
-// One 'f' reply (`f` = its 9-byte payload, "not configured" bit included).
+// One 'f' reply (`f` = its 17-byte payload, normalised by parseRx(), "not
+// configured" bit included).
 void vndStreamRecord(uint8_t addr, uint32_t t_us, const uint8_t *f) {
   if (!vnd_stream_on) return;
   if (vnd_stream_n == STREAM_MAX_RECORDS) { vnd_stream_dropped++; return; }
@@ -1817,7 +1831,7 @@ void printHelp() {
     "  w                          toggle full white on all panels (soak test)\r\n"
     "  P                          bus passthrough for tools/panel_update.py (binary)\r\n"
     "  c                          panel config: the master's copy, each panel's state\r\n"
-    "  S <panel> <press> <rel> [ch]  thresholds, all channels or one (0-3); not saved\r\n"
+    "  S <panel> <press> <rel> [ch]  thresholds 0-1000 (calibrated), all channels or one (0-3); not saved\r\n"
     "  F <panel> <ch> <pop> <en>  channel flags: populated, enabled (0/1); not saved\r\n"
     "  save                       save the config to EEPROM (stalls INT/USB: not in play)\r\n"
     "  reset config               defaults for every panel, saved and pushed"));
@@ -1928,10 +1942,11 @@ void handleCommand(const char *s) {
   } else if (s[0] == 'S' || s[0] == 's') {
     // Edits the master's copy; the 'W' goes out in the next poll slot and the
     // panel's 'w' shows up in `c`. Not saved until `save`.
+    // Thresholds are calibrated units, 0-1000 (docs/PANEL_CONFIG.md).
     int panel, press, rel, ch = -1;
     int n = sscanf(s + 1, "%d %d %d %d", &panel, &press, &rel, &ch);
     if (n >= 3 && panel >= 0 && panel < NUM_PANELS &&
-        press >= 1 && press <= KP_ADC_MAX && rel >= 0 && rel < press &&
+        press >= 1 && press <= KP_CAL_MAX && rel >= 0 && rel < press &&
         (n == 3 || (ch >= 0 && ch < KP_NUM_FSR))) {
       for (int c = 0; c < KP_NUM_FSR; c++) {
         if (n == 4 && c != ch) continue;
@@ -1951,7 +1966,7 @@ void handleCommand(const char *s) {
       Serial.print(rel);
       Serial.println(". Sending 'W'; not saved (`save` keeps it)");
     } else {
-      Serial.println("# usage: S <panel 0-8> <press 1-4095> <release, below press> [channel 0-3]");
+      Serial.println("# usage: S <panel 0-8> <press 1-1000> <release, below press> [channel 0-3]  (calibrated units)");
     }
   } else if (s[0] == 'F') {
     int panel, ch, pop, en;
@@ -2329,11 +2344,17 @@ void loop() {
         Serial.print(' ');
       }
       Serial.print(panel_pressed_mask[i]);
-      // Last field: 1 if the panel replied within PANEL_TIMEOUT_MS, so a reader
-      // can tell live values from the last ones a vanished panel sent.
+      // Then 1 if the panel replied within PANEL_TIMEOUT_MS, so a reader can
+      // tell live values from the last ones a vanished panel sent; then the
+      // four tares (65535 from a panel too old to send them).
       bool live = poll_ok_total[i] && (now_ms - last_reply_ms[i]) < PANEL_TIMEOUT_MS;
       Serial.print(' ');
-      Serial.println(live ? 1 : 0);
+      Serial.print(live ? 1 : 0);
+      for (int c = 0; c < 4; c++) {
+        Serial.print(' ');
+        Serial.print(panel_tare[i][c]);
+      }
+      Serial.println();
     }
   }
 
@@ -2369,6 +2390,17 @@ void loop() {
         Serial.print("  FSR=");
         for (int c = 0; c < 4; c++) {
           Serial.print(panel_fsr[i][c]);
+          Serial.print(c < 3 ? "," : "");
+        }
+        Serial.print("  tare=");
+        for (int c = 0; c < 4; c++) {
+          Serial.print(panel_tare[i][c]);
+          Serial.print(c < 3 ? "," : "");
+        }
+        Serial.print("  cal=");
+        for (int c = 0; c < 4; c++) {
+          if (panel_tare[i][c] > KP_ADC_MAX) Serial.print('-');
+          else Serial.print(kp_raw_to_cal(panel_fsr[i][c], panel_tare[i][c]));
           Serial.print(c < 3 ? "," : "");
         }
         Serial.print("  mask=");

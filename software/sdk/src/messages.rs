@@ -230,6 +230,9 @@ pub struct FsrSample {
     pub master_us: u32,
     /// Raw 12-bit ADC per channel, in the panel's `'f'` order.
     pub raw: [u16; 4],
+    /// Each channel's tare: the rest value the panel tracks, in raw counts.
+    /// 0xFFFF from a panel whose firmware predates tares.
+    pub tare: [u16; 4],
     /// Bit n = channel n pressed, after the panel's hysteresis.
     pub pressed: u8,
     /// False until the panel has been sent its config since it booted.
@@ -245,9 +248,21 @@ pub(crate) fn parse_fsr_records(m: &[u8]) -> impl Iterator<Item = FsrSample> + '
             panel: r[0],
             master_us: u32_at(r, 1),
             raw: [u16_at(r, 5), u16_at(r, 7), u16_at(r, 9), u16_at(r, 11)],
-            pressed: r[13] & 0x0F,
-            configured: r[13] & 0x80 == 0,
+            tare: [u16_at(r, 13), u16_at(r, 15), u16_at(r, 17), u16_at(r, 19)],
+            pressed: r[21] & 0x0F,
+            configured: r[21] & 0x80 == 0,
         })
+}
+
+impl FsrSample {
+    /// Each channel in calibrated units (0 at its tare, 1000 at full scale),
+    /// the units of the press thresholds. None where the panel sent no tare.
+    pub fn calibrated(&self) -> [Option<i16>; 4] {
+        std::array::from_fn(|i| {
+            (self.tare[i] <= crate::config::ADC_MAX)
+                .then(|| crate::config::raw_to_calibrated(self.raw[i], self.tare[i]))
+        })
+    }
 }
 
 /// The master's slot ↔ panel-ID self-test (`docs/RS485_PROTOCOL.md`).
@@ -358,13 +373,13 @@ mod tests {
     #[test]
     fn device_info_layout() {
         let m = [
-            0x01, 2, 1, 64, 0, 0x00, 0x04, 0, 1, 0, 0x78, 0x56, 0x34, 0x12, 1, 2, 0x09, 0xFF, 0x01,
+            0x01, 3, 1, 64, 0, 0x00, 0x04, 0, 1, 0, 0x78, 0x56, 0x34, 0x12, 1, 2, 0x09, 0xFF, 0x01,
             0, 8,
         ];
         let d = DeviceInfo::parse(&m).unwrap();
         assert_eq!(
             (d.protocol_version, d.usb_speed, d.firmware_version),
-            (2, UsbSpeed::High, (0, 1, 0))
+            (3, UsbSpeed::High, (0, 1, 0))
         );
         assert_eq!((d.in_packet, d.out_packet), (64, 1024));
         assert_eq!(d.build_tag, 0x12345678);
@@ -415,9 +430,11 @@ mod tests {
     #[test]
     fn fsr_records() {
         // Two records: panel 3 pressed on channel 1, panel 7 not configured.
-        let mut m = vec![crate::protocol::STREAM_FSR_RAW];
-        m.extend([3, 0x10, 0x27, 0, 0, 95, 0, 0xA0, 0x0F, 99, 0, 97, 0, 0x02]);
-        m.extend([7, 0x11, 0x27, 0, 0, 90, 0, 91, 0, 92, 0, 93, 0, 0x80]);
+        let mut m = vec![crate::protocol::STREAM_FSR];
+        m.extend([3, 0x10, 0x27, 0, 0, 95, 0, 0xA0, 0x0F, 99, 0, 97, 0]);
+        m.extend([95, 0, 100, 0, 99, 0, 0xFF, 0xFF, 0x02]);
+        m.extend([7, 0x11, 0x27, 0, 0, 90, 0, 91, 0, 92, 0, 93, 0]);
+        m.extend([90, 0, 91, 0, 92, 0, 93, 0, 0x80]);
         let r: Vec<_> = parse_fsr_records(&m).collect();
         assert_eq!(
             r[0],
@@ -425,10 +442,12 @@ mod tests {
                 panel: 3,
                 master_us: 10000,
                 raw: [95, 4000, 99, 97],
+                tare: [95, 100, 99, 0xFFFF],
                 pressed: 2,
                 configured: true
             }
         );
+        assert_eq!(r[0].calibrated(), [Some(0), Some(976), Some(0), None]);
         assert_eq!(r[1].panel, 7);
         assert!(!r[1].configured && r[1].pressed == 0);
     }

@@ -19,7 +19,7 @@ descriptor; no software expecting an SMX pad will (or should) talk to us.
 | VID/PID | Teensyduino default (0x16C0 + USB-Type-dependent PID) during development. **As built 2026-10-19: 0x16C0:0x0487**, borrowed from Teensyduino's Serial + Keyboard + Mouse + Joystick type, which keeps `arduino-cli upload` and the Teensy auto-reboot working. ⚠ Our interface set differs from the one Windows may have cached for that PID; if Windows ever shows the pad wrongly, remove the cached device first. Plan: register a real PID under pid.codes' shared VID 0x1209 (see below) once eligible. |
 | Product string | "KrakenPad" — **working name, not final**, may still change |
 | Interfaces (as built 2026-10-20) | 0–1 CDC serial (the bench console, unchanged), **2 vendor HID** (command/data: usage page `0xFF00`, usage `0x0001`, interrupt IN `0x85` + OUT `0x05`, 64 bytes, `bInterval` 1), **3 HID joystick** (pad input, IN `0x84`). The joystick was interface 2 until 2026-10-20: the Teensy core writes the RawHID block before the joystick's, and the numbers follow that order. Only the number changed; the joystick's descriptor and report did not |
-| Transport | USB HID. Packets to the host 64 bytes; from the host 1,024 at High Speed, 64 at Full Speed (protocol 2, 2026-10-21) |
+| Transport | USB HID. Packets to the host 64 bytes; from the host 1,024 at High Speed, 64 at Full Speed (protocol 2, 2026-10-21). **Protocol 3** (2026-10-22): the FSR stream carries tares |
 | USB speed | High Speed 480 Mbps (Teensy 4.x native) |
 | Input polling | **8000Hz offered** (`bInterval = 1` at High Speed, as built). Host-side achieved rate not measured |
 
@@ -305,7 +305,7 @@ byte 0 is a code saying which one it is; the tables below give the rest.
 | Code | Command | Request payload | Response (`resp`) |
 |---|---|---|---|
 | 0x01 | Device info | — | below |
-| 0x02 | Get config | — | config version u8, then the 180-byte panel config block of the EEPROM record (`docs/PANEL_CONFIG.md`) |
+| 0x02 | Get config | — | config version u8, then the 180-byte panel config block of the EEPROM record (`docs/PANEL_CONFIG.md`). Version 2 (2026-10-22): thresholds in calibrated units 0–1000 |
 | 0x03 | Set config | config version u8 + 180-byte block | status u8: 0 saved, 1 unknown version, 2 invalid (+ panel u8, channel u8 of the first bad value). Saved = in EEPROM and being pushed; each panel's outcome follows as a *config result* event |
 | 0x04 | Pad status | — | per panel 0–8, 12 bytes: present u8, last reply age ms u16 (0xFFFF = never), polls answered % u8, CRC errors u16, config state u8 (*config result* codes), panel build tag u32, termination switch u8 |
 | 0x05 | Telemetry stream | on u8, mode u8 (0 raw) | status u8 |
@@ -345,7 +345,8 @@ before reading the rest: another version may lay it out differently.
 
 | Code | Stream | Payload |
 |---|---|---|
-| 0xC1 | FSR raw | up to 4 records of 14 bytes (decided above) |
+| 0xC2 | FSR | **protocol 3** (2026-10-22): up to 2 records of 22 bytes: panel u8, master µs u32, then the panel's `'f'` payload (raw u16 ×4, tare u16 ×4, mask u8; `docs/RS485_PROTOCOL.md`). Tares are 0xFFFF from panel firmware that predates them |
+| ~~0xC1~~ | ~~FSR raw~~ | ~~up to 4 records of 14 bytes (decided above)~~; protocol 2, replaced by 0xC2 |
 
 Master timestamps are u32 µs and wrap every ~71.6 minutes; the SDK unwraps
 them.

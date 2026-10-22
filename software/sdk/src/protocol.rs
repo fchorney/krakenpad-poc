@@ -16,8 +16,9 @@ pub(crate) const USAGE: u16 = 0x0001;
 
 /// The protocol version this SDK speaks (device info byte 1). Version 2
 /// (2026-10-21): a two-byte payload length, and OUT packets sized by the
-/// negotiated USB speed.
-pub(crate) const PROTOCOL_VERSION: u8 = 2;
+/// negotiated USB speed. Version 3 (2026-10-22): each panel's tares in the
+/// FSR stream.
+pub(crate) const PROTOCOL_VERSION: u8 = 3;
 /// Packets from the master: 64 bytes at both speeds.
 pub(crate) const IN_PACKET: usize = 64;
 /// Packets to the master are 1024 bytes at High Speed and 64 at Full Speed.
@@ -62,8 +63,10 @@ pub(crate) mod evt {
     pub const CONFIG_RESET: u8 = 0x83;
 }
 
-pub(crate) const STREAM_FSR_RAW: u8 = 0xC1;
-pub(crate) const STREAM_RECORD: usize = 14;
+/// FSR telemetry: records of panel u8, master µs u32, raw u16 ×4, tare u16 ×4,
+/// mask u8. (0xC1, raw only in 14-byte records, until protocol 3.)
+pub(crate) const STREAM_FSR: u8 = 0xC2;
+pub(crate) const STREAM_RECORD: usize = 22;
 
 /// Splits one message into packets of `packet` bytes: kind, transaction ID,
 /// flags, payload length u16, then the payload, zero-padded. The report ID

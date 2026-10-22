@@ -1,6 +1,7 @@
 //! Bench check of the SDK against a real pad: prints every event, turns on
 //! telemetry for each pad that connects, and twice a second prints each
-//! panel's raw FSR values (`*` = pressed, `!` = not configured).
+//! panel's FSR values in calibrated units, 0 at the tare and 1000 at full
+//! scale (`*` = pressed, `!` = not configured, `?` = no tare from the panel).
 //!
 //!     cargo run --example monitor        (from software/; Ctrl-C to stop)
 
@@ -55,7 +56,10 @@ fn main() -> krakenpad::Result<()> {
                             return Some(format!("{name}:gone"));
                         }
                         let x = p.sample?;
-                        let raw = x.raw.map(|v| v.to_string()).join(",");
+                        let raw = x
+                            .calibrated()
+                            .map(|v| v.map_or("?".to_string(), |c| c.to_string()))
+                            .join(",");
                         let pressed = if x.pressed != 0 { "*" } else { "" };
                         let unconfigured = if x.configured { "" } else { "!" };
                         Some(format!("{name}:{raw}{pressed}{unconfigured}"))

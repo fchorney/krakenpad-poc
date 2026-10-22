@@ -12,7 +12,7 @@ use crate::config::{BLOCK_LEN, CONFIG_VERSION, PANEL_LEN, PadConfig, PanelConfig
 use crate::error::{Error, Result};
 use crate::protocol::{
     self, Feed, IN_PACKET, KIND_CMD, KIND_EVENT, KIND_RESP, KIND_STREAM, OUT_PACKET_MAX,
-    OUT_PACKET_MIN, RESP_ERROR, Reassembler, STREAM_FSR_RAW, cmd, evt,
+    OUT_PACKET_MIN, RESP_ERROR, Reassembler, STREAM_FSR, cmd, evt,
 };
 use crate::transport::{Link, Opener};
 
@@ -104,14 +104,14 @@ impl FakeMaster {
         self.send(KIND_RESP, txn, &r);
     }
 
-    pub fn stream(&mut self, panel: u8, raw: [u16; 4], mask: u8) {
+    pub fn stream(&mut self, panel: u8, raw: [u16; 4], tare: [u16; 4], mask: u8) {
         if !self.stream_on {
             return;
         }
         self.clock_us += 7000;
-        let mut m = vec![STREAM_FSR_RAW, panel];
+        let mut m = vec![STREAM_FSR, panel];
         m.extend(self.clock_us.to_le_bytes());
-        for v in raw {
+        for v in raw.into_iter().chain(tare) {
             m.extend(v.to_le_bytes());
         }
         m.push(mask);

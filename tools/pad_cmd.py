@@ -16,12 +16,14 @@ Usage: python3 tools/pad_cmd.py <command> [args]   (-h for the list)
 
   info                        device info
   config                      the master's config copy, per panel and channel
-  set PANEL PRESS REL [CH]    thresholds on one panel (all channels, or CH);
-                              SAVES to the master's EEPROM, then pushes
+  set PANEL PRESS REL [CH]    thresholds on one panel (all channels, or CH),
+                              calibrated units 0-1000; SAVES to the master's
+                              EEPROM, then pushes
   flags PANEL CH POP EN       channel flags (0/1 each); saves, then pushes
   reset-config --yes          defaults for every panel; saves, then pushes
   status                      pad status: presence, poll rate, config state
-  stream [SECONDS]            live FSR telemetry, then a per-panel rate
+  stream [SECONDS] [--csv F]  live FSR telemetry (calibrated, tares), then a
+                              per-panel rate; --csv logs every record to F
   mode MODE [SECS] [--panels 0,3,...]   panel LEDs: 0 normal, 1 ID, 2 test
   selftest                    slot <-> panel-ID self-test (the console's I)
   zero                        zero bus counters, master and panels
@@ -36,6 +38,7 @@ during gameplay (docs/PANEL_CONFIG.md).
 """
 
 import argparse
+import csv
 import statistics
 import struct
 import sys
@@ -57,7 +60,7 @@ PRODUCT = "KrakenPad"
 VENDOR_PAGE, VENDOR_USAGE = 0xFF00, 0x0001
 PANEL_NAME = ["UL", "U", "UR", "L", "C", "R", "DL", "D", "DR"]
 
-PROTOCOL = 2
+PROTOCOL = 3                   # 3: tares in the FSR stream (2026-10-22)
 HEADER = 5
 IN_PACKET = 64                 # master -> host, both speeds
 SPEED = {0: "Full Speed (12 Mbit/s)", 1: "High Speed (480 Mbit/s)"}
@@ -71,10 +74,20 @@ PASSTHROUGH, BUS_FRAME, REBOOT_BOOTLOADER, CLOCK_PROBE = 0x0D, 0x0E, 0x0F, 0x10
 RESP_ERROR = 0x7F
 ERRORS = {1: "unknown command", 2: "bad length", 3: "busy / not now", 4: "not supported yet"}
 EVT_PRESENCE, EVT_CONFIG_RESULT, EVT_CONFIG_RESET, EVT_BUS_FRAME = 0x81, 0x82, 0x83, 0x84
-STREAM_FSR_RAW = 0xC1
+STREAM_FSR = 0xC2              # records: panel, master us, raw x4, tare x4, mask
+STREAM_RECORD = 22
 REBOOT_MAGIC = b"BOOT"
 
-CONFIG_VERSION = 1
+CONFIG_VERSION = 2             # 2: thresholds in calibrated units (2026-10-22)
+ADC_MAX, CAL_MAX = 4095, 1000
+
+
+def raw_to_cal(raw, tare):
+    """firmware/shared/panel_config.h kp_raw_to_cal: 0 at the tare, 1000 at
+    full scale, rounded toward zero. None if the panel sent no tare."""
+    if tare > ADC_MAX:
+        return None
+    return int((raw - tare) * CAL_MAX / (ADC_MAX - tare))
 CFG_STATE = ["matches", "sent, waiting", "REJECTED: unknown version",
              "REJECTED: invalid", "not configured", "absent"]
 TERMINATION = {0: "OK", 1: "no panel terminated", 2: "several terminated",
@@ -282,7 +295,8 @@ def cmd_config(pad, a):
         chans = "  ".join(f"{c}:{pr:4}/{rl:4}{'' if fl & 1 else ' p'}{'' if fl & 2 else ' d'}"
                           for c, (pr, rl, fl) in enumerate(panel))
         print(f"  {PANEL_NAME[p]:>2} id {p}  {chans}")
-    print("  press/release per channel 0-3 ('f' order); p = not populated, d = disabled")
+    print("  press/release per channel 0-3 ('f' order), calibrated 0-1000; "
+          "p = not populated, d = disabled")
 
 
 def cmd_set(pad, a):
@@ -325,19 +339,33 @@ def cmd_stream(pad, a):
     first = [None] * 9
     last = [None] * 9
     latest = {}
+    log = None
+    if a.csv:
+        log_file = open(a.csv, "w", newline="")
+        log = csv.writer(log_file)
+        log.writerow(["host_s", "panel", "master_us", "raw0", "raw1", "raw2", "raw3",
+                      "tare0", "tare1", "tare2", "tare3", "mask"])
+    t0 = time.monotonic()
 
     def on_other(kind, msg):
-        if kind == STREAM and msg[0] == STREAM_FSR_RAW:
-            for r in range((len(msg) - 1) // 14):
-                rec = msg[1 + r * 14: 15 + r * 14]
+        if kind == STREAM and msg[0] == STREAM_FSR:
+            for r in range((len(msg) - 1) // STREAM_RECORD):
+                rec = msg[1 + r * STREAM_RECORD: 1 + (r + 1) * STREAM_RECORD]
                 p, t = rec[0], u32(rec, 1)
                 raw = struct.unpack_from("<4H", rec, 5)
+                tare = struct.unpack_from("<4H", rec, 13)
                 counts[p] += 1
                 first[p] = t if first[p] is None else first[p]
                 last[p] = t
-                latest[p] = (raw, rec[13])
+                latest[p] = (raw, tare, rec[21])
+                if log:
+                    log.writerow([f"{time.monotonic() - t0:.4f}", p, t, *raw, *tare, rec[21]])
         else:
             print_other(kind, msg)
+
+    def fmt(raw, tare):
+        cal = [raw_to_cal(r, t) for r, t in zip(raw, tare)]
+        return ",".join("-" if c is None else str(c) for c in cal)
 
     pad.command(STREAM_CTL, bytes([1, 0]))
     t_end = time.monotonic() + a.seconds
@@ -349,11 +377,16 @@ def cmd_stream(pad, a):
                 on_other(m[0], m[2])
             if time.monotonic() - t_print > 0.5 and latest:
                 t_print = time.monotonic()
-                print("  " + "  ".join(f"{PANEL_NAME[p]}:{','.join(map(str, raw))}"
+                print("  " + "  ".join(f"{PANEL_NAME[p]}:{fmt(raw, tare)}"
                                        f"{'*' if mask & 0x0F else ''}{'!' if mask & 0x80 else ''}"
-                                       for p, (raw, mask) in sorted(latest.items())))
+                                       for p, (raw, tare, mask) in sorted(latest.items())))
     finally:
         pad.command(STREAM_CTL, bytes([0, 0]), on_other=on_other)
+        if log:
+            log_file.close()
+    print("calibrated values above (0 = the tare, 1000 = full scale); tares now:")
+    for p, (raw, tare, mask) in sorted(latest.items()):
+        print(f"  {PANEL_NAME[p]:>2} raw {','.join(map(str, raw))}  tare {','.join(map(str, tare))}")
     print("per panel: records, rate by master timestamps (* pressed, ! not configured)")
     for p in range(9):
         if counts[p] > 1:
@@ -496,6 +529,7 @@ def main():
     sub.add_parser("status").set_defaults(fn=cmd_status)
     s = sub.add_parser("stream")
     s.add_argument("seconds", type=float, nargs="?", default=5)
+    s.add_argument("--csv", help="log every record to this CSV file")
     s.set_defaults(fn=cmd_stream)
     s = sub.add_parser("mode")
     s.add_argument("mode", type=int, choices=(0, 1, 2))

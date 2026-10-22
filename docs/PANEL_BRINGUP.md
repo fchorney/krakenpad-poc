@@ -521,7 +521,7 @@ prints `PRESS panel N` — panel ADC → threshold → emulated open-drain → w
 master ISR, nothing simulated. Until 2026-10-20 the thresholds were
 live-settable from the master with `S <panel> <press> <rel>`, the `'C'`→`'c'`
 path. The master's `S` now pushes `'W'`, which this firmware ignores, so it
-runs on its 500/400 defaults and the master lists it as "sent, waiting"; `'F'`
+runs on its own raw 500/400 defaults and the master lists it as "sent, waiting"; `'F'`
 and `'H'` still exercise the bus both ways.
 
 ### Three constraints the responder is built around

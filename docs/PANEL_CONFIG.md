@@ -15,7 +15,8 @@ and pushes it with `'W'`. What was built and how it behaves: "As built" below.
 - The three **LED modes** (normal, ID, sensor test), set by `'M'`. See below.
 - **Config from the master's `'W'`** (2026-10-20, runs on all nine panels): per
   channel press/release thresholds and the `populated`/`enabled` flags, boot
-  defaults 500/400 with both flags set (`firmware/shared/panel_config.h`).
+  defaults 930/905 calibrated (~~500/400 raw~~ until 2026-10-22) with both
+  flags set (`firmware/shared/panel_config.h`).
   **RAM only, by design**: a reboot returns to the defaults until the next
   `'W'`, and the "not configured" bit in `'f'` tells the master. `'C'` is gone.
 - The debug LED `D202` lights on press in DIP 10 only, and stays dark otherwise.
@@ -128,16 +129,18 @@ same inward triangles, black at rest, brightness rising with pressure, no
 threshold shown). ~~East = R, yellow; South = D, green~~ was the first
 version, with those two swapped against stock; changed 2026-10-22 (the user).
 No two sets overlap, so nothing needs blending. Brightness is off at or below
-**200 counts** and linear from there to full at 4095. That floor is **NOT the
+~~**200 counts** and linear from there to full at 4095.~~ **tare + 20 counts**
+since 2026-10-22, brightness following the calibrated value to full at 1000. That floor is **NOT the
 press threshold**, on purpose, because the user can change the press threshold.
 ~~**100 counts**; board 1 rests at 94–98, so 100 sits right at the noise floor
 and may need raising.~~ Raised to 200 on 2026-10-22 (the user): in the pad the
 sensors rest at 88–114, so 100 left some edges glowing faintly at rest, and
-full weight reaches ~4090, so the extra floor costs nothing. Once tare exists,
-this becomes "a margin above tare is off": try tare + ~20 first. Next to a
-stock pad, the stock sensor test feels like it starts lighting sooner (the
-user, 2026-10-22, not measured); the user's guess is that stock goes dark at
-about tare + 20.
+full weight reaches ~4090, so the extra floor costs nothing. ~~Once tare
+exists, this becomes "a margin above tare is off": try tare + ~20 first.~~
+Built the same day: tare + 20. Next to a stock pad, the stock sensor test
+feels like it starts lighting sooner (the user, 2026-10-22, not measured); the
+user's guess is that stock goes dark at about tare + 20. Not yet compared
+again since.
 
 This reverses `docs/USB_PROTOCOL.md`'s 2026-07 call to drop stock's `'t'` panel
 test mode from firmware and draw it host-side.
@@ -189,10 +192,12 @@ them apart. So:
 
 ## Per-channel calibration values
 
-- Press threshold (12-bit ADC counts). On the rev-1 boards: resting 85–108 across
-  nine boards (most 94–102), full press ~4000; the 500 default sits comfortably
-  between them. (Breadboard figures were ~100–115 / ~3900.)
-- Resting baseline (captured at calibration time) — for drift diagnostics.
+- Press threshold, **in calibrated units since config version 2** (2026-10-22,
+  "Tare and calibrated values" below); default **930**. ~~12-bit ADC counts;
+  resting 85–108 across nine boards (most 94–102), full press ~4000; the 500
+  default sits comfortably between them. (Breadboard figures were ~100–115 /
+  ~3900.)~~ Version 1, raw counts, until 2026-10-22.
+- Resting baseline: now the panel's tracked **tare**, reported in every `'f'`.
 - Hysteresis (separate press/release thresholds) — implemented, set per
   channel by the master's `'W'` (2026-10-20; `'C'`/`'c'` before that). RAM only
   on the panel by design; the master's EEPROM persists it.
@@ -250,7 +255,8 @@ Supersedes the panel-flash half of the 2026-07-09 decision below; the master
 stays canonical and the ~1 Hz re-push stays.
 
 - **Panels keep config in RAM only**, starting from compiled-in defaults
-  (press 500 / release 400 today). Nothing about config is written to panel
+  (press 930 / release 905 calibrated since 2026-10-22; 500/400 raw before).
+  Nothing about config is written to panel
   flash.
 - **The master is the only persistent store**: the canonical config for all
   nine panels in the Teensy's emulated EEPROM (below).
@@ -429,9 +435,82 @@ after 2,048 writes to one sector, so it is rare.
   review: it repeats them, and a test reads this header and fails if any
   differ. `docs/HOST_SOFTWARE.md` → "Built".)*
 
-## Auto-calibration: starting direction (2026-10-20, not decided)
+## Tare and calibrated values (DECIDED and built 2026-10-22)
 
-**Deferred until installed-pad data exists.** On the bench, sensors rest at
+The user's direction below (2026-10-20), settled with the first installed-pad
+data. **Built 2026-10-22, flashed to master #2 and all nine panels the same
+day** (`docs/BRINGUP_LOG.md`). Why now: a default close to the user's preferred
+sensitivity, so the pad can be played in ITGmania or DeadSync and the resting
+values logged through real play.
+
+**Data it rests on** (in the pad, 2026-10-22): sensors rest at 88–114 raw;
+full body weight takes every sensor to 4078–4095; the divider reads ~20–25
+counts above its model.
+
+- **Tare:** each sensor's tracked rest value, in raw counts. **The panel tracks
+  it** (core 1), so it exists without a master and the press loop never waits
+  on the bus.
+- **Calibrated value = (raw − tare) × 1000 / (4095 − tare)**: 0 at the tare,
+  1000 at full scale, linear in raw. Negative just below the tare (noise). One
+  definition, `kp_raw_to_cal()` in `firmware/shared/panel_config.h`; the SDK
+  and the Python tools repeat it.
+- **0–1000, not 0–250:** on our 10 kΩ divider the default press point sits at
+  ~93% of the raw range, so 0–250 would leave ~17 steps between it and full
+  weight, each ~16 raw counts. 0–1000 gives ~70 steps of ~4 counts, about the
+  noise. A UI wanting 0–250 divides by 4.
+- **Full scale is fixed at 4095** for now. Per-sensor adjustable endpoints (the
+  user's 2026-10-20 direction) are a later format change if needed; every
+  sensor reached 4078–4095 under body weight, so one top fits all today.
+- **Thresholds are calibrated units.** The master sends them in `'W'`; the
+  panel turns them into raw counts at its current tares
+  (`kp_cal_to_raw()`, rounded up) and rebuilds them whenever a tare moves, so
+  the 100 kHz press loop still compares raw counts. Rounded up means a raw
+  comparison on the panel and a calibrated one on a host agree to the count.
+- **A higher threshold depends less on the tare.** The span is stretched to
+  the same top on every sensor, so the raw press point is
+  `0.1 × tare + 0.9 × 4095` at 900: tares of 50 and 100 give raw thresholds 5
+  counts apart, not 50 (the user's question, 2026-10-22). That is the right
+  behaviour here: a resting sensor carries a tiny force next to a press
+  (~400–800 kΩ at rest against ~0.8 kΩ at the default press point), so "the
+  same force" at the press point means about the same FSR resistance, which
+  means about the same raw count. Plain `raw − tare` with no stretch would put
+  them 50 counts apart, ~20% in resistance near the top of our divider.
+- **Default 930 / 905** (`KP_DEFAULT_PRESS` / `KP_DEFAULT_RELEASE`): 930 is
+  ~3816 raw at a tare of 100, a firm press chosen to feel like a stock pad on
+  its lowest sensitivity (the user). 905 is ~100 raw counts below it, the
+  same gap as the old 500/400; a tighter gap chattered on light touches.
+
+**Tracking, as built** (`firmware/panel/c/main.c`, `TARE_*`):
+
+- Core 1 samples each sensor every 1 ms and judges it in **64 ms windows**.
+- A window counts only when **no channel on the panel is pressed**, no release
+  in the last **1 s**, at least **500 ms** after boot, the window's max − min is
+  at most **64** (a spike) and its mean is within **8** of the previous window's
+  (still moving).
+- **Down at once** to a lower steady mean: an inflated tare makes presses
+  harder. **Up slowly**, 1/128 of the gap per window (~8 s to close it), and
+  only while the mean is at most **48** above the tare: more than that is a
+  foot, not drift.
+- **Boot:** 100 until a sensor's first steady window, then that window's mean.
+  A sensor resting above **1000** is never tared (a fault, not rest).
+- **Reported** in every `'f'` (raw ×4, tare ×4, mask; `docs/RS485_PROTOCOL.md`),
+  so the master, the USB stream (`docs/USB_PROTOCOL.md`, protocol 3) and the
+  SDK see calibrated values live.
+- **Test mode** lights an edge from **tare + 20** up, brightness following the
+  calibrated value (the user's guess at what the stock sensor test does).
+- Not built: a noise statistic, and a "sensor resting oddly" flag (stock's
+  `badSensorMinimumDelaySeconds` idea). The tracking constants are first
+  guesses, to tune from logged play (`docs/STATUS.md` → long-run test 4).
+
+**Config version 2** carries the new units in the same 20 bytes per panel. A
+master that finds a version-1 record **does not convert it** (a deliberate
+exception to "Config versioning" above): the units changed, and a converted
+500/400 would keep the old, very light press point. It boots on defaults with
+"config was reset", as for an unknown version.
+
+### ~~Auto-calibration: starting direction (2026-10-20, not decided)~~ Superseded by the section above; kept for the reasoning
+
+~~**Deferred until installed-pad data exists.**~~ On the bench, sensors rest at
 85–108 counts and a full press reads ~4000 (measured), so fixed 500/400
 thresholds have a huge margin. Unknown, and what decides the design: the
 resting value with the panel installed (its weight and mounting preload the
@@ -515,7 +594,9 @@ the firmware to maintain whenever this gets designed.
 - ~~Config write protocol over RS-485 (command format, ack, when panels commit to flash)~~ — decided 2026-10-20 ("Config persistence and the write protocol"); layout in `docs/RS485_PROTOCOL.md`, built 2026-10-20
 - ~~Config versioning / migration when the format changes~~ — decided 2026-10-20 ("Config versioning")
 - ~~Factory reset story~~ — decided 2026-10-20 ("Factory reset")
-- Auto-calibration design (drift tracking over time) — stock's four calibration
+- ~~Auto-calibration design (drift tracking over time) — stock's four calibration
   parameters are placeholdered above pending this. **Deferred 2026-10-20 until
   there is data from panels installed in a pad** (see "Auto-calibration:
-  starting direction")
+  starting direction")~~ Built 2026-10-22 ("Tare and calibrated values").
+  Still open: tuning the tracking constants from logged play, and a noise
+  statistic / bad-sensor flag.

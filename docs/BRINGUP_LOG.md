@@ -1689,6 +1689,32 @@ on all nine panels in the pad.**
   the floor as tare plus a small margin (the user's guess at what stock does:
   tare + ~20; not verified).
 
+### 2026-10-22 — tare tracking and calibrated thresholds, flashed
+
+Design and constants: `docs/PANEL_CONFIG.md` → "Tare and calibrated values".
+
+- **Master #2** first (build `F93A0CC5`, USB protocol 3, config version 2),
+  so it still understood the old panels' 9-byte `'f'`. It found the saved
+  version-1 config and booted on defaults with "config was reset", as
+  designed; `pad_cmd.py reset-config --yes` then saved the version-2
+  defaults and the flag cleared.
+- **All nine panels** over the bus: image `C6C0E71B`, build tag `4B5A43FA`.
+- **After:** 9/9 present, 100% polls, 0 CRC errors, config matching at
+  930/905 on every channel, termination OK. Telemetry still **12.7 Hz** per
+  panel with the 17-byte `'f'`.
+- **Tares, a few seconds after boot, hands off:** L 87–88, C 99–106,
+  R 106–108, D 109–113, empty corners 12–15: each about 1 count under its
+  instantaneous raw value (a 64 ms mean against one sample).
+- Host checks before flashing: `firmware/shared/test/run.sh` (C and C++,
+  including "a raw comparison and a calibrated one agree to the count") and
+  the SDK's 30 tests, clippy clean.
+- **The user, stepping on it:** the sensitivity at 930/905 "seems pretty
+  good"; test mode from tare + 20 looks closer to the stock sensor test, good
+  enough for now.
+- **Still to do:** a logged play session in ITGmania to tune the tracking
+  (the user is mapping the pad; a problem seen there once before, not yet
+  written down, may come back).
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

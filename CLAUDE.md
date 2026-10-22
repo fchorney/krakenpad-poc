@@ -195,8 +195,13 @@ transceiver, flash, level shifter, LDO cascade, power-OR) are in
 - Rev-1 ADC values (12-bit): resting **85–108** across nine boards (most
   94–102), full press **~4000** by finger on the bench. **In the pad under full
   body weight: 4078–4095, full scale; resting 88–114** (2026-10-22,
-  `docs/BRINGUP_LOG.md`). Default thresholds press 500 / release 400
-  (`firmware/shared/panel_config.h`), set per channel by the master's `'W'`.
+  `docs/BRINGUP_LOG.md`).
+- **Thresholds are calibrated units since 2026-10-22** (config version 2): each
+  panel tracks every sensor's **tare** (rest value) and calibrated = (raw −
+  tare) × 1000 / (4095 − tare). Default press **930** / release **905** (~3816 /
+  ~3716 raw at a tare of 100), set per channel by the master's `'W'`
+  (`firmware/shared/panel_config.h`, `docs/PANEL_CONFIG.md` → "Tare and
+  calibrated values"). Before: raw 500 / 400.
 - Sampling: the C firmware's loop runs at ~100 kHz (102,080 Hz measured on the
   breadboard). Targets were 4 kHz hard, 8 kHz soft. MicroPython managed
   ~1–2 kHz, which is why the firmware is C.

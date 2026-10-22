@@ -5,6 +5,10 @@ Reads the master's USB serial, enables the telemetry stream, and renders each
 panel's four FSR channels as live bars. The data path visualized is:
 panel ADC -> RS-485 poll reply -> master -> USB serial -> here.
 
+Values and thresholds are calibrated units: 0 at each sensor's tare (its
+tracked rest value), 1000 at full scale (docs/PANEL_CONFIG.md → "Tare and
+calibrated values"). The second line shows the four tares in raw counts.
+
 Threshold changes are sent to the master ("S <panel> <press> <release>"),
 which edits its config copy and pushes it to the addressed panel over RS-485
 (cmd 'W', since 2026-10-20). The panel applies them at once, and the "ack"
@@ -40,7 +44,8 @@ import serial
 
 NUM_PANELS = 9
 ADC_MAX = 4095
-STEP = 50
+CAL_MAX = 1000
+STEP = 10
 BAR_WIDTH = 14
 
 # Panel ID -> position, as silkscreened on the master and printed on the cables.
@@ -66,10 +71,17 @@ def find_port() -> str:
     return ports[0]
 
 
+def raw_to_cal(raw: int, tare: int):
+    """firmware/shared/panel_config.h kp_raw_to_cal; None without a tare."""
+    if tare > ADC_MAX:
+        return None
+    return int((raw - tare) * CAL_MAX / (ADC_MAX - tare))
+
+
 def bar(value: int, pressed: bool, press_thr: int, rel_thr: int) -> str:
-    filled = round(value * BAR_WIDTH / ADC_MAX)
-    press_col = min(round(press_thr * BAR_WIDTH / ADC_MAX), BAR_WIDTH - 1)
-    rel_col = min(round(rel_thr * BAR_WIDTH / ADC_MAX), BAR_WIDTH - 1)
+    filled = round(max(value, 0) * BAR_WIDTH / CAL_MAX)
+    press_col = min(round(press_thr * BAR_WIDTH / CAL_MAX), BAR_WIDTH - 1)
+    rel_col = min(round(rel_thr * BAR_WIDTH / CAL_MAX), BAR_WIDTH - 1)
     cells = []
     for i in range(BAR_WIDTH):
         if i < filled:
@@ -86,11 +98,12 @@ def bar(value: int, pressed: bool, press_thr: int, rel_thr: int) -> str:
 
 def main() -> None:
     port = find_port()
-    press_thr = [500] * NUM_PANELS  # firmware boot defaults
-    rel_thr = [400] * NUM_PANELS
+    press_thr = [930] * NUM_PANELS  # firmware defaults (panel_config.h)
+    rel_thr = [905] * NUM_PANELS
     ack = ["defaults"] * NUM_PANELS
     status = ["press h for status"] * NUM_PANELS
     vals = [[0, 0, 0, 0] for _ in range(NUM_PANELS)]
+    tares = [[0xFFFF] * 4 for _ in range(NUM_PANELS)]
     mask = [0] * NUM_PANELS
     online = [False] * NUM_PANELS
     sweep_note = ""
@@ -128,7 +141,7 @@ def main() -> None:
                 elif key == "h":
                     ser.write(b"H\n")
                 elif key == "+" or key == "=":
-                    press_thr[focus] = min(press_thr[focus] + STEP, ADC_MAX)
+                    press_thr[focus] = min(press_thr[focus] + STEP, CAL_MAX)
                     send_thresholds(focus)
                 elif key == "-":
                     press_thr[focus] = max(press_thr[focus] - STEP, rel_thr[focus] + STEP)
@@ -147,14 +160,17 @@ def main() -> None:
                     line = raw.decode(errors="replace").strip()
                     if line.startswith("T "):
                         parts = line.split()
-                        # 8 fields from current master firmware (last = live
-                        # flag); 7 from older builds, which cannot say.
-                        if len(parts) in (7, 8):
+                        # 12 fields from current master firmware: id, raw x4,
+                        # mask, live flag, tare x4. 8 from builds before tares
+                        # (no calibrated values), 7 from older still.
+                        if len(parts) in (7, 8, 12):
                             p = int(parts[1])
                             if 0 <= p < NUM_PANELS:
                                 vals[p] = [int(v) for v in parts[2:6]]
                                 mask[p] = int(parts[6])
                                 online[p] = len(parts) == 7 or parts[7] == "1"
+                                if len(parts) == 12:
+                                    tares[p] = [int(v) for v in parts[8:12]]
                     elif line.startswith("#"):
                         m = ACK_RE.search(line)
                         if m:
@@ -179,9 +195,10 @@ def main() -> None:
                 marker = ">" if p == focus else " "
                 head = f"{marker}{PANEL_NAME[p]:<2} {p}"
                 if online[p]:
+                    cals = [raw_to_cal(vals[p][ch], tares[p][ch]) for ch in range(4)]
                     bars = "  ".join(
-                        f"{FSR_NAME[ch]} {vals[p][ch]:4d} "
-                        f"{bar(vals[p][ch], bool(mask[p] & (1 << ch)), press_thr[p], rel_thr[p])}"
+                        f"{FSR_NAME[ch]} {'   ?' if cals[ch] is None else f'{cals[ch]:4d}'} "
+                        f"{bar(cals[ch] or 0, bool(mask[p] & (1 << ch)), press_thr[p], rel_thr[p])}"
                         for ch in range(4)
                     )
                 else:
@@ -189,7 +206,9 @@ def main() -> None:
                 sys.stdout.write(f"\r\033[K{head}  {bars}\n")
                 # A wrapped line breaks the cursor-up redraw, so clip to width.
                 cols = shutil.get_terminal_size().columns - 1
-                info = f"       thr {press_thr[p]}/{rel_thr[p]} (ack {ack[p]})  {status[p]}"
+                tare = ",".join("?" if t > ADC_MAX else str(t) for t in tares[p])
+                info = (f"       thr {press_thr[p]}/{rel_thr[p]} (ack {ack[p]})  tare {tare}"
+                        f"  {status[p]}")
                 sys.stdout.write(f"\r\033[K{info[:cols]}\n")
             sys.stdout.write(f"\r\033[K{sweep_note[:cols]}\n")
             sys.stdout.flush()

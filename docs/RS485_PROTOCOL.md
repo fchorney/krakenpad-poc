@@ -78,9 +78,14 @@ resync".
 
 ### `'f'` — FSR data (panel → master, reply only)
 
-- addr = panel ID, len 9
-- Payload: 4 × uint16 little-endian raw ADC values (channels 0–3), then 1 byte
-  pressed bitmask (bit i = channel i pressed, post-hysteresis/persistence)
+- addr = panel ID, **len 17** (since 2026-10-22; ~~len 9~~ before, with no
+  tares, which the master still accepts from older panel firmware)
+- Payload: 4 × uint16 little-endian raw ADC values (channels 0–3), **then 4 ×
+  uint16 tares** (each channel's tracked rest value, raw counts;
+  `docs/PANEL_CONFIG.md` → "Tare and calibrated values"), then 1 byte pressed
+  bitmask (bit i = channel i pressed, post-hysteresis/persistence). Offsets
+  and lengths: `KP_F_*` in `firmware/shared/panel_config.h`.
+- Reply window (5 + 17) × 10 + 260 = **480 µs** (was 400 µs).
 - Bit 7 of the last byte = **not configured since boot** (decided 2026-10-20,
   **built 2026-10-20, not yet run on a board**). Set at every boot, cleared by
   the first accepted `'W'`; the master sends that panel its config at its next
@@ -97,26 +102,31 @@ resync".
 
 | Offset | Size | Field |
 |---|---|---|
-| 0 | 1 | config format version, **1** (bumped on any format change) |
-| 1 + 5i | 2 | channel i press threshold, raw ADC counts, u16 LE (i = 0–3, the `'f'` order) |
+| 0 | 1 | config format version, **2** (bumped on any format change; ~~1~~ until 2026-10-22) |
+| 1 + 5i | 2 | channel i press threshold, **calibrated units 0–1000** (~~raw ADC counts~~ in version 1), u16 LE (i = 0–3, the `'f'` order) |
 | 3 + 5i | 2 | channel i release threshold |
 | 5 + 5i | 1 | channel i flags: bit0 `populated`, bit1 `enabled`, bits 2–7 must be 0 |
 
 - A channel takes part in press detection only when both flag bits are set.
-- **Accepted only whole:** the version is known, `release < press ≤ 4095` on
+- **Accepted only whole:** the version is known, `release < press ≤ 1000` on
   every channel, reserved bits are 0. Otherwise the panel rejects it and keeps
   the config it has. It never applies part of one.
 - Takes effect immediately, **RAM only by design**: panels never persist config;
   the master does. The panel builds the new config in a spare copy and swaps a
-  pointer, so its sampling loop never runs on half of an update.
+  pointer, so its sampling loop never runs on half of an update. Since version 2
+  the swapped copy holds the raw-count thresholds at the current tares.
 - The master sends it in a poll slot, with a reply window, when a panel
   appears, when a panel that matched reports "not configured" (it rebooted),
   when the master's copy changes, and as a re-push: one answering panel every
   ~111 ms, so each gets it about once a second (`docs/PANEL_CONFIG.md` → "As
   built").
-- Not in version 1: the rest baseline (the panel doesn't use it; it stays on
+- ~~Not in version 1: the rest baseline (the panel doesn't use it; it stays on
   the master/host side), the fallback timeout (fixed 100 ms), auto-calibration
-  (deferred).
+  (deferred).~~ **Version 2 (2026-10-22):** thresholds in calibrated units; the
+  panel tracks its own tares and turns them into raw counts, rebuilding them
+  in a spare copy whenever a tare moves, the same pointer swap as a new `'W'`.
+  Still not in the config: the fallback timeout (fixed 100 ms) and per-sensor
+  full-scale endpoints (fixed 4095).
 
 ### `'w'` — config ack (panel → master, reply only) — built 2026-10-20, not yet run on a board
 
@@ -131,7 +141,8 @@ resync".
 - The CRC is computed from the panel's live config turned back into `'W'` form,
   so a match proves the panel runs exactly the master's values; the master
   doesn't have to trust the status byte alone. With the defaults on every
-  channel it is **`0xFD704831`** (the host test checks this against zlib).
+  channel (930/905, version 2) it is **`0x61F3A50A`** (the host test checks
+  this against zlib); ~~`0xFD704831`~~ for version 1's 500/400.
 - **No bus read-back command (`'R'`/`'r'`), on purpose:** the CRC makes it
   redundant for operation. Add one only if a mismatch ever needs diagnosing
   field by field. Reading config from the PC is a USB matter (`'G'` in

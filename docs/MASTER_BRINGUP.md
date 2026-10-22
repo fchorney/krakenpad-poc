@@ -347,7 +347,8 @@ defaults and the old master's `S` would do nothing.
    sequence 1`, `c` shows the edits. A second `save` goes to slot B.
 7. **Panel reboot.** Cut one panel's 12 V for a few seconds: the console shows
    it stop replying, reply again, and match again within about a second.
-8. **`reset config`**: all nine back to 500/400, saved, matching.
+8. **`reset config`**: all nine back to the defaults (930/905 calibrated since
+   2026-10-22; 500/400 raw before), saved, matching.
 9. **Vendor interface**, each with `tools/pad_cmd.py`:
    - `config`, `status`: values agree with `c` and `H`; within ~5 s of boot
      the status shows each panel's build tag and termination switch.
