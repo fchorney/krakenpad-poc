@@ -36,6 +36,10 @@ models).
   stage 0 + A/B slots, bootloader tag `C5234B1B`.
 - **Panel LED modes:** master `'L'` frames, the ID image, and the on-panel sensor
   test, switchable from the master with `m`. LED stutter fixed 2026-10-19.
+  Sensor-test colours now match the stock pad's and its dark floor is 200
+  (flashed to all nine with master build `D52740E2`, 2026-10-22). The stock
+  sensor test *feels* more responsive (the user); not measured yet
+  (`docs/BRINGUP_LOG.md`).
 - **Underglow:** all 44 groups addressable from bench commands (byte order BRG).
   Installed in the pad 2026-10-22; the `g` chase looked right there.
 - **Config on the bus, the USB vendor interface and the Rust SDK's `monitor`**
@@ -58,18 +62,31 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 ## Known open items
 
-- **Config and the USB vendor interface: all passed except presses on four
-  panels.** In the pad (2026-10-22), presses passed on the five with a sensor
-  (U, L, C, R, D); **UL, UR, DL and DR are still to test**, with sensors
-  borrowed from the other pad for the test. The `F` press test, a panel 12 V cut, a bus cable pull
+- **Config and the USB vendor interface: all passed, presses on all nine
+  panels included** (2026-10-22). In the pad, presses passed on the five with
+  a sensor (U, L, C, R, D), then on UL, UR, DL and DR with a borrowed sensor
+  moved through all 16 corner sockets: each lit its own channel and pressed
+  the right joystick button, no sequence gaps. The `F` press test, a panel 12 V cut, a bus cable pull
   (USB events and the SDK), the LED commands and `w` passed at the bench on
   2026-10-21 (`docs/BRINGUP_LOG.md`).
 - **Small nits found 2026-10-21, fixed the same evening:** the duplicate-ID
   warning no longer fires when a panel drops out (rates capped at 100%); the
   SDK `monitor` shows a missing panel as `gone`; the Python tools open the pad
-  shared on macOS. **Still to test: that a real duplicate ID still warns.**
+  shared on macOS. ~~**Still to test: that a real duplicate ID still warns.**~~
   Two programs *driving* the pad at once can mix up responses (one command at
   a time, matched by transaction ID); watching alongside a game is fine.
+- **The duplicate-ID warning cannot see a real duplicate on this bus**
+  (tested 2026-10-22, UL set to ID 1). The two boards didn't collide: UL's
+  replies got through intact (2 CRC errors in 2+ min) and U's vanished, so
+  the duplicate looks like one panel missing, which the warning deliberately
+  ignores. **The slot ↔ ID self-test catches it** (`pad_cmd.py selftest`:
+  `slot UL: panel 1 <-- MISMATCH`). Until there's more: run the self-test
+  after changing any DIP. **Not fixing now** (the user, 2026-10-22; look again
+  if it's needed). Options: (2, preferred) a passive check that each slot's
+  INT agrees with its ID's bus press mask, raised as a flag a config app
+  can show; (1) run the self-test automatically, costing ~0.6 s of held
+  input and no bus traffic each time. A config app would likely run the
+  self-test at start-up anyway (`docs/BRINGUP_LOG.md`).
 - **`pad_cmd.py bus-h` missed a reply twice** in its first ~15 runs, then 0 in
   ~250 since, including 150 after random commands (2026-10-21). Cause
   unknown. The master now logs what each passthrough session heard, so a
@@ -106,8 +123,15 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   (`hardware/harness/README.md` → "Install findings").
 - ~~**Harness install:** column feeds chosen, trunk, master GND tie and
   underglow leads cut to fit~~ done 2026-10-22, 12 V chain as designed.
-- **Underglow `u` may not work in the pad:** the user remembers pressing it
-  and seeing nothing (2026-10-22); `g` worked. Retest live.
+- ~~**Underglow `u` may not work in the pad:** the user remembers pressing it
+  and seeing nothing (2026-10-22); `g` worked. Retest live.~~ **`u` works**
+  (retested 2026-10-22 twice, including from the strip's power-on white:
+  red, green, blue, white, off). Why the first look showed nothing isn't
+  established; most likely a late run that was missed (`docs/BRINGUP_LOG.md`).
+- **Blocking bench commands make every panel look dead:** `u` holds the master
+  for ~3 s, and the console prints "STOPPED REPLYING" for all nine, then they
+  return with config matching (2026-10-22). Nothing resets; `g` (~13 s) likely
+  does the same. Harmless, but alarming.
 - **Scope the RS-485 bus once the panels are in a pad** (edge settling; carried
   from master #2's open list in `docs/BRINGUP_LOG.md`).
 
@@ -115,22 +139,22 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 
 > **Moved into the pad 2026-10-22** (the user: everything worked so far;
 > harness findings in `hardware/harness/README.md` → "Install findings").
-> **NEXT:** presses on UL, UR, DL, DR (borrowed sensors; `hid_monitor.py`,
-> the SDK `monitor`), retest `u`, the real-duplicate-ID warning check, and the
+> **NEXT:** ~~presses on UL, UR, DL, DR~~ (all 16 corner sockets pass,
+> 2026-10-22), ~~retest `u`~~ (works, 2026-10-22), ~~the real-duplicate-ID warning check~~ (run: the warning misses it, the self-test catches it), and the
 > installed-pad items below (harness lengths, bus scope, FSR logging).
 >
-> **The 2026-10-20 bench procedure is done** (2026-10-21), except presses on
-> UL, UR, DL and DR (five of nine passed in the pad, 2026-10-22).
+> **The 2026-10-20 bench procedure is done** (2026-10-21), and presses on
+> all nine panels passed in the pad (2026-10-22).
 > The parser resync passed on the current master and failed on the old one, as
 > designed. Results: `docs/BRINGUP_LOG.md`.
 
 **The user's plan (2026-10-20): (a) config on the bus, (b) the master's vendor
 HID interface, (c) the Rust SDK skeleton in `software/sdk` against (b)**
 (`docs/HOST_SOFTWARE.md`). **All three were built 2026-10-20, plus the master's
-parser resync.** All ran on the pad (2026-10-20 and 21), apart from presses on
-every panel. (b) covers
+parser resync.** All ran on the pad (2026-10-20 and 21), and presses on every
+panel passed in the installed pad (2026-10-22). (b) covers
 the whole command table except underglow and reset animations (the user's
-call). Presses on every panel wait for the installed pad.
+call).
 The SDK's C interface (`krakenpad-c`) isn't needed yet (the user, 2026-10-20).
 How the SDK and firmware share values after the repos split is open
 (`docs/HOST_SOFTWARE.md` → "Not decided").
@@ -139,13 +163,13 @@ How the SDK and firmware share values after the repos split is open
    test fails on the old firmware, passes on the new; `I` 10/10 with traffic.
 2. Play-test the joystick in ITGmania; measure host-side rate.
 3. Robustness: cable pull, panel power cycle, poll/LED interleave under load.
-4. Config: **built 2026-10-20, passed on the pad 2026-10-20/21 (presses on every panel wait for the installed pad).** Panels RAM-only; the
+4. Config: **built 2026-10-20, passed on the pad 2026-10-20/21; presses on every panel passed in the installed pad 2026-10-22.** Panels RAM-only; the
    master's two-slot EEPROM record, `'W'`/`'w'` and the "not configured" bit
    (`docs/RS485_PROTOCOL.md`), the version check, reset config, console `S`/`F`
    editing the master's copy with a separate `save` (the user's call,
    2026-10-20). Shared format: `firmware/shared/panel_config.h`.
    Auto-calibration deferred until installed-pad data.
-5. USB vendor interface: **built 2026-10-20, passed on the pad 2026-10-20/21 (presses on every panel wait for the installed pad).** Packet
+5. USB vendor interface: **built 2026-10-20, passed on the pad 2026-10-20/21; presses on every panel passed in the installed pad 2026-10-22.** Packet
    framing, the command table except underglow (deferred) and reset animations
    (waits on step 6), the telemetry stream, host LED frames (hand back after
    1 s, the user's call), the bus passthrough for updates, reboot to the Teensy
@@ -202,6 +226,12 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
    `tools/fsr_monitor.py` for the resting value under preload, through an hour
    of play, from a cold start and in a warm room. It decides the
    auto-calibration design (`docs/PANEL_CONFIG.md` → "Auto-calibration").
+   **The maximum and a divider check: done 2026-10-22** (`docs/BRINGUP_LOG.md`).
+   Under full body weight every sensor reaches 4078–4095, full scale (the
+   bench "~4000" was finger presses). Resting in the pad 88–114. Known
+   resistors read ~20–25 counts above the divider model, with a 13–18 floor
+   on an empty input. Channels S/W/N/E match the physical edges on all five
+   sensored panels. Still to do: the resting value over time and play.
 5. Some of the open items above may also have been on the list: cable pulls and
    power cycles during play, and polling plus LED frames under load.
 

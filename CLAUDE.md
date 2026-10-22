@@ -193,7 +193,9 @@ transceiver, flash, level shifter, LDO cascade, power-OR) are in
   pull-down is always on the board, so an unplugged FSR reads near 0, the same
   as an unloaded one (presence must therefore be config, not measurement).
 - Rev-1 ADC values (12-bit): resting **85–108** across nine boards (most
-  94–102), full press **~4000**. Default thresholds press 500 / release 400
+  94–102), full press **~4000** by finger on the bench. **In the pad under full
+  body weight: 4078–4095, full scale; resting 88–114** (2026-10-22,
+  `docs/BRINGUP_LOG.md`). Default thresholds press 500 / release 400
   (`firmware/shared/panel_config.h`), set per channel by the master's `'W'`.
 - Sampling: the C firmware's loop runs at ~100 kHz (102,080 Hz measured on the
   breadboard). Targets were 4 kHz hard, 8 kHz soft. MicroPython managed

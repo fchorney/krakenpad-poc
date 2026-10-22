@@ -1552,13 +1552,140 @@ and D**; UL, UR, DL and DR have none.
 |---|---|
 | 12 V chain | ✅ as designed: PSU, fuse, Wago fan-out; one Wago port per column; master GND tie on its own GND port; underglow 12 V + GND from the fan-out, DATA from master `J2` |
 | presses, the five panels with a sensor (U, L, C, R, D) | ✅ the user |
-| presses, UL, UR, DL, DR | **not run yet**: sensors to be borrowed from the other pad for the test, then returned |
+| presses, UL, UR, DL, DR | ~~**not run yet**: sensors to be borrowed from the other pad for the test, then returned~~ ✅ all 16 corner sockets, the same day (below) |
 | underglow `g` chase | ✅ looked right, by eye |
-| underglow `u` | ❓ the user remembers pressing it and seeing nothing. Not confirmed either way; retest live |
+| underglow `u` | ~~❓ the user remembers pressing it and seeing nothing. Not confirmed either way; retest live~~ ✅ retested the same day (below) |
 
 Harness findings (lengths, INT labels, unjacketed ends):
 `hardware/harness/README.md` → "Install findings". The meter-only underglow
 test `U` was removed from the firmware the same day (`docs/MASTER_BRINGUP.md`).
+
+### 2026-10-22 — FSR range in the pad, and a divider check
+
+Raw telemetry logged on the Mac (every `STREAM_FSR_RAW` record, 12.7 Hz per
+panel), the user on the pad. Channel order S, W, N, E.
+
+**Full body weight** with one foot on each edge, then the centre, of U, L, C,
+R and D: **every sensor reaches 4078–4095**; D hits 4095, the ADC's top. Full
+weight on one edge drives three channels to ~4000–4090 and leaves the
+opposite one lowest, so the bench figure of "full press ~4000" (finger
+presses) undersold it: under body weight the sensors run to full scale.
+
+**Orientation as installed:** on every sensored panel, the edge pressed left
+the opposite channel lowest (top → S, right → W, bottom → N, left → E), so
+S/W/N/E match the physical edges, N toward U. One ambiguous case: C's bottom
+edge, where W and N were both near full scale.
+
+**Resting in the pad** (medians, hands off): U 99–104, L 88–89, C 100–106,
+R 107–109, D 109–114.
+
+**Divider check:** known resistors on a DuPont-to-PH lead in UL's empty north
+socket, values read on the user's DMM, against 4095 × 10 k / (10 k + R):
+
+| resistor | model | measured |
+|---|---|---|
+| 0.9985 kΩ | 3723 | 3743 |
+| 2.1875 kΩ | 3360 | 3385 |
+| 3.302 kΩ | 3078 | 3100 |
+| none | 0 | 13 (the other empty corners 13–18) |
+
+The divider behaves as designed, reading ~20–25 counts (~0.7%) high across
+the range, with a 13–18 count floor on an empty input. Cause not
+investigated: ADC offset and gain, and the 10 k's tolerance, are the
+candidates.
+
+### 2026-10-22 — underglow `u` retested in the pad: works
+
+- **First try, "it turns off and does nothing else"** (the user). The strip
+  was at its power-on full white (`docs/UNDERGLOW.md`), and the console run
+  printed both `u` lines.
+- `g 44` (group 44 alone, 20/255 white) was easy to see from the far end.
+- **Second try, the user watching the far end directly, starting from
+  `g 44`:** red, green, blue, white, off. ✅
+- **Third try, the user's own `u` after re-plugging the strip** (so from
+  power-on full white): worked. ✅
+- **Why the first try showed nothing: not established.** ~~From full white,
+  `u`'s levels read as "it just went off".~~ The third try, also from full
+  white, worked, so that isn't it on its own. More likely: the first send was
+  a bare `u` with no newline, which sat in the console's buffer until a
+  newline went out about a minute later, so the run happened later than
+  expected and the colours (3 s in all) were missed.
+- **The console is line-based:** a bare `u` sits in the buffer until a newline.
+- **Side effect:** `u` blocks the master for ~3 s, so the console printed
+  "STOPPED REPLYING" for all nine panels, which came straight back with
+  config matching. Nothing reset.
+
+### 2026-10-22 — a real duplicate panel ID: the warning misses it
+
+UL's DIP set to ID 1 (the same as U), then the left column's 12 V cycled
+(one panel can't be cycled alone in the pad, so UL, L and DL all rebooted).
+Master console watched for 2+ minutes:
+
+- L and DL came back; **slot UL: "NO REPLY"** for the whole run.
+- "panel 1 (U) is on defaults again (rebooted?)": UL, booting at address 1.
+- **Slot U answered nearly every poll, with UL's data** (FSR 13, 13, 13, 12,
+  the empty-socket floor; U's sensor rests ~100). **2 CRC errors** in 2+ min.
+  The two boards did not collide: one got through intact, the other
+  vanished. Why UL wins isn't established; a guess is driver contention, with
+  UL next to the master at the start of the chain and U sixth.
+- **No duplicate-ID warning.** It expects two boards on one address to
+  corrupt each other below 50% replies. Here the duplicate looks like one
+  panel missing, which the warning deliberately excludes (0% = absent).
+- **`pad_cmd.py selftest` caught it:** `slot UL: panel 1 <-- MISMATCH`,
+  `slot U: panel 1`.
+
+**Not fixing now** (the user). Options if it's ever needed: a passive check
+that each slot's INT agrees with its ID's bus press mask (preferred; no cost
+during play, also catches swapped or unlanded INT wires, needs a press to
+notice), or running the self-test automatically (~0.6 s of held input and no
+bus traffic per run). Until then: run the self-test after changing any DIP.
+
+UL set back to ID 0 and the column cycled: self-test 9/9 slots on their own
+IDs, config 9/9 matching.
+
+### 2026-10-22 — presses on the four corners: all 16 sockets pass
+
+One borrowed FSR, moved through every socket of UL, UR, DL and DR in turn
+(plug in, finger press ~2 s, release, unplug), loose in the hand. Logged on
+the Mac: every raw telemetry record, and `hid_monitor.py` on the joystick.
+
+| corner | channels that pressed | finger-press peaks | joystick |
+|---|---|---|---|
+| UL | N, W, E, S | 3508–3834 | UL on every press |
+| UR | W, S, N, E | 2915–3807 | UR on every press |
+| DL | N, W, E, S | 3276–3770 | DL on every press |
+| DR | N, W, S, E | 3557–3816 | DR on every press |
+
+- Every socket moved **one channel only**, a different one for each socket,
+  and set that channel's press bit in the bus reports.
+- **Every press reached the joystick on the right button, with no sequence
+  gaps** (seq 211 → 45, wrapping, all steps of 1).
+- Light touches near the 500/400 thresholds chattered press/release a few
+  times (UR W at ~490); expected with finger presses that hover at the
+  threshold.
+- Empty-socket floors before and after: UL/DL 13, UR 18, DR 16–17.
+
+With the five sensored panels earlier the same day, **presses have now passed
+on all nine panels in the pad.**
+
+### 2026-10-22 — master and panels reflashed; test-mode colours and floor
+
+- **Master #2 was still on a build from before `efcd3e0`** (its help still
+  listed `U`, build `DCCB0190`). Flashed with `build.sh upload`: build
+  `D52740E2`, `U` gone, saved config intact, all nine answering.
+- **Panels:** test mode's east and south colours swapped to match the stock
+  pad's sensor test (east green, south yellow), and its dark floor raised from
+  100 to 200 counts (`docs/PANEL_CONFIG.md` → "Sensor test"). Bus update to
+  all nine: image `15D82BA6` (was `5197D3AF`), staged and CRC-checked in
+  0.6 s, build tag `5CB84A94`. After: 9/9 present, 100% polls, 0 CRC errors,
+  config matching.
+- **Test mode checked in the pad (the user):** dark at rest, colours right
+  (top blue, right green, bottom yellow, left red).
+- **Open, not decided:** next to a stock pad in its own sensor test, the
+  stock one *feels* more responsive (the user), as if it starts lighting
+  sooner. Not measured. One way to compare like for like: the same resistor
+  (50–200 kΩ) in a corner socket of each pad, looked at side by side, and
+  quickly, since the stock pad's auto-tare would slowly absorb it.
 
 ### Still open for this board
 
@@ -1575,6 +1702,7 @@ test `U` was removed from the firmware the same day (`docs/MASTER_BRINGUP.md`).
   panel terminated"; R + UL → "2 panels terminated: UL R"; UL only → "1 panel
   terminated: UL"; R alone → OK. Limits are in the comment on
   `checkTermination()` in `master.ino`.
-- **`u` appeared to do nothing in the pad** (2026-10-22, below). Retest.
+- ~~**`u` appeared to do nothing in the pad** (2026-10-22, below). Retest.~~
+  Works; it was a viewing problem (retest 2026-10-22, above).
 - ~~**Underglow with a real strip**~~ passed 2026-10-05 (above). Only the
   unreproduced first-run glitch remains, and the bit-bang has never been scoped.
