@@ -336,8 +336,11 @@ def cmd_status(pad, a):
 
 def cmd_stream(pad, a):
     counts = [0] * 9
-    first = [None] * 9
     last = [None] * 9
+    # Summed step by step: master_us is a u32 of µs and wraps every 71.6 min, so
+    # last - first under-counts any log longer than that (2026-10-23: 45.5 Hz
+    # printed for a 12.7 Hz, 99-minute session).
+    elapsed = [0] * 9
     latest = {}
     log = None
     if a.csv:
@@ -355,7 +358,8 @@ def cmd_stream(pad, a):
                 raw = struct.unpack_from("<4H", rec, 5)
                 tare = struct.unpack_from("<4H", rec, 13)
                 counts[p] += 1
-                first[p] = t if first[p] is None else first[p]
+                if last[p] is not None:
+                    elapsed[p] += (t - last[p]) & 0xFFFFFFFF
                 last[p] = t
                 latest[p] = (raw, tare, rec[21])
                 if log:
@@ -392,8 +396,7 @@ def cmd_stream(pad, a):
     print("per panel: records, rate by master timestamps (* pressed, ! not configured)")
     for p in range(9):
         if counts[p] > 1:
-            span = ((last[p] - first[p]) & 0xFFFFFFFF) / 1e6
-            print(f"  {PANEL_NAME[p]:>2} {counts[p]:5}  {(counts[p] - 1) / span:6.1f} Hz")
+            print(f"  {PANEL_NAME[p]:>2} {counts[p]:5}  {(counts[p] - 1) / (elapsed[p] / 1e6):6.1f} Hz")
         elif counts[p]:
             print(f"  {PANEL_NAME[p]:>2} {counts[p]:5}")
 
