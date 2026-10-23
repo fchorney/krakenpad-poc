@@ -246,6 +246,13 @@ Core 1 on the panel RP2040 follows this priority order:
 to local animation automatically — the pad works standalone (no PC, no master)
 and recovers gracefully from cable disconnection during play.
 
+**As built (2026-10-22), before local animations exist:** 100 ms without `'L'`
+goes dark; 1 s without any valid bus frame (no master) shows a built-in
+stand-in for steps 2 and 3: a slow dim white breath, all white while the panel
+is pressed (`docs/PANEL_CONFIG.md` → "LED modes"). A running master sends its
+own idle and press frames when the host sends none, so steps 2 and 3 only
+matter without a master.
+
 ## Converter tool
 
 Since 2026-10-20 the conversion is a step **inside the upload program**, not a

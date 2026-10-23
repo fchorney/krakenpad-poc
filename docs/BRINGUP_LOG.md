@@ -204,8 +204,11 @@ bench figure) with no dummy read.
 Resting 94–98, full press ~4000. The defaults hold with room to spare: press 500
 / release 400 sit well clear of both ends, and the 187 float threshold has ~2×
 headroom over a healthy resting channel. No retuning needed. Note that unfitted
-channels read ~12, so "unplugged" and "unpressed" remain electrically
-indistinguishable by design — presence is config, not measurement.
+channels read ~12~~, so "unplugged" and "unpressed" remain electrically
+indistinguishable by design — presence is config, not measurement~~.
+(Corrected 2026-10-22: ~12 against a resting 94–98 is the opposite, a gap of
+~80 counts. Presence stays config; `docs/PANEL_CONFIG.md` → "Presence is
+config".)
 
 ### Stage 3 — on the bus with master #2, 2026-10-02
 

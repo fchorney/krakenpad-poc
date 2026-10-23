@@ -104,7 +104,7 @@ pressure display drawn by the master would visibly lag. Master command:
 
 | Mode | What the LEDs show |
 |---|---|
-| 0 normal | The master's `'L'` frames. Dark if none for 100 ms (local animations come later) |
+| 0 normal | The master's `'L'` frames. Dark if none for 100 ms (local animations come later). **No master** (no valid bus frame of any kind for 1 s): a slow dim white breath (4 s, peak 24/255), and all white (96) while INT is asserted. Bus panels only (DIP 0–8). **DECIDED 2026-10-22 (the user):** shows the panel has 12V and that its sensors trigger, with no master; no timeout. A running master always sends `'L'`, so only a missing, off or restarting master shows it |
 | 1 ID | White image of the panel's position, read from its DIP. **X if the DIP is not 0–8.** Shown for **3 s when 12V first arrives**, and whenever the master asks |
 | 2 sensor test | Each edge lights its own colour, brightness tracking pressure. DIP 10 runs it standalone (no bus, no INT); `'M'` runs it on bus panels |
 
@@ -172,13 +172,28 @@ Two independent bits per channel — they answer different questions:
 - Telemetry: stream all 4 raw values unconditionally (it's cheap); flags let the
   host render channels as active / disabled / not-populated.
 
-### Why presence must be config, not measurement
-An FSR (Interlink 408) at zero force is essentially an open circuit (>1MΩ). With the
+### Presence is config; measurement can flag a mismatch
+
+**Corrected 2026-10-22 from rev-1 measurements** (`docs/BRINGUP_LOG.md`): an
+empty socket and a sensor at rest **do not** read the same. Empty sockets read
+**0–23** (bench ~12 and 0–23, 0 on one brain; in the pad 13–18). A sensor at
+rest reads **85–108** on the bench and **88–114** under the panel's preload.
+By the divider that is roughly 0.4–0.6 MΩ (inferred), not an open circuit. A
+cut near 50 would separate every reading so far. Not yet known: whether every
+strip rests that high, and how far a strip with no force on it at all falls.
+
+~~An FSR (Interlink 408) at zero force is essentially an open circuit (>1MΩ). With the
 PCB pull-down, "unplugged" and "plugged in but untouched" both read ~0 — they are
 **electrically indistinguishable**. No static measurement or pull-up trick can tell
-them apart. So:
+them apart.~~ That was a datasheet-style assumption, written before any
+hardware; the readings above contradict it. Config stays the authority, as
+built:
 
-- Absence is inherently *safe* in this topology (reads ~0, never crosses threshold) —
+- Measurement can **warn** on a mismatch: a channel configured `populated` that
+  reads like an empty socket ("sensor unplugged?"), or one configured
+  unpopulated that rests like a sensor. A warning for a human, not an automatic
+  change (idea, not built: "Tracking, as built" → fault flags).
+- Absence is inherently *safe* in this topology (reads ~~~0~~ 0–23, never crosses threshold) —
   unlike stock SMX, which reportedly misbehaves with unpopulated sensor connectors
   (likely a divider topology where a missing sensor floats the input and confuses
   their auto-calibration).
@@ -501,6 +516,42 @@ counts above its model.
 - Not built: a noise statistic, and a "sensor resting oddly" flag (stock's
   `badSensorMinimumDelaySeconds` idea). The tracking constants are first
   guesses, to tune from logged play (`docs/STATUS.md` → long-run test 4).
+- **Idea, not decided (2026-10-22): hold the tare during gameplay.** If built,
+  the game says it is in gameplay with a **heartbeat that expires** (the user's
+  choice: the same shape as the stock panel test mode, which must be re-sent
+  about once a second or it times out), so a crashed game can't leave tracking
+  frozen. The master would own the setting (continuous / pause in gameplay /
+  off) and pass a "hold tare" flag on the bus, e.g. in the `'L'` frames, so
+  the panel config format doesn't change. On/off alone needs no game changes;
+  the heartbeat needs deadsync (Rust SDK) or ITGmania (`krakenpad-c`, not
+  built). **Not needed so far:** at the default 930 the raw press point moves
+  0.07 counts per count of tare (tare 100 → 3816, 148 → 3819, the 1000 cap →
+  3879); at 500 it moves 0.5. A long freeze arrow is already safe: the held
+  channel stays pressed down to its release threshold, so the whole panel
+  skips tracking, and below that the freeze has dropped in the game anyway.
+  The exposed case is an idle panel with a foot resting on it lightly
+  (≤ 48 counts above the tare). Logged play decides (the user: adjust if
+  needed).
+- **Idea, not decided (2026-10-22): fault flags for the config program**, the
+  "sensor resting oddly" flag above made concrete:
+  - **Resting high:** steady, unpressed windows that stay above `TARE_MAX`
+    (1000, which the panel already refuses to tare) for some seconds. A foot
+    can rest there legitimately for a while, hence a delay, as with stock's
+    `badSensorMinimumDelaySeconds`.
+  - **Stuck pressed:** the 1000 rule can't see it, because a pressed panel
+    skips tracking before that check. It holds INT low (a held arrow in the
+    game) and stops tracking on all four sensors. Likely signature: one
+    channel pressed alone for a long time, since body weight on an edge drove
+    three channels to near full scale (2026-10-22; inferred from that one
+    test). The timeout has to outlast long freeze arrows; outside gameplay
+    (the heartbeat above) a long press is far more suspicious.
+  - **Unplugged:** a `populated` channel reading like an empty socket
+    ("Presence is config; measurement can flag a mismatch" above).
+  - **Reporting:** the `'f'` mask byte has three spare bits (4–6), so a
+    panel-level fault bit fits without changing the record length, and the
+    host already has each channel's raw and tare to say which one. Flagging on
+    the panel reports the panel's own decision rather than a host-side copy of
+    the rule.
 
 **Config version 2** carries the new units in the same 20 bytes per panel. A
 master that finds a version-1 record **does not convert it** (a deliberate

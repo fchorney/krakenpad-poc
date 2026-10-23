@@ -17,7 +17,9 @@
 // them into raw counts, so the press loop still compares raw values.
 //
 // LED modes (docs/PANEL_CONFIG.md → "LED modes"):
-//   normal   paint the master's 'L' frames; dark if none for LED_FALLBACK_MS
+//   normal   paint the master's 'L' frames; dark if none for LED_FALLBACK_MS.
+//            No valid bus frame at all for NO_MASTER_MS (no master): a slow
+//            dim white breath, all white while the panel is pressed.
 //   ID       white image of this panel's position from the DIP, X if not 0-8.
 //            Shown for ID_BOOT_MS once 12V first arrives, and on master 'M'.
 //   test     each edge lights its own colour, brightness tracking pressure.
@@ -87,6 +89,15 @@ static const char *FSR_NAME[NUM_FSR] = {"South", "West", "North", "East"};
 #define LED_REFRESH_MS    16
 #define ID_BOOT_MS        3000
 #define ID_WHITE          96
+
+// No master (the user, 2026-10-22): no valid bus frame of any kind for
+// NO_MASTER_MS, so normal mode shows the panel has 12V with a slow dim white
+// breath, and all white (ID_WHITE) while INT is asserted, so a press can be
+// checked without a master. A running master always sends 'L' frames, so this
+// only shows with the master off, unplugged or restarting. No timeout.
+#define NO_MASTER_MS      1000
+#define STANDBY_PERIOD_MS 4000  // one breath
+#define STANDBY_PEAK      24    // of 255
 
 // Test mode: an edge stays dark up to this many counts above its tare, then
 // brightness follows its calibrated value to full at 1000. Deliberately NOT the
@@ -482,6 +493,7 @@ static bool     g_boot_id_done = false;
 static uint8_t  g_led_frame[3 * NUM_LEDS];
 static uint32_t g_led_frame_ms = 0;
 static bool     g_led_frame_seen = false;
+static uint32_t g_bus_frame_ms = 0;            // last valid frame, any address
 static bool     g_led_dirty = false;
 
 static void set_mode(uint8_t mode, uint32_t duration_ms) {
@@ -682,8 +694,13 @@ static void rs485_service(void) {
             if (idx >= len) st = W_CRC;
             break;
         case W_CRC:
-            if (c == crc) { rs_frames++; rs485_handle(cmd, addr, pay, len); }
-            else rs_crc_errs++;
+            if (c == crc) {
+                rs_frames++;
+                g_bus_frame_ms = to_ms_since_boot(get_absolute_time());
+                rs485_handle(cmd, addr, pay, len);
+            } else {
+                rs_crc_errs++;
+            }
             st = W_SYNC;
             break;
         }
@@ -707,7 +724,17 @@ static void rs485_start(void) {
     irq_set_exclusive_handler(UART0_IRQ, rs485_rx_irq);
     irq_set_enabled(UART0_IRQ, true);
     uart_set_irq_enables(uart0, true, false);
+    g_bus_frame_ms = to_ms_since_boot(get_absolute_time());   // no-master clock starts here
     g_rs485_on = true;
+}
+
+// One breath: dark, up, down, dark. Squared, so it eases in at the dim end
+// instead of stepping up out of black.
+static uint8_t standby_level(uint32_t now_ms) {
+    uint32_t half = STANDBY_PERIOD_MS / 2;
+    uint32_t t = now_ms % STANDBY_PERIOD_MS;
+    if (t > half) t = STANDBY_PERIOD_MS - t;
+    return (uint8_t)(STANDBY_PEAK * t * t / (half * half));
 }
 
 // ── Rendering ───────────────────────────────────────────────────────────────
@@ -731,10 +758,14 @@ static void render(uint32_t now_ms) {
         // a frame can be up to a tick "newer" than now. Unsigned, that wrapped
         // to ~4e9 and blanked fresh frames: whole-panel blinking in episodes,
         // as the master and panel clocks drifted through phase (2026-10-19).
-        if (g_led_frame_seen && (int32_t)(now_ms - g_led_frame_ms) < LED_FALLBACK_MS)
+        if (g_led_frame_seen && (int32_t)(now_ms - g_led_frame_ms) < LED_FALLBACK_MS) {
             for (int i = 0; i < NUM_LEDS; i++)
                 led_words[i] = grb_word(g_led_frame[i * 3], g_led_frame[i * 3 + 1],
                                         g_led_frame[i * 3 + 2]);
+        } else if (g_rs485_on && (int32_t)(now_ms - g_bus_frame_ms) >= NO_MASTER_MS) {
+            uint8_t lvl = g_int_asserted ? ID_WHITE : standby_level(now_ms);
+            for (int i = 0; i < NUM_LEDS; i++) led_words[i] = grb_word(lvl, lvl, lvl);
+        }
         break;
     }
 }
@@ -786,6 +817,11 @@ static void status(void) {
            !gpio_get(PIN_TERM_SENSE) ? "terminated" : "not terminated",
            g_rs485_on ? "on" : "off", g_int_enable ? "enabled" : "off",
            g_int_asserted ? " (asserted)" : "", MODE_NAME[g_mode]);
+    if (g_rs485_on) {
+        uint32_t quiet = to_ms_since_boot(get_absolute_time()) - g_bus_frame_ms;
+        printf("  master    : last valid bus frame %lu ms ago%s\n", (unsigned long)quiet,
+               quiet >= NO_MASTER_MS ? " (no master)" : "");
+    }
     printf("  FSR       : raw / tare / calibrated\n");
     for (int i = 0; i < NUM_FSR; i++)
         printf("    %-5s %4u / %4u%s / %5d%s\n", FSR_NAME[i], g_fsr_raw[i], g_tare[i],

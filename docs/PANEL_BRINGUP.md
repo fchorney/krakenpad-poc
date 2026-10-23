@@ -373,9 +373,11 @@ nodes have ~10 nF caps to GND — which the real board has. The bring-up firmwar
 does no dummy read; if neighbours stay put under a hard press, that setting is
 confirmed rather than assumed, and the gameplay firmware keeps the full rate.
 
-Unplugged and unpressed are electrically identical here (~0) and that is by
-design — see `docs/PANEL_CONFIG.md` → "Why presence must be config, not
-measurement".
+~~Unplugged and unpressed are electrically identical here (~0) and that is by
+design~~ Corrected 2026-10-22: they differ. An empty socket reads 0–23 and a
+sensor at rest 85–114, so a reading under ~25 on a channel with an FSR fitted
+points to a sensor that isn't connected. Presence is still config — see
+`docs/PANEL_CONFIG.md` → "Presence is config; measurement can flag a mismatch".
 
 ### INT — `i`
 

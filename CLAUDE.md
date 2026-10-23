@@ -50,6 +50,7 @@ the update for the end:
 > 8. Brain: `J305` USB-C pins barely protrude
 > 9. Both boards: SMD wherever possible, wash-safe parts
 > 10. Carrier: automatic termination via chain discovery (parked)
+> 11. Master: run from the pad's 12V so it comes up with the panels (to think about)
 >
 > Dropped: the RS-485 DE pull-down (measured unnecessary, 2026-09-07). Decided
 > for rev 1 with revisit notes: no board-level power protection.
@@ -191,8 +192,12 @@ transceiver, flash, level shifter, LDO cascade, power-OR) are in
 - **FSR only** (no load cell). **Interlink FSR 408** strips, reused from the stock
   pad. 4 per panel.
 - Divider: FSR to 3.3V, 10 kΩ pull-down to GND, junction to the ADC. The
-  pull-down is always on the board, so an unplugged FSR reads near 0, the same
-  as an unloaded one (presence must therefore be config, not measurement).
+  pull-down is always on the board, so a missing sensor reads low and never
+  presses. **An empty socket (0–23) reads well below a sensor at rest
+  (85–114)**, so a missing sensor is measurable (corrected 2026-10-22; the
+  old "reads the same as an unloaded one" claim was never measured). Presence
+  stays config; measurement can warn on a mismatch (`docs/PANEL_CONFIG.md` →
+  "Presence is config").
 - Rev-1 ADC values (12-bit): resting **85–108** across nine boards (most
   94–102), full press **~4000** by finger on the bench. **In the pad under full
   body weight: 4078–4095, full scale; resting 88–114** (2026-10-22,
@@ -267,7 +272,9 @@ than assuming it.
   **serpentine** (rows alternate direction). The row of 3 is rotated 180° from
   the row of 4 on purpose. Index order: `docs/ANIMATIONS.md`.
 - 60 Hz+ refresh from the master's `'L'` frames. Panels go dark 100 ms after
-  frames stop; local flash animations (APNG/WebP source → `.smxa`, released and
+  frames stop. With **no master** (no valid bus frame for 1 s) they breathe
+  dim white and light all white on press, so 12V and the sensors can be
+  checked without one (built 2026-10-22). Local flash animations (APNG/WebP source → `.smxa`, released and
   pressed slots) are designed but not built (`docs/ANIMATIONS.md`).
 
 ### Daisy-chain order

@@ -124,6 +124,24 @@ when and where it was found, so it can be weighed with its original evidence.
     bus ran with zero errors terminated, unterminated, mid-chain and
     doubled (`docs/BRINGUP_LOG.md`, master #2), so the payoff is
     convenience and margin, not a working bus. Not decided.
+11. **Master: run from the pad's 12V, so it comes up with the panels**
+    (raised 2026-10-22, **something to think about, not decided**). Today the
+    master runs only from USB, so with the PC off or unplugged the panels
+    have 12V and no master: no LED frames, no underglow, no config push. The
+    stock pad powers its MCU from the pad's 5V rail
+    (`stock-smx/harness/mcu-interface.yml`), so the whole pad comes up on
+    12V alone. For us: a 12V feed from the Wago fan-out to the master, an
+    on-board regulator, and the Teensy 4.0's VIN–VUSB link cut so the pad's
+    supply and the PC's VBUS never feed each other. The master's own idle
+    lighting and the underglow would then run with the PC off.
+    **Consequences:** the master is on whenever 12V is; 12V reaches a board
+    that has none today (the master is outside the 12V path), which brings
+    this board into the "no board-level power protection" notes below; more
+    parts and a harness change. On rev 1 the panels answer "is it powered?"
+    themselves: a no-master standby breath (2026-10-22, `docs/PANEL_CONFIG.md`
+    → "LED modes"), which with this change would only show on a fault.
+    **User's view (2026-10-22): extra parts and complexity, but maybe worth
+    it; not deciding now.**
 
 ## Dropped
 
