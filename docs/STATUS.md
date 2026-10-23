@@ -59,8 +59,8 @@ models).
 | **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2; protocol 3, calibrated values and `stream --csv` logging, 2026-10-22). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20); protocol 3 with tares and calibrated values, `monitor` shows them (2026-10-22) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
-`docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. A future idea, not scheduled:
-`docs/TIMESTAMPED_INPUT.md`.
+`docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. Input timestamps with game/pad clock sync, planned with the direct
+DeadSync integration (the user, 2026-10-23): `docs/TIMESTAMPED_INPUT.md`.
 
 ## Known open items
 

@@ -66,5 +66,16 @@ that decoupling all the way into the host's timeline.
   clock, so no game implements offset and drift estimation itself. The USB
   command list's "latency probe" is the same exchange. Raised by the user:
   periodic sync of the master's clock with the game's.
+- **When (the user, 2026-10-23): with the direct DeadSync integration.**
+  Input timestamps plus game/pad clock sync, so the game sees when a panel
+  was actually triggered, not when the report reached its game loop. Prompted
+  by the second play session (`docs/BRINGUP_LOG.md`, 2026-10-23): 876 pairs of
+  presses on different panels reached the Mac under 1 ms apart, the closest
+  at the log's 0.1 ms resolution, each in its own report. Host receive times
+  can't say how far apart the feet actually landed.
+- **The device timebase must not wrap inside a session:** the master's µs
+  clock in the telemetry stream is a u32 and wraps every 71.6 minutes (it
+  broke `pad_cmd.py stream`'s summary in a 99-minute session, 2026-10-23).
+  Either a 64-bit counter on the master or unwrapping in the SDK's sync.
 - Interaction with the 8kHz stretch goal: likely reframes it — 8kHz becomes a
   latency optimisation only, and may not be worth host-side jitter fights.
