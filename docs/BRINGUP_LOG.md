@@ -1868,6 +1868,29 @@ outside the repo (`~/krakenpad-logs/2026-10-23-session2/` on both Macs).
   `master_us` when reading it). **Fixed the same day**: replaying this
   session's CSV through `cmd_stream` printed 45.5 Hz before and 12.7 Hz after.
 
+### 2026-10-23 — cold start
+
+12 V off from ~10:51 to ~13:12 (about 2 h 20 min, a fan on the pad for the
+first part; the master stayed on USB). The stream and `hid_monitor.py` were
+started on the Mini before the user switched 12 V on, nobody on the pad.
+
+- **All nine up**, config matching, `C9EB5F2E`. One CRC error on C, the usual
+  count from panels booting into live traffic.
+- **No presses at boot** (no joystick change at all).
+- **Tares started at 100 and settled within seconds to the warm values:**
+  every sensor within 1 count of where it ended the 99-minute play session
+  that morning (e.g. U 102,98,101,99 cold vs 101,97,101,98 warm; C and R
+  identical). So rest barely depends on temperature here, at least between
+  a warm pad and ~2 h off in this room. Not an overnight cold soak.
+- **Rest over the 2 hours after the cold boot (13:11–15:11, nobody on the
+  pad):** flat. Every sensored channel's mean raw value moved **at most 0.2
+  counts** between the first and last half hour (e.g. D 112.6,109.1,110.1,113.4
+  → 112.6,109.1,110.1,113.3), and the tares only flipped by 1 count, which is
+  rounding. Bus: no CRC error after the one at boot, 100% polls, no joystick
+  change in 2 h 50 min. The stream's closing summary printed 31.5 Hz: the
+  Mini still ran the unfixed `pad_cmd.py` (91,123 records in 7,200 s is
+  12.7 Hz).
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

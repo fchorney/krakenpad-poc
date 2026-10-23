@@ -266,8 +266,10 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
    sensored panels. ~~Still to do: the resting value over time and play.~~
    **First play session 2026-10-22 (16 min, ITGmania): every tare held to ±1
    count. Second, 2026-10-23 (99 min, DeadSync): within ±1–2 counts, 0 CRC
-   errors, no poll missed.** Still to do: a cold start (log from before 12 V
-   goes on), a warm room.
+   errors, no poll missed.** **Cold start 2026-10-23 (12 V off ~2 h 20 min):
+   tares settled within 1 count of the warm values, and rest stayed flat
+   (±0.2 counts) for the 2 h after.** Still to do: an overnight
+   cold soak, a warm room.
 5. Some of the open items above may also have been on the list: cable pulls and
    power cycles during play, and polling plus LED frames under load.
 
