@@ -163,6 +163,13 @@ to `(footprint …)` when adding to a project library. Preview headless with
   2026-10-21): ~0.38 ms per write at `bInterval = 1` whatever the size up to
   512 bytes, 0.50 ms at `bInterval = 2`, 1.0 ms at 4. Send fewer, bigger
   reports, not many small ones.
+- **Apple's Python can't find Homebrew's hidapi** (found 2026-10-22, Intel Mac
+  mini, macOS 15.8.1): `/usr/bin/python3` (the Command Line Tools' 3.9, and
+  any venv made from it) is hardened and doesn't search `/usr/local/lib`, so
+  `import hid` fails with "Unable to load any of the following libraries"
+  even with `brew install hidapi` done. Run the tools with
+  `DYLD_LIBRARY_PATH=/usr/local/lib` (`/opt/homebrew/lib` on Apple silicon),
+  or use a Python that isn't Apple's (pyenv, Homebrew).
 
 ## Rust (host software)
 

@@ -122,9 +122,17 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   it matters; not decided~~ **Built 2026-10-22: a 2 ms panel-level debounce on
   press and release** (the user), flashed to all nine; a second session will
   show what's left (`docs/PANEL_CONFIG.md` → "Press debounce").
-- **DeadSync's input checker may treat the joystick report's sequence number
-  as buttons** (the user, from an earlier try; to re-check). The sequence is
-  on vendor page 0xFF00 so games ignore it; how DeadSync reads it is unknown.
+- **DeadSync shows the joystick report's sequence number as an axis**
+  (confirmed by the user 2026-10-22, DeadSync stable on the Mac mini): every
+  press and release on any panel shows `Gamepad 0: RawAxis [0xFF000001]
+  (n.00) (not mapped)` in the input checker, n = the sequence. Its HID code
+  makes any field that isn't a button or hat an axis when it changes; its
+  keymap, mapping screen and sandbox ignore raw axes, so it's display-only
+  (read from upstream source `bacdc3e37`). ~~The sequence is on vendor page
+  0xFF00 so games ignore it~~ an assumption, now wrong for DeadSync.
+  **DECIDED 2026-10-22 (the user): leave it.** DeadSync is to use the
+  KrakenPad SDK directly later, bypassing its macOS HID input
+  (`docs/USB_PROTOCOL.md` → "Input state report" has the other options).
 - **Not yet measured:** ~~the joystick in a real game (ITGmania)~~ (first
   session 2026-10-22: no missed reports, 0 bus errors), the host-side
   achieved poll rate, and the report rate under many simultaneous presses.

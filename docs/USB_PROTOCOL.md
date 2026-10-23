@@ -203,8 +203,18 @@ descriptor is in `firmware/master/core-patch/`):
 
 - **Descriptor:** Generic Desktop / **Joystick**, one application collection;
   9 buttons (Button 1 = panel 0 … Button 9 = panel 8), 7 padding bits, then
-  the sequence number on vendor page 0xFF00 so games ignore it. Any OS or
-  game that takes a generic joystick sees nine buttons.
+  the sequence number on vendor page 0xFF00 ~~so games ignore it~~. Any OS or
+  game that takes a generic joystick sees nine buttons. **Not every game
+  ignores the sequence** (2026-10-22): DeadSync turns any changing field that
+  isn't a button or hat into a raw axis, so its input checker shows
+  `RawAxis [0xFF000001]` stepping on every press and release. DeadSync can't
+  bind raw axes, so play is unaffected, but a game that auto-binds axes could
+  act on it. **DECIDED 2026-10-22 (the user): leave it**, because DeadSync is
+  to use the KrakenPad SDK directly later instead of its macOS HID input. The
+  options, if another game needs it: declare the field Constant
+  (`0x81, 0x03`; raw readers still get the byte, effect on macOS untested),
+  move the sequence off the joystick report, or have the game skip
+  vendor-defined pages.
 - **No axes, on purpose.** A declared axis that never moves can read as held
   at one end in some games. If a host turns out to need axes, put them in a
   separate report that is never sent.
