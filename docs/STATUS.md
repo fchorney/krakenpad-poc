@@ -139,7 +139,22 @@ DeadSync integration (the user, 2026-10-23): `docs/TIMESTAMPED_INPUT.md`.
 - **Not yet measured:** ~~the joystick in a real game (ITGmania)~~ (first
   session 2026-10-22: no missed reports, 0 bus errors), the host-side
   achieved poll rate, and the report rate under many simultaneous presses.
-- **Not yet tested:** cable pulls and panel power cycles during play.
+- **Cable pulls and power cuts during play, from outside the pad: passed
+  2026-10-23** (`docs/BRINGUP_LOG.md`): presses unaffected with the RS-485
+  pulled, clean release/press on an INT pull, clean 12 V cuts at the rocker
+  and the XT30, DeadSync back 1–2 s after a USB replug. One 7 ms D press at a
+  rocker cut mid-song, not reproduced in ten more cuts (six at rest, four
+  standing on L and R); cause unknown.
+  Planned 2026-10-23: from outside the pad, (1) the master's RS-485 `J1` pulled
+  mid-song (presses should be unaffected, LEDs to standby), (2) one INT cable
+  at the master, once while that panel is held, (3) the master's USB, (4) the
+  whole pad's 12 V. Inside the pad (needs panels lifted, so when it is next
+  open): (5) one end-of-column panel's 12 V, (6) one FSR unplugged and
+  replugged. **Predicted for (6), from the code, not tested:** the tare drops
+  to the empty-socket reading (~15) and stays there after the replug, because
+  it only rises while rest is at most `TARE_MAX_RISE` (48) above it. Presses
+  still work (the threshold moves ~0.2%), but the tare is wrong until that
+  panel reboots.
 - **11 panels still to assemble** (`docs/BUILD_CHECKLIST.md`).
 - **Harness, from the install (2026-10-22):** almost every cable is a little
   long (INT quite long); RS-485 master → `UL` (60 cm) is too short; the INT

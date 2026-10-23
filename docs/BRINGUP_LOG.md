@@ -1891,6 +1891,44 @@ started on the Mini before the user switched 12 V on, nobody on the pad.
   Mini still ran the unfixed `pad_cmd.py` (91,123 records in 7,200 s is
   12.7 Hz).
 
+### 2026-10-23 — cable pulls and power cuts during play (tests 1–4)
+
+The user, playing DeadSync on the Mac mini, at the master end of the pad
+(the plan is in `docs/STATUS.md` → "Not yet tested"). DeadSync doesn't use
+C, so **U** stood in for it. Logged on the Mini: `pad_cmd.py stream --csv`
+and `hid_monitor.py`, each line stamped with wall-clock time on arrival
+(`tr` block-buffers into a pipe, so the first attempt's stamps were useless;
+a small unbuffered filter replaced it). Counters zeroed first.
+
+| test | result |
+|---|---|
+| 1. master's RS-485 `J1` pulled mid-song, ~10 s | ✅ **Gameplay unaffected**: 165 joystick changes while the bus was out, no sequence gap. All nine `GONE` (detected 454.1), panels breathing after about a second (the user); on replug the master's frames returned "almost immediately", every panel `present` and `matches` within 0.13 s, no reboot |
+| 2a. U's INT pulled at the master mid-song | ✅ U stopped working, the rest played on (the user) |
+| 2b. standing on U, U's INT pulled, replugged while still on it | ✅ release at the pull (563.14), **10.8 s with no change on any panel**, press at the replug (573.98), nothing else changed |
+| 4a. whole pad 12 V off at the rocker mid-song | ✅ every held panel released together as the supply dropped; no change at all during the ~15 s off; on power-up the first press came at the same moment the panels reappeared on the bus (C pressed 672.847, UL `present` 672.847), all nine "not configured" then `matches` within ~0.1 s. **Open:** D pressed for 7 ms 6 ms before the all-release (657.489), mid-song with L and R held. A foot or a brown-out artefact? Telemetry (80 ms per panel) can't tell. **Repeat, nobody on the pad: not reproduced** (below) |
+| 4b. 12 V at the XT30, standing still on U | ✅ U released at the cut (692.13); **U pressed as soon as it booted** (699.014, the same instant as UL `present`), released when the user stepped off (703.54), then normal play. No other change during the cut |
+| 3. master's USB pulled mid-song, ~10 s | ✅ buttons stopped; **DeadSync picked the pad back up 1–2 s after the replug** and it worked again (the user). Both loggers died with the device, as expected. After: all nine present, 100% polls, 0 CRC errors, config matching, self-test 9/9 (the first try refused: "INT already LOW on R", the user sitting on R) |
+
+- **No sequence gaps** in 940 joystick changes over the run.
+- **Bus presence lags the real event by up to ~1 s** (the master's reply
+  timeout): the 4a all-release is at 657.50, `GONE` at 658.40.
+- **Repeat of the cuts with nobody on the pad** (the D question): 4 at the
+  rocker and 2 at the XT30 (the user lost count of the rocker ones; the log
+  shows six), ~5 s off and ~10 s on each. **Not one joystick change in six
+  cuts and six power-ups.** After: 1 CRC error (DR, a panel booting into
+  live traffic), config matching, self-test 9/9. So the 7 ms D press doesn't
+  reproduce at rest. The user doesn't think a foot was near D, so the cause
+  isn't established; what differed in play was L and R held and the game's
+  load. ~~If it matters, repeat the cuts while standing on two panels.~~
+- **Again, the user standing on L and R** (the first run's state): four cuts,
+  two at the rocker and two at the XT30.
+  **Only L and R ever changed**: each cut released both within ~1 ms of
+  each other, each power-up pressed both again within ~6 ms, and the press
+  came ~10 ms *before* the panel's bus presence (INT is live before the bus
+  answers). 3 CRC errors on L across the four power-ups, the usual boot
+  noise; config matching after. **Ten cuts in all, no false press.** The
+  7 ms D press stays a one-off with no cause found.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
