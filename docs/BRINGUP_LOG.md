@@ -1801,8 +1801,10 @@ own IDs.
   samples over a minute: never two panels at once, never below 98%, a
   different panel almost every time. That fits one poll sent before the
   master's 5 s window closed and answered after it (one of ~63 per window),
-  not a missed reply. Not proven: the master keeps no per-panel lifetime
-  sent count to compare against.
+  not a missed reply. ~~Not proven: the master keeps no per-panel lifetime
+  sent count to compare against.~~ Confirmed by the play session the same
+  day: no gap in 99 minutes of telemetry long enough to hide a missed poll
+  (below).
 - **Dithered breath** (the user chose it): the breath now steps in 1/25 of a
   level, every LED at the whole level and the remainder one level up in a
   spread-out order (`STANDBY_DITHER` in `main.c`). Image SHA-256 `459875fc…`
@@ -1811,6 +1813,60 @@ own IDs.
   self-test 9/9. DR showed the old tag for a few seconds until the master's
   rolling `H` status reached it. **Look: "looks great"** (the user, master's
   USB unplugged again).
+
+### 2026-10-23 — second logged play session (DeadSync, 2 ms debounce)
+
+The user played DeadSync on the Mac mini with the panels on `C9EB5F2E` (the
+2 ms press/release debounce plus the standby). Logged on the Mini alongside
+the game, the same way as the first session: `pad_cmd.py stream --csv` and
+`hid_monitor.py`, bus counters zeroed first. **99.2 minutes** (08:53–10:32).
+Not a cold start: the pad had been powered for a while. The logs are kept
+outside the repo (`~/krakenpad-logs/2026-10-23-session2/` on both Macs).
+
+- **Bus:** 0 CRC errors on all nine at the end, config matching. Telemetry
+  **12.68 Hz per panel** throughout, one record per `'f'` reply; **the longest
+  gap between any panel's records was 91 ms** (median 80), where one missed
+  poll would leave ~160 ms. So no poll went unanswered in 99 minutes, and the
+  98% the status showed now and then is the 5 s window's edge (above), not a
+  miss.
+- **Joystick:** 53,561 state changes, **no sequence gaps**; 26,781 presses
+  (U 4,001, L 6,033, C 5,892, R 5,996, D 4,859).
+- **Closest presses on two different panels** (host time, `hid_monitor.py`
+  stamps at 0.1 ms): 876 pairs under 1 ms apart, 223 under 0.2 ms, the
+  closest 0.1 ms (the log's resolution). **Every press arrived in its own
+  report** (26,779 reports with one new press, none with two), each a
+  sequence step of exactly 1. These are host receive times: macOS can hand
+  over queued reports together, so they bound how close the reports
+  *arrived*, not how close the feet landed (a device timestamp would:
+  `docs/TIMESTAMPED_INPUT.md`).
+- **"Some weird misses"** on harder charts (the user); "hard to tell if it's
+  just me". Nothing in the logs points at the pad (no sequence gaps, no
+  missed polls), but the logs can't show a step that never crossed the
+  press threshold: telemetry at 12.7 Hz can't tell a sub-threshold step from
+  an ordinary press edge.
+- **Tares held within ±1–2 counts on every sensor for 99 minutes** (the
+  widest: U N 101–103, R ch 2 108–110, D ch 2 109–111, D ch 3 112–114).
+  Full weight still reaches 4074–4095.
+- **Re-presses under 30 ms after a release: 954, 3.6% of presses** (5.1% in
+  the first session). Gaps: **none under 1 ms (17 before)**, 15 at 1.7–2 ms,
+  64 at 2–3 ms, 297 at 3–10 ms, 578 at 10–30 ms. The 1.7–2 ms ones are the
+  2 ms panel minimum less host timestamp jitter (`hid_monitor.py` stamps on
+  the host), so the debounce does what it is meant to: wobble under 2 ms is
+  gone. Wobble just over 2 ms still gets through.
+- **Look like artefacts: 288, 1.08% of presses** (~1.6% before): 222 with a
+  press-to-press cycle under 50 ms, 66 more with a release under 3 ms. 665 of
+  the 954 had a cycle of 75 ms or more, which fits real fast jacks. By panel:
+  U 44, L 82, C 72, R 84, **D only 6** (D was lowest in the first session
+  too; why isn't known). Presses held under 15 ms: 550, 2.1% of presses,
+  the same share as before (2.1%), so the debounce didn't change those.
+- **Not a controlled comparison:** a different game (DeadSync vs ITGmania),
+  different songs, six times as long. Per 1,000 presses: release gaps under
+  3 ms 7.9 → 2.9, cycles under 50 ms 10.9 → 8.3, 3–10 ms gaps 13.0 → 11.1.
+- **Tool bug found:** `pad_cmd.py stream`'s closing summary printed 45.5 Hz
+  per panel. The master's µs timestamp is 32 bits and wraps after 71.6 min,
+  and the summary's rate doesn't unwrap it. The CSV is fine (unwrap
+  `master_us` when reading it). **Fixed the same day**: replaying this
+  session's CSV through `cmd_stream` printed 45.5 Hz before and 12.7 Hz after.
 
 ### Still open for this board
 

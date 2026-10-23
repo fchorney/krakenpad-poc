@@ -120,8 +120,11 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
   like artefacts** (cycles under 50 ms, or releases under 3 ms). The user
   noticed nothing odd. ~~A panel-level release debounce is the candidate fix if
   it matters; not decided~~ **Built 2026-10-22: a 2 ms panel-level debounce on
-  press and release** (the user), flashed to all nine; a second session will
-  show what's left (`docs/PANEL_CONFIG.md` → "Press debounce").
+  press and release** (the user), flashed to all nine (`docs/PANEL_CONFIG.md`
+  → "Press debounce"). **Second session 2026-10-23 (99 min, DeadSync): re-presses
+  3.6%, artefacts ~1.1% (from ~1.6%)**; none under 1 ms now (17 before), but
+  wobble just over 2 ms still gets through. Not a controlled comparison
+  (another game, other songs). Whether to lengthen it: not decided.
 - **DeadSync shows the joystick report's sequence number as an axis**
   (confirmed by the user 2026-10-22, DeadSync stable on the Mac mini): every
   press and release on any panel shows `Gamepad 0: RawAxis [0xFF000001]
@@ -262,7 +265,9 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
    on an empty input. Channels S/W/N/E match the physical edges on all five
    sensored panels. ~~Still to do: the resting value over time and play.~~
    **First play session 2026-10-22 (16 min, ITGmania): every tare held to ±1
-   count.** Still to do: longer sessions, a cold start, a warm room.
+   count. Second, 2026-10-23 (99 min, DeadSync): within ±1–2 counts, 0 CRC
+   errors, no poll missed.** Still to do: a cold start (log from before 12 V
+   goes on), a warm room.
 5. Some of the open items above may also have been on the list: cable pulls and
    power cycles during play, and polling plus LED frames under load.
 
