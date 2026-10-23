@@ -1778,6 +1778,40 @@ image `32BBFD7C`, build tag `D89F27B9`; after it 9/9 present, 100% polls,
   need a longer one or a different rule, and real jacks lift for 10–30 ms.
   The next logged session will show how common they are.
 
+### 2026-10-23 — no-master standby flashed
+
+Design: `docs/PANEL_CONFIG.md` → "LED modes" (`b6c6bc8`). Bus update to all
+nine from the Mac mini (`panel_update.py`, master #2 unchanged on
+`F93A0CC5`): image SHA-256 `ac2e0d36…` on both Macs, CRC-32 `86C25F70`,
+build tag `28520B01`, replacing `32BBFD7C`. Streamed in 0.6 s, all nine
+staged, CRC-verified and committed. After it: 9/9 present, 100% polls, 0 CRC
+errors, config matching, termination OK (DR), self-test 9/9 slots on their
+own IDs.
+
+- **Standby check (the user, master's USB unplugged and replugged):** every
+  panel breathes; presses light the panel white on all of them; on replug
+  the master's playback resumes after a second or so. **The breath looks
+  choppy** (the user). Not the frame rate: the panels render at ~60 Hz
+  (`LED_REFRESH_MS` 16). Inferred, not measured: a peak of 24 gives only 24
+  brightness steps, and the squared curve holds the dimmest ones longest
+  (0 for 409 ms, 1 for 169 ms, 2 for 130 ms, where each step is a 2× or 1.5×
+  jump in light), so the dim end visibly steps.
+- **After the replug:** config matching on all nine, self-test 9/9, 0 CRC
+  errors. `pad_cmd.py status` showed **98% polls on one panel** in 10 of 12
+  samples over a minute: never two panels at once, never below 98%, a
+  different panel almost every time. That fits one poll sent before the
+  master's 5 s window closed and answered after it (one of ~63 per window),
+  not a missed reply. Not proven: the master keeps no per-panel lifetime
+  sent count to compare against.
+- **Dithered breath** (the user chose it): the breath now steps in 1/25 of a
+  level, every LED at the whole level and the remainder one level up in a
+  spread-out order (`STANDBY_DITHER` in `main.c`). Image SHA-256 `459875fc…`
+  on both Macs, CRC-32 `0D79E34A`, build tag `C9EB5F2E`, flashed to all
+  nine. After it: 9/9 present, 100% polls, 0 CRC errors, config matching,
+  self-test 9/9. DR showed the old tag for a few seconds until the master's
+  rolling `H` status reached it. **Look: "looks great"** (the user, master's
+  USB unplugged again).
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

@@ -99,6 +99,17 @@ static const char *FSR_NAME[NUM_FSR] = {"South", "West", "North", "East"};
 #define STANDBY_PERIOD_MS 4000  // one breath
 #define STANDBY_PEAK      24    // of 255
 
+// 24 levels alone step visibly at the dim end (2026-10-23: "choppy"; 1 -> 2 is
+// twice the light), so the breath runs in 1/NUM_LEDS steps: every LED at the
+// whole level, and this many more, in this order, one level up. The order puts
+// each next LED where the lit ones are least crowded (sum of 1/d^2 on the
+// lattice in docs/ANIMATIONS.md, from the centre), so the extra light spreads
+// across the panel instead of gathering in one corner.
+static const uint8_t STANDBY_DITHER[NUM_LEDS] = {
+    12, 0, 24, 3, 21, 1, 23, 10, 14, 2, 22, 7, 17,
+    8, 16, 9, 20, 6, 18, 4, 15, 5, 19, 11, 13,
+};
+
 // Test mode: an edge stays dark up to this many counts above its tare, then
 // brightness follows its calibrated value to full at 1000. Deliberately NOT the
 // press threshold, which the user can move. Was a fixed 200 raw before tare
@@ -729,12 +740,12 @@ static void rs485_start(void) {
 }
 
 // One breath: dark, up, down, dark. Squared, so it eases in at the dim end
-// instead of stepping up out of black.
-static uint8_t standby_level(uint32_t now_ms) {
+// instead of stepping up out of black. In 1/NUM_LEDS of a level (STANDBY_DITHER).
+static uint32_t standby_level(uint32_t now_ms) {
     uint32_t half = STANDBY_PERIOD_MS / 2;
     uint32_t t = now_ms % STANDBY_PERIOD_MS;
     if (t > half) t = STANDBY_PERIOD_MS - t;
-    return (uint8_t)(STANDBY_PEAK * t * t / (half * half));
+    return (uint32_t)((uint64_t)STANDBY_PEAK * NUM_LEDS * t * t / ((uint64_t)half * half));
 }
 
 // ── Rendering ───────────────────────────────────────────────────────────────
@@ -763,8 +774,11 @@ static void render(uint32_t now_ms) {
                 led_words[i] = grb_word(g_led_frame[i * 3], g_led_frame[i * 3 + 1],
                                         g_led_frame[i * 3 + 2]);
         } else if (g_rs485_on && (int32_t)(now_ms - g_bus_frame_ms) >= NO_MASTER_MS) {
-            uint8_t lvl = g_int_asserted ? ID_WHITE : standby_level(now_ms);
+            uint32_t fine = g_int_asserted ? ID_WHITE * NUM_LEDS : standby_level(now_ms);
+            uint8_t lvl = (uint8_t)(fine / NUM_LEDS), up = lvl + 1;
             for (int i = 0; i < NUM_LEDS; i++) led_words[i] = grb_word(lvl, lvl, lvl);
+            for (uint32_t i = 0; i < fine % NUM_LEDS; i++)
+                led_words[STANDBY_DITHER[i]] = grb_word(up, up, up);
         }
         break;
     }

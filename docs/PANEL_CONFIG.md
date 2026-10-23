@@ -104,7 +104,7 @@ pressure display drawn by the master would visibly lag. Master command:
 
 | Mode | What the LEDs show |
 |---|---|
-| 0 normal | The master's `'L'` frames. Dark if none for 100 ms (local animations come later). **No master** (no valid bus frame of any kind for 1 s): a slow dim white breath (4 s, peak 24/255), and all white (96) while INT is asserted. Bus panels only (DIP 0–8). **DECIDED 2026-10-22 (the user):** shows the panel has 12V and that its sensors trigger, with no master; no timeout. A running master always sends `'L'`, so only a missing, off or restarting master shows it |
+| 0 normal | The master's `'L'` frames. Dark if none for 100 ms (local animations come later). **No master** (no valid bus frame of any kind for 1 s): a slow dim white breath (4 s, peak 24/255), and all white (96) while INT is asserted. The breath steps in 1/25 of a level: every LED at the whole level and the remainder one level up, spread across the panel (2026-10-23; 24 plain levels looked choppy at the dim end). Bus panels only (DIP 0–8). **DECIDED 2026-10-22 (the user):** shows the panel has 12V and that its sensors trigger, with no master; no timeout. A running master always sends `'L'`, so only a missing, off or restarting master shows it |
 | 1 ID | White image of the panel's position, read from its DIP. **X if the DIP is not 0–8.** Shown for **3 s when 12V first arrives**, and whenever the master asks |
 | 2 sensor test | Each edge lights its own colour, brightness tracking pressure. DIP 10 runs it standalone (no bus, no INT); `'M'` runs it on bus panels |
 

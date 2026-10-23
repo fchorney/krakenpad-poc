@@ -1,6 +1,6 @@
 # Project status
 
-**Last updated 2026-10-22.** This is the one page for "where is the project right
+**Last updated 2026-10-23.** This is the one page for "where is the project right
 now". Update it alongside any change that moves it (rules in `CLAUDE.md`).
 Detail lives in the docs it links.
 
@@ -54,7 +54,7 @@ models).
 
 | | Built | Not built |
 |---|---|---|
-| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, runs on all nine (2026-10-20):** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed. **Built and flashed to all nine 2026-10-22: tare tracking and calibrated thresholds** (config version 2, 0–1000, default 930/905; tares in `'f'`; test mode from tare + 20). **Built 2026-10-22, not yet flashed: no-master standby** (no valid bus frame for 1 s: dim white breath, all white on press) | Local animations (normal mode goes **dark** when `'L'` stops, and breathes with no master); ~~calibration / drift tracking~~ (built 2026-10-22; the tracking constants are first guesses to tune from logged play); a noise statistic and bad-sensor flag; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
+| **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, runs on all nine (2026-10-20):** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed. **Built and flashed to all nine 2026-10-22: tare tracking and calibrated thresholds** (config version 2, 0–1000, default 930/905; tares in `'f'`; test mode from tare + 20). **Built 2026-10-22, flashed to all nine 2026-10-23, checked the same day (breath, press white, replug); its breath dithered across the 25 LEDs (`C9EB5F2E`, "looks great"): no-master standby** (no valid bus frame for 1 s: dim white breath, all white on press) | Local animations (normal mode goes **dark** when `'L'` stops, and breathes with no master); ~~calibration / drift tracking~~ (built 2026-10-22; the tracking constants are first guesses to tune from logged play); a noise statistic and bad-sensor flag; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
 | **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check (the meter-only underglow test `U` removed 2026-10-22). **2026-10-22: config version 2 (calibrated thresholds; a saved version 1 falls back to defaults), the 17-byte `'f'` with tares, USB protocol 3** (FSR stream `0xC2` with tares); flashed to master #2. **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20) |
 | **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2; protocol 3, calibrated values and `stream --csv` logging, 2026-10-22). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20); protocol 3 with tares and calibrated values, `monitor` shows them (2026-10-22) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
 
@@ -164,8 +164,7 @@ Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 > **NEXT:** ~~presses on UL, UR, DL, DR~~ (all 16 corner sockets pass,
 > 2026-10-22), ~~retest `u`~~ (works, 2026-10-22), ~~the real-duplicate-ID warning check~~ (run: the warning misses it, the self-test catches it), and the
 > installed-pad items below (harness lengths, bus scope, FSR logging).
-> **Flash and check the no-master standby** (built 2026-10-22, not yet on a
-> board, `docs/PANEL_CONFIG.md` → "LED modes"): unplug the master's USB and
+> ~~**Flash and check the no-master standby**~~ (all nine, 2026-10-23: works; the breath looked choppy, now dithered, `C9EB5F2E`, "looks great") (built 2026-10-22, `docs/PANEL_CONFIG.md` → "LED modes"): unplug the master's USB and
 > every bus panel should breathe dim white about 1 s later, light white on a
 > press, and return to the master's frames on replug.
 >
