@@ -506,6 +506,16 @@ counts above its model.
   harder. **Up slowly**, 1/128 of the gap per window (~8 s to close it), and
   only while the mean is at most **48** above the tare: more than that is a
   foot, not drift.
+- **An empty socket's tare re-seeds** (2026-10-23, the user): a tare at or
+  below **50** means no sensor (empty sockets read 0–23, sensors at rest
+  85–114), so the next steady window sets it at once, as at boot. Found by
+  unplugging and replugging D's North FSR in the pad: the tare fell to 22
+  and, rest at 110 being more than 48 above it, stayed there until a reboot
+  (`docs/BRINGUP_LOG.md`). The rule is a plain threshold on the tare, so a
+  foot resting lightly on a freshly plugged sensor can become its tare, the
+  same as at boot; it falls at once when the foot lifts. **Still not
+  tracked:** any other upward step of more than 48 while steady (one that
+  isn't from an empty socket) waits for a reboot.
 - **Boot:** 100 until a sensor's first steady window, then that window's mean.
   A sensor resting above **1000** is never tared (a fault, not rest).
 - **Reported** in every `'f'` (raw ×4, tare ×4, mask; `docs/RS485_PROTOCOL.md`),

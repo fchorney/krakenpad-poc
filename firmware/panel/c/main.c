@@ -123,7 +123,11 @@ static const uint8_t STANDBY_DITHER[NUM_LEDS] = {
 // pressed, nothing was released for TARE_HOLDOFF_MS, and the sensor is steady.
 // The tare then falls to a lower reading at once (an inflated tare makes
 // presses harder) and rises towards a higher one slowly, by at most
-// TARE_MAX_RISE above itself (more than that is a foot, not drift).
+// TARE_MAX_RISE above itself (more than that is a foot, not drift). A tare at
+// or below TARE_EMPTY_MAX is an empty socket (they read 0-23, a sensor at rest
+// 85-114), so it takes the next steady reading at once, as at boot: without
+// this, a sensor unplugged and plugged back kept the empty tare until a reboot
+// (2026-10-23, D North: 110 -> 22, then stuck at 22 with the sensor at 110).
 #define TARE_WINDOW        64     // 1 ms samples per window
 #define TARE_MAX_SPAN      64     // max - min within a window: a spike, skip it
 #define TARE_MAX_STEP      8      // window mean vs the last one: still moving
@@ -133,6 +137,7 @@ static const uint8_t STANDBY_DITHER[NUM_LEDS] = {
 #define TARE_BOOT_MS       500    // ADC and preload settle before the first tare
 #define TARE_DEFAULT       100    // until a sensor's first steady window (~rest in the pad)
 #define TARE_MAX           1000   // a sensor resting above this is faulty, not tared
+#define TARE_EMPTY_MAX     50     // a tare this low means no sensor (the user, 2026-10-23)
 
 #define SENSE_RISE_STABLE_MS   30   // slow to trust the rail, fast to give up on it
 #define SENSE_FALL_STABLE_MS   2
@@ -398,7 +403,7 @@ static void tare_tick(uint32_t now_ms) {
         if (!idle || hi[i] - lo[i] > TARE_MAX_SPAN || step > TARE_MAX_STEP ||
             mean > TARE_MAX) continue;
         uint32_t target = (uint32_t)mean << 4;
-        if (!g_tare_set[i] || target <= g_tare_q4[i]) {
+        if (!g_tare_set[i] || target <= g_tare_q4[i] || g_tare[i] <= TARE_EMPTY_MAX) {
             g_tare_q4[i] = target;
             g_tare_set[i] = true;
         } else if (mean - g_tare[i] <= TARE_MAX_RISE) {
