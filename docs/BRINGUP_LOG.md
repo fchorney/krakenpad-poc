@@ -1929,6 +1929,33 @@ a small unbuffered filter replaced it). Counters zeroed first.
   noise; config matching after. **Ten cuts in all, no false press.** The
   7 ms D press stays a one-off with no cause found.
 
+### 2026-10-23 — panel D lifted: its 12 V, its RS-485 IN, one FSR (tests 5, 5c, 6)
+
+D is the end of the centre column, so its 12 V IN (`J205`) feeds only D;
+its RS-485 sits mid-chain (DL → D → C). Logged as for tests 1–4. 39 joystick
+changes, no sequence gap.
+
+| test | result |
+|---|---|
+| 5. D's `J205` pulled and replugged, at rest | ✅ no joystick change on any panel through the pull and the boot; D `GONE`, back as "not configured" then `matches` 5 ms later (a reboot) |
+| 5b. the same, pressing one of D's FSRs by hand | ✅ D released at the pull (736.50; `GONE` a second later), **pressed as soon as it booted** (745.09, before its bus presence at 745.17), released when let go |
+| 5c. D's RS-485 IN (`J204`) pulled ~15 s, splitting the bus | ✅ **exactly as predicted** (the user): the six cut off (D, C, U, UR, R, DR) went to the standby breath and all still worked as buttons (U, C, R, D pressed; UR and DR have no sensor). UL, L and DL, left with no termination at their far end, kept **0 CRC errors**. On replug all six back, config matching, no reboot. **Each of the six counted exactly 35 panel-side CRC errors**: the same count on all six suggests they saw the same corrupted master frames, most likely while the connector was half mated going in or out (inferred, not proven). The CRC rejected them; nothing acted on them |
+| 6. D's North FSR (`J206`, channel 2) unplugged ~8 s, replugged, pressed | **Prediction confirmed**: the tare fell from 110 to 22 within ~0.2 s of the unplug (the empty input reads 22) and **stayed at 22 after the replug** while the sensor rested at 110–111 again, to the end of the log. Presses still worked (four by hand, all on the joystick): the threshold moved only ~6 raw counts. The tare stays wrong until D reboots. No joystick change at the unplug or the replug |
+
+After: all nine present, 100% polls, config matching, self-test 9/9.
+
+**Fixed the same day** (the user's call: a tare of 50 or less means no
+sensor, `TARE_EMPTY_MAX` in `main.c`, `docs/PANEL_CONFIG.md` → "Tracking, as
+built"). Bus update to all nine: image SHA-256 `d244a6b7…` on both Macs,
+CRC-32 `019BECAE`, build tag `A0D39608`; after it 9/9, config matching,
+self-test 9/9, D North's tare back at 110 from the reboot. **Retest, D North
+unplugged ~16 s and replugged:** tare 110 → 22 at the unplug (flicking 22/23
+while empty), **back to 110 within one telemetry interval (≤0.17 s) of the
+replug**, and it held there through four presses by hand (all on the
+joystick) and after them. No joystick change at the unplug or the replug.
+Faster than the predicted 1–2 s: the 1 s hold-off only follows a press or
+release, and there was none.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
