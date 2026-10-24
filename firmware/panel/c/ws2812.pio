@@ -11,10 +11,15 @@
 ; The following constants are selected for broad compatibility with WS2812,
 ; WS2812B, and SK6812 LEDs. Other constants may support higher bandwidths for
 ; specific LEDs, such as (7,10,8) for WS2812B LEDs.
+;
+; KrakenPad: (2,5,3) for the WS2815, same 10-cycle bit at 800 kHz. The stock
+; (3,3,4) gave a 1-bit low of 500 ns against the WS2815 datasheet's 220-420 ns
+; (V1.1), and a 0-bit high of 375 ns against its 380 ns max (scoped
+; 2026-10-23). (2,5,3): T0H 250, T1H 875, T0L 1000, T1L 375 ns.
 
-.define public T1 3
-.define public T2 3
-.define public T3 4
+.define public T1 2
+.define public T2 5
+.define public T3 3
 
 .lang_opt python sideset_init = pico.PIO.OUT_HIGH
 .lang_opt python out_init     = pico.PIO.OUT_HIGH
