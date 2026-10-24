@@ -2305,6 +2305,133 @@ A and B are the right way round: the decode only works with A above B at idle.
   ratiometric and largely cancels; the edge spikes are much shorter than the
   ADC's sampling.
 
+### 2026-10-23/24 — overnight soak at `poll 0` (long-run test 3)
+
+Master #2 on the Mac mini, nine panels on `B3B9E68B`, the pad idle and
+nobody on it, the master's own 60 Hz LED frames. **8 h 28 min**, 22:46 to
+07:14 CDT, stopped by hand. `soak_start.sh` started three loggers in
+`~/krakenpad-logs/2026-10-24-soak/` on the Mini: the master console
+(`poll 0`, `z`, then `j` and `H` every 10 min, plus the master's 5 s
+heartbeat), `pad_cmd.py stream --csv` (31.1 M records, 1.67 GB) and
+`hid_monitor.py`. The master build isn't in the log; it has `poll`, so it is
+`BBD6681D` or later. Pass criteria from the poll-rate test (above): 0 CRC
+errors, every poll answered, no gap over two poll cycles, LED frames held at
+60 Hz.
+
+- **Bus: 0 errors of any kind in 8.5 h.** Master: 31,100,400 polls sent,
+  31,100,400 answered, 0 CRC. Each heartbeat was at most one short (the poll
+  in flight). Every panel: `crc 0 uart 0 ovr 0 turn 0 tmo 0` over ~76.5 M
+  frames. All 52 `H` sweeps answered 9/9, `termination OK: DR` each time.
+  **No panel rebooted** (up 2,993 s at the start, 33,466 s at the end; the
+  `watchdog-timeout` flag is the reboot after the `B3B9E68B` update).
+- **Rate held all night:** 1,020.4 polls/s, **113.37 Hz per panel** (109–117 Hz
+  in any 5 s window), the same as the 3-minute test's 113.42. LED frames
+  **62.44 Hz per panel** (60.0–64.3 Hz per window).
+- **No presses and no phantom input:** every one of the 31.1 M telemetry
+  records had mask 0; the joystick sequence stayed 177 from start to finish;
+  the master's INT `glitches` stayed 3 (that counter isn't cleared by `z`, so 0
+  new). USB: queue-full 0, resyncs 0, 0 stream records dropped by the master.
+  Report wait over 3.03 M reports: median 70 µs, **max 130 µs**. The joystick
+  ran at a steady 99–100 reports/s (`hid_monitor.py`).
+- **FSRs at rest: raw − tare stayed within −2 … +3 counts on all 36
+  channels, all night.** Not one record at 30 counts above the tare or more, so
+  calibrated was 0 throughout. Over the night each channel's raw value spanned
+  4–5 counts at most.
+- **A slow drift on the sensored panels only:** every sensored channel's
+  hourly mean rose 0.2–0.7 counts from the first hour to the 7th (04:46–05:46)
+  and fell back over the last two (e.g. U ch0 103.97 → 104.29 → 104.01;
+  R ch0 107.48 → 107.95 → 107.67). All five sensored panels moved together.
+  The empty sockets (UL, UR, DL, DR) stayed flat to ±0.05, so the ADC and
+  its 3.3 V reference didn't move, only the sensors did. Inferred, not
+  measured: room temperature or preload; nothing logged the temperature. **The tares
+  followed it** (U ch0 103.0 → 104.0 → 103.1), and they sit 0.3–1 count below the mean raw,
+  as designed (they fall at once and rise slowly).
+- **DR's tares changed ~74,000–88,000 times per channel** (UL, UR and DL
+  barely changed). It is the empty-socket re-seed working as built
+  (`A0D39608`: a tare of 50 or less follows every steady window): DR's empty
+  inputs average 16.0, on the boundary, so the tare flips between 15 and 16.
+  Each flip rebuilds the threshold table on core 1, a few times a second.
+  Harmless as far as this log shows.
+- **Telemetry gaps: the master's are all `H` sweeps; the rest were the
+  host.** In the CSV, the master timestamps step 4–5 ms or 11–13 ms between
+  records from a panel. The longer steps are:
+  - 52 of 17–25 ms, one every 600 s: the `H` sweeps (status replies use poll
+    slots). By the criterion above that's over two cycles, but it is the
+    sweep, not a fault.
+  - 13 events of 17–97 ms, the same moment on all nine panels,
+    **host-side**: the host's gap between records is 17–32 ms longer than
+    the master's step (mostly 24–32), and usually 32–38 records then arrive
+    within 3 ms, covering 24–35 ms of master time.
+    That is hidapi on macOS: it queues at most 30 input reports per device
+    and drops the oldest past that (`hid.c`, "Pop one off if we've reached
+    30"). At ~1,020 records/s that is ~29 ms of slack, so a reader that
+    stalls longer than that loses records the master sent. The master saw
+    no backpressure (0 dropped), and the `H` sweeps show no such signature.
+    `hid_monitor.py`, a separate process, saw no dip at those moments.
+    About 600 records lost in total, ~0.002%.
+  - What stalled the reader (inferred from timing): three stalls match
+    Time Machine local snapshots to the second (02:32:47, 05:34:46,
+    06:36:48), and those at ~:28 past the hour (00:28, 02:28, 03:28, 04:28,
+    05:28) fall on an hourly burst of `contactsd`/`tccd`/`AddressBookSourceSync`
+    logging thousands of lines in a few seconds.
+  - **Bears on the SDK:** it uses the same hidapi (`hidapi` 2.6.7), so any
+    host program on macOS loses telemetry if its read loop pauses for more
+    than ~30 ms at `poll 0`. The SDK already reads on its own thread
+    (`pad.rs`) and keeps only the latest sample, with no disk I/O there. The
+    joystick path doesn't depend on any of this.
+  - **Changed the same morning:** `pad_cmd.py stream` reads on a thread
+    that does nothing else and queues packets, stamps each record with its
+    arrival time, and its summary now lists gaps (step over twice the
+    panel's mean) and the reader's backlog peaks (30 or more = where hidapi
+    alone would have dropped). Checked against a fake device (a 300 ms
+    consumer stall: backlog 304, nothing lost; an injected master gap
+    reported as one) and 10 s live on the Mini (0 gaps, backlog peak 2).
+    **Soak 2 (below): nothing lost in 5 h, through four snapshot stalls of
+    up to ~100 ms.**
+- The stream's closing summary printed **8,586.8 Hz** per panel: the Mini's
+  checkout is still `4d9dd1c`, without the clock-wrap fix (`4b46389`).
+  3,454,114 records in 30,467 s is 113.4 Hz.
+
+**Against the criteria: passed**, with two things to note. The only master-side gaps
+over two cycles are the `H` sweeps the test itself runs, and the host lost a
+few telemetry records during macOS background jobs. Not covered: presses or
+play at `poll 0` over a long run, host LED frames, a cold room.
+
+### 2026-10-24 — soak 2: the threaded `pad_cmd.py` reader, 5 h at `poll 0`
+
+The same setup as the overnight soak, run straight after it, 07:43 to 12:44
+CDT (stopped on a timer), daytime, nobody on the pad. The Mini ran `62925db`
+plus the uncommitted `pad_cmd.py` reader thread and gap summary (above),
+copied over without a push. Logs: `~/krakenpad-logs/2026-10-24-soak2/` on
+the Mini.
+
+- **No telemetry lost.** 2,043,946–2,043,947 records per panel, 113.37 Hz.
+  The only gaps over twice the mean step were the console's own `H` sweeps:
+  28 events, all on a 600 s mark, master step 24.6–25.3 ms and the host gap
+  equal to it within 1 ms. The longest host gap was 26 ms, against 120 ms in
+  the overnight soak.
+- **The stalls still happen, and the thread rode them out.** The reader
+  queued 30 or more packets four times, peaking at 63, 49, 59 and **103**
+  packets (~100 ms). hidapi alone would have dropped records at each one.
+  All four match Time Machine local snapshots to the second (08:38:48,
+  09:41:45, 10:42:30, 11:42:46; `tmutil listlocalsnapshots /`). That
+  **confirms the snapshots as the cause** of the overnight soak's matching
+  gaps. Nothing showed at the ~:28 Contacts sync times this run.
+- **Bus, same as overnight:** 18,406,686 of 18,406,687 polls answered at the
+  last heartbeat (one in flight), 0 CRC, every panel's counters 0 over ~45.3 M
+  frames, all 32 `H` sweeps 9/9 with `termination OK: DR`, no panel reboot
+  (up 53,272 s at the end). LED frames 62.44 Hz per panel.
+- **No input:** every mask 0, joystick sequence 177 throughout, `glitches`
+  still 3, report wait max 130 µs over 1.79 M reports.
+- **FSRs:** raw − tare within −2 … +4 on every channel, no record 30 above.
+  **No drift in daytime:** hourly means stayed within ~0.1 count from first
+  hour to last on every channel, unlike the overnight rise and fall. DR's
+  tares flipped ~42,000–52,000 times per channel, as before.
+
+**Result:** the threaded reader fixes the telemetry loss for `pad_cmd.py`.
+The SDK already reads on its own thread; whether its reader rides out a
+snapshot the same way isn't tested.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

@@ -1,6 +1,6 @@
 # Project status
 
-**Last updated 2026-10-23.** This is the one page for "where is the project right
+**Last updated 2026-10-24.** This is the one page for "where is the project right
 now". Update it alongside any change that moves it (rules in `CLAUDE.md`).
 Detail lives in the docs it links.
 
@@ -169,6 +169,18 @@ DeadSync integration (the user, 2026-10-23): `docs/TIMESTAMPED_INPUT.md`.
   it only rises while rest is at most `TARE_MAX_RISE` (48) above it. Presses
   still work (the threshold moves ~0.2%), but the tare is wrong until that
   panel reboots.
+- **On macOS, a host reader that pauses for more than ~30 ms loses
+  telemetry at `poll 0`** (overnight soak, 2026-10-24): hidapi queues 30
+  input reports per device and drops the oldest past that, and at ~1,020
+  records/s that's ~29 ms. Seen 13 times in 8.5 h, during Time Machine
+  snapshots and an hourly Contacts sync burst on the Mini. The master saw no
+  backpressure, and the joystick was unaffected. The SDK uses the same hidapi,
+  but already reads on its own thread and keeps only the latest sample.
+  **Fixed in `pad_cmd.py stream` (2026-10-24):** it reads on a thread too,
+  and its summary lists gaps and the reader's backlog. **Soak 2 (5 h): nothing lost**,
+  through four stalls of up to ~100 ms, each matching a Time Machine snapshot
+  to the second (`docs/BRINGUP_LOG.md`). Not tested: the SDK's reader
+  through a snapshot.
 - **11 panels still to assemble** (`docs/BUILD_CHECKLIST.md`).
 - **Harness, from the install (2026-10-22):** almost every cable is a little
   long (INT quite long); RS-485 master → `UL` (60 cm) is too short; the INT
@@ -262,8 +274,9 @@ How the SDK and firmware share values after the repos split is open
    reply window closes) 113.4 Hz per panel, 0 errors of any kind**, LED
    frames held at 62.5 Hz. Master console `poll [ms]` sets it until reboot;
    the default is still 5 ms. **Presses at 0 ms passed the same day** (a
-   35 s five-panel shuffle: rate and errors as idle). Still to do before
-   changing it: play and a long run at the chosen rate. The
+   35 s five-panel shuffle: rate and errors as idle). **A long run at 0 ms
+   passed 2026-10-23/24** (8.5 h overnight, idle: long-run test 3 below).
+   Still to do before changing it: play at the chosen rate. The
    12.6 Hz per panel is set by the scheduler, not the bus.
    `POLL_INTERVAL_MS = 5` caps polling at 200/s, about 22 Hz per panel even
    with no LED traffic. The 60 Hz `'L'` burst then blocks `write()` for ~7 ms
@@ -277,12 +290,12 @@ How the SDK and firmware share values after the repos split is open
    0 timeouts, every poll answered, LED frame rate held, over a long run (fits
    long-run test 3).
 
-## Long-run tests (planned, none run yet)
+## Long-run tests
 
 Recorded 2026-10-20 from the user's memory of an earlier chat; the full list
 from that chat was lost. Duration, conditions and pass criteria are **TODO**
-for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
-~120 s steady-state bus check (2026-10-19).
+for each unless given. Results go in `docs/BRINGUP_LOG.md`. The longest run
+so far is the 8.5 h overnight soak (2026-10-23/24, test 3).
 
 1. **Full-white soak, all nine panels: first run done 2026-10-20.** Master
    console `w` toggles it. Boards only slightly warm; **~3.4 A measured**
@@ -293,8 +306,16 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
    re-run **under the trunk fuse**, which isn't fitted yet.
 2. **Thermal.** Includes `U303` at real load, which so far has only been checked
    as "barely warm" on 12 V alone, on one board (`docs/DUAL_PANEL.md`).
-3. **Overnight bus soak.** Watch the `H` error counters and the master's
-   poll-answered count.
+3. **Overnight bus soak: passed 2026-10-23/24** at `poll 0`, 8 h 28 min,
+   idle pad, against the poll-rate test's criteria (`docs/BRINGUP_LOG.md`):
+   31.1 M polls, every one answered, 0 CRC, 0 errors on every panel, all 52
+   `H` sweeps 9/9, no reboot. 113.4 Hz per panel and 62.4 Hz LED frames all
+   night. No presses, no phantom input (every telemetry mask 0, joystick
+   unchanged, 0 new INT glitches). The only master-side gaps over two cycles
+   were the `H` sweeps. **The host lost ~600 telemetry records** in 13
+   stalls of up to 97 ms during macOS background jobs: hidapi keeps 30
+   reports and drops the oldest (open item above). **Soak 2, 2026-10-24
+   (5 h, daytime, threaded reader): the same bus result, and no records lost.**
 4. **Installed-pad FSR logging** (added 2026-10-20): once the panels are in
    the pad (sensors on U, L, C, R, D), log every sensor with
    ~~`tools/fsr_monitor.py`~~ `pad_cmd.py stream --csv` (with tares, as in the
@@ -312,8 +333,11 @@ for each. Results go in `docs/BRINGUP_LOG.md`. The longest run so far is the
    count. Second, 2026-10-23 (99 min, DeadSync): within ±1–2 counts, 0 CRC
    errors, no poll missed.** **Cold start 2026-10-23 (12 V off ~2 h 20 min):
    tares settled within 1 count of the warm values, and rest stayed flat
-   (±0.2 counts) for the 2 h after.** Still to do: an overnight
-   cold soak, a warm room.
+   (±0.2 counts) for the 2 h after.** **Overnight, idle, 2026-10-23/24
+   (8.5 h):** raw − tare within −2 … +3 on every channel; the sensored panels
+   drifted together, +0.2–0.7 counts to ~05:00 and back by 07:00, with the
+   empty sockets flat, and the tares followed. Cause not measured (no
+   temperature logged). Still to do: an overnight cold soak, a warm room.
 5. Some of the open items above may also have been on the list: cable pulls and
    power cycles during play, and polling plus LED frames under load.
 
