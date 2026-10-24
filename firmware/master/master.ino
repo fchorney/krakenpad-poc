@@ -143,7 +143,118 @@ volatile uint32_t hid_last_us = 0;
 volatile bool     hid_hold = false;    // 'I' self-test pulses are not presses
 volatile uint32_t hid_reports = 0, hid_busy = 0, hid_glitches = 0, hid_resyncs = 0;
 
+// ── Host poll measurement ────────────────────────────────────────────────────
+// The core calls usb_joystick_tx_done() from the USB interrupt each time the
+// host takes a joystick report, with the cycle count at which it was queued.
+// - Every report: how long it waited, queued -> taken (`j`; `z` zeroes it).
+//   That is the delay the host's polling adds to a press.
+// - `usbpoll [s]`: for s seconds the callback queues the next report as soon
+//   as one is taken, so one is always waiting, and times the gaps between
+//   takes: the host's actual poll interval. Presses are held back meanwhile
+//   and reported when it ends.
+// The USB interrupt runs at HID_IRQ_PRIORITY too, so the callback may queue a
+// report: usb_joystick_try_send()'s callers never preempt each other.
+constexpr uint32_t USBT_BIN_US = 5, USBT_BINS = 400;   // 0-2 ms in 5 us bins
+struct UsbTiming {
+  uint32_t bins[USBT_BINS];
+  uint32_t n, over, min_cyc, max_cyc;
+  uint64_t sum_cyc;
+  void clear() { memset(this, 0, sizeof(*this)); min_cyc = UINT32_MAX; }
+  void add(uint32_t cyc) {
+    uint32_t b = cyc / (F_CPU_ACTUAL / 1000000) / USBT_BIN_US;
+    if (b < USBT_BINS) bins[b]++; else over++;
+    n++;
+    sum_cyc += cyc;
+    if (cyc < min_cyc) min_cyc = cyc;
+    if (cyc > max_cyc) max_cyc = cyc;
+  }
+  void print(const char *label, bool rate) const;
+};
+UsbTiming usb_wait, usb_gap;
+
+// Percentiles are bin upper edges (capped at the max), so up to USBT_BIN_US
+// above the true value.
+void UsbTiming::print(const char *label, bool rate) const {
+  static UsbTiming t;   // a copy, so the USB interrupt can't change it mid-print
+  noInterrupts();
+  t = *this;
+  interrupts();
+  const uint32_t cpu = F_CPU_ACTUAL / 1000000;
+  Serial.print("# ");
+  Serial.print(label);
+  Serial.print(": n ");
+  Serial.print(t.n);
+  if (!t.n) { Serial.println(); return; }
+  auto pct = [&](uint32_t per_mille) {
+    uint64_t want = ((uint64_t)t.n * per_mille + 999) / 1000, got = 0;
+    for (uint32_t b = 0; b < USBT_BINS; b++)
+      if ((got += t.bins[b]) >= want) return min((b + 1) * USBT_BIN_US, t.max_cyc / cpu);
+    return t.max_cyc / cpu;
+  };
+  Serial.printf("  min %lu  median %lu  p99 %lu  p99.9 %lu  max %lu  mean %lu us",
+                t.min_cyc / cpu, pct(500), pct(990), pct(999), t.max_cyc / cpu,
+                (uint32_t)(t.sum_cyc / t.n / cpu));
+  if (rate && t.sum_cyc) Serial.printf("  (%lu per s)", (uint32_t)((uint64_t)t.n * F_CPU_ACTUAL / t.sum_cyc));
+  Serial.println();
+  // Non-empty 25 us groups, then anything past the histogram.
+  Serial.print("#   us:count");
+  for (uint32_t g = 0; g < USBT_BINS; g += 5) {
+    uint32_t c = 0;
+    for (uint32_t b = g; b < g + 5; b++) c += t.bins[b];
+    if (c) Serial.printf("  %lu-%lu:%lu", g * USBT_BIN_US, (g + 5) * USBT_BIN_US, c);
+  }
+  if (t.over) Serial.printf("  >%lu:%lu", USBT_BINS * USBT_BIN_US, t.over);
+  Serial.println();
+}
+
+enum : uint8_t { UP_OFF, UP_DRAIN, UP_RUN, UP_TAIL };
+volatile uint8_t  usbpoll_state = UP_OFF;
+volatile uint32_t usbpoll_ms = 0;        // when the current state began
+volatile uint32_t usbpoll_len_ms = 0;
+volatile uint32_t usbpoll_last_cyc = 0;
+volatile bool     usbpoll_done = false;  // results waiting for loop() to print
+
+void usbpollQueue() {
+  uint16_t m = hid_sent;
+  uint8_t report[JOYSTICK_SIZE] = {1, (uint8_t)m, (uint8_t)(m >> 8), hid_seq};
+  usb_joystick_try_send(report);
+}
+
+extern "C" void usb_joystick_tx_done(uint32_t queued) {
+  uint32_t now = ARM_DWT_CYCCNT;
+  switch (usbpoll_state) {
+    case UP_OFF: if (queued) usb_wait.add(now - queued); break;
+    case UP_DRAIN: break;                // reports from before the run
+    case UP_RUN:
+      if (usbpoll_last_cyc) usb_gap.add(now - usbpoll_last_cyc);
+      usbpoll_last_cyc = now;
+      usbpollQueue();
+      break;
+    case UP_TAIL: usbpoll_state = UP_OFF; usbpoll_done = true; break;
+  }
+}
+
+// From hidTick (1 kHz): drain for 5 ms, run, then let the last report go. The
+// tail gives up after 50 ms so a host that stops polling can't hold presses.
+void usbpollTick() {
+  uint32_t ms = millis(), in = ms - usbpoll_ms;
+  if (usbpoll_state == UP_DRAIN && in >= 5) {
+    usb_gap.clear();
+    usbpoll_last_cyc = 0;
+    usbpoll_state = UP_RUN;
+    usbpoll_ms = ms;
+    usbpollQueue();
+  } else if (usbpoll_state == UP_RUN && in >= usbpoll_len_ms) {
+    usbpoll_state = UP_TAIL;
+    usbpoll_ms = ms;
+  } else if (usbpoll_state == UP_TAIL && in >= 50) {
+    usbpoll_state = UP_OFF;
+    usbpoll_done = true;
+  }
+}
+
 void hidSend() {
+  if (usbpoll_state != UP_OFF) return;   // usbpoll owns the endpoint
   uint16_t m = hid_mask;
   uint8_t seq = (m != hid_sent) ? (uint8_t)(hid_seq + 1) : hid_seq;
   uint8_t report[JOYSTICK_SIZE] = {1, (uint8_t)m, (uint8_t)(m >> 8), seq};
@@ -179,10 +290,13 @@ void hidTick() {
     disagree = diff;
     if (fix) { hid_mask ^= fix; hid_resyncs++; }
   }
+  if (usbpoll_state != UP_OFF) usbpollTick();
   if (hid_mask != hid_sent || (micros() - hid_last_us) >= HID_HEARTBEAT_US) hidSend();
 }
 
 void hidBegin() {
+  usb_wait.clear();
+  usb_gap.clear();
   hidTimer.priority(HID_IRQ_PRIORITY);
   hidTimer.begin(hidTick, 1000);
 }
@@ -203,7 +317,9 @@ void hidReport() {
   Serial.print("  USB ");
   Serial.print(usb_configuration ? "configured" : "NOT configured");
   Serial.println(usb_high_speed ? ", High Speed" : ", Full Speed");
+  usb_wait.print("report wait, queued to taken by the host", false);
 }
+
 
 // attachInterrupt needs a plain function pointer per pin — no capture, so one
 // trampoline per panel rather than a single parameterized handler.
@@ -1829,9 +1945,10 @@ void printHelp() {
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  b                          broken-header test: panel parser timeout\r\n"
     "  j                          USB: pad input and vendor interface counters\r\n"
+    "  usbpoll [s]                time the host's joystick polls for s s (default 2)\r\n"
     "  t                          toggle telemetry stream\r\n"
     "  H                          status of every panel (build, uptime, reset, errors)\r\n"
-    "  z                          zero bus counters, master and all panels\r\n"
+    "  z                          zero bus counters, master and all panels; USB report wait\r\n"
     "  m <mode> [secs]            panel LEDs: 0 normal, 1 ID, 2 sensor test\r\n"
     "  w                          toggle full white on all panels (soak test)\r\n"
     "  P                          bus passthrough for tools/panel_update.py (binary)\r\n"
@@ -1922,6 +2039,22 @@ void handleCommand(const char *s) {
     } else {
       Serial.println("# usage: m <0 normal | 1 ID | 2 test> [seconds, 0 = until changed]");
     }
+  } else if (strncmp(s, "usbpoll", 7) == 0) {
+    int secs = 2;
+    if (s[7] != '\0' && (sscanf(s + 7, "%d", &secs) != 1 || secs < 1 || secs > 60)) {
+      Serial.println("# usage: usbpoll [seconds 1-60]");
+      return;
+    }
+    if (usbpoll_state != UP_OFF) {
+      Serial.println("# usbpoll already running");
+      return;
+    }
+    usbpoll_len_ms = (uint32_t)secs * 1000;
+    usbpoll_ms = millis();
+    usbpoll_state = UP_DRAIN;
+    Serial.print("# usbpoll: one joystick report always waiting for ");
+    Serial.print(secs);
+    Serial.println(" s; presses are held back until it ends");
   } else if (strncmp(s, "poll", 4) == 0) {
     int ms;
     if (s[4] == '\0') {
@@ -2200,6 +2333,10 @@ void loop() {
   parseRx();
   vndService();
   pollSerialCommands();
+  if (usbpoll_done) {
+    usbpoll_done = false;
+    usb_gap.print("usbpoll: gap between host takes, a report always waiting", true);
+  }
 
   // Drain INT edge ring buffer
   while (ring_tail != ring_head) {
@@ -2291,6 +2428,9 @@ void loop() {
     sendRequest('Z', BROADCAST, nullptr, 0, 0);   // broadcast: no reply
     stat_replies = stat_crc_errs = stat_polls_sent = stat_frames_sent = stat_rx_dropped = 0;
     for (int i = 0; i < NUM_PANELS; i++) poll_sent_window[i] = poll_ok_window[i] = 0;
+    noInterrupts();
+    usb_wait.clear();
+    interrupts();
     next_poll_ms = millis() + poll_interval_ms;
     clear_pending = false;
     Serial.println("# counters zeroed: master and every panel ('Z' broadcast)");

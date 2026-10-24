@@ -211,7 +211,30 @@ diff -u a/usb_desc.h b/usb_desc.h
 diff -u a/usb_joystick.c b/usb_joystick.c
 --- a/usb_joystick.c	2026-10-20 20:34:41
 +++ b/usb_joystick.c
-@@ -107,4 +107,24 @@
+@@ -61,11 +61,21 @@
+ #endif
+ 
+ 
++// Called from the USB interrupt each time the host has taken a report, with
++// the cycle count at which usb_joystick_try_send() queued it (0 for
++// usb_joystick_send()). Weak: a sketch that doesn't define it gets nothing.
++void usb_joystick_tx_done(uint32_t queued_cycles) __attribute__((weak));
++
++static void tx_event(transfer_t *t)
++{
++	if (usb_joystick_tx_done) usb_joystick_tx_done(t->callback_param);
++}
++
+ void usb_joystick_configure(void)
+ {
+ 	memset(tx_transfer, 0, sizeof(tx_transfer));
+ 	tx_head = 0;
+-	usb_config_tx(JOYSTICK_ENDPOINT, JOYSTICK_SIZE, 0, NULL);
++	usb_config_tx(JOYSTICK_ENDPOINT, JOYSTICK_SIZE, 0, tx_event);
+ }
+ 
+ 
+@@ -107,4 +117,24 @@
  }
  
  
@@ -227,7 +250,7 @@ diff -u a/usb_joystick.c b/usb_joystick.c
 +	delayNanoseconds(30); // as usb_joystick_send()
 +	uint8_t *buffer = txbuffer + head * TX_BUFSIZE;
 +	memcpy(buffer, report, JOYSTICK_SIZE);
-+	usb_prepare_transfer(xfer, buffer, JOYSTICK_SIZE, 0);
++	usb_prepare_transfer(xfer, buffer, JOYSTICK_SIZE, ARM_DWT_CYCCNT);
 +	arm_dcache_flush_delete(buffer, TX_BUFSIZE);
 +	usb_transmit(JOYSTICK_ENDPOINT, xfer);
 +	if (++head >= TX_NUM) head = 0;
