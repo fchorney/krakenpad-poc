@@ -2092,11 +2092,205 @@ and nothing had the joystick open.
   counters stayed at 0.
 - **Not yet measured:** Windows and Linux.
 
+### 2026-10-23 — RS-485 bus and INT scoped at DR, in the pad
+
+**Setup.** Siglent SDS804X HD (70 MHz, 12-bit, firmware 4.8.12.1.1.6.5). Panel
+DR lifted. C1 on A (`TP202`), C2 on B (`TP204`), C4 on INT (`TP211`), ×10
+probes grounded at the DR panel's GND test points. Math A − B. The master's
+DE (`TP2`) can't be reached with the master installed, so there was no DE
+trigger. The user set the scope up by hand and took the first look (UART
+trigger on the 0x55 sync, photos). The scope's LAN SCPI was then driven from
+the Mac mini, which can reach it; the MacBook's TCP attempts failed even
+though ping worked. That gave 12 single-shot captures per case, 5 ms each at
+500 MSa/s (2 ns), triggered on 0x55. They were decoded off-line: packets
+split by the length field, the sender named from the command byte. The master
+was at `poll 0`, so each window held polls and replies from all nine panels
+as well as LED frames. Master `24D39879`, panels `A0D39608`. Raw data and the
+scripts are in `~/krakenpad-logs/2026-10-23-scope/` on the MacBook.
+
+**Baseline (DR `SW202` on, `H`: termination OK), 211 packets:**
+
+| sender | levels | 10–90% edge | overshoot | closest approach back towards 0 V after an edge |
+|---|---|---|---|---|
+| master (polls, LED, config, status) | +2.29 / −2.26 V | 28 / 30 ns | 12% | 1.12 V |
+| panel replies, UL … D | +2.28 … 2.42 / −2.24 … −2.38 V | 22–36 ns | 1–13% | 0.95–1.17 V |
+| DR (the driver at the probe) | +2.46 / −2.41 V | 158 ns | 3% | **0.81 V** |
+
+**Case A (DR `SW202` off; `H`: "no panel terminated"; only the master's
+120 Ω), 214 packets:**
+
+| sender | levels | 10–90% edge | overshoot | closest approach back towards 0 V after an edge |
+|---|---|---|---|---|
+| master | +2.96 / −2.81 V | 28 / 30 ns | 19% | 1.39 V |
+| panel replies, UL … D | +2.83 … 2.87 / −2.78 … −2.81 V | 20–34 ns | 3–20% | 0.77–1.41 V |
+| DR | +2.86 / −2.81 V | 162 ns | 2% | **0.73 V** |
+
+- **Wide margin in both cases.** The eye at bit centres is at least 2.21 V
+  (baseline) and 2.74 V (case A). Every stop bit is good. After any edge the
+  line never comes back closer to 0 V than 0.81 V (baseline) or 0.73 V
+  (case A), against the receivers' ±200 mV. The panel and master counters
+  stayed at 0 throughout.
+- **Termination at DR lowers the level** (±2.3 V against ±2.8 V, one more
+  120 Ω load) **and the master's overshoot (12% against 19%)**. Unterminated,
+  the ringing is larger but stays far from the threshold, as on the
+  2026-10-18 eight-panel bench (cases A–D, counters only).
+- **The edge shape depends on how far the sender is from the probe.** This
+  is inferred, not measured. DR's own reply shows the near-end staircase: a
+  fast step to about +1.7 V, then a ramp to full level as reflections come
+  back from up the chain. That makes the 10–90% figure 158–162 ns, but the
+  step crosses ±200 mV in a few ns. A distant sender's edge arrives as one
+  fast step with some ringing. Overlaid with persistence, the mix looks like
+  edge "wobble" of up to ~0.5 µs (the user's first look). It is several
+  senders' shapes on top of each other, not jitter.
+- **Idle (undriven) gaps:** 42–204 µs long, typically 45 µs: the panel's
+  turnaround between a poll and its reply. The line rests at +3…6 mV with at
+  most 7 mV rms noise, peaks within ±40 mV. **When a driver lets go**, A − B
+  decays from the mark level with no negative excursion (min −0.04 V in
+  351 releases), so nothing a receiver could take for a start bit.
+- **Bus edges couple into DR's INT line:** spikes of up to 110–121 mV within
+  200 ns of a bus edge, against ≤ 31–33 mV (p99.9) at other times, on the
+  3.29 V idle level. Not checked whether that is the cable or the probe
+  ground.
+
+**INT at DR, during the master's `I` self-test** (edge trigger on C4 falling,
+3 captures of DR's ~2.03 ms pulse):
+
+- **Fall (the panel pulls low): 1.6 µs**, clean, low level 0.08 V.
+- **Release: 67 µs 10→90%** (18.8 µs 10→50%), **0.055 V/µs at mid-rail**,
+  consistent with an RC of about 30 µs. Inferred: 10 kΩ `RN1` parallel with
+  the Teensy's own pull-up (`INPUT_PULLUP`), into the line's capacitance (the
+  master's 1 nF plus cable and TVSs).
+- **The slow release crosses 1.65 V 19–41 times within about 350 ns**:
+  5.7 mV rms noise plus the bus-coupled spikes on a slope that shallow.
+- **This fits the master's `glitches` counter** (24 in the 2026-10-23
+  shuffle, 1 in the DeadSync song): extra interrupts on a release, each
+  rejected by the 10 µs re-read because the line has risen ~0.5 V by then.
+  Not yet seen at the master's own pin: it has the 330 Ω / 1 nF filter and
+  the pad hysteresis `INPUT_PULLUP` enables (`IOMUXC_PAD_HYS`). That end has
+  no test point, so seeing it needs the JST or the board out. No press was
+  lost (resyncs 0 in every run). A press edge is the fast fall.
+
+**The bus under full white (`w`, the user watching, ~2 min, DR terminated),
+12 captures, 202 packets:**
+
+| sender | levels | eye | closest after an edge | CM, (A+B)/2 at DR's GND | the same, LEDs at normal |
+|---|---|---|---|---|---|
+| master | +2.32 / −2.22 V | 2.19 V | 1.11 V | 1.38–1.40 V | 1.40–1.41 V |
+| panels UL … D | +2.31 … 2.45 / −2.21 … −2.35 V | ≥ 2.18 V | ≥ 0.92 V | 1.49–1.52 V | 1.51–1.52 V |
+| DR | +2.49 / −2.37 V | 2.35 V | 0.79 V | 1.51 V | 1.51 V |
+
+- **Full white makes no difference that matters.** Edges, overshoot, eye and
+  the closest approach are the same as with the normal LED pattern. Every
+  stop bit is good. Panel counters were 0, and every poll was answered.
+- **The common mode moved by 0.01–0.03 V.** Seen from DR's ground, the
+  master's frames sit about 0.1 V lower than the panels' with or without the
+  load. Inferred: that's the ground difference between the master and DR plus
+  the drivers' own spread, and the LED return current barely adds to it.
+- **A − B shifted by about +0.03 V** (high +0.03 … +0.05 V, low +0.04 V; the
+  undriven gaps rest at +31 mV against +6 mV). That's small against ±2.2 V.
+  Not checked whether it's the bus or the probes' ground.
+
+**LED data at DR, `TP214` (`LED_DATA_5V`, the AHCT125 output into LED 1),**
+C4 at 2 ns, 3 captures of 10 ms, 4 frames, normal master LED pattern. Limits
+are from the Worldsemi WS2815 datasheet V1.1 (2017-10-10), "Data Transfer Time":
+
+| | measured (min / median / max) | WS2815 V1.1 | |
+|---|---|---|---|
+| T0H, 0-bit high | 368 / 376 / 378 ns | 220–380 ns | in, 2 ns from the max |
+| T1H, 1-bit high | 742 / 752 / 754 ns | 580 ns – 1.6 µs | in |
+| T0L, 0-bit low | 870 / 872 / 882 ns | 580 ns – 1.6 µs | in |
+| **T1L, 1-bit low** | **494 / 504 / 506 ns** | **220–420 ns** | **out, ~85 ns over** |
+| bit period | 1,246 / 1,248 / 1,258 ns | (800 kbps) | |
+| reset (low between frames) | ≥ 457 µs | > 280 µs | in |
+
+- **The timings match the PIO program** (`ws2812.pio`: T1 3, T2 3, T3 4
+  cycles of 125 ns at 800 kHz × 10): T0H 3 = 375 ns, T1H 6 = 750 ns, T0L 7
+  = 875 ns, T1L 4 = 500 ns. **T1L is over the datasheet's maximum, and T0H
+  sits at its edge.** The LEDs display correctly on every panel. Inferred
+  (common for this family, not checked for the WS2815): the receiver decodes
+  on the high time and is lenient about low times well short of the reset.
+  Keeping the 10-cycle bit, T1 2 / T2 5 / T3 3 would give T0H 250, T1H 875,
+  T0L 1,000, T1L 375 ns, all inside with margin. Not changed; it's the user's
+  call.
+- **Signal quality:** high 5.09 V, low 0.00 V, edges 32–34 ns 10–90%,
+  overshoot and undershoot ≤ 0.06 V. Clean.
+- **Frames:** exactly 600 bits (25 LEDs × 24) in 749 µs. In one capture two
+  frames were 1.206 ms apart: `LED_FRAME_GAP_US` (1,200 µs), the panel's
+  minimum spacing between paints. Probably a new `'L'` frame and the refresh
+  timer falling together; not checked.
+
+**LED timing fixed, flashed and re-scoped the same night.** `ws2812.pio`
+changed from (3, 3, 4) to (2, 5, 3) cycles, the same 10-cycle 1.25 µs bit.
+Built as image CRC `BB5E3DB3`, SHA-256 `e29d6838…`, build tag **`B3B9E68B`**.
+Sent over the bus from the Mini (`panel_update.py --panels 8`, then
+`--panels 0-7`). DR first, re-scoped, the user checked its LEDs by eye
+("looks fine"), then the other eight. Afterwards: 9/9 on `B3B9E68B`, config
+matching, 0 errors. The master missed 5 polls while the panels rebooted.
+
+| | (3, 3, 4), before | **(2, 5, 3), after** | WS2815 V1.1 |
+|---|---|---|---|
+| T0H | 368–378 ns | **246–258 ns** | 220–380 ns |
+| T1H | 742–754 ns | **870–882 ns** | 580 ns – 1.6 µs |
+| T0L | 870–882 ns | **998–1,002 ns** | 580 ns – 1.6 µs |
+| T1L | 494–506 ns | **366–378 ns** | 220–420 ns |
+| bit period | 1,246–1,258 ns | 1,246–1,258 ns | |
+
+Every value is now inside the datasheet with margin. The frame is unchanged:
+600 bits in 749 µs, reset gap 458 µs. So are the levels (5.09 V) and the
+edges (32–34 ns).
+
+**12 V at DR (`TP203`/`TP205`, C3, ×10, DC, 20 MHz limit)**, 3 captures of
+20 ms at 50 MSa/s each. Normal master LED pattern, then full white (`w`:
+255, 255, 255 on all 225 LEDs, the user watching, ~30 s):
+
+| | mean | min / max | 10 µs-averaged p-p | rms |
+|---|---|---|---|---|
+| normal LEDs | 12.36 V | 12.31 / 12.42 V | 19–24 mV | 3.9–4.2 mV |
+| full white | 12.01 V | 11.94 / 12.07 V | 22–26 mV | 4.2–4.6 mV |
+
+- **DR's 12 V drops 0.35 V at full white**, to 12.01 V, at the end of the
+  right column, 3 panels down. Not known: the supply's own voltage at the
+  Wago under the same load, so the split between the PSU and the harness
+  isn't measured. 12.0 V is well inside the WS2815's supply rating
+  (9.5–13.5 V absolute max, V1.1).
+- **Ripple is small:** ~0.1 V p-p raw, mostly fast spikes that line up with
+  bus and LED-data edges (seen at 20 mV/div). It averages to ~20–26 mV p-p
+  over 10 µs. The strongest spectral lines are around 1.2–1.4 kHz (50 Hz
+  resolution). Inferred, not checked: the WS2815s' PWM.
+- **Bench note: the scope hung once.** After many back-to-back 10 M-point,
+  four-channel transfers, with status polled several times a second, the
+  screen went black with "Remote", then acquisition stuck at "Arm" even in
+  Auto. `:SYSTem:REMote OFF` brought the screen back, but only a power cycle
+  fixed acquisition. Afterwards: 1 M points, one capture at a time, status
+  polled every 0.5 s, and no further trouble.
+
+**3.3 V at DR (`TP206`, C3, ×10, DC, 20 MHz limit, 50 mV/div)**: 2 captures
+of 20 ms at 50 MSa/s for normal LEDs and for full white, plus 2 of 200 µs at
+500 MSa/s with the bus and LED data:
+
+| | mean | raw p-p | rms | 10 µs-averaged p-p |
+|---|---|---|---|---|
+| normal LEDs | 3.3003–3.3004 V | 76–79 mV | 1.7–1.8 mV | 3.5–3.7 mV |
+| full white | 3.3005–3.3009 V | 74–75 mV | 1.8 mV | 3.3–3.9 mV |
+| close-up, 500 MSa/s | 3.3004–3.3007 V | 71–72 mV | 3.7 mV | 0.5–1.1 mV |
+
+- **The rail sits at 3.300 V and full white doesn't move it.** Averaged
+  over 10 µs, it varies by 3.5 mV p-p, about 4 ADC counts at 0.8 mV per
+  count.
+- **The raw p-p is fast spikes at edges:** up to 36 mV within 300 ns of a
+  bus or LED-data edge, against ≤ 9 mV (p99.9) at other times. Not checked:
+  how much of that is the ×10 probe's ground lead rather than the rail.
+- Bearing on the FSRs (inferred): this rail is both the dividers' supply and,
+  through R308/C318 (200 Ω, 2.2 µF), `ADC_AVDD`. Slow variation is
+  ratiometric and largely cancels; the edge spikes are much shorter than the
+  ADC's sampling.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
 - **Poll rate ~125/s, ~14 Hz per panel at nine** — revisit with all nine panels.
-- **Scope the RS-485 bus once the panels are in a pad**: edge settling,
+- ~~**Scope the RS-485 bus once the panels are in a pad**~~ **done 2026-10-23
+  at DR** (above): wide margin terminated and unterminated. Was: edge settling,
   whether ringing re-crosses ±200 mV, amplitude, idle noise, eye height and
   width, for the baseline and at least case A of the termination table
   (above). Probe points: master `TP7`/`TP8` (GND `TP5`), panel `TP202`/`TP204`
