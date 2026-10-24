@@ -83,6 +83,10 @@ constexpr uint8_t  BROADCAST = 0xFF;
 constexpr int      NUM_LEDS = 25;
 constexpr uint32_t FRAME_INTERVAL_MS = 16;    // ~60Hz per-panel addressed frames
 constexpr uint32_t POLL_INTERVAL_MS = 5;      // 200Hz FSR telemetry poll, independent of LED rate
+// The console's `poll <ms>` changes it until the next reboot: the telemetry
+// rate test (docs/STATUS.md, next step 9) steps it down to find how fast
+// polling can go before replies are lost.
+uint32_t poll_interval_ms = POLL_INTERVAL_MS;
 constexpr uint32_t STREAM_INTERVAL_MS = 33;   // ~30Hz print rate when streaming ('t' to toggle)
 
 int panelIndex(uint8_t addr) {
@@ -1821,6 +1825,7 @@ void printHelp() {
     "  g                          underglow chase, one group at a time\r\n"
     "  g <n>                      light underglow group n (1-44) alone and hold\r\n"
     "  x                          pause/resume LED frames + FSR polling\r\n"
+    "  poll [ms]                  FSR poll interval, 0-50 ms (default 5); not saved\r\n"
     "  I                          slot <-> panel-ID self-test (needs panels)\r\n"
     "  b                          broken-header test: panel parser timeout\r\n"
     "  j                          USB: pad input and vendor interface counters\r\n"
@@ -1917,6 +1922,20 @@ void handleCommand(const char *s) {
     } else {
       Serial.println("# usage: m <0 normal | 1 ID | 2 test> [seconds, 0 = until changed]");
     }
+  } else if (strncmp(s, "poll", 4) == 0) {
+    int ms;
+    if (s[4] == '\0') {
+      // just print it
+    } else if (sscanf(s + 4, "%d", &ms) == 1 && ms >= 0 && ms <= 50) {
+      poll_interval_ms = (uint32_t)ms;
+    } else {
+      Serial.println("# usage: poll [ms 0-50]");
+      return;
+    }
+    Serial.print("# poll interval ");
+    Serial.print(poll_interval_ms);
+    Serial.print(" ms");
+    Serial.println(poll_interval_ms == POLL_INTERVAL_MS ? " (the default)" : " (until reboot)");
   } else if (strcmp(s, "t") == 0 || strcmp(s, "T") == 0) {
     stream_telemetry = !stream_telemetry;
     Serial.print("# telemetry stream ");
@@ -2272,12 +2291,12 @@ void loop() {
     sendRequest('Z', BROADCAST, nullptr, 0, 0);   // broadcast: no reply
     stat_replies = stat_crc_errs = stat_polls_sent = stat_frames_sent = stat_rx_dropped = 0;
     for (int i = 0; i < NUM_PANELS; i++) poll_sent_window[i] = poll_ok_window[i] = 0;
-    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    next_poll_ms = millis() + poll_interval_ms;
     clear_pending = false;
     Serial.println("# counters zeroed: master and every panel ('Z' broadcast)");
   } else if (mode_pending && poll_due) {
     sendRequest('M', BROADCAST, mode_payload, sizeof(mode_payload), 0);   // no reply
-    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    next_poll_ms = millis() + poll_interval_ms;
     mode_pending = false;
     static const char *const MODE_NAMES[] = {"normal", "ID", "sensor test"};
     Serial.print("# panel LED mode -> ");
@@ -2291,10 +2310,10 @@ void loop() {
       sendRequest('M', PANEL_IDS[i], mode_payload, sizeof(mode_payload), REPLY_M_LEN);
       break;
     }
-    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    next_poll_ms = millis() + poll_interval_ms;
   } else if (push >= 0) {
     cfgSendPush(push);
-    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    next_poll_ms = millis() + poll_interval_ms;
   } else if (status_next >= 0 && poll_due) {
     // The previous panel's reply window has closed by now (poll_due waits for
     // it), so silence from it is final, once whatever arrived since the top of
@@ -2320,14 +2339,14 @@ void loop() {
       status_next = -1;
       status_verbose = false;
     }
-    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    next_poll_ms = millis() + poll_interval_ms;
   } else if (bg_status_due >= 0 && poll_due) {
     sendRequest('H', PANEL_IDS[bg_status_due], nullptr, 0, REPLY_H_LEN);
     bg_status_due = -1;
-    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    next_poll_ms = millis() + poll_interval_ms;
   } else if (bus_traffic && poll_due) {
     sendRequest('F', PANEL_IDS[poll_panel_idx], nullptr, 0, REPLY_F_LEN);
-    next_poll_ms = millis() + POLL_INTERVAL_MS;
+    next_poll_ms = millis() + poll_interval_ms;
     stat_polls_sent++;
     poll_sent_window[poll_panel_idx]++;
     poll_panel_idx = (poll_panel_idx + 1) % NUM_PANELS;
