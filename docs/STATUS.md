@@ -137,8 +137,12 @@ DeadSync integration (the user, 2026-10-23): `docs/TIMESTAMPED_INPUT.md`.
   KrakenPad SDK directly later, bypassing its macOS HID input
   (`docs/USB_PROTOCOL.md` → "Input state report" has the other options).
 - **Not yet measured:** ~~the joystick in a real game (ITGmania)~~ (first
-  session 2026-10-22: no missed reports, 0 bus errors), the host-side
-  achieved poll rate, and the report rate under many simultaneous presses.
+  session 2026-10-22: no missed reports, 0 bus errors) and the host-side
+  achieved poll rate. ~~The report rate under many simultaneous presses~~
+  **passed 2026-10-23** at `poll 0`: up to five panels down at once, 613
+  presses, no lost transitions, one report per edge, joystick and telemetry
+  agree. The master's INT `glitches` counter read 24 (0 when idle):
+  unexplained, no press lost (`docs/BRINGUP_LOG.md`).
 - **Cable pulls and power cuts during play, from outside the pad: passed
   2026-10-23** (`docs/BRINGUP_LOG.md`): presses unaffected with the RS-485
   pulled, clean release/press on an INT pull, clean 12 V cuts at the rocker
@@ -240,7 +244,14 @@ How the SDK and firmware share values after the repos split is open
 8. Underglow: periodic re-send, then the host command. (Deferred by the user on
    2026-10-08: noted, not to be built yet.)
 9. **Telemetry rate: find how fast polling can go without losing correctness**
-   (added 2026-10-22, the user: "part of another test at some point"). The
+   (added 2026-10-22, the user: "part of another test at some point").
+   **Measured 2026-10-23** (`docs/BRINGUP_LOG.md`), 3 min per step, idle pad:
+   5 ms 12.7 Hz, 2 ms 33.5 Hz, 1 ms 61.3 Hz, **0 ms (a poll whenever the
+   reply window closes) 113.4 Hz per panel, 0 errors of any kind**, LED
+   frames held at 62.5 Hz. Master console `poll [ms]` sets it until reboot;
+   the default is still 5 ms. **Presses at 0 ms passed the same day** (a
+   35 s five-panel shuffle: rate and errors as idle). Still to do before
+   changing it: play and a long run at the chosen rate. The
    12.6 Hz per panel is set by the scheduler, not the bus.
    `POLL_INTERVAL_MS = 5` caps polling at 200/s, about 22 Hz per panel even
    with no LED traffic. The 60 Hz `'L'` burst then blocks `write()` for ~7 ms

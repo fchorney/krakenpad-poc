@@ -84,6 +84,7 @@ five need no panels and no 12V.
 | `g` | underglow chase — one group lit at a time, 1 → 44 from the connector, 300 ms each |
 | `g <n>` | light underglow group *n* (1–44) alone and hold it |
 | `x` | pause/resume LED frames + FSR polling |
+| `poll [ms]` | FSR poll interval, 0–50 ms (default 5), until reboot; no number prints it. For the telemetry rate test (added 2026-10-23) |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
 | `b` | broken-header test of the panel parser timeout: a lone header claiming 80 bytes, a 2 ms gap, then `'H'` to IDs 0–8. PASS = 9/9 answered, each with `tmo` up by one. Pauses traffic while it runs (added 2026-10-20) |
 | `j` | USB pad input: current mask, sequence number, counters; and the vendor interface: host seen, commands, malformed, dropped, stream on and records dropped, passthrough, who drives the LEDs (`docs/USB_PROTOCOL.md`) |

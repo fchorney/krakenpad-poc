@@ -1956,6 +1956,84 @@ joystick) and after them. No joystick change at the unplug or the replug.
 Faster than the predicted 1–2 s: the 1 s hold-off only follows a press or
 release, and there was none.
 
+### 2026-10-23 — telemetry poll rate (master `poll`, STATUS next step 9)
+
+Master #2 moved to the MacBook for this, flashed with build `BBD6681D`: the
+same firmware plus a console `poll [ms]` that sets the FSR poll interval
+until reboot (default 5). Nine panels on `A0D39608`, nobody on the pad, the
+master's own 60 Hz LED frames. A script on the MacBook stepped the interval,
+zeroed the counters (`z`), streamed telemetry for **3 minutes per step**
+(`pad_cmd.py stream --csv`) and ended each step with an `H` sweep. Pass
+criteria (the user agreed): 0 CRC errors, every poll answered, no gap over
+two poll cycles, LED frames held at 60 Hz.
+
+| interval | per panel | median / max gap | LED frames | errors |
+|---|---|---|---|---|
+| 5 ms (default) | 12.68 Hz | 80.0 / 91.2 ms | 62.4 Hz | 0 |
+| 4 ms | 19.62 Hz | 51.8 / 60.2 ms | 62.5 Hz | 0 |
+| 3 ms | 19.62 Hz | 50.8 / 61.2 ms | 62.5 Hz | 0 |
+| 2 ms | 33.51 Hz | 30.0 / 40.2 ms | 62.5 Hz | 0 |
+| 1 ms | 61.29 Hz | 16.0 / 25.2 ms | 62.5 Hz | 0 |
+| **0 ms** | **113.42 Hz** | **12.0 / 13.2 ms** | 62.5 Hz | 0 |
+
+- **Every step passed**: 0 CRC errors at the master, 0 crc/uart/ovr/turn/tmo
+  on every panel, no gap over twice the median, 0 stream records dropped on
+  USB, every `H` sweep answered 9/9. All nine panels ran at the same rate.
+- **0 ms means a poll whenever the last reply window has closed**: ~1,020
+  polls a second, about 0.55 ms each in the time the LED bursts leave.
+  **9× the default** with no errors. The 1 ms estimate (~60 Hz) held:
+  61.3 Hz.
+- 3 ms and 4 ms gave the same rate. Inferred, not checked: with `millis()`
+  scheduling and a burst every 16 ms, both land on the same number of poll
+  slots per LED frame.
+- **Not yet covered:** presses and play (the pad was idle), a long run (3 min
+  per step), and host LED frames at the faster rate. The default stays 5 ms
+  until the user decides.
+
+### 2026-10-23 — many simultaneous presses, at `poll 0`
+
+The same setup (master #2 on the MacBook, `BBD6681D`, panels `A0D39608`),
+with the poll interval at **0 ms**. A script set `poll 0`, zeroed the
+counters, then for 200 s logged every joystick report (host time, sequence,
+mask) and the telemetry stream (`pad_cmd.py stream --csv`). It ended with
+`j` and `H` and put the interval back to 5. The user shuffled across U, L, C,
+R and D for **about 35 s** (40–75 s into the log), feet often on two or more
+panels at once; the rest of the log is the idle pad.
+
+- **No lost transitions.** 613 joystick presses (U 113, L 71, C 164, R 132,
+  D 133), **0 sequence jumps**, master queue-full 0, resyncs 0. **No report
+  carried more than one panel's change**: every edge got its own report.
+- **Up to five panels down at once**, as logged: 3 down for 12.5 s, 4 for
+  7.6 s, 5 for 2.4 s.
+- **The joystick and the telemetry agree.** Every telemetry press (598) has a
+  joystick press. Every joystick press but one has a telemetry press; the
+  exception is an 11.4 ms press on C, near the 8.8 ms between a panel's
+  telemetry samples. The telemetry count is lower because a release of a few
+  ms falls between its samples: 14 re-presses under 5 ms (C 10, U 2, R 2,
+  shortest release 1.1 ms by host time), against 15 presses fewer. Press and
+  release edges agree to −7.6 / +5.7 ms (min / p95), median +0.9 ms: the
+  spread is the telemetry sample interval.
+- **The bus under load matched the idle run:** 113.4 Hz per panel, longest
+  gap 13.2 ms, LED frames 62.5 Hz, 0 CRC errors, every poll answered, 0 on
+  every panel's crc/uart/ovr/turn/tmo, `H` 9/9, 0 stream records dropped.
+- **Unexplained: the master's `glitches` counter read 24.** It was 0 after
+  every idle poll-rate step, so it comes with presses. It counts INT
+  interrupts after which the line, re-read 10 µs later (`INT_QUALIFY_NS`),
+  already matched the mask: an edge that didn't stick, or a second interrupt
+  on an edge already handled. Not a lost press: resyncs 0 means the 1 ms
+  check never found a line disagreeing with the mask, and the host got every
+  report. Inferred, not checked: a slow or noisy rising edge (10 kΩ pull-up)
+  crossing the threshold twice. The master's edge log (`pad_cmd.py events`)
+  or a scope on one INT line at the master would show which.
+- **Bench-method note:** the first comparison found ~25 mismatches each way.
+  They came from the logger, not the pad: the telemetry's host times count
+  from when the `pad_cmd.py` process started, **117 ms** after the joystick
+  log's, and a median alignment over the whole log fit that offset badly.
+  With it removed, the logs match as above. Log both from one process next
+  time, or stamp both with the same clock.
+
+Log: `~/krakenpad-logs/2026-10-23-shuffle/` on the MacBook.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).
@@ -1964,7 +2042,8 @@ release, and there was none.
   whether ringing re-crosses ±200 mV, amplitude, idle noise, eye height and
   width, for the baseline and at least case A of the termination table
   (above). Probe points: master `TP7`/`TP8` (GND `TP5`), panel `TP202`/`TP204`
-  (GND `TP207`–`TP210`), trigger on master `TP2` (DE).
+  (GND `TP207`–`TP210`), trigger on master `TP2` (DE). **At DR** (the user,
+  2026-10-23: the far end of the chain), with DR lifted.
 - ~~**Termination placement check in the master's `H` sweep**~~ **done
   2026-10-18**, the same night. Every sweep now ends with `# termination OK`
   or `# termination WARNING`. Verified by flipping `SW202`s live: R off → "no
