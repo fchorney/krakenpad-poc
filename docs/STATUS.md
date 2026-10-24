@@ -193,7 +193,9 @@ DeadSync integration (the user, 2026-10-23): `docs/TIMESTAMPED_INPUT.md`.
   the master's pin yet. Also at DR the same night: the bus under full white
   (no change), LED data (WS2815 timing was out of spec on T1L, fixed in
   `B3B9E68B` and re-scoped), 12 V (12.36 V, 12.01 V at full white, ~25 mV
-  ripple) and 3.3 V (3.300 V, 3.5 mV averaged p-p) (`docs/BRINGUP_LOG.md`).
+  ripple) and 3.3 V (3.300 V, 3.5 mV averaged p-p). The edge spikes first seen on
+  the rails and INT were mostly a shared probe ground; re-checked with short
+  grounds, the bus figures stand (`docs/BRINGUP_LOG.md`).
 
 ## Next steps (firmware/software)
 

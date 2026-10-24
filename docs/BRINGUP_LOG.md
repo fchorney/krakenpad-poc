@@ -2096,7 +2096,8 @@ and nothing had the joystick open.
 
 **Setup.** Siglent SDS804X HD (70 MHz, 12-bit, firmware 4.8.12.1.1.6.5). Panel
 DR lifted. C1 on A (`TP202`), C2 on B (`TP204`), C4 on INT (`TP211`), ×10
-probes grounded at the DR panel's GND test points. Math A − B. The master's
+probes all clipped to one shared DR GND test point (re-checked with each
+probe on its own nearest GND point, below). Math A − B. The master's
 DE (`TP2`) can't be reached with the master installed, so there was no DE
 trigger. The user set the scope up by hand and took the first look (UART
 trigger on the 0x55 sync, photos). The scope's LAN SCPI was then driven from
@@ -2147,10 +2148,11 @@ scripts are in `~/krakenpad-logs/2026-10-23-scope/` on the MacBook.
   most 7 mV rms noise, peaks within ±40 mV. **When a driver lets go**, A − B
   decays from the mark level with no negative excursion (min −0.04 V in
   351 releases), so nothing a receiver could take for a start bit.
-- **Bus edges couple into DR's INT line:** spikes of up to 110–121 mV within
-  200 ns of a bus edge, against ≤ 31–33 mV (p99.9) at other times, on the
-  3.29 V idle level. Not checked whether that is the cable or the probe
-  ground.
+- **Bus edges couple into DR's INT line:** ~~spikes of up to 110–121 mV within
+  200 ns of a bus edge, against ≤ 31–33 mV (p99.9) at other times~~ (shared
+  probe ground). **With its own ground: up to 27 mV within 300 ns of a bus
+  edge, against ≤ 13 mV at other times**, on the 3.30 V idle level. So most
+  of it was probe-ground pickup; a small real coupling remains.
 
 **INT at DR, during the master's `I` self-test** (edge trigger on C4 falling,
 3 captures of DR's ~2.03 ms pulse):
@@ -2162,6 +2164,10 @@ scripts are in `~/krakenpad-logs/2026-10-23-scope/` on the MacBook.
   master's 1 nF plus cable and TVSs).
 - **The slow release crosses 1.65 V 19–41 times within about 350 ns**:
   5.7 mV rms noise plus the bus-coupled spikes on a slope that shallow.
+  **Re-checked with its own ground** (3 captures at 10 ns, not 2 ns, so the
+  counts aren't directly comparable): **5–7 crossings within 70–110 ns**;
+  fall 1.55 µs, rise 66.3–66.5 µs 10→90%, as before. It still crosses more
+  than once, so the conclusion below stands.
 - **This fits the master's `glitches` counter** (24 in the 2026-10-23
   shuffle, 1 in the DeadSync song): extra interrupts on a release, each
   rejected by the 10 µs re-read because the line has risen ~0.5 V by then.
@@ -2253,9 +2259,12 @@ edges (32–34 ns).
   Wago under the same load, so the split between the PSU and the harness
   isn't measured. 12.0 V is well inside the WS2815's supply rating
   (9.5–13.5 V absolute max, V1.1).
-- **Ripple is small:** ~0.1 V p-p raw, mostly fast spikes that line up with
-  bus and LED-data edges (seen at 20 mV/div). It averages to ~20–26 mV p-p
-  over 10 µs. The strongest spectral lines are around 1.2–1.4 kHz (50 Hz
+- **Ripple is small:** ~~~0.1 V p-p raw, mostly fast spikes that line up
+  with bus and LED-data edges~~ (shared probe ground). **With its own
+  ground: 38 mV p-p raw, edge spikes ≤ 25 mV against ≤ 19 mV elsewhere,
+  mean 12.37 V** (8 captures at 2 ns, normal LEDs). It averages to
+  ~20–26 mV p-p over 10 µs, unchanged by the ground (22 mV re-checked), so
+  that part is real. The strongest spectral lines are around 1.2–1.4 kHz (50 Hz
   resolution). Inferred, not checked: the WS2815s' PWM.
 - **Bench note: the scope hung once.** After many back-to-back 10 M-point,
   four-channel transfers, with status polled several times a second, the
@@ -2277,9 +2286,20 @@ of 20 ms at 50 MSa/s for normal LEDs and for full white, plus 2 of 200 µs at
 - **The rail sits at 3.300 V and full white doesn't move it.** Averaged
   over 10 µs, it varies by 3.5 mV p-p, about 4 ADC counts at 0.8 mV per
   count.
-- **The raw p-p is fast spikes at edges:** up to 36 mV within 300 ns of a
-  bus or LED-data edge, against ≤ 9 mV (p99.9) at other times. Not checked:
-  how much of that is the ×10 probe's ground lead rather than the rail.
+- **The raw p-p is fast spikes at edges:** ~~up to 36 mV within 300 ns of a
+  bus or LED-data edge, against ≤ 9 mV (p99.9) at other times~~. **That was
+  the shared probe ground:** with its own ground (10 captures at 2 ns), up to
+  7 mV near edges against 6 mV elsewhere, so there is no edge noise to speak
+  of. Rms 1.4 mV; the mean read 3.313 V there against 3.300 V at the shared
+  point. Not checked: the ground difference between the two points.
+
+**Re-check of the bus with each probe on its own nearest GND point**
+(10 captures of 2 ms at 2 ns, DR terminated, `poll 0`, 79 packets): master
++2.32 / −2.26 V, 12.5% overshoot (12.2% before); closest approach after an
+edge 0.79 V at DR (0.81 V); eye ≥ 2.20 V (2.21 V); edges unchanged. The undriven
+gaps peaked at −0.08 / +0.13 V (±0.04 V before, in 69 gaps against 184). **The bus
+figures stand; the rail and INT edge spikes were mostly the shared ground.**
+A and B are the right way round: the decode only works with A above B at idle.
 - Bearing on the FSRs (inferred): this rail is both the dividers' supply and,
   through R308/C318 (200 Ω, 2.2 µF), `ADC_AVDD`. Slow variation is
   ratiometric and largely cancels; the edge spikes are much shorter than the
