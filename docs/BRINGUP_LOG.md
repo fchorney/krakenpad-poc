@@ -2034,6 +2034,64 @@ panels at once; the rest of the log is the idle pad.
 
 Log: `~/krakenpad-logs/2026-10-23-shuffle/` on the MacBook.
 
+### 2026-10-23 — host-side joystick poll rate (master `usbpoll`)
+
+New master build **`24D39879`** on master #2, still on the MacBook. The Teensy
+core patch now gives the joystick endpoint a transfer-complete callback
+(`usb_joystick_tx_done()`, from the USB interrupt, with the cycle count at
+which the report was queued). The master uses it two ways:
+
+- **Every report's wait**, queued to taken by the host, now in `j` (zeroed
+  by `z`).
+- **`usbpoll [s]`**: for *s* seconds the callback queues the next report the
+  moment one is taken, so one is always waiting, and times the gaps between
+  takes. That gap is the host's actual poll interval. Presses are held back
+  while it runs.
+
+The panels were on the bus as normal. No game was running on the MacBook,
+and nothing had the joystick open.
+
+| run | takes | per second | gap min / median / max | gaps over 150 µs |
+|---|---|---|---|---|
+| 5 s (first try) | 39,994 | 7,999 | 124 / 130 / 500 µs | 2 (≈360, ≈505 µs) |
+| 60 s | 480,003 | 8,000 | 124 / 125 / 125 µs | 0 |
+| 60 s | 480,000 | 8,000 | 124 / 130 / 375 µs | 1 |
+| 60 s | 480,003 | 8,000 | 124 / 125 / 125 µs | 0 |
+
+(Medians are bin edges, 5 µs bins.)
+
+- **The MacBook polls at the full 8 kHz, steadily**: 3 gaps over 150 µs in
+  1.48 million, the longest 0.5 ms.
+- **Idle reports waited at most 84–128 µs** before the host took them, which
+  is one poll interval. The heartbeat comes from the 1 kHz timer, which stays
+  in near-fixed phase with the 125 µs microframes. The waits therefore bunch
+  into a few bins instead of spreading evenly. Presses, which arrive at any
+  time, sample the whole interval.
+- **What this doesn't show:** when the host's software reads the report.
+  This is the host controller's schedule. macOS's HID stack and the game come
+  after it, and their delay is what session 2's host timestamps include.
+- **The Mac mini that runs DeadSync, same day** (the master's USB moved
+  there, `usbpoll` run over SSH, DeadSync running and idle, not in a song):
+
+  | run | takes | per second | gap min / median / p99.9 / max | gaps over 150 µs |
+  |---|---|---|---|---|
+  | 5 s | 39,998 | 7,999 | 103 / 130 / 145 / 146 µs | 0 |
+  | 60 s | 479,988 | 7,999 | 101 / 130 / 145 / 379 µs | 3 |
+
+  Also 8 kHz, with more spread than the MacBook: gaps of 101–146 µs, against
+  124–125. 3 gaps over 150 µs in 480,000, the longest 0.38 ms. Idle
+  reports waited 3–129 µs, spread evenly across the interval.
+- **During a song in DeadSync (the Mini, same evening):** a 20 s `usbpoll`
+  at the start of the song (the user let the arrows pass, since presses are
+  held back) gave 7,999/s, gaps 99–145 µs, one of 374 µs in 160,000: the same
+  as idle. Then `z` and the rest of the song played normally:
+  **6,372 reports, each waited 3–129 µs before the host took it**, spread
+  evenly (about 1,100–1,300 in each 25 µs bin), mean 66 µs. That is the
+  whole delay 8 kHz polling adds to a press; heartbeats and presses are
+  counted together. `glitches` rose by 1, resyncs 0, and the panels' `H`
+  counters stayed at 0.
+- **Not yet measured:** Windows and Linux.
+
 ### Still open for this board
 
 - ~~**`S` bus disturbance**~~ fixed 2026-10-02, master firmware (above).

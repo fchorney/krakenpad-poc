@@ -85,13 +85,14 @@ five need no panels and no 12V.
 | `g <n>` | light underglow group *n* (1–44) alone and hold it |
 | `x` | pause/resume LED frames + FSR polling |
 | `poll [ms]` | FSR poll interval, 0–50 ms (default 5), until reboot; no number prints it. For the telemetry rate test (added 2026-10-23) |
+| `usbpoll [s]` | the host's joystick poll interval: for *s* seconds (1–60, default 2) a report is always waiting, and the gaps between the host's takes are timed (count, min / median / p99 / p99.9 / max, rate, a 25 µs histogram). Presses are held back while it runs and reported when it ends (added 2026-10-23) |
 | `I` | slot ↔ panel-ID self-test (needs panels) |
 | `b` | broken-header test of the panel parser timeout: a lone header claiming 80 bytes, a 2 ms gap, then `'H'` to IDs 0–8. PASS = 9/9 answered, each with `tmo` up by one. Pauses traffic while it runs (added 2026-10-20) |
-| `j` | USB pad input: current mask, sequence number, counters; and the vendor interface: host seen, commands, malformed, dropped, stream on and records dropped, passthrough, who drives the LEDs (`docs/USB_PROTOCOL.md`) |
+| `j` | USB pad input: current mask, sequence number, counters; and the vendor interface: host seen, commands, malformed, dropped, stream on and records dropped, passthrough, who drives the LEDs (`docs/USB_PROTOCOL.md`). Since 2026-10-23 also how long each joystick report waited before the host took it (n, min / median / p99 / p99.9 / max, a 25 µs histogram) |
 | `t` | toggle the telemetry stream. Lines are `T <id> <S> <W> <N> <E> <mask> <live>`; `live` is 0 once a panel has been silent for `PANEL_TIMEOUT_MS` (added 2026-10-18; `tools/fsr_monitor.py` reads both the old 7-field form and this one) |
 | `P` | bus passthrough for `tools/panel_update.py`: USB carries raw frames until the host exits or 30 s idle. Not for typing into; see `docs/FIELD_UPDATE.md` |
 | `H` | status sweep: one `'H'` per poll slot to IDs 0–8, one line per panel (build tag, uptime, last reset cause, 12V/termination/auto-INT/echo/INT state, frame and error counters, `tmo` parser timeouts from gameplay firmware since 2026-10-20), `NO REPLY` for a silent one |
-| `z` | zero bus counters, on the master and (by broadcast `'Z'`) on every panel |
+| `z` | zero bus counters, on the master and (by broadcast `'Z'`) on every panel, and the report-wait stats in `j` |
 | `m <mode> [secs]` | panel LED mode by broadcast `'M'`: 0 normal, 1 ID, 2 sensor test |
 | `w` | toggle full white (255,255,255) on every LED of every panel, presses ignored: the full-white soak. Panels must be in mode 0 and bus traffic running |
 | `c` | panel config: the master's copy per panel and channel, each panel's state (matches / waiting / rejected / not configured / absent), saved slot and sequence, unsaved edits, how long the last save took (added 2026-10-20) |

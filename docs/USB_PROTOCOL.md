@@ -21,7 +21,7 @@ descriptor; no software expecting an SMX pad will (or should) talk to us.
 | Interfaces (as built 2026-10-20) | 0–1 CDC serial (the bench console, unchanged), **2 vendor HID** (command/data: usage page `0xFF00`, usage `0x0001`, interrupt IN `0x85` + OUT `0x05`, 64 bytes, `bInterval` 1), **3 HID joystick** (pad input, IN `0x84`). The joystick was interface 2 until 2026-10-20: the Teensy core writes the RawHID block before the joystick's, and the numbers follow that order. Only the number changed; the joystick's descriptor and report did not |
 | Transport | USB HID. Packets to the host 64 bytes; from the host 1,024 at High Speed, 64 at Full Speed (protocol 2, 2026-10-21). **Protocol 3** (2026-10-22): the FSR stream carries tares |
 | USB speed | High Speed 480 Mbps (Teensy 4.x native) |
-| Input polling | **8000Hz offered** (`bInterval = 1` at High Speed, as built). Host-side achieved rate not measured |
+| Input polling | **8000Hz offered** (`bInterval = 1` at High Speed, as built). **Achieved on macOS (2026-10-23, master `usbpoll`): 8,000/s on a MacBook** (gaps 124–125 µs) **and on the DeadSync Mac mini** (gaps 101–146 µs) |
 
 ### VID/PID plan: pid.codes
 
@@ -231,7 +231,14 @@ descriptor is in `firmware/master/core-patch/`):
   at once (4-deep queue), so the ceiling is the host poll, 8000/s at High
   Speed. The busy-case rate has not been measured.
 - **Endpoint:** interrupt IN, 4 bytes, `bInterval = 1`: **125 µs (8 kHz) at
-  High Speed**, 1 ms at Full Speed. Host-side rate not measured yet.
+  High Speed**, 1 ms at Full Speed. **Measured on a MacBook 2026-10-23:**
+  8,000 takes/s with a report always waiting, gaps 124–125 µs, one of
+  375 µs in 1.44 million; the DeadSync Mac mini 7,999/s, gaps 101–146 µs,
+  longest 379 µs. During a DeadSync song on the Mini, every report was taken
+  3–129 µs after it was queued, mean 66 µs (`docs/BRINGUP_LOG.md`). The master measures it
+  itself: the core calls `usb_joystick_tx_done()` when the host takes a
+  report, which gives every report's wait (in `j`) and, under `usbpoll`,
+  the gap between polls.
 - **Bench 2026-10-19:** presses from the eight-panel bench arrive correctly on
   a Mac, checked with `j` and `tools/hid_monitor.py`.
 - **Sent from interrupt context, never from `loop()`**, because an LED burst
@@ -502,4 +509,6 @@ speaks all of it.
 - ~~Whether FSR streaming uses the data report or a dedicated input-style report~~ decided 2026-10-20: the `stream` kind on the vendor interface
 - ~~Config split: which fields live master-side vs panel-side~~ decided 2026-10-20: the master holds all of it; panels are RAM-only (`docs/PANEL_CONFIG.md`)
 - 2000Hz+ polling: HS bInterval choice (0.5ms vs 0.25ms vs 0.125ms) after
-  measuring real host-side behavior
+  measuring real host-side behavior. (Both Macs poll the 125 µs
+  endpoint at a steady 8,000/s, 2026-10-23; Windows and Linux are still to
+  measure.)

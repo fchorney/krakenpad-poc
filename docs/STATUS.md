@@ -137,8 +137,12 @@ DeadSync integration (the user, 2026-10-23): `docs/TIMESTAMPED_INPUT.md`.
   KrakenPad SDK directly later, bypassing its macOS HID input
   (`docs/USB_PROTOCOL.md` → "Input state report" has the other options).
 - **Not yet measured:** ~~the joystick in a real game (ITGmania)~~ (first
-  session 2026-10-22: no missed reports, 0 bus errors) and the host-side
-  achieved poll rate. ~~The report rate under many simultaneous presses~~
+  session 2026-10-22: no missed reports, 0 bus errors). ~~The host-side
+  achieved poll rate~~ **measured 2026-10-23: a steady 8,000/s** on the
+  MacBook and on the DeadSync Mac mini (master `usbpoll`; the Mini's gaps
+  101–146 µs), and during a DeadSync song: every report taken within
+  129 µs of being queued, mean 66 µs.
+  ~~The report rate under many simultaneous presses~~
   **passed 2026-10-23** at `poll 0`: up to five panels down at once, 613
   presses, no lost transitions, one report per edge, joystick and telemetry
   agree. The master's INT `glitches` counter read 24 (0 when idle):
