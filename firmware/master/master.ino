@@ -1584,8 +1584,9 @@ void vndConfigResultEvent(int pidx) {
 }
 
 // Telemetry goes out only when nothing else is queued, so at most one stream
-// packet waits here; records gather behind it, up to four, and past that the
-// newest is dropped. With the queue empty a record leaves at once.
+// packet waits here; records gather behind it, up to STREAM_MAX_RECORDS (two
+// in a 64-byte packet), and past that the newest is dropped. With the queue
+// empty a record leaves at once.
 void vndStreamFlush() {
   if (!vnd_stream_n) return;
   vndPump();
