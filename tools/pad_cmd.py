@@ -39,9 +39,11 @@ during gameplay (docs/PANEL_CONFIG.md).
 
 import argparse
 import csv
+import queue
 import statistics
 import struct
 import sys
+import threading
 import time
 
 try:
@@ -112,6 +114,11 @@ class Pad:
         self.out_packet = out_report_size(self.dev.get_report_descriptor())
         self.txn = 0
         self.partial = None   # (kind, txn, bytearray) while a message is open
+        self.arrival = 0.0    # time.monotonic() when the last packet read arrived
+        self._queue = None    # (arrival, packet) from the reader thread
+        self._reader = None
+        self._reading = False
+        self._reader_error = None
         self.drain()
 
     def drain(self):
@@ -130,6 +137,57 @@ class Pad:
             # hidapi wants the report ID first; this interface has none, so 0.
             self.dev.write(b"\x00" + pkt.ljust(self.out_packet, b"\x00"))
 
+    # On macOS hidapi keeps 30 input reports per device and drops the oldest
+    # past that (hid.c, "Pop one off if we've reached 30"): ~29 ms of slack at
+    # poll 0, ~1,020 packets/s. A stream written to CSV on the reading thread
+    # lost records whenever that thread stalled for longer (13 times in the
+    # 2026-10-24 overnight soak, during Time Machine snapshots and an hourly
+    # Contacts sync burst; docs/BRINGUP_LOG.md). A thread that does nothing but
+    # read keeps hidapi's queue empty. Start it only between commands: it and
+    # command() would otherwise both read the device.
+    def start_reader(self):
+        self._queue = queue.Queue()
+        self._reading = True
+        self._reader = threading.Thread(target=self._reader_loop, daemon=True)
+        self._reader.start()
+
+    def _reader_loop(self):
+        try:
+            while self._reading:
+                pkt = self.dev.read(IN_PACKET, timeout=50)
+                if pkt:
+                    self._queue.put((time.monotonic(), pkt))
+        except Exception as e:   # handed to the reading side by _read_packet
+            self._reader_error = e
+            self._reading = False
+
+    def stop_reader(self):
+        """Back to reading on the caller's thread; packets already queued are
+        read first."""
+        self._reading = False
+        self._reader.join()
+        self._reader = None
+
+    def backlog(self):
+        """Packets the reader thread has queued that nobody has read yet."""
+        return self._queue.qsize() if self._queue else 0
+
+    def _read_packet(self, timeout_ms):
+        if self._queue is not None and not self._queue.empty():
+            self.arrival, pkt = self._queue.get_nowait()
+            return pkt
+        if self._reader_error:
+            raise self._reader_error
+        if self._reader:
+            try:
+                self.arrival, pkt = self._queue.get(timeout=timeout_ms / 1000)
+                return pkt
+            except queue.Empty:
+                return None
+        pkt = self.dev.read(IN_PACKET, timeout=timeout_ms)
+        self.arrival = time.monotonic()
+        return pkt
+
     def read_message(self, timeout_ms):
         """One whole message as (kind, txn, bytes), or None on timeout."""
         deadline = time.monotonic() + timeout_ms / 1000
@@ -137,7 +195,7 @@ class Pad:
             left = int((deadline - time.monotonic()) * 1000)
             if left <= 0:
                 return None
-            pkt = self.dev.read(IN_PACKET, timeout=left)
+            pkt = self._read_packet(left)
             if not pkt:
                 return None
             kind, txn, flags, n = pkt[0], pkt[1], pkt[2], u16(pkt, 3)
@@ -341,6 +399,17 @@ def cmd_stream(pad, a):
     # last - first under-counts any log longer than that (2026-10-23: 45.5 Hz
     # printed for a 12.7 Hz, 99-minute session).
     elapsed = [0] * 9
+    # A step between a panel's records over twice its mean so far is a gap:
+    # records that never reached us, whether the master didn't poll (a console
+    # `H` sweep takes poll slots: ~2 cycles) or the host lost them.
+    # (host_s, panel, master step us, host gap s, mean step us)
+    gaps = []
+    last_arrival = [None] * 9
+    # Reader backlog of 30 packets or more: hidapi alone would have dropped
+    # records there. [host_s, peak] per episode.
+    backlogs = []
+    in_backlog = False
+    peak_backlog = 0
     latest = {}
     log = None
     if a.csv:
@@ -349,9 +418,11 @@ def cmd_stream(pad, a):
         log.writerow(["host_s", "panel", "master_us", "raw0", "raw1", "raw2", "raw3",
                       "tare0", "tare1", "tare2", "tare3", "mask"])
     t0 = time.monotonic()
+    t0_wall = time.time()
 
     def on_other(kind, msg):
         if kind == STREAM and msg[0] == STREAM_FSR:
+            host_s = pad.arrival - t0   # when it reached us, not when it was read
             for r in range((len(msg) - 1) // STREAM_RECORD):
                 rec = msg[1 + r * STREAM_RECORD: 1 + (r + 1) * STREAM_RECORD]
                 p, t = rec[0], u32(rec, 1)
@@ -359,11 +430,16 @@ def cmd_stream(pad, a):
                 tare = struct.unpack_from("<4H", rec, 13)
                 counts[p] += 1
                 if last[p] is not None:
-                    elapsed[p] += (t - last[p]) & 0xFFFFFFFF
+                    step = (t - last[p]) & 0xFFFFFFFF
+                    if counts[p] > 50 and step > 2 * elapsed[p] / (counts[p] - 2):
+                        gaps.append((host_s, p, step, host_s - last_arrival[p],
+                                     elapsed[p] / (counts[p] - 2)))
+                    elapsed[p] += step
                 last[p] = t
+                last_arrival[p] = host_s
                 latest[p] = (raw, tare, rec[21])
                 if log:
-                    log.writerow([f"{time.monotonic() - t0:.4f}", p, t, *raw, *tare, rec[21]])
+                    log.writerow([f"{host_s:.4f}", p, t, *raw, *tare, rec[21]])
         else:
             print_other(kind, msg)
 
@@ -372,6 +448,7 @@ def cmd_stream(pad, a):
         return ",".join("-" if c is None else str(c) for c in cal)
 
     pad.command(STREAM_CTL, bytes([1, 0]))
+    pad.start_reader()
     t_end = time.monotonic() + a.seconds
     t_print = 0
     try:
@@ -379,6 +456,15 @@ def cmd_stream(pad, a):
             m = pad.read_message(50)
             if m:
                 on_other(m[0], m[2])
+            b = pad.backlog()
+            peak_backlog = max(peak_backlog, b)
+            if b >= 30:
+                if not in_backlog:
+                    backlogs.append([pad.arrival - t0, b])
+                    in_backlog = True
+                backlogs[-1][1] = max(backlogs[-1][1], b)
+            elif b < 5:
+                in_backlog = False
             if time.monotonic() - t_print > 0.5 and latest:
                 t_print = time.monotonic()
                 print("  " + "  ".join(f"{PANEL_NAME[p]}:{fmt(raw, tare)}"
@@ -387,18 +473,55 @@ def cmd_stream(pad, a):
     except KeyboardInterrupt:
         pass   # Ctrl-C ends a long log early; still stop the stream and summarise
     finally:
+        pad.stop_reader()
         pad.command(STREAM_CTL, bytes([0, 0]), on_other=on_other)
         if log:
             log_file.close()
     print("calibrated values above (0 = the tare, 1000 = full scale); tares now:")
     for p, (raw, tare, mask) in sorted(latest.items()):
         print(f"  {PANEL_NAME[p]:>2} raw {','.join(map(str, raw))}  tare {','.join(map(str, tare))}")
-    print("per panel: records, rate by master timestamps (* pressed, ! not configured)")
+    print("per panel: records, rate by master timestamps, gaps (* pressed, ! not configured)")
     for p in range(9):
+        n_gaps = sum(1 for g in gaps if g[1] == p)
         if counts[p] > 1:
-            print(f"  {PANEL_NAME[p]:>2} {counts[p]:5}  {(counts[p] - 1) / (elapsed[p] / 1e6):6.1f} Hz")
+            print(f"  {PANEL_NAME[p]:>2} {counts[p]:5}  {(counts[p] - 1) / (elapsed[p] / 1e6):6.1f} Hz"
+                  f"  {n_gaps} gaps")
         elif counts[p]:
             print(f"  {PANEL_NAME[p]:>2} {counts[p]:5}")
+    print_gaps(gaps, t0_wall)
+    print(f"started {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t0_wall))} "
+          f"(epoch {t0_wall:.3f}; host_s in the CSV counts from here)")
+    print(f"reader backlog: peak {peak_backlog} packets; {len(backlogs)} times at 30 or "
+          f"more, where hidapi alone would have dropped records")
+    for host_s, peak in backlogs[:40]:
+        print(f"  {time.strftime('%H:%M:%S', time.localtime(t0_wall + host_s))}  "
+              f"host_s {host_s:10.3f}  peak {peak}")
+    if len(backlogs) > 40:
+        print(f"  ... {len(backlogs) - 40} more")
+
+
+def print_gaps(gaps, t0_wall):
+    """Gaps across panels within 0.5 s of each other are one event. Records
+    missing: each gap's step over its panel's mean, less the one that arrived."""
+    events = []
+    for g in sorted(gaps):
+        if events and g[0] - events[-1][0][0] < 0.5:
+            events[-1].append(g)
+        else:
+            events.append([g])
+    missing = sum(round(g[2] / g[4]) - 1 for g in gaps)
+    print(f"gaps over twice a panel's mean step: {len(gaps)} in {len(events)} events, "
+          f"~{missing} records missing in all")
+    if events:
+        print("  (a console `H` sweep shows as a short gap on every panel; host gap well over "
+              "the master step = records lost on the host)")
+    for ev in events[:40]:
+        print(f"  {time.strftime('%H:%M:%S', time.localtime(t0_wall + ev[0][0]))}  "
+              f"host_s {ev[0][0]:10.3f}  {len({g[1] for g in ev})} panels  "
+              f"master step up to {max(g[2] for g in ev) / 1000:6.1f} ms  "
+              f"host gap up to {max(g[3] for g in ev) * 1000:6.1f} ms")
+    if len(events) > 40:
+        print(f"  ... {len(events) - 40} more")
 
 
 def cmd_mode(pad, a):
