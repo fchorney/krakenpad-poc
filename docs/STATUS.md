@@ -303,7 +303,7 @@ so far is the 8.5 h overnight soak (2026-10-23/24, test 3).
    errors on all nine (`docs/BRINGUP_LOG.md`). Bus errors after a 12 V power-up
    are panels booting into live traffic: random panels each time, none with
    traffic paused, and they stop once every panel is up. Still to do: a
-   re-run **under the trunk fuse**, which isn't fitted yet.
+   re-run **under the trunk fuse**, now fitted (the user, 2026-10-24).
 2. **Thermal.** Includes `U303` at real load, which so far has only been checked
    as "barely warm" on 12 V alone, on one board (`docs/DUAL_PANEL.md`).
 3. **Overnight bus soak: passed 2026-10-23/24** at `poll 0`, 8 h 28 min,
