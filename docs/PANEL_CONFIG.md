@@ -562,6 +562,20 @@ counts above its model.
     host already has each channel's raw and tare to say which one. Flagging on
     the panel reports the panel's own decision rather than a host-side copy of
     the rule.
+- **Idea, not decided (2026-10-25, the user): a release-speed check for the
+  config program.** On fast charts the limit can be how quickly a sensor
+  falls back after the foot lifts. A slow release could mean the panel's foam
+  is compressed, or the gap between the foam and the sensor is too small and
+  needs adjusting. A check per sensor would turn that into a number to compare
+  across sensors and over time. Not worked out yet:
+  - **Where to measure:** on the panel. It samples at ~100 kHz, while the
+    telemetry stream is ~14 Hz per panel at nine panels, far too coarse to see
+    a release.
+  - **What to measure:** for example the time from the release threshold down
+    to near the tare, or a fall time between two calibrated levels, collected
+    over ordinary presses or in a guided "stomp and lift" test.
+  - **Reporting:** a per-channel statistic on request, or a fault flag (the
+    item above) when one sensor is much slower than the others.
 
 **Config version 2** carries the new units in the same 20 bytes per panel. A
 master that finds a version-1 record **does not convert it** (a deliberate
