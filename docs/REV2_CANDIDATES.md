@@ -152,6 +152,16 @@ when and where it was found, so it can be weighed with its original evidence.
     own pins (it is socketed, so the PCB isn't touched); a series resistor
     (~1 kΩ) in each signal line keeps a powered logger from back-powering an
     unpowered master through its I/O pins.
+    **The reverse case, measured 2026-10-25 on a hand-wired rev 1:** a USB-
+    powered Teensy logger, its USB unplugged but still wired to a running
+    master through ~1 kΩ, sent ~4.6 KB/s of junk into the master's RX1 until
+    it was replugged. Probably the logger is half-powered from the master's
+    TX1 through its RX pin (inferred, not measured). A pull-up on RX1 can't
+    fix that, because the line is driven, not floating. So any console on
+    this header has to treat RX input as untrusted: only accept lines with a
+    prefix junk won't produce, and never echo junk back. Hardware options for
+    the header, if wanted: a buffer rated for powered-off inputs (Ioff) on
+    TX1, so the master can't power an unpowered logger.
 13. **Master: test points on all nine INT lines** (raised 2026-10-25, the
     user). The master has TP1–TP10 (RS-485, DE, rails, underglow) and none on
     INT. The INT release at DR was slow (67 µs) and crossed mid-rail 19–41
