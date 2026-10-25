@@ -51,6 +51,8 @@ the update for the end:
 > 9. Both boards: SMD wherever possible, wash-safe parts
 > 10. Carrier: automatic termination via chain discovery (parked)
 > 11. Master: run from the pad's 12V so it comes up with the panels (to think about)
+> 12. Master: a 3-pin debug header, GND / RX1 / TX1 (Serial1, free on purpose)
+> 13. Master: test points on all nine INT lines
 >
 > Dropped: the RS-485 DE pull-down (measured unnecessary, 2026-09-07). Decided
 > for rev 1 with revisit notes: no board-level power protection.

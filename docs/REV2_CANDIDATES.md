@@ -142,6 +142,25 @@ when and where it was found, so it can be weighed with its original evidence.
     → "LED modes"), which with this change would only show on a fault.
     **User's view (2026-10-22): extra parts and complexity, but maybe worth
     it; not deciding now.**
+12. **Master: a 3-pin debug header, GND / RX1 / TX1** (raised 2026-10-25, the
+    user). GPIO 0/1 are Serial1, the last spare hardware UART, kept free on
+    purpose (`docs/MASTER_PCB.md` pin map) but not brought out. A header gives
+    the master a console that doesn't depend on USB: readable while a game
+    owns the PC and never opens the CDC port, and across USB re-enumeration.
+    Next to the Teensy's pin-0 corner, where GND, 0 and 1 already sit
+    together. On rev 1 the same three can be wired by hand to the Teensy's
+    own pins (it is socketed, so the PCB isn't touched); a series resistor
+    (~1 kΩ) in each signal line keeps a powered logger from back-powering an
+    unpowered master through its I/O pins.
+13. **Master: test points on all nine INT lines** (raised 2026-10-25, the
+    user). The master has TP1–TP10 (RS-485, DE, rails, underglow) and none on
+    INT. The INT release at DR was slow (67 µs) and crossed mid-rail 19–41
+    times (`docs/BRINGUP_LOG.md`, scope 2026-10-23), the likely source of the
+    master's `glitches` count, but it hasn't been seen **at the master's
+    pin**, because there is nowhere to probe there. Put them on the
+    Teensy-side node `INT_xx` (after the 330 Ω, where the 1 nF and the pull-up
+    sit; `docs/MASTER_PCB.md` → INT protection), and label them by panel
+    (`UL` … `DR`, as `J3`–`J11`). Pairs with #5 and #7.
 
 ## Dropped
 
