@@ -12,7 +12,7 @@ use crate::protocol::PROTOCOL_VERSION;
 use crate::transport::{HidOpener, Opener};
 
 /// How often the context looks for pads plugged in since.
-const SCAN_INTERVAL: Duration = Duration::from_secs(1);
+pub(crate) const SCAN_INTERVAL: Duration = Duration::from_secs(1);
 /// Player IDs 0–3 are P1–P4; 4–7 are reserved.
 const MAX_PLAYERS: u8 = 4;
 

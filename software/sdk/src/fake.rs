@@ -2,6 +2,8 @@
 //! `firmware/master/master.ino` → "USB vendor interface", with no bus behind
 //! it. It shares the SDK's reading of the protocol, so it can't catch a
 //! misreading of the firmware; the bench does that (`docs/HOST_SOFTWARE.md`).
+//! Also behind the simulated pads (`sim.rs`), which use only part of it.
+#![cfg_attr(not(test), allow(dead_code))]
 
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
@@ -95,7 +97,13 @@ impl FakeMaster {
             self.was_reset as u8 | (self.stream_on as u8) << 1,
         ]);
         r.extend(self.present.to_le_bytes());
-        r.extend([0, 8]);
+        // The switch is on DR (8), last in chain order: terminated while it
+        // answers, otherwise none is.
+        r.extend(if self.present >> 8 & 1 != 0 {
+            [0, 8]
+        } else {
+            [1, 0xFF]
+        });
         r
     }
 

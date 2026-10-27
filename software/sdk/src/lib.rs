@@ -32,8 +32,8 @@
 //! # Ok::<(), krakenpad::Error>(())
 //! ```
 //!
-//! Status: a skeleton (2026-10-20), tested against a fake master only; it has
-//! not talked to a real pad yet. `docs/HOST_SOFTWARE.md` → "Built".
+//! Status: a skeleton (2026-10-20), tested against a fake master and run
+//! against the pad. `docs/HOST_SOFTWARE.md` → "Built".
 
 #![forbid(unsafe_code)]
 
@@ -41,11 +41,13 @@ mod config;
 mod context;
 mod error;
 mod events;
-#[cfg(test)]
+#[cfg(any(test, feature = "sim"))]
 mod fake;
 mod messages;
 mod pad;
 mod protocol;
+#[cfg(feature = "sim")]
+pub mod sim;
 mod transport;
 
 pub use config::{

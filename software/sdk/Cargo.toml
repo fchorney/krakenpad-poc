@@ -9,6 +9,11 @@ publish.workspace = true
 # hidapi 2.6.7 with deadsync's backends, so its Windows 7 patch
 # ([patch.crates-io]) covers the SDK too. One declaration for every target,
 # plus the backend per OS; Cargo merges the features.
+[features]
+# Simulated pads (krakenpad::sim), for building and trying apps without a pad.
+# Off by default, so games don't build it.
+sim = []
+
 [dependencies]
 hidapi = { version = "2.6.7", default-features = false }
 
