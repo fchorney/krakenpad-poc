@@ -1,8 +1,10 @@
 # Host software — SDK and apps
 
-**Status: the SDK's Rust skeleton is built (2026-10-20) and tested against a
-fake master; it has not talked to a real pad yet.** The C interface and the
-apps are not built. What runs on the PC: the SDK that games link, and the apps
+**Status: the SDK's Rust skeleton is built (2026-10-20) and runs against the
+pad** (its `monitor` example, since the evening of 2026-10-20). **The config
+app was started 2026-10-27**: a window that lists the pads and the SDK's
+events ("Config app" below). The C interface and the other apps are not built.
+What runs on the PC: the SDK that games link, and the apps
 built on it. What exists: "Built (2026-10-20)" below. The USB interface they talk to is
 `docs/USB_PROTOCOL.md`: the joystick report works on the bench, and the vendor
 interface the SDK uses was built in the master 2026-10-20 and first ran on
@@ -149,7 +151,7 @@ drops into deadsync without conflicts.
 | `hidapi` crate | **2.6.7**, `windows-native` on Windows, `linux-static-hidraw` on Linux | deadsync's version and backends; its Windows 7 patch then covers the SDK |
 | Rust edition | **2024** | deadsync's |
 | `rust-version` | **1.97**, fixed; raised only on purpose | deadsync's minimum today; the SDK must never be what raises deadsync's |
-| `egui` / `eframe` | latest release when the apps are started, then pinned exactly | apps only; not in the SDK or deadsync |
+| `egui` / `eframe` | latest release when the apps are started, then pinned exactly: **`eframe` 0.37.0** (2026-10-27, the config app; needs Rust 1.95, inside the 1.97 pin) | apps only; not in the SDK or deadsync |
 | `cbindgen` | latest when `krakenpad-c` is started | build-time tool only |
 
 **DECIDED 2026-10-20: saving config and uploading animations are not for use
@@ -226,7 +228,19 @@ the same day): tests, clippy and fmt clean without the flag.
 `set_led_mode`, `self_test`, `zero_counters`, `send_led_frame`, `clock_probe`.
 The doc comments carry the "not during gameplay" rule for saving.
 
-**Tests:** 25 plus the doc example, 20 runs clean in a row. The fake master
+**Simulated pads (feature `sim`, 2026-10-27):** `krakenpad::sim::Simulator`
+puts the test fake master behind a real `Context` (`Simulator::context()`), so
+an app runs the SDK's own code with no hardware. Its panels stream 50 Hz
+samples: a fitted sensor rests at 88–114 raw with a little noise, an empty
+socket at 13–18 (the measured ranges), and presses follow the master's config
+with hysteresis. It can plug and unplug pads, silence panels and put weight on
+sensors. Off by default, so games don't build it; the config app turns it on.
+The fake master's termination check now follows DR's presence (the switch is
+on DR, last in chain order).
+
+**Tests:** 25 plus the doc example, 20 runs clean in a row. With `sim`, two
+more (a held panel presses and releases by the config; a silenced panel and an
+unplug reach the SDK as events): 31 in all. The fake master
 shares the SDK's reading of the protocol, so it can't catch a misreading of the
 firmware; the bench does that. **First run on the pad:** `cargo run --example
 monitor` from `software/` prints events and live FSR values
@@ -251,7 +265,119 @@ frames; sample history for graphs (the snapshot keeps only the latest);
 passthrough and panel updates; writing master firmware over HID; clock sync
 (only the probe exists); underglow; reset animations; timestamped input.
 
+## Config app (started 2026-10-27)
+
+Crate **`krakenpad-config`** in `software/apps/config`, on `eframe` 0.37.0 (its
+default wgpu renderer). Run it from `software/` with
+`cargo run -p krakenpad-config`, or **`cargo run -p krakenpad-config -- --sim`
+for simulated pads** (below).
+
+**As built (2026-10-27):** a sidebar (Overview, Sensors, Lights, Updates; only
+Overview has content) and the **Overview**: every connected pad as a card, side
+by side. Each card has the master's firmware and build, its USB speed (at Full
+Speed, the measured LED-frame cost) and packet sizes, a 3×3 grid of the panels
+(lit while pressed, dimmed while not answering, outlined when a panel's config
+doesn't match the master's, `T` on the terminated one; hovering one shows its
+pad-status details), the termination check, and warnings for "config was
+reset", unsaved console edits and bus passthrough. An event log sits below.
+- **A thread of the app's own** (`worker.rs`) reads the SDK's event queue (C
+  above) and runs every command that blocks: telemetry on at connect, device
+  info and pad status every 2 s and soon after a presence or config event. The
+  window only reads what it leaves, so it never waits on a master. While a pad
+  is connected the window redraws at ~30 Hz for live telemetry, which has no
+  event to wake it.
+- **Simulated pads, `--sim`:** two pads from the SDK's simulator (feature
+  `sim`, "Built" above): P1 as it should be, and P2 at Full Speed, with DR not
+  answering, sensors only on U, L, C, R and D, and a master that lost its
+  config. A **Simulator** window plugs and unplugs each pad's USB, presses a
+  panel while the mouse holds it (at a chosen weight), and makes a panel stop
+  or start answering (right-click).
+- **Dev aid:** `KRAKENPAD_SCREENSHOT=out.bmp` saves the window ~2 s after
+  start, then quits. eframe's own screenshot hook works only with its glow
+  renderer.
+
+**UI decisions** (the user, 2026-10-27):
+- **DECIDED: a sidebar of sections** (e.g. Overview, Sensors, Lights,
+  Updates), "for now".
+- **DECIDED: every connected pad shown at once**, side by side, not a P1/P2
+  switcher ("ideally, if possible").
+- **The aim for thresholds:** a simple view and a power-user view without
+  over-complicating either, and **arbitrary groups of sensors**, so adjusting
+  the same set doesn't mean changing many values over and over. For
+  comparison, the stock config app (open source) has four double sliders
+  (up, center, cardinal, corner), one per panel in its advanced mode, plus
+  inner-sensor, outer-sensor and one "custom" set on top, with fixed
+  priorities between overlapping sliders; the custom set lives in the app's
+  settings, not on the pad.
+- **DECIDED: groups are saved selections, not owners of values.** Values stay
+  per sensor, as the master stores them. A group is a named set of sensors;
+  choosing it selects them, and one press/release double slider edits them
+  all. Where they differ the slider shows the spread: dragging sets them all
+  to one value, and nudge buttons move them all while keeping their
+  differences. No priorities, nothing on the PC that can disagree with the
+  pad, and groups may overlap. Rejected: groups that own values with a
+  priority order (stock's model), because arbitrary groups would need a
+  user-ordered priority, the UI would have to explain why a slider didn't
+  move a sensor, and group values held on the PC could disagree with the
+  pad's (after a console edit, or on another computer).
+  - **Simple view:** a short list of built-in groups (All, Up, Center,
+    Cardinals, Corners), each with its own slider. **Power view:** the 3×3
+    grids, sensors selected by click and shift-click or by shortcut ("every
+    S sensor", inner, outer), and any selection saved as a named group.
+    Unpopulated sensors are skipped.
+- **DECIDED: named groups live on the PC** (the app's settings), not on the
+  pad. Tempting to keep them on the pad, but pads rarely move between
+  computers; at worst a user sets them up again after changing PCs. **Config
+  files** cover the rest: save a pad's config with its metadata (the named
+  groups included) to a file and load it back, for backup, a computer change
+  or sharing with friends (`docs/PANEL_CONFIG.md` → export and import).
+- **DECIDED: an edit goes to one pad**, unless the user chooses to have both
+  pads share the same config.
+- **DECIDED: no manual save button.** A forgotten save button means settings
+  lost at the next reboot.
+- **DECIDED (the user, the same night): a change applies at once without
+  saving, and the save follows about a second after the last change.** The
+  pad responds while a slider is dragged, and a drag costs one save instead
+  of one per second. **Needs the master:** two USB commands it doesn't have,
+  "apply config" (update its copy and push it to the panels, no EEPROM
+  write) and "save config", the same split as its console's `S`/`F` and
+  `save`. Today every USB set config saves first. A new protocol version,
+  since the SDK refuses a master on another. The pacing lives in the SDK
+  (applies coalesced, then the delayed save), so deadsync gets it too; the
+  results arrive as events. Unsaved changes are lost if the master loses
+  power within that second. Not built.
+- ~~**DECIDED: saves work the way stock's do.**~~ Superseded by the item
+  above the same night, because the pad would only catch up once a second
+  while a slider moves. Kept for the reasoning: every config
+  write over USB is a save (as built), and the writes are rate-limited: a
+  change goes out at once, then at most one write per second, and the latest
+  change always goes out in the end, so nothing is dropped. That is the stock
+  SDK's behaviour (`SetConfig` keeps the wanted config; its I/O thread sends
+  it no more than once a second). No firmware change. The cost: while a
+  slider is dragged, the pad catches up at most once a second (the lines on
+  screen move at once); each write stalls the master ~1 ms, about 1 in 440
+  up to ~35 ms (the no-saves-during-gameplay rule still holds: the app writes
+  only when the user edits). It needs no firmware change, which is still the
+  fallback.
+
+**macOS trap, found starting it:** hidapi's device enumeration runs the calling
+thread's run loop. eframe builds the app from inside winit's event handling on
+the main thread, so `Context::new()` there re-entered winit, which panicked
+("tried to handle event while another event is currently being handled"). The
+app creates the `Context` in `main()` before the event loop starts. The SDK's
+own enumeration after that runs on its manager thread, which is safe. Anything
+else built on winit needs the same care, deadsync included ("Not decided"
+below).
+
 ## Not decided
+
+- **Whether `Context::new()` should start hidapi on the SDK's manager thread**
+  (raised 2026-10-27, from the macOS trap above). Then it would be safe to call
+  from any thread, including inside a winit handler, and no program would need
+  to know about the trap. Today it starts hidapi on the caller's thread, so that
+  a failure comes back from `new()` directly; the manager thread could hand the
+  result back instead. deadsync creates its input backends on threads of its
+  own, which would avoid the trap anyway.
 
 - **How the SDK and the firmware share values once they live in separate
   repos** (raised 2026-10-20; the user is unsure). Today the SDK repeats the

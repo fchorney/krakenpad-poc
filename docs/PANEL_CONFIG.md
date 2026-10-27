@@ -420,7 +420,10 @@ after 2,048 writes to one sector, so it is rare.
   format the master doesn't speak.
 - **Later, not designed:** export and import of a pad's config to a file through
   the SDK, as a backup and to copy calibration between pads. It may cover only
-  a subset of the config; to think about when it's built.
+  a subset of the config; to think about when it's built. **The config app's
+  file also carries its metadata, the named sensor groups included** (the
+  user, 2026-10-27), for backup, a computer change or sharing with friends
+  (`docs/HOST_SOFTWARE.md` → "Config app").
 
 ## Factory reset (decided 2026-10-20)
 

@@ -1,6 +1,6 @@
 # Project status
 
-**Last updated 2026-10-24.** This is the one page for "where is the project right
+**Last updated 2026-10-27.** This is the one page for "where is the project right
 now". Update it alongside any change that moves it (rules in `CLAUDE.md`).
 Detail lives in the docs it links.
 
@@ -55,8 +55,8 @@ models).
 | | Built | Not built |
 |---|---|---|
 | **Panel** (`firmware/panel/c/main.c`) | Core 0 FSR loop with hysteresis + persistence driving INT; core 1 bus responder (`F I W H Z M L B`) and LED rendering; LED modes 0/1/2; DIP 10 standalone sensor test; runs behind the bus-update bootloader. **Built 2026-10-20, runs on all nine (2026-10-20):** config from the master's `'W'` (thresholds and `populated`/`enabled` per channel, RAM only by design), the "not configured" bit in `'f'`; `'C'` removed. **Built and flashed to all nine 2026-10-22: tare tracking and calibrated thresholds** (config version 2, 0–1000, default 930/905; tares in `'f'`; test mode from tare + 20; 2026-10-23: an empty socket's tare re-seeds, `A0D39608`; the same night, WS2815 bit timing inside its datasheet after scoping, `B3B9E68B`). **Built 2026-10-22, flashed to all nine 2026-10-23, checked the same day (breath, press white, replug); its breath dithered across the 25 LEDs (`C9EB5F2E`, "looks great"): no-master standby** (no valid bus frame for 1 s: dim white breath, all white on press) | Local animations (normal mode goes **dark** when `'L'` stops, and breathes with no master); ~~calibration / drift tracking~~ (built 2026-10-22; the tracking constants are first guesses to tune from logged play); a noise statistic and bad-sensor flag; DIP diagnostic codes 9, 11, 12 (13 dropped 2026-10-20) |
-| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check (the meter-only underglow test `U` removed 2026-10-22). **2026-10-22: config version 2 (calibrated thresholds; a saved version 1 falls back to defaults), the 17-byte `'f'` with tares, USB protocol 3** (FSR stream `0xC2` with tares); flashed to master #2. **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20) |
-| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2; protocol 3, calibrated values and `stream --csv` logging, 2026-10-22). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20); protocol 3 with tares and calibrated values, `monitor` shows them (2026-10-22) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**). Decided 2026-10-20 (`docs/HOST_SOFTWARE.md`) |
+| **Master** (`firmware/master/master.ino`, build with `build.sh`) | Bus master (LED frames + paced polling), INT capture, USB joystick report, bench console, update passthrough `P`, self-test, status sweep, termination check (the meter-only underglow test `U` removed 2026-10-22). **2026-10-22: config version 2 (calibrated thresholds; a saved version 1 falls back to defaults), the 17-byte `'f'` with tares, USB protocol 3** (FSR stream `0xC2` with tares); flashed to master #2. **Built 2026-10-20, run on master #2 the same evening (hands-on steps still to do):** the panels' config (the only saved copy, two-slot EEPROM record, pushes + ~1 Hz re-push, per-panel state; console `c` `S` `F` `save` `reset config`), and the **USB vendor interface**: the whole command table except underglow and reset animations, telemetry stream, host LED frames, USB bus passthrough | Underglow periodic re-send and host strip command; reset animations; poll interleaving (telemetry 12.6 Hz/panel measured with the re-push, 2026-10-20); USB "apply config" without saving and "save config", for the config app (2026-10-27) |
+| **Host tools** (`tools/`) | `panel_update.py`, `panel_boot_update.py`, `fsr_monitor.py`, `hid_monitor.py`, `swd_check.py`, `usb_speed_test.py`, `bom_census.py`, `gen_bom.py`, `gen_review_images.py`, `gen_stencil.py`; **`pad_cmd.py`** (every USB vendor command, 2026-10-20, run against master #2; protocol 3, calibrated values and `stream --csv` logging, 2026-10-22). **Rust SDK skeleton** (`software/sdk`, crate `krakenpad`, 2026-10-20): framing, pad discovery, commands, events, telemetry snapshot; the `monitor` example runs against master #2 (2026-10-20); protocol 3 with tares and calibrated values, `monitor` shows them (2026-10-22) | The SDK's C interface (`krakenpad-c`), updates through the SDK, and the apps (**Rust + egui**, decided 2026-10-20, `docs/HOST_SOFTWARE.md`). **The config app was started 2026-10-27** (`software/apps/config`, eframe 0.37.0): sidebar and Overview (every pad side by side), and **simulated pads** (`-- --sim`, the SDK's new `sim` feature) to build the UI without hardware; not run against the real pad since the first window. Decided 2026-10-27: a sidebar, every pad shown at once, sensor groups as saved selections kept on the PC, config files, edits per pad, no save button: a change applies at once and saves ~1 s after the last one (**needs two new master USB commands**, apply and save, `docs/HOST_SOFTWARE.md` → "Config app") |
 
 Specs for the unbuilt parts: `docs/PANEL_CONFIG.md`, `docs/USB_PROTOCOL.md`,
 `docs/ANIMATIONS.md`, `docs/UNDERGLOW.md`. Input timestamps with game/pad clock sync, planned with the direct
@@ -210,6 +210,16 @@ DeadSync integration (the user, 2026-10-23): `docs/TIMESTAMPED_INPUT.md`.
   grounds, the bus figures stand (`docs/BRINGUP_LOG.md`).
 
 ## Next steps (firmware/software)
+
+> **The user's plan (2026-10-26):** firmware next is **poll interleaving**
+> (polls between the nine `'L'` packets instead of after the ~7 ms burst; the
+> gain is even telemetry spacing and a loop that never blocks for long, not
+> more bus capacity). Soon after: **the config program** (Rust + egui,
+> `docs/HOST_SOFTWARE.md`), starting with how it looks and what options it
+> gives users. **Started 2026-10-27**: the sidebar and the Overview, run on
+> simulated pads (`-- --sim`; the user: "seems to work"). **Next: the Sensors
+> page**, which shows the current config (`docs/HOST_SOFTWARE.md` → "Config
+> app").
 
 > **Moved into the pad 2026-10-22** (the user: everything worked so far;
 > harness findings in `hardware/harness/README.md` → "Install findings").
