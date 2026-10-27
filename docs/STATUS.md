@@ -21,7 +21,8 @@ Settled; every quantity in the project is sized to it.
 | Harness | — | **both pads** (2026-10-12) | **installed in the bench pad, 2026-10-22**: the stock electronics are out and ours are in |
 
 Also in progress: the master enclosure (`hardware/Master-Case/`, 3D-print
-models).
+models: `MCU-Top.3mf` and `MCU-Bottom.3mf`, and `MCU-Plates.3mf`, the print
+plates with the print tunings, added 2026-10-27).
 
 ## What works on the bench (master #2 + nine panels, 2026-10-20)
 
