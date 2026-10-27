@@ -3,7 +3,7 @@
 # uses the SDK as a path dependency while everything lives in this repo.
 [workspace]
 resolver = "3"
-members = ["sdk"]
+members = ["sdk", "apps/config"]
 
 [workspace.package]
 version = "0.1.0"

@@ -1,0 +1,14 @@
+[package]
+name = "krakenpad-config"
+description = "Config app for KrakenPad dance pads"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+# sim: the --sim flag's simulated pads.
+krakenpad = { path = "../../sdk", features = ["sim"] }
+# The latest release when the app was started (2026-10-27), pinned exactly
+# (docs/HOST_SOFTWARE.md → versions).
+eframe = "=0.37.0"
